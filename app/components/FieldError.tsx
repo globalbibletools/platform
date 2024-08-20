@@ -1,9 +1,15 @@
+"use client";
+
+import { useFormContext } from "./FormContext";
+
 export interface FieldErrorProps {
   id?: string;
-  errors?: string[]
+  name: string
 }
 
-export default function FieldError({ id, errors }: FieldErrorProps) {
+export default function FieldError({ id, name }: FieldErrorProps) {
+    const formContext = useFormContext()
+    const errors = formContext?.errors?.[name]
 
   if (errors?.[0]) {
     return (

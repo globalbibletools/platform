@@ -34,7 +34,7 @@ export default function ModalView({
     <div
       className={`flex-shrink p-6 m-4 bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-none ${className}`}
     >
-      <div className="flex items-center mb-12">
+      <div className="flex items-center mb-8">
         <Link
           className="flex items-center rounded focus-visible:outline outline-2 outline-green-300"
           href="/"

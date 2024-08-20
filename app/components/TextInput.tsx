@@ -1,13 +1,14 @@
+"use client";
+
 import { ComponentProps, forwardRef } from 'react';
-// import { useFormContext } from 'react-hook-form';
+import { useFormContext } from './FormContext';
 
 export type TextInputProps = ComponentProps<'input'>;
 
 const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
   ({ className = '', ...props }, ref) => {
-    // const context = useFormContext();
-    // const hasErrors = !!(props.name && context?.formState.errors[props.name]);
-    const hasErrors = false
+    const formContext = useFormContext()
+    const hasErrors = (formContext?.errors?.[props.name ?? '']?.length ?? 0) > 0
 
     return (
       <input

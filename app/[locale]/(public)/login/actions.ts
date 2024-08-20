@@ -1,6 +1,7 @@
 "use server";
 
 import * as z from 'zod';
+import {getTranslations} from 'next-intl/server';
 import { Scrypt } from "oslo/password";
 import { createSession } from '@/app/session';
 import { redirect } from 'next/navigation';
@@ -22,9 +23,21 @@ export interface LoginState {
 }
 
 export async function login(prevState: LoginState, formData: FormData): Promise<LoginState> {
+    const t = await getTranslations('LoginPage');
+
     const request = loginSchema.safeParse({
         email: formData.get('email'),
         password: formData.get('password')
+    }, {
+        errorMap: (error) => {
+            if (error.path.toString() === 'email') {
+                return { message: t('errors.email_required') }
+            } else if (error.path.toString() === 'password') {
+                return { message: t('errors.password_required') }
+            } else {
+                return { message: 'Invalid' }
+            }
+        }
     });
     if (!request.success) {
         return {
