@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Noto_Sans } from "next/font/google";
 import "../globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const noto_sans = Noto_Sans({
+    subsets: ["latin"],
+    display: 'swap',
+    variable: "--font-noto-sans"
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -19,8 +23,12 @@ export default function RootLayout({
   params: { locale: string }
 }>) {
   return (
-    <html lang={params.locale} dir={RTL_LOCALES.includes(params.locale) ? 'rtl' : 'ltr'}>
-      <body className={inter.className}>{children}</body>
+    <html
+        className={noto_sans.variable}
+        lang={params.locale}
+        dir={RTL_LOCALES.includes(params.locale) ? 'rtl' : 'ltr'}
+    >
+      <body>{children}</body>
     </html>
   );
 }

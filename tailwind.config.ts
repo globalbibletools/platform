@@ -78,13 +78,13 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Noto Sans"', ...defaultTheme.fontFamily.sans],
+        sans: ['var(--font-noto-sans)', ...defaultTheme.fontFamily.sans],
         hebrew: ['"SBL-Hebrew"', ...defaultTheme.fontFamily.sans],
         greek: ['"SBL-Greek"', ...defaultTheme.fontFamily.sans],
         mixed: [
           '"SBL-Greek"',
           '"SBL-Hebrew"',
-          '"Noto Sans"',
+          'var(--font-noto-sans)',
           ...defaultTheme.fontFamily.sans,
         ],
       },
