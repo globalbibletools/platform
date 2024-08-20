@@ -47,15 +47,6 @@ export async function verifySession() {
 
     const result = await query<{ id: string, expiresAt: Date, userId: string }>(`SELECT id, "expiresAt", "userId" FROM "Session" WHERE id = $1`, [sessionId])
     const session = result.rows[0]
-    if (!session) await clearSession()
-
-    if (session.expiresAt > new Date()) {
-        await Promise.all([
-            query(`DELETE FROM "SESSION" WHERE id = $1`, [sessionId]),
-            clearSession()
-        ])
-        return
-    }
-
+    if (!session || session.expiresAt < new Date()) return
     return session
 }
