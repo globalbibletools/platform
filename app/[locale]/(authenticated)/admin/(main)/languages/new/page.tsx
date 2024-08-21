@@ -9,7 +9,7 @@ import ViewTitle from '@/app/components/ViewTitle';
 export default function NewLanguagePage() {
     const t = useTranslations('NewLanguagePage');
 
-    return <div className="px-8 py-6 w-fit">
+    return <div className="px-8 py-6">
         <ViewTitle>{t('title')}</ViewTitle>
         <NewLanguageForm>
             <div className="mb-4">
@@ -27,12 +27,12 @@ export default function NewLanguagePage() {
                 <TextInput
                     id="name"
                     name="name"
-                    className="w-full"
+                    className="block w-64"
                     aria-describedby="name-error"
                 />
                 <FieldError id="name-error" name="name"/>
             </div>
-            <Button type="submit" className="w-full mb-2">{t('form.submit')}</Button>
+            <Button type="submit">{t('form.submit')}</Button>
         </NewLanguageForm>
     </div>
 }

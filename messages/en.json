@@ -18,6 +18,17 @@
             "users": "Users"
         }
     },
+    "AdminUsersPage": {
+        "title": "Users",
+        "links": {
+            "add_user": "Invite User"
+        },
+        "headers": {
+            "name": "Name",
+            "email": "Email",
+            "admin": "Admin"
+        }
+    },
     "AuthenticatedLayout": {
         "app_name": "Global Bible Tools",
         "links": {
@@ -25,6 +36,18 @@
             "admin": "Admin",
             "profile": "Profile",
             "log_out": "Log Out"
+        }
+    },
+    "InviteUserPage": {
+        "title": "Invite User",
+        "form": {
+            "email": "Email",
+            "submit": "Invite"
+        },
+        "errors": {
+            "email_required": "Please enter your email.",
+            "email_format": "Please enter a valid email.",
+            "user_exists": "This user already exists."
         }
     },
     "LanguageLayout": {

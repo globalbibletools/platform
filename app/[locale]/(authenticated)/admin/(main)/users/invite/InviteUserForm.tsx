@@ -2,11 +2,11 @@
 
 import { ReactNode } from "react";
 import { useFormState } from "react-dom";
-import { createLanguage } from "./actions";
+import { inviteUser } from "./actions";
 import { FormContextProvider } from "@/app/components/FormContext";
 
 export default function LoginForm({ children }: { children: ReactNode }) {
-    const [state, formAction] = useFormState(createLanguage, {})
+    const [state, formAction] = useFormState(inviteUser, {})
 
     return <form action={formAction}>
         {state.message && <div className="font-bold text-red-700 mb-2">{state.message}</div>}
