@@ -1,4 +1,13 @@
 {
+    "AuthenticatedLayout": {
+        "app_name": "أدوات الكتاب المقدس العالمية",
+        "links": {
+            "interlinear": "بين السطور",
+            "admin": "المشرف",
+            "profile": "حساب تعريفي",
+            "log_out": "تسجيل الخروج"
+        }
+    },
     "LoginPage": {
         "title": "تسجيل الدخول",
         "form": {

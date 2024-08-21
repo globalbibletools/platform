@@ -45,7 +45,15 @@ export async function verifySession() {
     const sessionId = cookies().get('session')?.value
     if (!sessionId) return
 
-    const result = await query<{ id: string, expiresAt: Date, userId: string }>(`SELECT id, "expiresAt", "userId" FROM "Session" WHERE id = $1`, [sessionId])
+    const result = await query<{ id: string, expiresAt: Date, user: { id: string, name: string, email: string }}>(
+        `SELECT
+            "Session".id, "expiresAt",
+            JSON_BUILD_OBJECT('id', "User".id, 'email', email, 'name', name) AS user
+        FROM "Session"
+        JOIN "User" ON "User".id = "Session"."userId"
+        WHERE "Session".id = $1`,
+        [sessionId]
+    )
     const session = result.rows[0]
     if (!session || session.expiresAt < new Date()) return
     return session

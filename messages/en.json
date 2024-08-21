@@ -1,4 +1,13 @@
 {
+    "AuthenticatedLayout": {
+        "app_name": "Global Bible Tools",
+        "links": {
+            "interlinear": "Interlinear",
+            "admin": "Admin",
+            "profile": "Profile",
+            "log_out": "Log Out"
+        }
+    },
     "LoginPage": {
         "title": "Log In",
         "form": {
@@ -13,7 +22,6 @@
         "forgot_password": "Forgot Password?"
     },
     "ModalView": {
-        "app_name": "Global Bible Tools",
-        "current_language": "English"
+        "app_name": "Global Bible Tools"
     }
 }
