@@ -27,7 +27,8 @@
             "name": "Name",
             "email": "Email",
             "admin": "Admin"
-        }
+        },
+        "email_status": "{status, select, BOUNCED {Bounced} COMPLAINED {Complained} UNVERIFIED {Unverified} other {Unknown}}"
     },
     "AuthenticatedLayout": {
         "app_name": "Global Bible Tools",
