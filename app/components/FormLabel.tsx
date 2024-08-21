@@ -6,7 +6,7 @@ const FormLabel = forwardRef<HTMLLabelElement, ComponentProps<'label'>>(
       <label
         ref={ref}
         className={`
-          font-bold text-sm
+          font-bold text-sm uppercase
           ${className}
         `}
         {...props}

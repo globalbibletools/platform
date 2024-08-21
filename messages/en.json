@@ -50,5 +50,18 @@
     },
     "ModalView": {
         "app_name": "Global Bible Tools"
+    },
+    "NewLanguagePage": {
+        "title": "Add Language",
+        "errors": {
+            "name_required": "Please enter the language name.",
+            "code_size": "The language code must be 3 characters.",
+            "language_exists": "This language already exists."
+        },
+        "form": {
+            "code": "Code",
+            "name": "Name",
+            "submit": "Add"
+        }
     }
 }

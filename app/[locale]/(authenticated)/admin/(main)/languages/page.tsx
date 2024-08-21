@@ -30,12 +30,12 @@ export default async function AdminLanguagesPage({ params }: AdminLanguagePagePr
         <div className="flex-grow" />
           <Button
             variant="primary"
+            href="./languages/new"
           >
             <Icon icon="plus" className="me-1" />
             {t('actions.add_language')}
           </Button>
       </div>
-      {/* <CreateLanguageDialog ref={createDialog} /> */}
       <List>
         <ListHeader>
           <ListHeaderCell className="min-w-[240px]">

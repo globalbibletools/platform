@@ -21,7 +21,7 @@ const nextConfig = {
                 permanent: false
             },
             {
-                source: '/:locale(\\w{2})/admin/languages/:code',
+                source: '/:locale(\\w{2})/admin/languages/:code((?!new))',
                 destination: '/:locale/admin/languages/:code/settings',
                 permanent: false
             }
