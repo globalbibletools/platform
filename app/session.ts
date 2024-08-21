@@ -37,7 +37,6 @@ export async function clearSession() {
     const sessionId = cookies().get('session')?.value
     if (!sessionId) return
 
-    await query(`DELETE FROM "Session" WHERE id = $1`, [sessionId])
     cookies().delete('session')
 }
 
