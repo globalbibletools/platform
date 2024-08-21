@@ -6,10 +6,14 @@ import TextInput from "@/app/components/TextInput";
 import LoginForm from './LoginForm'
 import FieldError from '@/app/components/FieldError';
 
-export default function LoginPage() {
+interface LoginPageProps {
+    params: { locale: string }
+}
+
+export default function LoginPage({ params }: LoginPageProps) {
     const t = useTranslations('LoginPage');
 
-    return <ModalView className="max-w-[480px] w-full">
+    return <ModalView className="max-w-[480px] w-full" locale={params.locale}>
         <ModalViewTitle>{t('title')}</ModalViewTitle>
         <LoginForm>
             <div className="mb-4">

@@ -11,5 +11,9 @@
             "password_required": "Please enter your password."
         },
         "forgot_password": "Forgot Password?"
+    },
+    "ModalView": {
+        "app_name": "Global Bible Tools",
+        "current_language": "English"
     }
 }

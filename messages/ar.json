@@ -11,5 +11,9 @@
             "password_required": "يرجى إدخال كلمة المرور."
         },
         "forgot_password": "هل نسيت كلمة السر"
+    },
+    "ModalView": {
+        "app_name": "أدوات الكتاب المقدس العالمية",
+        "current_language": "اَلْعَرَبِيَّةُ"
     }
 }

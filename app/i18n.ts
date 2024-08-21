@@ -1,7 +1,8 @@
 import {notFound} from 'next/navigation';
 import {getRequestConfig} from 'next-intl/server';
- 
-const locales = ['en', 'ar'];
+import languages from '../languages.json'
+
+const locales = Object.keys(languages)
  
 export default getRequestConfig(async ({locale}) => {
   if (!locales.includes(locale as any)) notFound();
