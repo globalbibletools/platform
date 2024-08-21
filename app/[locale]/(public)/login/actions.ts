@@ -1,7 +1,7 @@
 "use server";
 
 import * as z from 'zod';
-import {getTranslations} from 'next-intl/server';
+import {getTranslations, getLocale} from 'next-intl/server';
 import { Scrypt } from "oslo/password";
 import { createSession } from '@/app/session';
 import { redirect } from 'next/navigation';
@@ -24,6 +24,7 @@ export interface LoginState {
 
 export async function login(prevState: LoginState, formData: FormData): Promise<LoginState> {
     const t = await getTranslations('LoginPage');
+    const locale = await getLocale()
 
     const request = loginSchema.safeParse({
         email: formData.get('email'),
@@ -62,5 +63,5 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
     }
 
     await createSession(user.id)
-    redirect('/')
+    redirect(`/${locale}/profile`)
 }
