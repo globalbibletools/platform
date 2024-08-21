@@ -1,4 +1,11 @@
 {
+    "AdminLayout": {
+        "title": "Admin",
+        "links": {
+            "languages": "Languages",
+            "users": "Users"
+        }
+    },
     "AuthenticatedLayout": {
         "app_name": "Global Bible Tools",
         "links": {

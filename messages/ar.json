@@ -1,4 +1,11 @@
 {
+    "AdminLayout": {
+        "title": "المشرف",
+        "links": {
+            "languages": "اللغات",
+            "users": "المستخدمون"
+        }
+    },
     "AuthenticatedLayout": {
         "app_name": "أدوات الكتاب المقدس العالمية",
         "links": {

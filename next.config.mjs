@@ -7,7 +7,21 @@ const nextConfig = {
     webpack: (config) => {
 		config.externals.push("@node-rs/argon2", "@node-rs/bcrypt");
 		return config;
-	}
+	},
+    async redirects() {
+        return [
+            {
+                source: '/:locale(\\w{2})',
+                destination: '/:locale/interlinear',
+                permanent: false
+            },
+            {
+                source: '/:locale(\\w{2})/admin',
+                destination: '/:locale/admin/languages',
+                permanent: false
+            }
+        ]
+    }
 };
 
 export default withNextIntl(nextConfig);

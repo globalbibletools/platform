@@ -13,7 +13,8 @@ export interface NavLinkProps {
 export default function NavLink({ children, href, className = '' }: NavLinkProps) {
     const pathname = usePathname()
     const linkPathname = href instanceof URL ? href.pathname : href.toString()
-    const isActive = linkPathname.startsWith(pathname)
+    console.log(linkPathname, pathname)
+    const isActive = pathname.startsWith(linkPathname)
 
     return <Link
         href={href}
@@ -21,4 +22,16 @@ export default function NavLink({ children, href, className = '' }: NavLinkProps
     >
         {children}
     </Link>
+}
+
+export function SidebarLink({ children, href }: Omit<NavLinkProps, 'className'>) {
+    return <NavLink
+        href={href}
+        className={isActive => `
+            block px-3 py-1 rounded-lg text-blue-800 dark:text-green-400 font-bold mb-2
+            ${ isActive ? 'bg-green-200 dark:bg-gray-600' : '' }
+        `}
+    >
+        {children}
+    </NavLink>
 }
