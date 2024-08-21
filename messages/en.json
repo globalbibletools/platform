@@ -27,6 +27,14 @@
             "log_out": "Log Out"
         }
     },
+    "LanguageLayout": {
+        "links": {
+            "settings": "Settings",
+            "users": "Users",
+            "reports": "Reports",
+            "import": "Import"
+        }
+    },
     "LoginPage": {
         "title": "Log In",
         "form": {

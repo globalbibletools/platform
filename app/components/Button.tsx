@@ -54,11 +54,11 @@ function buttonClasses(
 }
 
 function isLinkProps(props: ButtonProps): props is _LinkProps {
-    return 'to' in props
+    return 'href' in props
 }
 
 function isButtonProps(props: ButtonProps): props is _ButtonProps {
-    return !('to' in props)
+    return !('href' in props)
 }
 
 const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(

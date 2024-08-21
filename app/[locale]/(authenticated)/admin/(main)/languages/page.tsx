@@ -12,7 +12,11 @@ import Button from '@/app/components/Button';
 import { getTranslations } from 'next-intl/server';
 import { query } from '@/app/db';
 
-export default async function AdminLanguagesPage() {
+interface AdminLanguagePageProps {
+    params: { locale: string }
+}
+
+export default async function AdminLanguagesPage({ params }: AdminLanguagePageProps) {
     const t = await getTranslations("AdminLanguagesPage")
     const languagesQuery = await query<{ id: string, code: string, name: string }>(`SELECT id, name, code FROM "Language"`, [])
     const languages = languagesQuery.rows
@@ -61,7 +65,7 @@ export default async function AdminLanguagesPage() {
                 -
               </ListCell>
               <ListCell>
-                  <Button variant="tertiary" href={`./${language.code}`}>
+                  <Button variant="tertiary" href={`/${params.locale}/admin/languages/${language.code}/settings`}>
                     {t('actions.manage')}
                   </Button>
               </ListCell>
