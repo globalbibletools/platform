@@ -1,4 +1,16 @@
 {
+    "AdminLanguagesPage": {
+        "title": "Languages",
+        "headers": {
+            "language": "Language",
+            "ot_progress": "OT Progress",
+            "nt_progress": "NT Progress"
+        },
+        "actions": {
+            "add_language": "Add Language",
+            "manage": "Manage"
+        }
+    },
     "AdminLayout": {
         "title": "Admin",
         "links": {

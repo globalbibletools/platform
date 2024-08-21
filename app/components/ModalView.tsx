@@ -1,11 +1,5 @@
 import Link from 'next/link';
-import { ReactNode, useEffect, useRef } from 'react';
-import logo from '../../assets/images/bet-scroll.png';
-import { Icon } from './Icon';
-// import LanguageDialog, { LanguageDialogRef } from './LanguageDialog';
-import Button from './Button';
-import { initialLanguageChosen } from '../../app/i18n';
-import interfaceLanguages from '../languages.json';
+import { ReactNode, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import LanguageDialog from './LanguageDialog';
 
@@ -13,7 +7,6 @@ export interface ModalViewProps {
   className?: string;
   children: ReactNode;
   header?: ReactNode;
-  locale: string;
 }
 
 export default function ModalView({
@@ -22,17 +15,6 @@ export default function ModalView({
   className = '',
 }: ModalViewProps) {
     const t = useTranslations("ModalView")
-
-  /*
-  const { t, i18n } = useTranslation(['common', 'languages']);
-
-  const languageDialog = useRef<LanguageDialogRef>(null);
-  useEffect(() => {
-    if (!initialLanguageChosen) {
-      languageDialog.current?.show();
-    }
-  }, []);
-  */
 
   return (
     <div
