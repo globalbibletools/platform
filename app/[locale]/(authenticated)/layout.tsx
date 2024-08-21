@@ -12,6 +12,17 @@ export default async function AuthenticatedLayout({ children, params }: { childr
     const t = await getTranslations("AuthenticatedLayout")
     const session = await verifySession()
 
+    function navLinkClasses(isActive: boolean) {
+      return `
+        h-full px-2 text-center block pt-[28px] md:pt-[30px] font-bold md:mx-2 border-b-4
+        ${
+          isActive
+            ? 'border-blue-800 dark:border-green-400'
+            : 'border-transparent'
+        }
+      `;
+    }
+
     return (
       <div className="relative min-h-screen flex flex-col">
         <nav
@@ -27,8 +38,12 @@ export default async function AuthenticatedLayout({ children, params }: { childr
             </h1>
           </Link>
           <div className="flex-grow md:flex-grow-0" />
-          <HeaderLink href={`/${params.locale}/interlinear`}>{t('links.interlinear')}</HeaderLink>
-          <HeaderLink href={`/${params.locale}/admin`}>{t('links.admin')}</HeaderLink>
+          <HeaderLink href={`/${params.locale}/interlinear`}>
+            {t('links.interlinear')}
+          </HeaderLink>
+          <HeaderLink href={`/${params.locale}/admin`}>
+            {t('links.admin')}
+          </HeaderLink>
           <div className="md:flex-grow" />
           {session ?
             <DropdownMenu
@@ -44,7 +59,10 @@ export default async function AuthenticatedLayout({ children, params }: { childr
                 <Icon icon="right-from-bracket" className="me-2" fixedWidth />
                 <span className="font-bold">{t('links.log_out')}</span>
               </DropdownMenuItem>
-            </DropdownMenu> : <HeaderLink href={`/${params.locale}/login`}>Log In</HeaderLink>}
+            </DropdownMenu> : <Link
+                href={`/${params.locale}/login`}
+                className="h-full px-2 text-center block pt-[28px] md:pt-[30px] font-bold md:mx-2 border-b-4"
+            >Log In</Link>}
         </nav>
         <div className="flex-grow relative flex flex-col max-w-[1800px] mx-auto w-full">
             {children}
