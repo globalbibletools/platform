@@ -43,6 +43,15 @@
             "log_out": "Log Out"
         }
     },
+    "InviteLanguageUserPage": {
+        "title": "Invite User",
+        "form": {
+            "email": "Email",
+            "role": "Role",
+            "submit": "Invite"
+        },
+        "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
+    },
     "InviteUserPage": {
         "title": "Invite User",
         "form": {
@@ -89,6 +98,18 @@
         "translation_description": "These translation are used in the platform when showing a passage from the Bible.",
         "saving": "Saving",
         "saved": "Saved"
+    },
+    "LanguageUsersPage": {
+        "title": "Users",
+        "links": {
+            "invite_user": "Invite User",
+            "remove": "Remove User"
+        },
+        "headers": {
+            "name": "Name",
+            "role": "Role"
+        },
+        "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
     },
     "LoginPage": {
         "title": "Log In",
