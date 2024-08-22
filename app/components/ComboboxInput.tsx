@@ -1,9 +1,12 @@
+"use client";
+
 import { Combobox } from '@headlessui/react';
 import {
   ComponentProps,
   KeyboardEventHandler,
   forwardRef,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 import { Icon } from './Icon';
@@ -22,6 +25,7 @@ interface BaseComboboxInputProps
   value?: string;
   defaultValue?: string;
   up?: boolean;
+  autosubmit?: boolean;
   onBlur?(): void;
   onChange?(value: string): void;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
@@ -31,7 +35,8 @@ const ComboboxInput = forwardRef<HTMLInputElement, BaseComboboxInputProps>(
   (
     {
       className = '',
-      value = '',
+      value,
+      defaultValue,
       onChange,
       onBlur,
       items,
@@ -39,6 +44,7 @@ const ComboboxInput = forwardRef<HTMLInputElement, BaseComboboxInputProps>(
       up,
       onKeyDown,
       disabled,
+      autosubmit = false,
       ...props
     }: BaseComboboxInputProps,
     ref
@@ -64,11 +70,20 @@ const ComboboxInput = forwardRef<HTMLInputElement, BaseComboboxInputProps>(
       }
     }, [items, normalizedInputValue]);
 
+    const root = useRef<HTMLDivElement>(null);
+
     return (
-      <div className={`${className} relative ${disabled ? 'opacity-25' : ''}`}>
+      <div ref={root} className={`${className} relative ${disabled ? 'opacity-25' : ''}`}>
         <Combobox
           value={value}
-          onChange={onChange}
+          defaultValue={defaultValue}
+          onChange={value => {
+              if (autosubmit) {
+                const form = root.current?.closest('form') 
+                form?.requestSubmit()
+              }
+              onChange?.(value)
+          }}
           name={name}
           disabled={disabled}
         >

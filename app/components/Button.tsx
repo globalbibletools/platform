@@ -1,9 +1,10 @@
 import Link, { LinkProps as NextLinkProps } from 'next/link';
 import { ComponentProps, forwardRef } from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'tertiary';
+type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'link';
 
 interface _LinkProps extends NextLinkProps {
+    target?: string
   className?: string;
   variant?: ButtonVariant;
   destructive?: boolean;
@@ -49,6 +50,11 @@ function buttonClasses(
           ? 'text-red-800 dark:text-red-700 outline-red-300'
           : 'text-blue-800 dark:text-green-400 outline-green-300'
       }`;
+    }
+    case 'link': {
+        return `inline font-bold focus:underline
+            ${destructive ? 'text-red-800 dark:text-red-700' : 'text-blue-800 dark:text-green-400'}
+        `
     }
   }
 }

@@ -1,14 +1,21 @@
 "use client";
 
-import { ComponentProps, forwardRef } from 'react';
+import { ChangeEvent, ComponentProps, forwardRef } from 'react';
 import { useFormContext } from './FormContext';
+import debounce from './debounce';
 
-export type TextInputProps = ComponentProps<'input'>;
+export interface TextInputProps extends ComponentProps<'input'> {
+    autosubmit?: boolean
+};
 
 const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
-  ({ className = '', ...props }, ref) => {
+  ({ className = '', autosubmit = false, onChange, ...props }, ref) => {
     const formContext = useFormContext()
     const hasErrors = (formContext?.errors?.[props.name ?? '']?.length ?? 0) > 0
+
+    const autosubmitForm = autosubmit ? debounce((e: ChangeEvent<HTMLInputElement>) => {
+        e.target.form?.requestSubmit()
+    }, 1000) : undefined
 
     return (
       <input
@@ -24,6 +31,10 @@ const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
           }
           ${className}
         `}
+        onChange={e => {
+            autosubmitForm?.(e)
+            onChange?.(e)
+        }}
         {...props}
       />
     );

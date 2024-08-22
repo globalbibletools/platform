@@ -63,6 +63,33 @@
             "import": "Import"
         }
     },
+    "LanguageSettingsPage": {
+        "title": "Settings",
+        "form": {
+            "name": "Name",
+            "code": "Code",
+            "font": "Font",
+            "text_direction": "Text Direction",
+            "text_direction_option": "{dir, select, ltr {Left to Right} rtl {Right to Left} other {}}",
+            "translation_placeholder": "Select Translation"
+        },
+        "errors": {
+            "name_required": "Please enter the language name.",
+            "font_required": "Please select a font.",
+            "text_direction_required": "Please select a text direction."
+        },
+        "headings": {
+            "identification": "Identification",
+            "text": "Text",
+            "bible_translation": "Bible Translations"
+        },
+        "name_description": "The name of the language is shown throughout the app. We prefer it to be written in the language rather than English.",
+        "code_description": "The language code follows <a>ISO 639-3</a> which uniquely identifies languages across systems.",
+        "text_description": "Configure the text of the language as you would like it to appear in the platform.",
+        "translation_description": "These translation are used in the platform when showing a passage from the Bible.",
+        "saving": "Saving",
+        "saved": "Saved"
+    },
     "LoginPage": {
         "title": "Log In",
         "form": {
