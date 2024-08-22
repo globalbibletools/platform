@@ -13,7 +13,6 @@ export interface NavLinkProps {
 export default function NavLink({ children, href, className = '' }: NavLinkProps) {
     const pathname = usePathname()
     const linkPathname = href instanceof URL ? href.pathname : href.toString()
-    console.log(linkPathname, pathname)
     const isActive = pathname.startsWith(linkPathname)
 
     return <Link

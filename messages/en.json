@@ -26,9 +26,13 @@
         "headers": {
             "name": "Name",
             "email": "Email",
-            "admin": "Admin"
+            "role": "Role"
         },
-        "email_status": "{status, select, BOUNCED {Bounced} COMPLAINED {Complained} UNVERIFIED {Unverified} other {Unknown}}"
+        "errors": {
+            "invalid_request": "Invalid request"
+        },
+        "role": "{role, select, ADMIN {Admin} other {}}",
+        "email_status": "{status, select, BOUNCED {Bounced} COMPLAINED {Complained} UNVERIFIED {Unverified} other {}}"
     },
     "AuthenticatedLayout": {
         "app_name": "Global Bible Tools",

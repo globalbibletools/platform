@@ -4,10 +4,20 @@ import { List, ListBody, ListCell, ListHeader, ListHeaderCell, ListRow } from "@
 import ViewTitle from "@/app/components/ViewTitle";
 import { query } from "@/app/db";
 import { getTranslations } from "next-intl/server";
+import RoleSelector from "./RoleSelector";
 
 export default async function AdminUsersPage() {
     const t = await getTranslations("AdminUsersPage")
-    const usersQuery = await query<{ id: string, name: string, email: string, emailStatus: string }>(`SELECT id, name, email, "emailStatus" FROM "User" ORDER BY name`, [])
+    const usersQuery = await query<{ id: string, name: string, email: string, emailStatus: string, roles: [] }>(
+        `SELECT
+            id, name, email, "emailStatus",
+            COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
+        FROM "User" AS u
+        LEFT JOIN "UserSystemRole" AS r ON r."userId" = u.id
+        GROUP BY u.id
+        ORDER BY u.name`,
+        []
+    )
     const users = usersQuery.rows
 
     return <div className="px-8 py-6 w-fit">
@@ -31,7 +41,7 @@ export default async function AdminUsersPage() {
             {t('headers.email')}
           </ListHeaderCell>
           <ListHeaderCell className="min-w-[80px]">
-            {t('headers.admin')}
+            {t('headers.role')}
           </ListHeaderCell>
         </ListHeader>
         <ListBody>
@@ -50,6 +60,14 @@ export default async function AdminUsersPage() {
                 )}
               </ListCell>
               <ListCell className="py-2 ps-2">
+                <RoleSelector 
+                    userId={user.id}
+                    label={t("headers.role")}
+                    initialValue={user.roles}
+                    options={[
+                        { label: t("role", { role: "ADMIN" }), value: "ADMIN" }
+                    ]}
+                />
               </ListCell>
             </ListRow>
           ))}
