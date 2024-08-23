@@ -5,6 +5,7 @@ import MultiselectInput from "@/app/components/MultiselectInput";
 import ViewTitle from "@/app/components/ViewTitle";
 import { query } from "@/app/db";
 import { getTranslations } from "next-intl/server";
+import RoleSelector from "./RoleSelector";
 
 interface LanguageUsersPageProps {
     params: { code: string }
@@ -58,11 +59,12 @@ export default async function LanguageUsersPage({ params }: LanguageUsersPagePro
                 <div className="font-normal text-sm">{user.email}</div>
               </ListCell>
               <ListCell className="ps-4 py-2">
-                <MultiselectInput
-                  className="w-full"
-                  name="roles"
-                  value={user.roles}
-                  items={[
+                <RoleSelector
+                  label={t("headers.role")}
+                  code={params.code}
+                  userId={user.id}
+                  initialValue={user.roles}
+                  options={[
                     {
                       label: t('role', { role: 'ADMIN' }),
                       value: 'ADMIN',

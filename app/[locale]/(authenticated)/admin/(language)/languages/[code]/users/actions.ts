@@ -2,11 +2,12 @@
 
 import * as z from 'zod';
 import {getTranslations } from 'next-intl/server';
-import { query, transaction } from '@/app/db';
+import { transaction } from '@/app/db';
 import { parseForm } from '@/app/form-parser';
 
 const requestSchema = z.object({
-    user_id: z.string().min(1),
+    code: z.string(),
+    user_id: z.string(),
     roles: z.array(z.string()).optional().default([]),
 })
 
@@ -15,7 +16,7 @@ export interface ChangeUserRoleState {
     message?: string
 }
 
-export async function changeUserRole(prevState: ChangeUserRoleState, formData: FormData): Promise<ChangeUserRoleState> {
+export async function changeUserLanguageRole(prevState: ChangeUserRoleState, formData: FormData): Promise<ChangeUserRoleState> {
     const t = await getTranslations('AdminUsersPage');
 
     const request = requestSchema.safeParse(parseForm(formData));
@@ -28,16 +29,19 @@ export async function changeUserRole(prevState: ChangeUserRoleState, formData: F
 
     await transaction(async query => {
         await query(
-            `DELETE FROM "UserSystemRole" AS r WHERE r."userId" = $1 AND r.role != ALL($2::"SystemRole"[])`,
-            [request.data.user_id, request.data.roles]
+            `DELETE FROM "LanguageMemberRole" AS r
+            WHERE r."languageId" = (SELECT id FROM "Language" WHERE code = $1) AND r."userId" = $2 AND r.role != 'VIEWER' AND r.role != ALL($3::"LanguageRole"[])`,
+            [request.data.code, request.data.user_id, request.data.roles]
         )
 
         if (request.data.roles && request.data.roles.length > 0) {
             await query(`
-                INSERT INTO "UserSystemRole" ("userId", "role")
-                SELECT $1, UNNEST($2::"SystemRole"[])
+                INSERT INTO "LanguageMemberRole" ("languageId", "userId", "role")
+                SELECT l.id, $2, UNNEST($3::"LanguageRole"[])
+                FROM "Language" AS l
+                WHERE l.code = $1
                 ON CONFLICT DO NOTHING`,
-                [request.data.user_id, request.data.roles]
+                [request.data.code, request.data.user_id, request.data.roles]
             )
         }
     })
