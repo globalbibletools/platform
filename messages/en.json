@@ -18,6 +18,10 @@
             "confirm_password_mismatch": "Your password does not match.",
             "first_name_required": "Please enter your first name.",
             "last_name_required": "Please enter your last name."
+        },
+        "not_found": "We couldn't find your invitation to Global Bible Tools.",
+        "actions": {
+            "log_in": "Log In"
         }
     },
     "AdminLanguagesPage": {
@@ -72,12 +76,6 @@
             "submit": "Invite"
         },
         "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
-    },
-    "InviteNotFoundPage": {
-        "message": "We couldn't find your invitation to Global Bible Tools.",
-        "actions": {
-            "log_in": "Log In"
-        }
     },
     "InviteUserPage": {
         "title": "Invite User",
@@ -169,5 +167,8 @@
             "name": "Name",
             "submit": "Add"
         }
+    },
+    "RootLayout": {
+        "app_name": "Global Bible Tools"
     }
 }

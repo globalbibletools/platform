@@ -6,9 +6,19 @@ import { query } from "@/app/db";
 import { getTranslations } from "next-intl/server";
 import RoleSelector from "./RoleSelector";
 import RemoveUserButton from "./RemoveUserButton";
+import { Metadata, ResolvingMetadata } from "next";
 
 interface LanguageUsersPageProps {
     params: { code: string }
+}
+
+export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
+  const t = await getTranslations("LanguageUsersPage")
+  const { title } = await parent
+
+  return {
+    title: `${t("title")} | ${title?.absolute}`
+  }
 }
 
 export default async function LanguageUsersPage({ params }: LanguageUsersPageProps) {

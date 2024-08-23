@@ -7,6 +7,16 @@ import FieldError from '@/app/components/FieldError';
 import { verifySession } from '@/app/session';
 import { redirect, RedirectType } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { Metadata, ResolvingMetadata } from "next";
+
+export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
+  const t = await getTranslations("LoginPage")
+  const { title } = await parent
+
+  return {
+    title: `${t("title")} | ${title?.absolute}`
+  }
+}
 
 export default async function LoginPage() {
     const t = await getTranslations('LoginPage');

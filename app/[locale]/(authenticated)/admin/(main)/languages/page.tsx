@@ -11,9 +11,19 @@ import ViewTitle from '@/app/components/ViewTitle';
 import Button from '@/app/components/Button';
 import { getTranslations } from 'next-intl/server';
 import { query } from '@/app/db';
+import { Metadata, ResolvingMetadata } from 'next';
 
 interface AdminLanguagePageProps {
     params: { locale: string }
+}
+
+export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
+  const t = await getTranslations("AdminLanguagesPage")
+  const { title } = await parent
+
+  return {
+    title: `${t("title")} | ${title?.absolute}`
+  }
 }
 
 export default async function AdminLanguagesPage({ params }: AdminLanguagePageProps) {

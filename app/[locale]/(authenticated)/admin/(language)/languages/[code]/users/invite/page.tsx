@@ -6,9 +6,20 @@ import InviteLanguageUserForm from './InviteLanguageUserForm'
 import FieldError from '@/app/components/FieldError';
 import ViewTitle from '@/app/components/ViewTitle';
 import MultiselectInput from '@/app/components/MultiselectInput';
+import { Metadata, ResolvingMetadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 
 interface InviteLanguageUserPageProps {
     params: { code: string }
+}
+
+export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
+  const t = await getTranslations("InviteLanguageUserPage")
+  const { title } = await parent
+
+  return {
+    title: `${t("title")} | ${title?.absolute}`
+  }
 }
 
 export default function InviteLanguageUserPage({ params }: InviteLanguageUserPageProps) {

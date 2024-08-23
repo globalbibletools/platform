@@ -12,9 +12,19 @@ import { ButtonSelectorInput, ButtonSelectorOption } from "@/app/components/Butt
 import SortableMultiselectInput from "@/app/components/SortableMultiselectInput";
 import { BibleClient } from "@gracious.tech/fetch-client";
 import SavingIndicator from "./SavingIndicator";
+import { Metadata, ResolvingMetadata } from "next";
 
 interface LanguageSettingsPageProps {
     params: { code: string }
+}
+
+export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
+  const t = await getTranslations("LanguageSettingsPage")
+  const { title } = await parent
+
+  return {
+    title: `${t("title")} | ${title?.absolute}`
+  }
 }
 
 export default async function LanguageSettingsPage({ params }: LanguageSettingsPageProps) {

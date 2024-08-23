@@ -2,9 +2,19 @@ import ViewTitle from "@/app/components/ViewTitle";
 import ChapterChart from "./ChapterChart";
 import { query } from "@/app/db";
 import { getTranslations } from "next-intl/server";
+import { Metadata, ResolvingMetadata } from "next";
 
 interface Props {
     params: { code: string }
+}
+
+export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
+  const t = await getTranslations("LanguageReportsPage")
+  const { title } = await parent
+
+  return {
+    title: `${t("title")} | ${title?.absolute}`
+  }
 }
 
 export default async function LanguageReportsPage({ params }: Props) {

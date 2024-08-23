@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import DropdownMenu, { DropdownMenuItem } from '@/app/components/DropdownMenu';
 import { Icon } from '@/app/components/Icon';
-import { query } from '@/app/db';
 import LanguageDialog from '@/app/components/LanguageDialog';
 import HeaderLink from './HeaderLink';
 import { verifySession } from '@/app/session';
@@ -13,17 +12,6 @@ export default async function AuthenticatedLayout({ children, params }: { childr
 
     const session = await verifySession()
     const isAdmin = session?.user.roles.includes('ADMIN')
-
-    function navLinkClasses(isActive: boolean) {
-      return `
-        h-full px-2 text-center block pt-[28px] md:pt-[30px] font-bold md:mx-2 border-b-4
-        ${
-          isActive
-            ? 'border-blue-800 dark:border-green-400'
-            : 'border-transparent'
-        }
-      `;
-    }
 
     return (
       <div className="relative min-h-screen flex flex-col">

@@ -5,6 +5,17 @@ import TextInput from "@/app/components/TextInput";
 import NewLanguageForm from './NewLanguageForm'
 import FieldError from '@/app/components/FieldError';
 import ViewTitle from '@/app/components/ViewTitle';
+import { getTranslations } from 'next-intl/server';
+import { Metadata, ResolvingMetadata } from 'next';
+
+export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
+  const t = await getTranslations("NewLanguagePage")
+  const { title } = await parent
+
+  return {
+    title: `${t("title")} | ${title?.absolute}`
+  }
+}
 
 export default function NewLanguagePage() {
     const t = useTranslations('NewLanguagePage');

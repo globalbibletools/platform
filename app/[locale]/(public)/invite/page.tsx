@@ -7,10 +7,20 @@ import FieldError from '@/app/components/FieldError';
 import { getTranslations } from 'next-intl/server';
 import { query } from '@/app/db';
 import { notFound } from 'next/navigation';
+import { Metadata, ResolvingMetadata } from "next";
 
 interface Props {
     params: { locale: string },
     searchParams: { token?: string }
+}
+
+export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
+  const t = await getTranslations("AcceptInvitePage")
+  const { title } = await parent
+
+  return {
+    title: `${t("title")} | ${title?.absolute}`
+  }
 }
 
 export default async function LoginPage({ params, searchParams }: Props) {
@@ -29,7 +39,7 @@ export default async function LoginPage({ params, searchParams }: Props) {
     return <ModalView className="max-w-[480px] w-full"
         header={
         <Button href={`/${params.locale}/login`} variant="tertiary">
-          Log In
+            {t("actions.log_in")}
         </Button>
       }
     >

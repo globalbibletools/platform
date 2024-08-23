@@ -5,6 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { query } from '@/app/db';
 import { notFound } from 'next/navigation';
 import { verifySession } from '@/app/session';
+import { Metadata, ResolvingMetadata } from 'next';
 
 interface LanguageLayoutProps {
     children: ReactNode,
@@ -12,6 +13,19 @@ interface LanguageLayoutProps {
         locale: string,
         code: string
     }
+}
+
+export async function generateMetadata({ params }: LanguageLayoutProps, parent: ResolvingMetadata): Promise<Metadata> {
+  const { title } = await parent
+
+  const languageQuery = await query<{ name: string }>(
+    `SELECT name FROM "Language" WHERE code = $1`,
+    [params.code]
+  )
+
+  return {
+    title: `${languageQuery.rows[0].name} | ${title?.absolute}`
+  }
 }
 
 export default async function LanguageLayout({ children, params }: LanguageLayoutProps) {
