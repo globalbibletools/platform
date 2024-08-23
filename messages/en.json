@@ -72,6 +72,9 @@
             "import": "Import"
         }
     },
+    "LanguageReportsPage": {
+        "title": "Reports"
+    },
     "LanguageSettingsPage": {
         "title": "Settings",
         "form": {
