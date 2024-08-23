@@ -37,7 +37,6 @@ export default async function LanguageReportsPage({ params }: Props) {
     )
     const t = await getTranslations('LanguageReportsPage')
 
-
   return (
     <div className="absolute w-full h-full px-8 py-6 overflow-y-auto">
       <ViewTitle className="mb-4">

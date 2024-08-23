@@ -170,5 +170,8 @@
     },
     "RootLayout": {
         "app_name": "Global Bible Tools"
+    },
+    "RootNotFoundPage": {
+        "title": "Not Found"
     }
 }
