@@ -1,5 +1,9 @@
+"use client";
+
 import Link, { LinkProps as NextLinkProps } from 'next/link';
-import { ComponentProps, forwardRef } from 'react';
+import { ComponentProps, forwardRef, ReactNode } from 'react';
+import { useFormStatus } from 'react-dom';
+import LoadingSpinner from './LoadingSpinner';
 
 type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'link';
 
@@ -15,6 +19,7 @@ interface _ButtonProps extends ComponentProps<'button'> {
   variant?: ButtonVariant;
   destructive?: boolean;
   small?: boolean;
+  submitting?: ReactNode
 }
 
 export type ButtonProps = _LinkProps | _ButtonProps;
@@ -78,6 +83,8 @@ const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
     },
     ref
   ) => {
+      const formStatus = useFormStatus()
+
     if (isLinkProps(props)) {
       return (
         <Link
@@ -101,7 +108,21 @@ const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
           )} ${className}`}
           type="button"
           {...props}
-        />
+          disabled={props.disabled || formStatus.pending}
+        >
+            {(() => {
+                if (!formStatus.pending) {
+                    return props.children 
+                } else if (props.submitting) {
+                    return <>
+                        <LoadingSpinner className="me-3" />
+                        {props.submitting}
+                    </>
+                } else {
+                    return <LoadingSpinner />
+                }
+            })()}
+        </button>
       );
     } else {
         return null

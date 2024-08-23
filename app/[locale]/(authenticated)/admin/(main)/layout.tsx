@@ -39,7 +39,7 @@ export default async function AdminLayout({ children, params }: AdminLayoutProps
           </li>
         </ul>
       </div>
-      <div className="flex-grow">
+      <div className="flex-grow relative">
         {children}
       </div>
     </div>
