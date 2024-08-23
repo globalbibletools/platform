@@ -19,7 +19,12 @@ export default async function LoginPage({ params, searchParams }: Props) {
     if (!searchParams.token) {
         notFound()
     }
+
     const inviteQuery = await query<{ email: string }>(`SELECT email FROM "UserInvitation" AS i JOIN "User" AS u ON u.id = i."userId" WHERE i.token = $1`, [searchParams.token])
+    const invite = inviteQuery.rows[0]
+    if (!invite) {
+        notFound()
+    }
 
     return <ModalView className="max-w-[480px] w-full"
         header={

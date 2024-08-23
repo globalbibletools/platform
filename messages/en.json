@@ -73,6 +73,12 @@
         },
         "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
     },
+    "InviteNotFoundPage": {
+        "message": "We couldn't find your invitation to Global Bible Tools.",
+        "actions": {
+            "log_in": "Log In"
+        }
+    },
     "InviteUserPage": {
         "title": "Invite User",
         "form": {
