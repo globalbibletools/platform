@@ -12,13 +12,14 @@ export function query<T extends QueryResultRow>(text: string, params: any): Prom
   return pool.query<T>(text, params)
 }
 
-export async function transaction(tx: (q: typeof query) => Promise<void>): Promise<void> {
+export async function transaction<T>(tx: (q: typeof query) => Promise<T>): Promise<T> {
     const client = await pool.connect()
 
     try {
         await client.query('BEGIN')
-        await tx(client.query.bind(client))
+        const result = await tx(client.query.bind(client))
         await client.query('COMMIT')
+        return result
     } catch (error) {
         await client.query('ROLLBACK')
         throw error

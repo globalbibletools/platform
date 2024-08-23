@@ -1,4 +1,25 @@
 {
+    "AcceptInvitePage": {
+        "title": "Accept Invite",
+        "form": {
+            "email": "Email",
+            "first_name": "First Name",
+            "last_name": "Last Name",
+            "password": "Password",
+            "confirm_password": "Confirm Password",
+            "submit": "Sign Up"
+        },
+        "errors": {
+            "email_required": "Please enter your email.",
+            "email_format": "Please enter a valid email.",
+            "password_required": "Please enter your password.",
+            "password_format": "Please enter a password with at least 8 characters.",
+            "confirm_password_required": "Please enter your password again.",
+            "confirm_password_mismatch": "Your password does not match.",
+            "first_name_required": "Please enter your first name.",
+            "last_name_required": "Please enter your last name."
+        }
+    },
     "AdminLanguagesPage": {
         "title": "Languages",
         "headers": {
