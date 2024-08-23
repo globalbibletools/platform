@@ -1,11 +1,11 @@
 import Button from "@/app/components/Button";
 import { Icon } from "@/app/components/Icon";
 import { List, ListBody, ListCell, ListHeader, ListHeaderCell, ListRow } from "@/app/components/List";
-import MultiselectInput from "@/app/components/MultiselectInput";
 import ViewTitle from "@/app/components/ViewTitle";
 import { query } from "@/app/db";
 import { getTranslations } from "next-intl/server";
 import RoleSelector from "./RoleSelector";
+import RemoveUserButton from "./RemoveUserButton";
 
 interface LanguageUsersPageProps {
     params: { code: string }
@@ -77,14 +77,11 @@ export default async function LanguageUsersPage({ params }: LanguageUsersPagePro
                 />
               </ListCell>
               <ListCell className="py-2">
-                <Button
-                  variant="tertiary"
-                  className="text-red-700 ms-2 -me-2"
-                  destructive
-                >
-                  <Icon icon="xmark" />
-                  <span className="sr-only">{t('links.remove')}</span>
-                </Button>
+                <RemoveUserButton 
+                    code={params.code}
+                    userId={user.id}
+                    label={t("links.remove")}
+                />
               </ListCell>
             </ListRow>
           ))}
