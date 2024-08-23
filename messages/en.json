@@ -1,177 +1,188 @@
 {
-    "AcceptInvitePage": {
-        "title": "Accept Invite",
-        "form": {
-            "email": "Email",
-            "first_name": "First Name",
-            "last_name": "Last Name",
-            "password": "Password",
-            "confirm_password": "Confirm Password",
-            "submit": "Sign Up"
-        },
-        "errors": {
-            "email_required": "Please enter your email.",
-            "email_format": "Please enter a valid email.",
-            "password_required": "Please enter your password.",
-            "password_format": "Please enter a password with at least 8 characters.",
-            "confirm_password_required": "Please enter your password again.",
-            "confirm_password_mismatch": "Your password does not match.",
-            "first_name_required": "Please enter your first name.",
-            "last_name_required": "Please enter your last name."
-        },
-        "not_found": "We couldn't find your invitation to Global Bible Tools.",
-        "actions": {
-            "log_in": "Log In"
-        }
+  "AcceptInvitePage": {
+    "title": "Accept Invite",
+    "form": {
+      "email": "Email",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "password": "Password",
+      "confirm_password": "Confirm Password",
+      "submit": "Sign Up"
     },
-    "AdminLanguagesPage": {
-        "title": "Languages",
-        "headers": {
-            "language": "Language",
-            "ot_progress": "OT Progress",
-            "nt_progress": "NT Progress"
-        },
-        "actions": {
-            "add_language": "Add Language",
-            "manage": "Manage"
-        }
+    "errors": {
+      "email_required": "Please enter your email.",
+      "email_format": "Please enter a valid email.",
+      "password_required": "Please enter your password.",
+      "password_format": "Please enter a password with at least 8 characters.",
+      "confirm_password_required": "Please enter your password again.",
+      "confirm_password_mismatch": "Your password does not match.",
+      "first_name_required": "Please enter your first name.",
+      "last_name_required": "Please enter your last name."
     },
-    "AdminLayout": {
-        "title": "Admin",
-        "links": {
-            "languages": "Languages",
-            "users": "Users"
-        }
-    },
-    "AdminUsersPage": {
-        "title": "Users",
-        "links": {
-            "add_user": "Invite User"
-        },
-        "headers": {
-            "name": "Name",
-            "email": "Email",
-            "role": "Role"
-        },
-        "errors": {
-            "invalid_request": "Invalid request"
-        },
-        "role": "{role, select, ADMIN {Admin} other {}}",
-        "email_status": "{status, select, BOUNCED {Bounced} COMPLAINED {Complained} UNVERIFIED {Unverified} other {}}"
-    },
-    "AuthenticatedLayout": {
-        "app_name": "Global Bible Tools",
-        "links": {
-            "interlinear": "Interlinear",
-            "admin": "Admin",
-            "profile": "Profile",
-            "log_out": "Log Out"
-        }
-    },
-    "InviteLanguageUserPage": {
-        "title": "Invite User",
-        "form": {
-            "email": "Email",
-            "role": "Role",
-            "submit": "Invite"
-        },
-        "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
-    },
-    "InviteUserPage": {
-        "title": "Invite User",
-        "form": {
-            "email": "Email",
-            "submit": "Invite"
-        },
-        "errors": {
-            "email_required": "Please enter your email.",
-            "email_format": "Please enter a valid email.",
-            "user_exists": "This user already exists."
-        }
-    },
-    "LanguageLayout": {
-        "links": {
-            "settings": "Settings",
-            "users": "Users",
-            "reports": "Reports",
-            "import": "Import"
-        }
-    },
-    "LanguageReportsPage": {
-        "title": "Reports"
-    },
-    "LanguageSettingsPage": {
-        "title": "Settings",
-        "form": {
-            "name": "Name",
-            "code": "Code",
-            "font": "Font",
-            "text_direction": "Text Direction",
-            "text_direction_option": "{dir, select, ltr {Left to Right} rtl {Right to Left} other {}}",
-            "translation_placeholder": "Select Translation"
-        },
-        "errors": {
-            "name_required": "Please enter the language name.",
-            "font_required": "Please select a font.",
-            "text_direction_required": "Please select a text direction."
-        },
-        "headings": {
-            "identification": "Identification",
-            "text": "Text",
-            "bible_translation": "Bible Translations"
-        },
-        "name_description": "The name of the language is shown throughout the app. We prefer it to be written in the language rather than English.",
-        "code_description": "The language code follows <a>ISO 639-3</a> which uniquely identifies languages across systems.",
-        "text_description": "Configure the text of the language as you would like it to appear in the platform.",
-        "translation_description": "These translation are used in the platform when showing a passage from the Bible.",
-        "saving": "Saving",
-        "saved": "Saved"
-    },
-    "LanguageUsersPage": {
-        "title": "Users",
-        "links": {
-            "invite_user": "Invite User",
-            "remove": "Remove User"
-        },
-        "headers": {
-            "name": "Name",
-            "role": "Role"
-        },
-        "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
-    },
-    "LoginPage": {
-        "title": "Log In",
-        "form": {
-            "email": "Email",
-            "password": "Password",
-            "submit": "Log In"
-        },
-        "errors": {
-            "email_required": "Please enter your email.",
-            "password_required": "Please enter your password."
-        },
-        "forgot_password": "Forgot Password?"
-    },
-    "ModalView": {
-        "app_name": "Global Bible Tools"
-    },
-    "NewLanguagePage": {
-        "title": "Add Language",
-        "errors": {
-            "name_required": "Please enter the language name.",
-            "code_size": "The language code must be 3 characters.",
-            "language_exists": "This language already exists."
-        },
-        "form": {
-            "code": "Code",
-            "name": "Name",
-            "submit": "Add"
-        }
-    },
-    "RootLayout": {
-        "app_name": "Global Bible Tools"
-    },
-    "RootNotFoundPage": {
-        "title": "Not Found"
+    "not_found": "We couldn't find your invitation to Global Bible Tools.",
+    "actions": {
+      "log_in": "Log In"
     }
+  },
+  "AdminLanguagesPage": {
+    "title": "Languages",
+    "headers": {
+      "language": "Language",
+      "ot_progress": "OT Progress",
+      "nt_progress": "NT Progress"
+    },
+    "actions": {
+      "add_language": "Add Language",
+      "manage": "Manage"
+    }
+  },
+  "AdminLayout": {
+    "title": "Admin",
+    "links": {
+      "languages": "Languages",
+      "users": "Users"
+    }
+  },
+  "AdminUsersPage": {
+    "title": "Users",
+    "links": {
+      "add_user": "Invite User"
+    },
+    "headers": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role"
+    },
+    "errors": {
+      "invalid_request": "Invalid request"
+    },
+    "role": "{role, select, ADMIN {Admin} other {}}",
+    "email_status": "{status, select, BOUNCED {Bounced} COMPLAINED {Complained} UNVERIFIED {Unverified} other {}}"
+  },
+  "AuthenticatedLayout": {
+    "app_name": "Global Bible Tools",
+    "links": {
+      "interlinear": "Interlinear",
+      "admin": "Admin",
+      "profile": "Profile",
+      "log_out": "Log Out"
+    }
+  },
+  "InviteLanguageUserPage": {
+    "title": "Invite User",
+    "form": {
+      "email": "Email",
+      "role": "Role",
+      "submit": "Invite"
+    },
+    "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
+  },
+  "InviteUserPage": {
+    "title": "Invite User",
+    "form": {
+      "email": "Email",
+      "submit": "Invite"
+    },
+    "errors": {
+      "email_required": "Please enter your email.",
+      "email_format": "Please enter a valid email.",
+      "user_exists": "This user already exists."
+    }
+  },
+  "LanguageLayout": {
+    "links": {
+      "settings": "Settings",
+      "users": "Users",
+      "reports": "Reports",
+      "import": "Import"
+    }
+  },
+  "LanguageReportsPage": {
+    "title": "Reports"
+  },
+  "LanguageSettingsPage": {
+    "title": "Settings",
+    "form": {
+      "name": "Name",
+      "code": "Code",
+      "font": "Font",
+      "text_direction": "Text Direction",
+      "text_direction_option": "{dir, select, ltr {Left to Right} rtl {Right to Left} other {}}",
+      "translation_placeholder": "Select Translation"
+    },
+    "errors": {
+      "name_required": "Please enter the language name.",
+      "font_required": "Please select a font.",
+      "text_direction_required": "Please select a text direction."
+    },
+    "headings": {
+      "identification": "Identification",
+      "text": "Text",
+      "bible_translation": "Bible Translations"
+    },
+    "name_description": "The name of the language is shown throughout the app. We prefer it to be written in the language rather than English.",
+    "code_description": "The language code follows <a>ISO 639-3</a> which uniquely identifies languages across systems.",
+    "text_description": "Configure the text of the language as you would like it to appear in the platform.",
+    "translation_description": "These translation are used in the platform when showing a passage from the Bible.",
+    "saving": "Saving",
+    "saved": "Saved"
+  },
+  "LanguageUsersPage": {
+    "title": "Users",
+    "links": {
+      "invite_user": "Invite User",
+      "remove": "Remove User"
+    },
+    "headers": {
+      "name": "Name",
+      "role": "Role"
+    },
+    "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
+  },
+  "LoginPage": {
+    "title": "Log In",
+    "form": {
+      "email": "Email",
+      "password": "Password",
+      "submit": "Log In"
+    },
+    "errors": {
+      "email_required": "Please enter your email.",
+      "password_required": "Please enter your password."
+    },
+    "forgot_password": "Forgot Password?"
+  },
+  "ModalView": {
+    "app_name": "Global Bible Tools"
+  },
+  "NewLanguagePage": {
+    "title": "Add Language",
+    "errors": {
+      "name_required": "Please enter the language name.",
+      "code_size": "The language code must be 3 characters.",
+      "language_exists": "This language already exists."
+    },
+    "form": {
+      "code": "Code",
+      "name": "Name",
+      "submit": "Add"
+    }
+  },
+  "ProfileView": {
+    "form": {
+      "confirm_password": "Confirm Password",
+      "email": "Email",
+      "name": "Name",
+      "password": "Password",
+      "submit": "Update"
+    },
+    "title": "Profile",
+    "update_profile": "Update Profile"
+  },
+  "RootLayout": {
+    "app_name": "Global Bible Tools"
+  },
+  "RootNotFoundPage": {
+    "title": "Not Found"
+  }
 }
