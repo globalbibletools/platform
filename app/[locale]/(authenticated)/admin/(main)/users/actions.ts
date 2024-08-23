@@ -2,8 +2,10 @@
 
 import * as z from 'zod';
 import {getTranslations } from 'next-intl/server';
-import { query, transaction } from '@/app/db';
+import { transaction } from '@/app/db';
 import { parseForm } from '@/app/form-parser';
+import { verifySession } from '@/app/session';
+import { notFound } from 'next/navigation';
 
 const requestSchema = z.object({
     user_id: z.string().min(1),
@@ -17,6 +19,11 @@ export interface ChangeUserRoleState {
 
 export async function changeUserRole(prevState: ChangeUserRoleState, formData: FormData): Promise<ChangeUserRoleState> {
     const t = await getTranslations('AdminUsersPage');
+
+    const session = await verifySession()
+    if (!session?.user.roles.includes('ADMIN')) {
+        notFound()
+    }
 
     const request = requestSchema.safeParse(parseForm(formData));
     if (!request.success) {

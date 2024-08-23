@@ -5,6 +5,8 @@ import {getLocale, getTranslations } from 'next-intl/server';
 import { query, transaction } from '@/app/db';
 import { parseForm } from '@/app/form-parser';
 import { revalidatePath } from 'next/cache';
+import { verifySession } from '@/app/session';
+import { notFound } from 'next/navigation';
 
 const changeUserRequestSchema = z.object({
     code: z.string(),
@@ -20,12 +22,30 @@ export interface ChangeUserRoleState {
 export async function changeUserLanguageRole(prevState: ChangeUserRoleState, formData: FormData): Promise<ChangeUserRoleState> {
     const t = await getTranslations('AdminUsersPage');
 
+    const session = await verifySession()
+    if (!session) {
+        notFound()
+    }
+
     const request = changeUserRequestSchema.safeParse(parseForm(formData));
     if (!request.success) {
         return {
             roles: prevState.roles,
             message: t('errors.invalid_request')
         }
+    }
+
+    const languageQuery = await query<{ roles: string[] }>(
+        `SELECT 
+            (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
+            FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
+        FROM "Language" AS l WHERE l.code = $1`,
+        [request.data.code, session.user.id]
+    )
+    const language = languageQuery.rows[0]
+
+    if (!language || (!session?.user.roles.includes('ADMIN') && !language.roles.includes('ADMIN'))) {
+        notFound()
     }
 
     await transaction(async query => {
@@ -63,11 +83,29 @@ export async function removeLanguageUser(prevState: RemoveLanguageUserState, for
     const t = await getTranslations('AdminUsersPage');
     const locale = await getLocale()
 
+    const session = await verifySession()
+    if (!session) {
+        notFound()
+    }
+
     const request = removeUserRequestSchema.safeParse(parseForm(formData));
     if (!request.success) {
         return {
             message: t('errors.invalid_request')
         }
+    }
+
+    const languageQuery = await query<{ roles: string[] }>(
+        `SELECT 
+            (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
+            FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
+        FROM "Language" AS l WHERE l.code = $1`,
+        [request.data.code, session.user.id]
+    )
+    const language = languageQuery.rows[0]
+
+    if (!language || (!session?.user.roles.includes('ADMIN') && !language.roles.includes('ADMIN'))) {
+        notFound()
     }
 
     await query(

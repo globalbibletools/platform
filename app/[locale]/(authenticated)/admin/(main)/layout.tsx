@@ -1,15 +1,22 @@
 import { ReactNode } from 'react';
 import { SidebarLink } from "@/app/components/NavLink";
 import { Icon } from '@/app/components/Icon';
-import { useTranslations } from 'next-intl';
+import { verifySession } from '@/app/session';
+import { getTranslations } from 'next-intl/server';
+import { notFound } from 'next/navigation';
 
 export interface AdminLayoutProps {
     children?: ReactNode
     params: { locale: string }
 }
 
-export default function AdminLayout({ children, params }: AdminLayoutProps) {
-    const t = useTranslations("AdminLayout")
+export default async function AdminLayout({ children, params }: AdminLayoutProps) {
+    const t = await getTranslations("AdminLayout")
+
+    const session = await verifySession()
+    if (!session?.user.roles.includes('ADMIN')) {
+        notFound()
+    }
 
     return (
     <div className="absolute w-full h-full flex items-stretch">

@@ -2,9 +2,10 @@
 
 import * as z from 'zod';
 import {getTranslations, getLocale} from 'next-intl/server';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { query } from '@/app/db';
 import { randomBytes } from 'crypto';
+import { verifySession } from '@/app/session';
 
 const requestSchema = z.object({
     email: z.string().email().min(1),
@@ -22,6 +23,11 @@ const INVITE_EXPIRES = 7 * 24 * 60 * 60 * 1000 // 7 days
 export async function inviteUser(prevState: InviteUserState, formData: FormData): Promise<InviteUserState> {
     const t = await getTranslations('InviteUserPage');
     const locale = await getLocale()
+
+    const session = await verifySession()
+    if (!session?.user.roles.includes('ADMIN')) {
+        notFound()
+    }
 
     const request = requestSchema.safeParse({
         email: formData.get('email'),

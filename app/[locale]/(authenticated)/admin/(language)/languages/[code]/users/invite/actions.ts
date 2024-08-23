@@ -2,10 +2,11 @@
 
 import * as z from 'zod';
 import {getTranslations, getLocale} from 'next-intl/server';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { query } from '@/app/db';
 import { randomBytes } from 'crypto';
 import { parseForm } from '@/app/form-parser';
+import { verifySession } from '@/app/session';
 
 const requestSchema = z.object({
     code: z.string(),
@@ -27,6 +28,11 @@ export async function inviteUser(prevState: InviteUserState, formData: FormData)
     const t = await getTranslations('InviteUserPage');
     const locale = await getLocale()
 
+    const session = await verifySession()
+    if (!session) {
+        notFound()
+    }
+
     const request = requestSchema.safeParse(parseForm(formData), {
         errorMap: (error) => {
             if (error.path.toString() === 'email') {
@@ -44,6 +50,19 @@ export async function inviteUser(prevState: InviteUserState, formData: FormData)
         return {
             errors: request.error.flatten().fieldErrors
         }
+    }
+
+    const languageQuery = await query<{ roles: string[] }>(
+        `SELECT 
+            (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
+            FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
+        FROM "Language" AS l WHERE l.code = $1`,
+        [request.data.code, session.user.id]
+    )
+    const language = languageQuery.rows[0]
+
+    if (!language || (!session?.user.roles.includes('ADMIN') && !language.roles.includes('ADMIN'))) {
+        notFound()
     }
 
     const existsQuery = await query(`SELECT id FROM "User" WHERE email = $1`, [request.data.email])

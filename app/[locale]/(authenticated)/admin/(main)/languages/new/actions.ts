@@ -2,8 +2,9 @@
 
 import * as z from 'zod';
 import {getTranslations, getLocale} from 'next-intl/server';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { query } from '@/app/db';
+import { verifySession } from '@/app/session';
 
 const requestSchema = z.object({
     code: z.string().length(3),
@@ -21,6 +22,11 @@ export interface CreateLanguageState {
 export async function createLanguage(prevState: CreateLanguageState, formData: FormData): Promise<CreateLanguageState> {
     const t = await getTranslations('NewLanguagePage');
     const locale = await getLocale()
+
+    const session = await verifySession()
+    if (!session?.user.roles.includes('ADMIN')) {
+        notFound()
+    }
 
     const request = requestSchema.safeParse({
         code: formData.get('code'),

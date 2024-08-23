@@ -55,6 +55,7 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
         }
     }
 
+    console.log(user)
     const valid = await scrypt.verify(user.hashedPassword, request.data.password)
     if (!valid) {
         return {

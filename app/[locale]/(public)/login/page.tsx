@@ -1,13 +1,21 @@
-import { useTranslations } from 'next-intl';
 import ModalView, { ModalViewTitle } from "@/app/components/ModalView";
 import Button from "@/app/components/Button";
 import FormLabel from "@/app/components/FormLabel";
 import TextInput from "@/app/components/TextInput";
 import LoginForm from './LoginForm'
 import FieldError from '@/app/components/FieldError';
+import { verifySession } from '@/app/session';
+import { redirect, RedirectType } from 'next/navigation';
+import { getLocale, getTranslations } from 'next-intl/server';
 
-export default function LoginPage() {
-    const t = useTranslations('LoginPage');
+export default async function LoginPage() {
+    const t = await getTranslations('LoginPage');
+    const locale = await getLocale()
+
+    const session = await verifySession();
+    if (session) {
+        redirect(`/${locale}/interlinear`, RedirectType.replace)
+    }
 
     return <ModalView className="max-w-[480px] w-full">
         <ModalViewTitle>{t('title')}</ModalViewTitle>

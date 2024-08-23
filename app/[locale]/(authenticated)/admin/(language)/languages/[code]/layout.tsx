@@ -3,6 +3,8 @@ import { ReactNode } from 'react';
 import { SidebarLink } from '@/app/components/NavLink';
 import { getTranslations } from 'next-intl/server';
 import { query } from '@/app/db';
+import { notFound } from 'next/navigation';
+import { verifySession } from '@/app/session';
 
 interface LanguageLayoutProps {
     children: ReactNode,
@@ -14,8 +16,24 @@ interface LanguageLayoutProps {
 
 export default async function LanguageLayout({ children, params }: LanguageLayoutProps) {
     const t = await getTranslations('LanguageLayout')
-    const languageQuery = await query<{ name: string }>(`SELECT name FROM "Language" WHERE code = $1`, [params.code])
+
+    const session = await verifySession()
+    if (!session) {
+        notFound()
+    }
+
+    const languageQuery = await query<{ name: string, roles: string[] }>(
+        `SELECT l.name,
+            (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
+            FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
+        FROM "Language" AS l WHERE l.code = $1`,
+        [params.code, session.user.id]
+    )
     const language = languageQuery.rows[0]
+
+    if (!language || (!session?.user.roles.includes('ADMIN') && !language.roles.includes('ADMIN'))) {
+        notFound()
+    }
 
   return (
     <div className="absolute w-full h-full flex items-stretch">

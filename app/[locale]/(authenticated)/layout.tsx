@@ -10,7 +10,9 @@ import { verifySession } from '@/app/session';
 
 export default async function AuthenticatedLayout({ children, params }: { children: ReactNode, params: { locale: string }}) {
     const t = await getTranslations("AuthenticatedLayout")
+
     const session = await verifySession()
+    const isAdmin = session?.user.roles.includes('ADMIN')
 
     function navLinkClasses(isActive: boolean) {
       return `
@@ -41,9 +43,10 @@ export default async function AuthenticatedLayout({ children, params }: { childr
           <HeaderLink href={`/${params.locale}/interlinear`}>
             {t('links.interlinear')}
           </HeaderLink>
+          { isAdmin && 
           <HeaderLink href={`/${params.locale}/admin`}>
             {t('links.admin')}
-          </HeaderLink>
+          </HeaderLink> }
           <div className="md:flex-grow" />
           {session ?
             <DropdownMenu

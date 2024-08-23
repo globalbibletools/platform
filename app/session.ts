@@ -44,10 +44,13 @@ export async function verifySession() {
     const sessionId = cookies().get('session')?.value
     if (!sessionId) return
 
-    const result = await query<{ id: string, expiresAt: Date, user: { id: string, name: string, email: string }}>(
+    const result = await query<{ id: string, expiresAt: Date, user: { id: string, name: string, email: string, roles: string[] }}>(
         `SELECT
             "Session".id, "expiresAt",
-            JSON_BUILD_OBJECT('id', "User".id, 'email', email, 'name', name) AS user
+            JSON_BUILD_OBJECT(
+                'id', "User".id, 'email', email, 'name', name,
+                'roles', (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') FROM "UserSystemRole" AS r WHERE r."userId" = "User".id)
+            ) AS user
         FROM "Session"
         JOIN "User" ON "User".id = "Session"."userId"
         WHERE "Session".id = $1`,

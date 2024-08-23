@@ -4,7 +4,7 @@ import * as z from 'zod';
 import {getTranslations, getLocale} from 'next-intl/server';
 import { Scrypt } from "oslo/password";
 import { createSession } from '@/app/session';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { transaction } from '@/app/db';
 import { parseForm } from '@/app/form-parser';
 
@@ -78,15 +78,21 @@ export async function acceptInvite(prevState: LoginState, formData: FormData): P
             `,
             [request.data.token, `${request.data.first_name} ${request.data.last_name}`, scrypt.hash(request.data.password)]
         )
-        const userId = updatedUserQuery.rows[0].id
+        const userId = updatedUserQuery.rows[0]?.id
 
-        await query(
-            `DELETE FROM "UserInvitation" WHERE "userId" = $1`,
-            [userId]
-        )
+        if (userId) {
+            await query(
+                `DELETE FROM "UserInvitation" WHERE "userId" = $1`,
+                [userId]
+            )
+        }
 
         return userId
     })
+
+    if (!userId) {
+        notFound()
+    }
 
     await createSession(userId)
     redirect(`/${locale}/interlinear`)
