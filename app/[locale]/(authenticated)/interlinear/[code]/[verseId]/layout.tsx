@@ -7,6 +7,7 @@ import { query } from "@/app/db"
 import { getLocale, getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { ReactNode } from "react"
+import { changeInterlinearLocation } from "./actions"
 
 interface Props {
     children: ReactNode
@@ -57,13 +58,15 @@ export default async function InterlinearLayout({ children, params }: Props) {
     return <div className="absolute w-full h-full flex flex-col flex-grow">
         <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-500 px-6 md:px-8 py-4">
             {/* TODO: parse reference and redirect on form submit */}
-            <form>
+            <form action={changeInterlinearLocation}>
+                <input type="hidden" name="language" value={params.code} />
                 <div className={isTranslator ? 'me-2' : 'me-16'}>
                     <FormLabel htmlFor="verse-reference">{t("toolbar.verse")}</FormLabel>
                     <div className="relative">
                         <TextInput
                             id="verse-reference"
                             className="pe-16 placeholder-current w-56"
+                            name="reference"
                             autoComplete="off"
                             defaultValue={t('toolbar.verse_reference', { bookId: verse.bookId.toString(), chapter: verse.chapter, verse: verse.number })}
                             autosubmit

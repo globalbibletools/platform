@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@gracious.tech/fetch-client": "0.8.9",
+    "fuzzysort": "3.0.2",
     "next": "14.2.5",
     "next-intl": "3.17.4",
     "oslo": "1.2.1",
