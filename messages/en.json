@@ -68,6 +68,20 @@
             "log_out": "Log Out"
         }
     },
+    "InterlinearLayout": {
+        "toolbar": {
+            "verse": "Verse",
+            "previous_verse": "Previous Verse",
+            "next_verse": "Next Verse",
+            "next_unapproved": "Next Unapproved",
+            "language": "Language",
+            "manage_language": "Manage",
+            "approve_all": "Approve All",
+            "link_words": "Link Words",
+            "unlink_words": "Unlink Words",
+            "verse_reference": "{bookId, select, 1 {Genesis} 2 {Exodus} other {}} {chapter}:{verse}"
+        }
+    },
     "InviteLanguageUserPage": {
         "title": "Invite User",
         "form": {
