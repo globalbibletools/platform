@@ -79,8 +79,11 @@ const ComboboxInput = forwardRef<HTMLInputElement, BaseComboboxInputProps>(
           defaultValue={defaultValue}
           onChange={value => {
               if (autosubmit) {
-                const form = root.current?.closest('form') 
-                form?.requestSubmit()
+                  // We have to wait a tick so that the internal input element is updated when we submit the form
+                  setTimeout(() => {
+                    const form = root.current?.closest('form') 
+                    form?.requestSubmit()
+                  })
               }
               onChange?.(value)
           }}

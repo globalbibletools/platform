@@ -57,9 +57,7 @@ export default async function InterlinearLayout({ children, params }: Props) {
 
     return <div className="absolute w-full h-full flex flex-col flex-grow">
         <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-500 px-6 md:px-8 py-4">
-            {/* TODO: parse reference and redirect on form submit */}
-            <form action={changeInterlinearLocation}>
-                <input type="hidden" name="language" value={params.code} />
+            <form action={changeInterlinearLocation} className="flex items-center">
                 <div className={isTranslator ? 'me-2' : 'me-16'}>
                     <FormLabel htmlFor="verse-reference">{t("toolbar.verse")}</FormLabel>
                     <div className="relative">
@@ -91,27 +89,28 @@ export default async function InterlinearLayout({ children, params }: Props) {
                         </Button>
                     </div>
                 </div>
-            </form>
-            {isTranslator && (
-                <div className="me-16 pt-6">
-                    <Button variant="tertiary">
-                        {t('toolbar.next_unapproved')}
-                        <Icon icon="arrow-right" className="ms-1 rtl:hidden" />
-                        <Icon icon="arrow-left" className="ms-1 ltr:hidden" />
-                    </Button>
+                {isTranslator && (
+                    <div className="me-16 pt-6">
+                        <Button variant="tertiary">
+                            {t('toolbar.next_unapproved')}
+                            <Icon icon="arrow-right" className="ms-1 rtl:hidden" />
+                            <Icon icon="arrow-left" className="ms-1 ltr:hidden" />
+                        </Button>
+                    </div>
+                )}
+                <div className="me-2">
+                    <FormLabel htmlFor="target-language">{t("toolbar.language")}</FormLabel>
+                    <ComboboxInput
+                        id="target-language"
+                        items={languages.rows.map((l) => ({ label: l.name, value: l.code }))}
+                        name="language"
+                        defaultValue={params.code}
+                        className="w-40"
+                        autoComplete="off"
+                        autosubmit
+                    />
                 </div>
-            )}
-            <div className="me-2">
-                <FormLabel htmlFor="target-language">{t("toolbar.language")}</FormLabel>
-                {/* TODO: wrap in form in order to autosubmit and redirect to new language */}
-                <ComboboxInput
-                    id="target-language"
-                    items={languages.rows.map((l) => ({ label: l.name, value: l.code }))}
-                    value={params.code}
-                    className="w-40"
-                    autoComplete="off"
-                />
-            </div>
+            </form>
             {canAdministrate &&
                 <div className="pt-6 me-16">
                     <Button variant="tertiary" href={`/${locale}/admin/languages/${params.code}/settings`}>

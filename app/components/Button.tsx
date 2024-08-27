@@ -108,10 +108,10 @@ const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
           )} ${className}`}
           type="button"
           {...props}
-          disabled={props.disabled || formStatus.pending}
+          disabled={props.disabled || (props.type === 'submit' && formStatus.pending)}
         >
             {(() => {
-                if (!formStatus.pending) {
+                if (!formStatus.pending || props.type !== 'submit') {
                     return props.children 
                 } else if (props.submitting) {
                     return <>
