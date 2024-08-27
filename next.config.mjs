@@ -24,7 +24,17 @@ const nextConfig = {
                 source: '/:locale(\\w{2})/admin/languages/:code((?!new))',
                 destination: '/:locale/admin/languages/:code/settings',
                 permanent: false
-            }
+            },
+            {
+                source: '/:locale(\\w{2})/interlinear',
+                destination: '/:locale/interlinear/verses/01001001',
+                permanent: false
+            },
+            {
+                source: '/:locale(\\w{2})/interlinear/verses',
+                destination: '/:locale/interlinear/verses/01001001',
+                permanent: false
+            },
         ]
     }
 };
