@@ -66,6 +66,7 @@ function parseReference(reference: string, bookNameList: string[]): string | nul
 
 export async function changeInterlinearLocation(formData: FormData): Promise<void> {
     const locale = await getLocale();
+    const t = await getTranslations('InterlinearLayout');
 
     const request = requestSchema.safeParse(parseForm(formData));
     if (!request.success) {
@@ -74,7 +75,7 @@ export async function changeInterlinearLocation(formData: FormData): Promise<voi
 
     let verseId
     try {
-        verseId = parseReference(request.data.reference, ['Genesis', 'Exodus'])
+        verseId = parseReference(request.data.reference, t.raw('book_names'))
     } catch (error) {
         console.log(error)
         return
