@@ -2,11 +2,8 @@
 
 import * as z from 'zod';
 import {getLocale, getTranslations } from 'next-intl/server';
-import { transaction } from '@/app/db';
 import { parseForm } from '@/app/form-parser';
-import { verifySession } from '@/app/session';
-import { notFound, redirect } from 'next/navigation';
-import { bookKeys } from '@/data/book-keys'
+import { redirect } from 'next/navigation';
 import { verseCounts } from '@/data/verse-counts';
 import fuzzysort from 'fuzzysort';
 
