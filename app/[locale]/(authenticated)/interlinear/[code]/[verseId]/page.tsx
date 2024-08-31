@@ -1,6 +1,8 @@
 import { query } from "@/app/db"
 import TranslateWord from "./TranslateWord"
 import { notFound } from "next/navigation"
+import { NextIntlClientProvider } from "next-intl"
+import { getMessages } from "next-intl/server"
 
 interface Props {
     params: { code: string, verseId: string }
@@ -12,6 +14,7 @@ interface VerseQueryResult {
 }
 
 export default async function InterlinearView({ params }: Props) {
+    const messages = await getMessages()
     const result = await query<VerseQueryResult>(
         `
         SELECT
@@ -88,28 +91,28 @@ export default async function InterlinearView({ params }: Props) {
         notFound()
     }
 
-    console.log(result.rows[0])
-
     const isHebrew = parseInt(params.verseId.slice(0, 2)) < 40
 
     return <div className="flex flex-col flex-grow w-full min-h-0 lg:flex-row">
-        <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-10 px-6">
-            <ol
-                className={`
-                    flex h-fit content-start flex-wrap gap-x-2 gap-y-4
-                    ${isHebrew ? 'ltr:flex-row-reverse' : 'rtl:flex-row-reverse'}
-                `}
-            >
-                {result.rows[0].words.map(word => (
-                    <TranslateWord
-                        key={word.id}
-                        word={word}
-                        phrase={result.rows[0].phrases.find(ph => ph.wordIds.includes(word.id))}
-                        language={languageQuery.rows[0]}
-                        isHebrew={isHebrew}
-                    />
-                ))}
-            </ol>
-        </div>
+        <NextIntlClientProvider messages={{ TranslateWord: messages.TranslateWord }}>
+            <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-10 px-6">
+                <ol
+                    className={`
+                        flex h-fit content-start flex-wrap gap-x-2 gap-y-4
+                        ${isHebrew ? 'ltr:flex-row-reverse' : 'rtl:flex-row-reverse'}
+                    `}
+                >
+                    {result.rows[0].words.map(word => (
+                        <TranslateWord
+                            key={word.id}
+                            word={word}
+                            phrase={result.rows[0].phrases.find(ph => ph.wordIds.includes(word.id))}
+                            language={languageQuery.rows[0]}
+                            isHebrew={isHebrew}
+                        />
+                    ))}
+                </ol>
+            </div>
+        </NextIntlClientProvider>
     </div>
 }

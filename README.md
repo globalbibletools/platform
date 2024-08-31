@@ -1,3 +1,13 @@
+## To do
+-[x] Save changes to glosses
+-[ ] Font loading for each language
+-[ ] Saving indicator - disable button while in progress
+-[ ] Approve all
+-[ ] Link words into phrases
+-[ ] Lexicon on sidebar
+-[ ] Notes on sidebar
+-[ ] Open sidebar on click
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started

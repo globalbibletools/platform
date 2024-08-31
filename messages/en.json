@@ -68,6 +68,12 @@
             "log_out": "Log Out"
         }
     },
+    "TranslateWord": {
+       "approve_tooltip": "Approve", 
+       "revoke_tooltip": "Revoke",
+       "approved": "Approved",
+       "saving": "Saving"
+    },
     "TranslationToolbar": {
         "verse": "Verse",
         "previous_verse": "Previous Verse",

@@ -8,10 +8,12 @@ import { expandFontFamily } from "@/app/utils/font";
 import { useTextWidth } from "@/app/utils/text-width";
 import { useTranslations } from "next-intl";
 import { MouseEvent, useLayoutEffect, useRef, useState } from "react";
+import { useFormState, useFormStatus } from "react-dom";
+import { updateGloss } from "./actions";
 
 export interface TranslateWordProps {
     word: { id: string, text: string, referenceGloss?: string }
-    phrase?: { id: string, wordIds: string[], gloss?: { text: string, state: string } }
+    phrase: { id: string, wordIds: string[], gloss?: { text: string, state: string } }
     language: {
         font: string
         textDirection: string
@@ -20,14 +22,18 @@ export interface TranslateWordProps {
 }
 
 export default function TranslateWord({ word, phrase, isHebrew, language }: TranslateWordProps) {
-    const t = useTranslations()
+    const t = useTranslations("TranslateWord")
+
+    const root = useRef<HTMLLIElement>(null)
+    const ancientWord = useRef<HTMLSpanElement>(null)
+    const refGloss = useRef<HTMLSpanElement>(null)
+    const input = useRef<HTMLInputElement>(null)
 
     const selected = false
     const phraseFocused = false
     const editable = true
     const hasNote = false
     const hasMachineSuggestions = false
-    const saving = false
     const hints: Record<string, any> = {}
     const dir = 'ltr'
 
@@ -41,6 +47,19 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
         glossValue ?? ''
     );
 
+    const [_, updateAction, saving] = useFormState(updateGloss, {})
+    function onChange(change: { state?: string; gloss?: string }) {
+        const formData = new FormData()
+        formData.set('phraseId', phrase.id)
+        if (typeof change.state === 'string') {
+            formData.set('state', change.state.toString())
+        }
+        if (typeof change.gloss === 'string') {
+            formData.set('gloss', change.gloss)
+        }
+        updateAction(formData)
+    }
+
     let status: 'empty' | 'saving' | 'saved' | 'approved' = 'empty';
     if (saving) {
         status = 'saving';
@@ -49,26 +68,12 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
             phrase?.gloss.state === 'APPROVED' ? 'approved' : 'saved';
     }
 
-
-    function onSelect() { }
-    function onFocus() { }
-    function onShowDetail() { }
-    function onOpenNotes() { }
-    function onChange(change: { approved?: boolean; gloss?: string }) { }
-
-    const root = useRef<HTMLLIElement>(null)
-    const ancientWord = useRef<HTMLSpanElement>(null)
-    const refGloss = useRef<HTMLSpanElement>(null)
-    const input = useRef<HTMLInputElement>(null)
-
     const [width, setWidth] = useState(0);
-
     const glossWidth = useTextWidth({
         text: glossValue ?? '',
         fontFamily: expandFontFamily(language.font),
         fontSize: '16px',
     });
-
     useLayoutEffect(() => {
         setWidth(
             Math.max(
@@ -82,6 +87,11 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
             )
         );
     }, [hasNote, glossWidth, hasMachineSuggestions, isMultiWord]);
+
+    function onSelect() { }
+    function onFocus() { }
+    function onShowDetail() { }
+    function onOpenNotes() { }
 
 
     return <li
@@ -190,9 +200,9 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
                                 onClick={(e: MouseEvent) => {
                                     e.stopPropagation();
                                     if (status === 'saved') {
-                                        onChange({ approved: true });
+                                        onChange({ state: 'APPROVED' });
                                     } else {
-                                        onChange({ approved: true, gloss: glossValue });
+                                        onChange({ state: 'APPROVED', gloss: glossValue });
                                     }
                                     input.current?.focus();
                                 }}
@@ -207,7 +217,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
                                 title={t('revoke_tooltip') ?? ''}
                                 onClick={(e: MouseEvent) => {
                                     e.stopPropagation();
-                                    onChange({ approved: false });
+                                    onChange({ state: 'UNAPPROVED' });
                                     input.current?.focus();
                                 }}
                             >
@@ -255,7 +265,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
                                 ) {
                                     onChange({
                                         gloss: value,
-                                        approved: !implicit && !!value,
+                                        state: !implicit && !!value ? 'APPROVED' : 'UNAPPROVED',
                                     });
                                 }
                             }}
@@ -290,7 +300,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
                                     case 'Escape': {
                                         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
                                             return;
-                                        onChange({ approved: false });
+                                        onChange({ state: 'UNAPPROVED' });
                                         break;
                                     }
                                 }
