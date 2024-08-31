@@ -1,3 +1,5 @@
+"use client";
+
 import Button from "@/app/components/Button";
 import ComboboxInput from "@/app/components/ComboboxInput";
 import FormLabel from "@/app/components/FormLabel";
@@ -11,36 +13,25 @@ import { decrementVerseId, incrementVerseId } from "./verse-utils";
 
 export interface TranslationToolbarProps {
     languages: { name: string; code: string }[];
-    onLinkWords: () => void;
-    onUnlinkWords: () => void;
-    approveAllGlosses: () => void;
-    canApproveAllGlosses: boolean;
-    canLinkWords: boolean;
-    canUnlinkWords: boolean;
 }
 
-export function TranslationToolbar({
+function navigateToNextUnapprovedVerse() { }
+function approveAllGlosses() {}
+
+export default function TranslationToolbar({
     languages,
-    onLinkWords,
-    onUnlinkWords,
-    approveAllGlosses,
-    canApproveAllGlosses,
-    canLinkWords,
-    canUnlinkWords,
 }: TranslationToolbarProps) {
     const t = useTranslations("TranslationToolbar");
     const { verseId, code } = useParams<{ code: string, verseId: string }>()
+    const router = useRouter()
 
     const isTranslator = true;
     const isAdmin = true;
+    const canApproveAllGlosses = false;
+    const canLinkWords = false;
+    const canUnlinkWords = false;
 
-    const router = useRouter()
-
-    useEffect(() => {
-        console.log('mount')
-    },[])
-
-    const [reference, setReference] = useState(verseId)
+    const [reference, setReference] = useState('')
     useEffect(() => {
         const bookId = parseInt(verseId.slice(0, 2)) || 1
         const chapter = parseInt(verseId.slice(2, 5)) || 1
@@ -48,7 +39,6 @@ export function TranslationToolbar({
         setReference(t('verse_reference', { bookId, chapter, verse }))
     }, [verseId, t])
 
-    function navigateToNextUnapprovedVerse() { }
 
     useEffect(() => {
         if (!isTranslator) return
@@ -62,9 +52,10 @@ export function TranslationToolbar({
                 navigateToNextUnapprovedVerse();
             }
         };
+
         window.addEventListener('keydown', keydownCallback);
         return () => window.removeEventListener('keydown', keydownCallback);
-    }, [approveAllGlosses, isTranslator]);
+    }, [isTranslator]);
 
     return (
         <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-500 px-6 md:px-8 py-4">
@@ -146,13 +137,12 @@ export function TranslationToolbar({
                         <Button
                             variant="tertiary"
                             disabled={!canLinkWords}
-                            onClick={onLinkWords}
                         >
                             <Icon icon="link" className="me-1" />
                             {t('link_words')}
                         </Button>
                     ) : (
-                        <Button variant="tertiary" onClick={onUnlinkWords}>
+                        <Button variant="tertiary">
                             <Icon icon="unlink" className="me-1" />
                             {t('unlink_words')}
                         </Button>
