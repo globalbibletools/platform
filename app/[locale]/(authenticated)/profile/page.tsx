@@ -78,6 +78,7 @@ export default async function ProfileView() {
               className="w-full"
               autoComplete="email"
               aria-describedby="email-error"
+              defaultValue={user?.email}
             />
             <FieldError id="email-error" name="email" />
           </div>
@@ -88,6 +89,7 @@ export default async function ProfileView() {
               className="w-full"
               autoComplete="name"
               aria-describedby="name-error"
+              defaultValue={user?.name}
             />
             <FieldError id="name-error" name="name" />
           </div>

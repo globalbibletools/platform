@@ -18,14 +18,16 @@ export default function ProfileForm({
       name?: string;
       password?: string;
       confirmPassword?: string;
-      user: any;
+      id?: string;
     } & any
   >(submitAction, {
-    user,
+    ...user,
+    password: "",
+    confirmPassword: "",
   });
 
   return (
-    <form action={formAction}>
+    <form onSubmit={formAction}>
       <FormContextProvider value={state}>{children}</FormContextProvider>
     </form>
   );
