@@ -1,6 +1,6 @@
 "use client";
 import { FormContextProvider } from "@/app/components/FormContext";
-import { ReactNode } from "react";
+import { ReactNode, useRef } from "react";
 import { useFormState } from "react-dom";
 
 export default function ProfileForm({
@@ -10,24 +10,12 @@ export default function ProfileForm({
 }: {
   children: ReactNode;
   user: any;
-  submitAction: (state: any) => any;
+  submitAction: (state: any, data: FormData) => any;
 }) {
-  const [state, formAction] = useFormState<
-    {
-      email?: string;
-      name?: string;
-      password?: string;
-      confirmPassword?: string;
-      id?: string;
-    } & any
-  >(submitAction, {
-    ...user,
-    password: "",
-    confirmPassword: "",
-  });
+  const [state, formAction] = useFormState(submitAction, {});
 
   return (
-    <form onSubmit={formAction}>
+    <form action={formAction}>
       <FormContextProvider value={state}>{children}</FormContextProvider>
     </form>
   );

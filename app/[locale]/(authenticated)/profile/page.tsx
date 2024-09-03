@@ -8,7 +8,7 @@ import { getTranslations } from "next-intl/server";
 import FieldError from "@/app/components/FieldError";
 import Button from "@/app/components/Button";
 import ProfileForm from "./ProfileForm";
-import submitAction from "./submitAction";
+import updateProfile from "./actions";
 
 // async function onSubmit(user: any, state: any) {
 //   try {
@@ -67,13 +67,20 @@ export default async function ProfileView() {
         dark:bg-gray-700 dark:border-gray-600 dark:shadow-none"
       >
         <ViewTitle>{t("title")}</ViewTitle>
-        <ProfileForm user={user} submitAction={submitAction}>
+        <ProfileForm user={user} submitAction={updateProfile}>
+          <input
+            readOnly
+            className="hidden"
+            name="userId"
+            value={session?.user.id ?? ""}
+          />
           <div className="mb-2">
             <FormLabel htmlFor="email">
               {t("form.email").toUpperCase()}
             </FormLabel>
             <TextInput
               id="email"
+              name="email"
               type="email"
               className="w-full"
               autoComplete="email"
@@ -86,6 +93,7 @@ export default async function ProfileView() {
             <FormLabel htmlFor="name">{t("form.name").toUpperCase()}</FormLabel>
             <TextInput
               id="name"
+              name="name"
               className="w-full"
               autoComplete="name"
               aria-describedby="name-error"
@@ -100,6 +108,7 @@ export default async function ProfileView() {
             <TextInput
               type="password"
               id="password"
+              name="password"
               className="w-full"
               autoComplete="new-password"
               aria-describedby="password-error"
@@ -113,6 +122,7 @@ export default async function ProfileView() {
             <TextInput
               type="password"
               id="confirm-password"
+              name="confirmPassword"
               className="w-full"
               autoComplete="new-password"
               aria-describedby="confirm-password-error"
