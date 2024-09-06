@@ -1,5 +1,13 @@
 {
-  "en": "English",
-  "ar": "اَلْعَرَبِيَّةُ"
+  "en": {
+      "name": "English",
+      "class": "locale-en",
+      "dir": "ltr"
+  },
+  "ar": {
+      "name": "اَلْعَرَبِيَّةُ",
+      "class": "locale-ar",
+      "dir": "rtl"
+  }
 }
 

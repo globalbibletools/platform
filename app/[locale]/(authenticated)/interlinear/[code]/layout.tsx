@@ -3,7 +3,7 @@ import { getLocale, getMessages } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { ReactNode } from "react"
 import TranslationToolbar from "./TranslationToolbar"
-import {  NextIntlClientProvider, useMessages } from "next-intl"
+import {  NextIntlClientProvider } from "next-intl"
 
 interface Props {
     children: ReactNode
@@ -20,10 +20,14 @@ export default async function InterlinearLayout({ children, params }: Props) {
     const messages = await getMessages()
     const locale = await getLocale()
 
-    const languages = await query<{ code: string, name: string }>(
-        `SELECT code, name FROM "Language" ORDER BY name`,
+    const languages = await query<{ code: string, name: string, font: string }>(
+        `SELECT code, name, font FROM "Language" ORDER BY name`,
         []
     )
+    const selectedLanguage = languages.rows.find(l => l.code === params.code)
+    if (!selectedLanguage) {
+        notFound()
+    }
 
     /*
     const result = await query<VerseQueryResult>(
@@ -47,7 +51,7 @@ export default async function InterlinearLayout({ children, params }: Props) {
     */
 
 
-    return <div className="absolute w-full h-full flex flex-col flex-grow">
+    return <div className={`absolute w-full h-full flex flex-col flex-grow`}>
         <NextIntlClientProvider messages={{ TranslationToolbar: messages.TranslationToolbar }}>
             <TranslationToolbar
                 languages={languages.rows}

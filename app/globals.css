@@ -3,27 +3,15 @@
 @tailwind utilities;
 
 @layer base {
-  /*
-    Both Hebrew and Greek fonts have Latin characters that we want to use other fonts to render.
-    Restricting the unicode range allows other fonts to render those characters instead.
-
-    Additionally, Hebrew and to a lesser extent Greek, are harder to read at standard font sizes,
-    so we scale them up a bit so that we don't have to set different font sizes for each language with css.
-   */
-  @font-face {
-    font-family: 'SBL-Hebrew';
-    src: url('/SBL_Hbrw.ttf') format('truetype');
-    font-weight: normal;
-    unicode-range: U+0590-05FF;
-    size-adjust: 140%;
+  :root {
+      --font-sans: var(--font-noto-sans);
   }
 
-  @font-face {
-    font-family: 'SBL-Greek';
-    src: url('/SBL_grk.ttf') format('truetype');
-    font-weight: normal;
-    unicode-range: U+0370-03FF, U+1F00-1FFF;
-    size-adjust: 112%;
+  .locale-en {
+      --font-sans: var(--font-noto-sans);
+  }
+  .locale-ar {
+      --font-sans: var(--font-noto-sans-arabic), var(--font-noto-sans);
   }
 }
 

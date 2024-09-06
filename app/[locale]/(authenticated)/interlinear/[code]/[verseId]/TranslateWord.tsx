@@ -4,12 +4,12 @@ import AutocompleteInput from "@/app/components/AutocompleteInput";
 import Button from "@/app/components/Button";
 import Checkbox from "@/app/components/Checkbox";
 import { Icon } from "@/app/components/Icon";
-import { expandFontFamily } from "@/app/utils/font";
 import { useTextWidth } from "@/app/utils/text-width";
 import { useTranslations } from "next-intl";
 import { MouseEvent, useLayoutEffect, useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { updateGloss } from "./actions";
+import { fontMap } from "@/app/fonts";
 
 export interface TranslateWordProps {
     word: { id: string, text: string, referenceGloss?: string }
@@ -71,7 +71,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
     const [width, setWidth] = useState(0);
     const glossWidth = useTextWidth({
         text: glossValue ?? '',
-        fontFamily: expandFontFamily(language.font),
+        fontFamily: fontMap[language.font],
         fontSize: '16px',
     });
     useLayoutEffect(() => {
@@ -97,7 +97,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
     return <li
         key={word.id}
         ref={root}
-        dir={isHebrew ? 'ltr' : 'rtl'}
+        dir={isHebrew ? 'rtl' : 'ltr'}
         className={`
           group/word relative p-2 rounded
           ${phraseFocused && !selected ? 'bg-brown-50 dark:bg-gray-700' : ''}
@@ -187,7 +187,6 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
                     // The extra 26 pixels give room for the padding and border.
                     style={{
                         width: width + 26,
-                        fontFamily: expandFontFamily(language.font),
                     }}
                     dir={language.textDirection}
                 >
@@ -234,6 +233,9 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
                         )}
                         <AutocompleteInput
                             className={`w-full ${isHebrew ? 'text-right' : 'text-left'}`}
+                            style={{
+                                fontFamily: fontMap[language.font]
+                            }}
                             inputClassName={isHebrew ? 'text-right' : 'text-left'}
                             right={isHebrew}
                             renderOption={(item, i) => (
