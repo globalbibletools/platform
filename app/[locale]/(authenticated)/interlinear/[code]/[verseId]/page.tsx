@@ -10,7 +10,7 @@ interface Props {
 }
 
 interface VerseQueryResult {
-    words: { id: string, text: string, referenceGloss?: string }[]
+    words: { id: string, text: string, referenceGloss?: string, suggestions: string[] }[]
     phrases: { id: string, wordIds: string[], gloss?: { text: string, state: string } }[]
 }
 
@@ -50,9 +50,11 @@ export default async function InterlinearView({ params }: Props) {
                     JSON_AGG(JSON_BUILD_OBJECT(
                         'id', w.id, 
                         'text', w.text,
-                        'referenceGloss', ph.gloss
+                        'referenceGloss', ph.gloss,
+                        'suggestions', COALESCE(suggestion.suggestions, '[]')
                     ) ORDER BY w.id)
                 FROM "Word" AS w
+
                 LEFT JOIN LATERAL (
                     SELECT g.gloss FROM "PhraseWord" AS phw
                     JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
@@ -61,6 +63,30 @@ export default async function InterlinearView({ params }: Props) {
                         AND ph."languageId" = (SELECT id FROM "Language" WHERE code = 'eng')
 						AND ph."deletedAt" IS NULL
                 ) AS ph ON true
+
+                LEFT JOIN (
+                  SELECT
+                    id AS form_id,
+                    JSON_AGG(gloss ORDER BY count DESC) AS "suggestions"
+                  FROM (
+                    SELECT w."formId" AS id, g.gloss, COUNT(*)
+                    FROM "Word" AS w
+                    JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
+                    JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
+                    JOIN "Gloss" AS g ON g."phraseId" = ph.id
+                    WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $2)
+                      AND ph."deletedAt" IS NULL
+                      AND g.gloss IS NOT NULL
+                      AND EXISTS (
+                        SELECT 1 FROM "Word" AS wd
+                          WHERE wd."verseId" = $1
+                            AND wd."formId" = w."formId"
+                      )
+                    GROUP BY w."formId", g.gloss
+                  ) AS form_suggestion
+                  GROUP BY id
+                ) AS suggestion ON suggestion.form_id = w."formId"
+     
                 WHERE w."verseId" = v.id
             ) AS words,
             (
@@ -102,6 +128,8 @@ export default async function InterlinearView({ params }: Props) {
         `,
         [params.verseId, params.code]
     )
+
+    console.log(JSON.stringify(result.rows, null, 2))
 
     const languageQuery = await query<{ font: string, textDirection: string }>(
         `

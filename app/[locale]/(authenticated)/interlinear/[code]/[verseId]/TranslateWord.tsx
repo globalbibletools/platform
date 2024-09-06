@@ -12,7 +12,7 @@ import { updateGloss } from "./actions";
 import { fontMap } from "@/app/fonts";
 
 export interface TranslateWordProps {
-    word: { id: string, text: string, referenceGloss?: string }
+    word: { id: string, text: string, referenceGloss?: string, suggestions: string[], machineGloss?: string }
     phrase: { id: string, wordIds: string[], gloss?: { text: string, state: string } }
     language: {
         font: string
@@ -34,7 +34,6 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
     const editable = true
     const hasNote = false
     const hasMachineSuggestions = false
-    const hints: Record<string, any> = {}
     const dir = 'ltr'
 
     const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
@@ -42,7 +41,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
         phrase?.gloss?.text ||
         (isMultiWord
             ? undefined
-            : hints?.suggestions?.[0] || hints?.machineGloss);
+            : word.suggestions[0] || word.machineGloss);
     const [currentInputValue, setCurrentInputValue] = useState(
         glossValue ?? ''
     );
@@ -241,13 +240,13 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
                             renderOption={(item, i) => (
                                 <div
                                     className={
-                                        hints?.machineGloss
+                                        word.machineGloss
                                             ? `relative ${isHebrew ? 'pl-5' : 'pr-5'}`
                                             : ''
                                     }
                                 >
                                     {item}
-                                    {i === hints?.suggestions.length ? (
+                                    {i === word.suggestions.length ? (
                                         <Icon
                                             className={`absolute top-1 ${isHebrew ? 'left-0' : 'right-0'}`}
                                             icon={['fab', 'google']}
@@ -309,9 +308,9 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
                             }}
                             onFocus={() => onFocus?.()}
                             suggestions={
-                                hints?.machineGloss
-                                    ? [...(hints?.suggestions ?? []), hints?.machineGloss]
-                                    : hints?.suggestions ?? []
+                                word.machineGloss
+                                    ? [...word.suggestions, word.machineGloss]
+                                    : word.suggestions
                             }
                             ref={input}
                         />
