@@ -3,6 +3,7 @@ import TranslateWord from "./TranslateWord"
 import { notFound } from "next/navigation"
 import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
+import { verifySession } from "@/app/session"
 
 interface Props {
     params: { code: string, verseId: string }
@@ -15,6 +16,32 @@ interface VerseQueryResult {
 
 export default async function InterlinearView({ params }: Props) {
     const messages = await getMessages()
+
+    const session = await verifySession()
+
+    await query(
+        `
+            WITH phw AS (
+              INSERT INTO "PhraseWord" ("phraseId", "wordId")
+              SELECT
+                nextval(pg_get_serial_sequence('"Phrase"', 'id')),
+                w.id
+              FROM "Word" AS w
+              LEFT JOIN (
+                SELECT * FROM "PhraseWord" AS phw
+                JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
+                WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+                  AND ph."deletedAt" IS NULL
+              ) ph ON ph."wordId" = w.id
+              WHERE w."verseId" = $2 AND ph.id IS NULL
+              RETURNING "phraseId", "wordId"
+            )
+            INSERT INTO "Phrase" (id, "languageId", "createdAt", "createdBy")
+            SELECT phw."phraseId", (SELECT id FROM "Language" WHERE code = $1), now(), $3::uuid FROM phw
+        `,
+        [params.code, params.verseId, session?.user.id]
+    )
+
     const result = await query<VerseQueryResult>(
         `
         SELECT
