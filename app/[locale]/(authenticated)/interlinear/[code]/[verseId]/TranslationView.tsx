@@ -9,6 +9,7 @@ export interface TranslationViewProps {
     words: { id: string, text: string, referenceGloss?: string, suggestions: string[], machineGloss?: string, lemma: string, grammar: string, resource?: { name: string, entry: string } }[]
     phrases: { id: string, wordIds: string[], gloss?: { text: string, state: string }, translatorNote?: { authorName: string, timestamp: string, content: string }, footnote?: { authorName: string, timestamp: string, content: string } }[]
     language: {
+        code: string
         font: string
         textDirection: string
     }
@@ -58,6 +59,7 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
         {showSidebar && (
             <TranslationSidebar
                 ref={sidebarRef}
+                language={language}
                 word={sidebarWord}
                 phrase={sidebarPhrase}
                 canReadTranslatorNotes={true}

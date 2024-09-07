@@ -7,9 +7,11 @@ import { Tab } from "@headlessui/react";
 import DOMPurify from "isomorphic-dompurify";
 import { throttle } from "lodash";
 import { useTranslations } from "next-intl";
-import { forwardRef, Fragment, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { forwardRef, Fragment, memo, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { createPortal, useFormState } from "react-dom";
 import { updateFootnote, updateTranslatorNote } from "./actions";
+import { parseReferenceRange } from "../verse-utils";
+import { VersesPreview } from "./VersesPreview";
 
 export interface Word {
     id: string
@@ -40,6 +42,7 @@ export interface TranslationSidebarProps {
     className?: string
     word: Word
     phrase: Phrase
+    language: { code: string, font: string, textDirection: string }
     canReadTranslatorNotes: boolean
     canEditNotes: boolean
     onClose?(): void
@@ -49,7 +52,7 @@ export interface TranslationSidebarRef {
 };
 
 
-const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarProps>(({ className = '', word, phrase, canReadTranslatorNotes, canEditNotes, onClose }, ref) => {
+const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarProps>(({ className = '', language, word, phrase, canReadTranslatorNotes, canEditNotes, onClose }, ref) => {
     const t = useTranslations("TranslationSidebar")
 
     // These two are difficult to handle until React 19, Next 15
@@ -57,7 +60,6 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
     const isSavingFootnote = false
 
     const [tabIndex, setTabIndex] = useState(0)
-    const lexiconEntryRef = useRef<HTMLDivElement>(null)
 
     const [translatorNoteContent, setTranslatorNoteContent] = useState('');
     const [footnoteContent, setFootnoteContent] = useState('');
@@ -116,6 +118,24 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
         ),
       [phrase.id, saveTranslatorNoteAction]
     );
+
+    const lexiconEntryRef = useRef<HTMLDivElement>(null);
+    const [previewElement, setPreviewElement] = useState<HTMLDivElement | null>(
+      null
+    );
+    const [previewVerseIds, setPreviewVerseIds] = useState<string[]>([]);
+    const openPreview = (anchorElement: HTMLAnchorElement) => {
+      const oldPreview = document.querySelector('#ref-preview');
+      oldPreview?.remove();
+
+      const reference = anchorElement.getAttribute('data-ref') ?? '';
+      setPreviewVerseIds(parseReferenceRange(reference, t.raw('book_names')));
+
+      const previewElement = document.createElement('div');
+      previewElement.id = 'ref-preview';
+      anchorElement.insertAdjacentElement('afterend', previewElement);
+      setPreviewElement(previewElement);
+    };
 
     return <div
         className={`
@@ -177,14 +197,12 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
                                         target.nodeName === 'A' &&
                                         target.classList.contains('ref')
                                     ) {
-                                        // openPreview(target as HTMLAnchorElement);
+                                        openPreview(target as HTMLAnchorElement);
                                     }
                                 }}
-                                dangerouslySetInnerHTML={{
-                                    __html: DOMPurify.sanitize(word.resource.entry),
-                                }}
-                            />
-                            {/*
+                            >
+                                <LexiconText content={word.resource.entry} />
+                            </div>
                             {previewElement !== null &&
                                 createPortal(
                                     <VersesPreview
@@ -198,7 +216,6 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
                                     />,
                                     previewElement
                                 )}
-                                */}
                             </>)}
                         </div>
                     </Tab.Panel>
@@ -284,3 +301,14 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
 })
 TranslationSidebar.displayName = "TranslationSidebar"
 export default TranslationSidebar
+
+const LexiconText = memo(function LexiconText({ content }: { content: string }) {
+    const prev = useRef('')
+    prev.current = content
+    const html = useMemo(() => DOMPurify.sanitize(content), [content])
+    return <div
+        dangerouslySetInnerHTML={{
+            __html: html,
+        }}
+    />
+})

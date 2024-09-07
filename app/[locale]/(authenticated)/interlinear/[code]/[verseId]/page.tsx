@@ -175,9 +175,10 @@ export default async function InterlinearView({ params }: Props) {
         [params.verseId, params.code]
     )
 
-    const languageQuery = await query<{ font: string, textDirection: string }>(
+    const languageQuery = await query<{ code: string; font: string, textDirection: string }>(
         `
         SELECT
+            l."code",
             l."font",
             l."textDirection"
         FROM "Language" AS l
@@ -191,7 +192,7 @@ export default async function InterlinearView({ params }: Props) {
     }
 
 
-    return <NextIntlClientProvider messages={{ TranslateWord: messages.TranslateWord, TranslationSidebar: messages.TranslationSidebar, RichTextInput: messages.RichTextInput }}>
+    return <NextIntlClientProvider messages={{ TranslateWord: messages.TranslateWord, TranslationSidebar: messages.TranslationSidebar, RichTextInput: messages.RichTextInput, VersesPreview: messages.VersesPreview }}>
         <TranslateView
             verseId={params.verseId}
             words={result.rows[0].words}

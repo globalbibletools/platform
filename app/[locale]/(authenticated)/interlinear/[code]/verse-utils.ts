@@ -1,6 +1,11 @@
 import { verseCounts } from "@/data/verse-counts";
 import fuzzysort from "fuzzysort";
 
+export function isOldTestament(verseId: string): boolean {
+  const matthewBookId = 40;
+  return parseVerseId(verseId).bookId < matthewBookId;
+}
+
 export interface VerseInfo {
     bookId: number,
     chapterNumber: number,
@@ -109,5 +114,30 @@ function clamp(num: number, min: number, max: number) {
   return Math.min(Math.max(num, min), max);
 }
 
+export function parseReferenceRange(reference: string, bookNameList: string[]): string[] {
+  const results = reference.split('-');
+  const base = parseReference(results[0], bookNameList);
+  if (base == null) {
+    return [];
+  } else if (results.length === 1) {
+    return [base];
+  } else {
+    const {
+      bookId,
+      chapterNumber,
+      verseNumber: firstVerseNumber,
+    } = parseVerseId(base);
+    const endVerseNumber = parseInt(results[1]);
+    const sequence = [base];
+    for (
+      let verseNumber = firstVerseNumber + 1;
+      verseNumber <= endVerseNumber;
+      verseNumber++
+    ) {
+      sequence.push(generateVerseId({ bookId, chapterNumber, verseNumber }));
+    }
+    return sequence;
+  }
+}
 
 
