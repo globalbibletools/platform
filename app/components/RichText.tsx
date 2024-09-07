@@ -1,3 +1,5 @@
+"use client";
+
 import { useEditor, EditorContent } from '@tiptap/react';
 import { extensions } from './RichTextInput';
 import { useEffect } from 'react';
@@ -16,13 +18,16 @@ export default function RichText({ content, className = '' }: RichTextProps) {
       },
     },
     editable: false,
+    immediatelyRender: false
   });
 
   useEffect(() => {
-    editor?.commands.setContent(content, false, {
-      preserveWhitespace: 'full',
-    });
-  }, [editor?.commands, content]);
+    if (content !== editor?.getHTML()) {
+        editor?.commands.setContent(content, false, {
+          preserveWhitespace: 'full',
+        });
+    }
+  }, [content, editor]);
 
   return <EditorContent editor={editor} className={className} />;
 }

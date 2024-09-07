@@ -60,6 +60,8 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
                 ref={sidebarRef}
                 word={sidebarWord}
                 phrase={sidebarPhrase}
+                canReadTranslatorNotes={true}
+                canEditNotes={false}
                 className="h-[320px] lg:h-auto lg:w-1/3 lg:min-w-[320px] lg:max-w-[480px] mt-8 mb-10 mx-6 lg:ms-0 lg:me-8"
                 onClose={() => setShowSidebar(false)}
             />

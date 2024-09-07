@@ -46,6 +46,7 @@ const RichTextInput = forwardRef<RichTextInputRef, RichTextInputProps>(
         },
       },
       content: value ?? defaultValue,
+      immediatelyRender: false,
       onUpdate: ({ editor }) => onChange?.(editor?.getHTML()),
       onBlur,
     });
@@ -173,6 +174,6 @@ function RichTextInputButton({
 }
 
 export function isRichTextEmpty(richText: string) {
-  return new Editor({ extensions, content: richText }).isEmpty;
+    return richText === '' || richText === '<p></p>'
 }
 

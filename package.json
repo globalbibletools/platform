@@ -11,6 +11,7 @@
   "dependencies": {
     "@gracious.tech/fetch-client": "0.8.9",
     "fuzzysort": "3.0.2",
+    "isomorphic-dompurify": "2.15.0",
     "next": "14.2.5",
     "next-intl": "3.17.4",
     "oslo": "1.2.1",
@@ -35,7 +36,6 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "chart.js": "4.4.4",
-    "dompurify": "3.1.6",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
     "lodash": "4.17.21",

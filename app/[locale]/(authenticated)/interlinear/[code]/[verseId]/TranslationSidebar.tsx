@@ -4,11 +4,12 @@ import { Icon } from "@/app/components/Icon";
 import RichText from "@/app/components/RichText";
 import RichTextInput, { RichTextInputRef } from "@/app/components/RichTextInput";
 import { Tab } from "@headlessui/react";
-import DOMPurify from "dompurify";
+import DOMPurify from "isomorphic-dompurify";
 import { throttle } from "lodash";
 import { useTranslations } from "next-intl";
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { forwardRef, Fragment, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { createPortal, useFormState } from "react-dom";
+import { updateFootnote, updateTranslatorNote } from "./actions";
 
 export interface Word {
     id: string
@@ -39,6 +40,8 @@ export interface TranslationSidebarProps {
     className?: string
     word: Word
     phrase: Phrase
+    canReadTranslatorNotes: boolean
+    canEditNotes: boolean
     onClose?(): void
 };
 export interface TranslationSidebarRef {
@@ -46,16 +49,15 @@ export interface TranslationSidebarRef {
 };
 
 
-const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarProps>(({ className = '', word, phrase, onClose }, ref) => {
+const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarProps>(({ className = '', word, phrase, canReadTranslatorNotes, canEditNotes, onClose }, ref) => {
     const t = useTranslations("TranslationSidebar")
+
+    // These two are difficult to handle until React 19, Next 15
+    const isSavingTranslatorNote = false
+    const isSavingFootnote = false
 
     const [tabIndex, setTabIndex] = useState(0)
     const lexiconEntryRef = useRef<HTMLDivElement>(null)
-
-    const hasLanguageReadPermissions = true
-    const isSavingTranslatorNote = true
-    const isSavingFootnote = true
-    const canEditNote = true
 
     const [translatorNoteContent, setTranslatorNoteContent] = useState('');
     const [footnoteContent, setFootnoteContent] = useState('');
@@ -79,32 +81,40 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
       },
     }));
 
+    const [footnoteState, saveFootnoteAction] = useFormState(updateFootnote, {})
     const saveFootnote = useMemo(
       () =>
         throttle(
           (note: string) => {
             if (phrase.id) {
-              // mutateFootnote({ phraseId, language, note });
+                const form = new FormData()
+                form.set('phraseId', phrase.id)
+                form.set('note', note)
+                saveFootnoteAction(form)
             }
           },
-          15000,
+          5000,
           { leading: false, trailing: true }
         ),
-      [phrase.id]
+      [phrase.id, saveFootnoteAction]
     );
 
+    const [translatorNoteState, saveTranslatorNoteAction] = useFormState(updateTranslatorNote, {})
     const saveTranslatorNote = useMemo(
       () =>
         throttle(
           (note: string) => {
             if (phrase.id) {
-              // mutateFootnote({ phraseId, language, note });
+                const form = new FormData()
+                form.set('phraseId', phrase.id)
+                form.set('note', note)
+                saveTranslatorNoteAction(form)
             }
           },
-          15000,
+          5000,
           { leading: false, trailing: true }
         ),
-      [phrase.id]
+      [phrase.id, saveTranslatorNoteAction]
     );
 
     return <div
@@ -137,9 +147,8 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
                 <Tab.List className="flex flex-row">
                     <div className="border-b border-blue-800 dark:border-green-400 h-full w-2"></div>
                     {[t('tabs.lexicon'), t('tabs.notes')].map((title) => (
-                        <>
+                        <Fragment key={title}>
                             <Tab
-                                key={title}
                                 className="
                       px-4 py-1 text-blue-800 font-bold rounded-t-lg border border-blue-800 ui-selected:border-b-transparent outline-green-300 focus-visible:outline outline-2
                       dark:text-green-400 dark:border-green-400
@@ -148,7 +157,7 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
                                 {title}
                             </Tab>
                             <div className="border-b border-blue-800 dark:border-green-400 h-full w-1"></div>
-                        </>
+                        </Fragment>
                     ))}
                     <div className="border-b border-blue-800 dark:border-green-400 h-full grow"></div>
                 </Tab.List>
@@ -195,7 +204,7 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
                     </Tab.Panel>
                     <Tab.Panel unmount={false}>
                         <div className="flex flex-col gap-6 pb-2">
-                          {hasLanguageReadPermissions && (
+                          {canReadTranslatorNotes && (
                             <div className="flex flex-col gap-2">
                               <div className="flex flex-row gap-2.5">
                                 <h2 className="font-bold">
@@ -217,7 +226,7 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
                                   })}
                                 </span>
                               )}
-                              {canEditNote ? (
+                              {canEditNotes ? (
                                 <RichTextInput
                                   ref={translatorNotesEditorRef}
                                   name="translatorNoteContent"
@@ -242,7 +251,7 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
                                 </span>
                               )}
                             </div>
-                            {hasLanguageReadPermissions && phrase?.footnote && (
+                            {canReadTranslatorNotes && phrase?.footnote && (
                               <span className="italic">
                                 {t('notes.note_description', {
                                   timestamp: new Date(
@@ -252,7 +261,7 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
                                 })}
                               </span>
                             )}
-                            {canEditNote ? (
+                            {canEditNotes ? (
                               <RichTextInput
                                 name="footnoteContent"
                                 value={footnoteContent}
