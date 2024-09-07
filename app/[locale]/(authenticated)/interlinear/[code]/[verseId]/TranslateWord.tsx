@@ -19,9 +19,13 @@ export interface TranslateWordProps {
         textDirection: string
     }
     isHebrew: boolean
+    onSelect?(): void
+    onFocus?(): void
+    onShowDetail?(): void
+    onOpenNotes?(): void
 }
 
-export default function TranslateWord({ word, phrase, isHebrew, language }: TranslateWordProps) {
+export default function TranslateWord({ word, phrase, isHebrew, language, onSelect, onFocus, onShowDetail, onOpenNotes }: TranslateWordProps) {
     const t = useTranslations("TranslateWord")
 
     const root = useRef<HTMLLIElement>(null)
@@ -87,12 +91,6 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
         );
     }, [hasNote, glossWidth, hasMachineSuggestions, isMultiWord]);
 
-    function onSelect() { }
-    function onFocus() { }
-    function onShowDetail() { }
-    function onOpenNotes() { }
-
-
     return <li
         key={word.id}
         ref={root}
@@ -108,7 +106,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language }: Tran
         onClick={(e) => {
             if (!e.altKey) return;
             if (!isMultiWord) {
-                onSelect();
+                onSelect?.();
             }
         }}
     >

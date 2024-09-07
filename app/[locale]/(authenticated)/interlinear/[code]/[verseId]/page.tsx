@@ -1,16 +1,16 @@
 import { query } from "@/app/db"
-import TranslateWord from "./TranslateWord"
 import { notFound } from "next/navigation"
 import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import { verifySession } from "@/app/session"
+import TranslateView from "./TranslationView"
 
 interface Props {
     params: { code: string, verseId: string }
 }
 
 interface VerseQueryResult {
-    words: { id: string, text: string, referenceGloss?: string, suggestions: string[] }[]
+    words: { id: string, text: string, referenceGloss?: string, suggestions: string[], lemma: string, grammar: string, resource?: { name: string, entry: string } }[]
     phrases: { id: string, wordIds: string[], gloss?: { text: string, state: string } }[]
 }
 
@@ -51,7 +51,10 @@ export default async function InterlinearView({ params }: Props) {
                         'id', w.id, 
                         'text', w.text,
                         'referenceGloss', ph.gloss,
-                        'suggestions', COALESCE(suggestion.suggestions, '[]')
+                        'suggestions', COALESCE(suggestion.suggestions, '[]'),
+                        'lemma', lf."lemmaId",
+                        'grammar', lf.grammar,
+                        'resource', lemma_resource.resource
                     ) ORDER BY w.id)
                 FROM "Word" AS w
 
@@ -86,6 +89,22 @@ export default async function InterlinearView({ params }: Props) {
                   ) AS form_suggestion
                   GROUP BY id
                 ) AS suggestion ON suggestion.form_id = w."formId"
+
+                JOIN "LemmaForm" AS lf ON lf.id = w."formId"
+                LEFT JOIN LATERAL (
+                    SELECT
+						CASE
+							WHEN lr."resourceCode" IS NOT NULL
+							THEN JSON_BUILD_OBJECT(
+							  'name', lr."resourceCode",
+							  'entry', lr.content
+							)
+							ELSE NULL
+						END AS resource
+                    FROM "LemmaResource" AS lr
+                    WHERE lr."lemmaId" = lf."lemmaId"
+                    LIMIT 1
+                ) AS lemma_resource ON true
      
                 WHERE w."verseId" = v.id
             ) AS words,
@@ -129,8 +148,6 @@ export default async function InterlinearView({ params }: Props) {
         [params.verseId, params.code]
     )
 
-    console.log(JSON.stringify(result.rows, null, 2))
-
     const languageQuery = await query<{ font: string, textDirection: string }>(
         `
         SELECT
@@ -146,28 +163,13 @@ export default async function InterlinearView({ params }: Props) {
         notFound()
     }
 
-    const isHebrew = parseInt(params.verseId.slice(0, 2)) < 40
 
-    return <div className="flex flex-col flex-grow w-full min-h-0 lg:flex-row">
-        <NextIntlClientProvider messages={{ TranslateWord: messages.TranslateWord }}>
-            <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-10 px-6">
-                <ol
-                    className={`
-                        flex h-fit content-start flex-wrap gap-x-2 gap-y-4
-                        ${isHebrew ? 'ltr:flex-row-reverse' : 'rtl:flex-row-reverse'}
-                    `}
-                >
-                    {result.rows[0].words.map(word => (
-                        <TranslateWord
-                            key={word.id}
-                            word={word}
-                            phrase={result.rows[0].phrases.find(ph => ph.wordIds.includes(word.id))}
-                            language={languageQuery.rows[0]}
-                            isHebrew={isHebrew}
-                        />
-                    ))}
-                </ol>
-            </div>
-        </NextIntlClientProvider>
-    </div>
+    return <NextIntlClientProvider messages={{ TranslateWord: messages.TranslateWord, TranslationSidebar: messages.TranslationSidebar }}>
+        <TranslateView
+            verseId={params.verseId}
+            words={result.rows[0].words}
+            phrases={result.rows[0].phrases}
+            language={languageQuery.rows[0]}
+        />
+    </NextIntlClientProvider>
 }
