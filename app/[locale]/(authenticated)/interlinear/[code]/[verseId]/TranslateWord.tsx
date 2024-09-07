@@ -10,10 +10,11 @@ import { MouseEvent, useLayoutEffect, useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { updateGloss } from "./actions";
 import { fontMap } from "@/app/fonts";
+import { isRichTextEmpty } from "@/app/components/RichTextInput";
 
 export interface TranslateWordProps {
     word: { id: string, text: string, referenceGloss?: string, suggestions: string[], machineGloss?: string }
-    phrase: { id: string, wordIds: string[], gloss?: { text: string, state: string } }
+    phrase: { id: string, wordIds: string[], gloss?: { text: string, state: string }, translatorNote?: { authorName: string, timestamp: string, content: string }, footnote?: { authorName: string, timestamp: string, content: string } }
     language: {
         font: string
         textDirection: string
@@ -36,8 +37,9 @@ export default function TranslateWord({ word, phrase, isHebrew, language, onSele
     const selected = false
     const phraseFocused = false
     const editable = true
-    const hasNote = false
     const hasMachineSuggestions = false
+
+    const hasNote = !isRichTextEmpty(phrase.footnote?.content ?? '') || !isRichTextEmpty(phrase.translatorNote?.content ?? '')
     const dir = 'ltr'
 
     const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
@@ -130,7 +132,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, onSele
             </span>
             <Button
                 className={hasNote ? 'inline-block' : 'hidden'}
-                title="Jump to Note"
+                title={t("open_note_tooltip")}
                 small
                 variant="tertiary"
                 tabIndex={-1}

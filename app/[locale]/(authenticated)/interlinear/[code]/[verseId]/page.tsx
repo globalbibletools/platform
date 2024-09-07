@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import { verifySession } from "@/app/session"
 import TranslateView from "./TranslationView"
+import RichTextInput from "@/app/components/RichTextInput"
 
 interface Props {
     params: { code: string, verseId: string }
@@ -11,7 +12,7 @@ interface Props {
 
 interface VerseQueryResult {
     words: { id: string, text: string, referenceGloss?: string, suggestions: string[], lemma: string, grammar: string, resource?: { name: string, entry: string } }[]
-    phrases: { id: string, wordIds: string[], gloss?: { text: string, state: string } }[]
+    phrases: { id: string, wordIds: string[], gloss?: { text: string, state: string }, translatorNote?: { authorName: string, timestamp: string, content: string }, footnote?: { authorName: string, timestamp: string, content: string } }[]
 }
 
 export default async function InterlinearView({ params }: Props) {
@@ -113,7 +114,9 @@ export default async function InterlinearView({ params }: Props) {
                     JSON_AGG(JSON_BUILD_OBJECT(
                         'id', ph.id,
                         'wordIds', ph."wordIds",
-						'gloss', gloss.gloss
+						'gloss', gloss.gloss,
+                        'translatorNote', tn.note,
+                        'footnote', fn.note
                     ) ORDER BY ph.id)
                 FROM (
 				  	SELECT
@@ -141,6 +144,30 @@ export default async function InterlinearView({ params }: Props) {
 					FROM "Gloss" AS g
 					WHERE g."phraseId" = ph.id
 				) AS gloss ON true
+
+                LEFT JOIN LATERAL (
+                    SELECT
+                        JSON_BUILD_OBJECT(
+                          'timestamp', n.timestamp,
+                          'content', n.content,
+                          'authorName', COALESCE(u.name, '')
+                        ) AS note
+                    FROM "Footnote" AS n
+                    LEFT JOIN "User" AS u ON u.id = n."authorId"
+                    WHERE n."phraseId" = ph.id
+                ) AS fn ON true
+
+                LEFT JOIN LATERAL (
+                    SELECT
+                        JSON_BUILD_OBJECT(
+                          'timestamp', n.timestamp,
+                          'content', n.content,
+                          'authorName', COALESCE(u.name, '')
+                        ) AS note
+                    FROM "TranslatorNote" AS n
+                    LEFT JOIN "User" AS u ON u.id = n."authorId"
+                    WHERE n."phraseId" = ph.id
+                ) AS tn ON true
             ) AS phrases
         FROM "Verse" AS v
         WHERE v.id = $1
@@ -164,7 +191,7 @@ export default async function InterlinearView({ params }: Props) {
     }
 
 
-    return <NextIntlClientProvider messages={{ TranslateWord: messages.TranslateWord, TranslationSidebar: messages.TranslationSidebar }}>
+    return <NextIntlClientProvider messages={{ TranslateWord: messages.TranslateWord, TranslationSidebar: messages.TranslationSidebar, RichTextInput: messages.RichTextInput }}>
         <TranslateView
             verseId={params.verseId}
             words={result.rows[0].words}

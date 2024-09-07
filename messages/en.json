@@ -168,6 +168,15 @@
             "submit": "Add"
         }
     },
+    "RichTextInput": {
+        "bold_tooltip": "Bold",
+        "italic_tooltip": "Italic",
+        "strike_tooltip": "Strikethough",
+        "bullet_list_tooltip": "Bullet List",
+        "ordered_list_tooltip": "Ordered List",
+        "indent_tooltip": "Indent",
+        "outdent_tooltip": "Outdent"
+    },
     "RootLayout": {
         "app_name": "Global Bible Tools"
     },
@@ -178,14 +187,21 @@
        "approve_tooltip": "Approve", 
        "revoke_tooltip": "Revoke",
        "approved": "Approved",
-       "saving": "Saving"
+       "saving": "Saving",
+       "open_note_tooltip": "Jump to Note"
     },
     "TranslationSidebar": {
         "tabs": {
             "lexicon": "Lexicon",
             "notes": "Notes"
         },
-        "close": "Close"
+        "close": "Close",
+        "notes": {
+            "translator_notes": "Translator Notes",
+            "footnotes": "Footnotes",
+            "note_description": "Updated at {timestamp} by {authorName}",
+            "saving": "Saving..."
+        }
     },
     "TranslationToolbar": {
         "verse": "Verse",
