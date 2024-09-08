@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import TranslateWord from "./TranslateWord"
 import TranslationSidebar, { TranslationSidebarRef } from "./TranslationSidebar";
-
+import { useTranslationClientState } from "../TranslationClientState";
 
 interface Word {
     id: string,
@@ -50,10 +50,7 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
 
     const sidebarRef = useRef<TranslationSidebarRef>(null)
 
-    const [focusedPhrase, setFocusedPhrase] = useState<Phrase>();
-    useEffect(() => {
-        setFocusedPhrase(undefined)
-    }, [phrases])
+    const { selectedWords, focusedPhrase, selectWord, focusPhrase } = useTranslationClientState();
 
     return <div className="flex flex-col flex-grow w-full min-h-0 lg:flex-row">
         <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-10 px-6">
@@ -68,16 +65,18 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
                     return <TranslateWord
                         key={word.id}
                         word={word}
+                        wordSelected={selectedWords.includes(word.id)}
                         phrase={phrase}
                         phraseFocused={phrase === focusedPhrase}
                         language={language}
                         isHebrew={isHebrew}
                         onFocus={() => {
                             setSidebarWord(word);
-                            setFocusedPhrase(phrase);
+                            focusPhrase(phrase);
                         }}
                         onShowDetail={() => setShowSidebar(true)}
                         onOpenNotes={() => setTimeout(() => sidebarRef.current?.openNotes(), 0)}
+                        onSelect={() => selectWord(word.id)} 
                     />
                 })}
             </ol>

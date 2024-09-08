@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { ReactNode } from "react"
 import TranslationToolbar from "./TranslationToolbar"
 import {  NextIntlClientProvider } from "next-intl"
+import { TranslationClientStateProvider } from "./TranslationClientState"
 
 interface Props {
     children: ReactNode
@@ -52,12 +53,14 @@ export default async function InterlinearLayout({ children, params }: Props) {
 
 
     return <div className={`absolute w-full h-full flex flex-col flex-grow`}>
-        <NextIntlClientProvider messages={{ TranslationToolbar: messages.TranslationToolbar }}>
-            <TranslationToolbar
-                languages={languages.rows}
-            />
-        </NextIntlClientProvider>
-        {children}
+        <TranslationClientStateProvider>
+            <NextIntlClientProvider messages={{ TranslationToolbar: messages.TranslationToolbar }}>
+                <TranslationToolbar
+                    languages={languages.rows}
+                />
+            </NextIntlClientProvider>
+            {children}
+        </TranslationClientStateProvider>
     </div>
 
 }

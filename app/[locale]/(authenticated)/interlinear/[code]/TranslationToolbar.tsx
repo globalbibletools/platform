@@ -10,6 +10,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { approveAll, changeInterlinearLocation, redirectToUnapproved } from "./actions";
 import { decrementVerseId, incrementVerseId } from "./verse-utils";
+import { useTranslationClientState } from "./TranslationClientState";
 
 export interface TranslationToolbarProps {
     languages: { name: string; code: string }[];
@@ -24,8 +25,10 @@ export default function TranslationToolbar({
 
     const isTranslator = true;
     const isAdmin = true;
-    const canLinkWords = false;
-    const canUnlinkWords = false;
+
+    const { selectedWords, focusedPhrase } = useTranslationClientState()
+    const canLinkWords = selectedWords.length > 1;
+    const canUnlinkWords = (focusedPhrase?.wordIds.length ?? 0) > 1;
 
     const [reference, setReference] = useState('')
     useEffect(() => {

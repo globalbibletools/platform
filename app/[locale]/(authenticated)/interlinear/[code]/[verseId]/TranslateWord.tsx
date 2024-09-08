@@ -7,7 +7,7 @@ import { Icon } from "@/app/components/Icon";
 import { useTextWidth } from "@/app/utils/text-width";
 import { useTranslations } from "next-intl";
 import { MouseEvent, useLayoutEffect, useRef, useState } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormState } from "react-dom";
 import { updateGloss } from "./actions";
 import { fontMap } from "@/app/fonts";
 import { isRichTextEmpty } from "@/app/components/RichTextInput";
@@ -20,6 +20,7 @@ export interface TranslateWordProps {
         textDirection: string
     }
     isHebrew: boolean
+    wordSelected: boolean
     phraseFocused: boolean
     onSelect?(): void
     onFocus?(): void
@@ -27,7 +28,7 @@ export interface TranslateWordProps {
     onOpenNotes?(): void
 }
 
-export default function TranslateWord({ word, phrase, isHebrew, language, phraseFocused, onSelect, onFocus, onShowDetail, onOpenNotes }: TranslateWordProps) {
+export default function TranslateWord({ word, phrase, isHebrew, language, phraseFocused, wordSelected, onSelect, onFocus, onShowDetail, onOpenNotes }: TranslateWordProps) {
     const t = useTranslations("TranslateWord")
 
     const root = useRef<HTMLLIElement>(null)
@@ -35,7 +36,6 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
     const refGloss = useRef<HTMLSpanElement>(null)
     const input = useRef<HTMLInputElement>(null)
 
-    const selected = false
     const editable = true
     const hasMachineSuggestions = false
 
@@ -99,8 +99,8 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
         dir={isHebrew ? 'rtl' : 'ltr'}
         className={`
           group/word relative p-2 rounded
-          ${phraseFocused && !selected ? 'bg-brown-50 dark:bg-gray-700' : ''}
-          ${selected
+          ${phraseFocused && !wordSelected ? 'bg-brown-50 dark:bg-gray-700' : ''}
+          ${wordSelected
                 ? 'shadow-inner dark:shadow-none bg-brown-100 dark:bg-gray-600'
                 : ''
             }
@@ -157,7 +157,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                     className="invisible group-hover/word:visible group-focus-within/word:visible [&:has(:checked)]:visible"
                     aria-label="word selected"
                     tabIndex={-1}
-                    checked={selected}
+                    checked={wordSelected}
                     onChange={() => onSelect?.()}
                     onFocus={() => {
                         onFocus?.();
