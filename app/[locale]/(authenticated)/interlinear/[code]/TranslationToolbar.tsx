@@ -76,7 +76,7 @@ export default function TranslationToolbar({
                         <Button
                             className="absolute end-8 top-1 w-7 !h-7"
                             variant="tertiary"
-                            onClick={() => router.push(`./${decrementVerseId(verseId)}`)}
+                            href={`./${decrementVerseId(verseId)}`}
                         >
                             <Icon icon="arrow-up" />
                             <span className="sr-only">{t('previous_verse')}</span>
@@ -84,7 +84,8 @@ export default function TranslationToolbar({
                         <Button
                             className="absolute end-1 top-1 w-7 !h-7"
                             variant="tertiary"
-                            onClick={() => router.push(`./${incrementVerseId(verseId)}`)}
+                            href={`./${incrementVerseId(verseId)}`}
+                            prefetch
                         >
                             <Icon icon="arrow-down" />
                             <span className="sr-only">{t('next_verse')}</span>
