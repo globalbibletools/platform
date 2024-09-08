@@ -8,7 +8,7 @@ import TextInput from "@/app/components/TextInput";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { changeInterlinearLocation } from "./actions";
+import { changeInterlinearLocation, redirectToUnapproved } from "./actions";
 import { decrementVerseId, incrementVerseId } from "./verse-utils";
 
 export interface TranslationToolbarProps {
@@ -94,7 +94,12 @@ export default function TranslationToolbar({
             </form>
             {isTranslator && (
                 <div className="me-16 pt-6">
-                    <Button variant="tertiary" onClick={navigateToNextUnapprovedVerse}>
+                    <Button variant="tertiary" onClick={() => {
+                        const form = new FormData()
+                        form.set('verseId', verseId)
+                        form.set('code', code)
+                        redirectToUnapproved(form)
+                    }}>
                         {t('next_unapproved')}
                         <Icon icon="arrow-right" className="ms-1 rtl:hidden" />
                         <Icon icon="arrow-left" className="ms-1 ltr:hidden" />
