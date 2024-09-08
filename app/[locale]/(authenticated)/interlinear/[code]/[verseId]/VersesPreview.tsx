@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import bibleTranslationClient from '../../shared/bibleTranslationClient';
 import { Icon } from '@/app/components/Icon';
-import { generateReference, isOldTestament, parseVerseId } from '../verse-utils';
+import { isOldTestament, parseVerseId } from '../verse-utils';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { useTranslations } from 'next-intl';
 import { fontMap } from '@/app/fonts';

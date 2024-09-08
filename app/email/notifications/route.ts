@@ -1,5 +1,4 @@
 import * as z from 'zod';
-import { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/app/db';
 
 const messageSchema = z.discriminatedUnion('notificationType', [
@@ -36,11 +35,11 @@ const bodySchema = z.discriminatedUnion('Type', [
   }),
 ])
 
-export async function POST(req: NextApiRequest, res: NextApiResponse) {
-    const bodyResult = bodySchema.safeParse(req.body)
+export async function POST(req: Request) {
+    const rawbody = await req.json()
+    const bodyResult = bodySchema.safeParse(rawbody)
     if (!bodyResult.success) {
-        res.status(400).json({ error: 'Failed to parse body' })
-        return
+        return Response.json({ error: 'Failed to parse body' }, { status: 400 })
     }
     const body = bodyResult.data
 
@@ -50,8 +49,7 @@ export async function POST(req: NextApiRequest, res: NextApiResponse) {
             JSON.parse(body.Message)
           );
           if (!parseResult.success) {
-              res.status(400).json({ error: 'Failed to parse message' })
-              return
+              return Response.json({ error: 'Failed to parse message' }, { status: 400 })
           }
 
           const message = parseResult.data;
@@ -76,11 +74,11 @@ export async function POST(req: NextApiRequest, res: NextApiResponse) {
           break;
         }
         case 'SubscriptionConfirmation': {
-          console.log('SNS Confirmation', req.body.SubscribeURL);
+          console.log('SNS Confirmation', body.SubscribeURL);
           break;
         }
       }
 
-      res.status(200).end();
+      return new Response(null, { status: 200 })
 }
 
