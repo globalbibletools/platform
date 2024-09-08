@@ -20,13 +20,14 @@ export interface TranslateWordProps {
         textDirection: string
     }
     isHebrew: boolean
+    phraseFocused: boolean
     onSelect?(): void
     onFocus?(): void
     onShowDetail?(): void
     onOpenNotes?(): void
 }
 
-export default function TranslateWord({ word, phrase, isHebrew, language, onSelect, onFocus, onShowDetail, onOpenNotes }: TranslateWordProps) {
+export default function TranslateWord({ word, phrase, isHebrew, language, phraseFocused, onSelect, onFocus, onShowDetail, onOpenNotes }: TranslateWordProps) {
     const t = useTranslations("TranslateWord")
 
     const root = useRef<HTMLLIElement>(null)
@@ -35,7 +36,6 @@ export default function TranslateWord({ word, phrase, isHebrew, language, onSele
     const input = useRef<HTMLInputElement>(null)
 
     const selected = false
-    const phraseFocused = false
     const editable = true
     const hasMachineSuggestions = false
 

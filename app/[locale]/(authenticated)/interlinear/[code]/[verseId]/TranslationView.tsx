@@ -4,10 +4,29 @@ import { useEffect, useRef, useState } from "react";
 import TranslateWord from "./TranslateWord"
 import TranslationSidebar, { TranslationSidebarRef } from "./TranslationSidebar";
 
+
+interface Word {
+    id: string,
+    text: string,
+    referenceGloss?: string,
+    suggestions: string[],
+    machineGloss?: string,
+    lemma: string,
+    grammar: string,
+    resource?: { name: string, entry: string }
+}
+interface Phrase {
+    id: string,
+    wordIds: string[],
+    gloss?: { text: string, state: string },
+    translatorNote?: { authorName: string, timestamp: string, content: string },
+    footnote?: { authorName: string, timestamp: string, content: string }
+}
+
 export interface TranslationViewProps {
     verseId: string
-    words: { id: string, text: string, referenceGloss?: string, suggestions: string[], machineGloss?: string, lemma: string, grammar: string, resource?: { name: string, entry: string } }[]
-    phrases: { id: string, wordIds: string[], gloss?: { text: string, state: string }, translatorNote?: { authorName: string, timestamp: string, content: string }, footnote?: { authorName: string, timestamp: string, content: string } }[]
+    words: Word[]
+    phrases: Phrase[]
     language: {
         code: string
         font: string
@@ -31,6 +50,11 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
 
     const sidebarRef = useRef<TranslationSidebarRef>(null)
 
+    const [focusedPhrase, setFocusedPhrase] = useState<Phrase>();
+    useEffect(() => {
+        setFocusedPhrase(undefined)
+    }, [phrases])
+
     return <div className="flex flex-col flex-grow w-full min-h-0 lg:flex-row">
         <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-10 px-6">
             <ol
@@ -39,21 +63,23 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
                         ${isHebrew ? 'ltr:flex-row-reverse' : 'rtl:flex-row-reverse'}
                     `}
             >
-                {words.map(word => (
-                    <TranslateWord
+                {words.map(word => {
+                    const phrase = phrases.find(ph => ph.wordIds.includes(word.id))!
+                    return <TranslateWord
                         key={word.id}
                         word={word}
-                        phrase={phrases.find(ph => ph.wordIds.includes(word.id))!}
+                        phrase={phrase}
+                        phraseFocused={phrase === focusedPhrase}
                         language={language}
                         isHebrew={isHebrew}
                         onFocus={() => {
                             setSidebarWord(word);
-                            // setFocusedWord(word.id);
+                            setFocusedPhrase(phrase);
                         }}
                         onShowDetail={() => setShowSidebar(true)}
                         onOpenNotes={() => setTimeout(() => sidebarRef.current?.openNotes(), 0)}
                     />
-                ))}
+                })}
             </ol>
         </div>
         {showSidebar && (
