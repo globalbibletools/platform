@@ -7,16 +7,13 @@ import { Icon } from "@/app/components/Icon";
 import TextInput from "@/app/components/TextInput";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { changeInterlinearLocation, redirectToUnapproved } from "./actions";
+import { useCallback, useEffect, useState } from "react";
+import { approveAll, changeInterlinearLocation, redirectToUnapproved } from "./actions";
 import { decrementVerseId, incrementVerseId } from "./verse-utils";
 
 export interface TranslationToolbarProps {
     languages: { name: string; code: string }[];
 }
-
-function navigateToNextUnapprovedVerse() { }
-function approveAllGlosses() {}
 
 export default function TranslationToolbar({
     languages,
@@ -27,7 +24,6 @@ export default function TranslationToolbar({
 
     const isTranslator = true;
     const isAdmin = true;
-    const canApproveAllGlosses = false;
     const canLinkWords = false;
     const canUnlinkWords = false;
 
@@ -39,6 +35,31 @@ export default function TranslationToolbar({
         setReference(t('verse_reference', { bookId, chapter, verse }))
     }, [verseId, t])
 
+    const navigateToNextUnapprovedVerse = useCallback(() => {
+        const form = new FormData()
+        form.set('verseId', verseId)
+        form.set('code', code)
+        redirectToUnapproved(form)
+    }, [verseId, code])
+
+    const approveAllGlosses = useCallback(() => {
+        const inputs = document.querySelectorAll('[data-phrase]')
+        const form = new FormData()
+        form.set('code', code)
+        let idx = 0
+        inputs.forEach(input => {
+            const phraseId = (input as HTMLInputElement).dataset.phrase
+            const gloss = (input as HTMLInputElement).value
+
+            if (phraseId && gloss) {
+                form.set(`phrases[${idx}][id]`, phraseId)
+                form.set(`phrases[${idx}][gloss]`, gloss)
+                idx++
+            }
+        })
+
+        approveAll(form)
+    }, [code])
 
     useEffect(() => {
         if (!isTranslator) return
@@ -55,7 +76,7 @@ export default function TranslationToolbar({
 
         window.addEventListener('keydown', keydownCallback);
         return () => window.removeEventListener('keydown', keydownCallback);
-    }, [isTranslator]);
+    }, [isTranslator, navigateToNextUnapprovedVerse]);
 
     return (
         <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-500 px-6 md:px-8 py-4">
@@ -95,12 +116,7 @@ export default function TranslationToolbar({
             </form>
             {isTranslator && (
                 <div className="me-16 pt-6">
-                    <Button variant="tertiary" onClick={() => {
-                        const form = new FormData()
-                        form.set('verseId', verseId)
-                        form.set('code', code)
-                        redirectToUnapproved(form)
-                    }}>
+                    <Button variant="tertiary" onClick={navigateToNextUnapprovedVerse}>
                         {t('next_unapproved')}
                         <Icon icon="arrow-right" className="ms-1 rtl:hidden" />
                         <Icon icon="arrow-left" className="ms-1 ltr:hidden" />
@@ -130,7 +146,6 @@ export default function TranslationToolbar({
                 <div className="pt-6 flex items-center">
                     <Button
                         variant="tertiary"
-                        disabled={!canApproveAllGlosses}
                         onClick={approveAllGlosses}
                     >
                         <Icon icon="check" className="me-1" />

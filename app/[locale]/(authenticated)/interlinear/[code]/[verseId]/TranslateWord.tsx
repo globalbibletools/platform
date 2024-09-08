@@ -235,6 +235,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, onSele
                             style={{
                                 fontFamily: fontMap[language.font]
                             }}
+                            data-phrase={phrase.id}
                             inputClassName={isHebrew ? 'text-right' : 'text-left'}
                             right={isHebrew}
                             renderOption={(item, i) => (

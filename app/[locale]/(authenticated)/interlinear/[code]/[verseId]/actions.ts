@@ -42,21 +42,25 @@ export async function updateGloss(prevState: any, formData: FormData): Promise<a
     }
 
     await transaction(async query => {
-        const result = await query<{ state: string, gloss: string }>(
+        const oldGlossQuery = await query<{ state: string, gloss: string }>(
+            `SELECT state, gloss FROM "Gloss" WHERE "phraseId" = $1`,
+            [request.data.phraseId]
+        )
+        const oldGloss = oldGlossQuery.rows[0]
+
+        const result = await query(
             `INSERT INTO "Gloss" ("phraseId", state, gloss)
             VALUES ($1, $2, $3)
             ON CONFLICT ("phraseId") DO UPDATE SET
                 state = COALESCE(EXCLUDED.state, "Gloss".state),
                 gloss = COALESCE(EXCLUDED.gloss, "Gloss".gloss)
-            RETURNING state, gloss
             `,
             [request.data.phraseId, request.data.state, request.data.gloss]
         )
-        if (result.rows.length === 0) {
+        if (result.rowCount === 0) {
             notFound()
         }
 
-        const updatedFields = result.rows[0]
         await query(
             `INSERT INTO "GlossEvent"
             ("phraseId", "userId", state, gloss, source)
@@ -64,8 +68,8 @@ export async function updateGloss(prevState: any, formData: FormData): Promise<a
             [
                 request.data.phraseId,
                 session.user.id,
-                request.data.state !== updatedFields.state ? request.data.state : undefined,
-                request.data.gloss !== updatedFields.gloss ? request.data.gloss : undefined,
+                request.data.state !== oldGloss?.state ? request.data.state : undefined,
+                request.data.gloss !== oldGloss?.gloss ? request.data.gloss : undefined,
             ]
         )
     })
