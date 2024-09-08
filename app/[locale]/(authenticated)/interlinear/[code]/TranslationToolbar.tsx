@@ -8,7 +8,7 @@ import TextInput from "@/app/components/TextInput";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { approveAll, changeInterlinearLocation, redirectToUnapproved } from "./actions";
+import { approveAll, changeInterlinearLocation, linkWords, redirectToUnapproved } from "./actions";
 import { decrementVerseId, incrementVerseId } from "./verse-utils";
 import { useTranslationClientState } from "./TranslationClientState";
 
@@ -64,6 +64,15 @@ export default function TranslationToolbar({
         approveAll(form)
     }, [code])
 
+    const onLinkWords = useCallback(() => {
+        const form = new FormData()
+        form.set('code', code)
+        selectedWords.forEach((wordId, i) => {
+            form.set(`wordIds[${i}]`, wordId)
+        })
+        linkWords(form)
+    }, [code, selectedWords])
+
     useEffect(() => {
         if (!isTranslator) return
 
@@ -79,7 +88,7 @@ export default function TranslationToolbar({
 
         window.addEventListener('keydown', keydownCallback);
         return () => window.removeEventListener('keydown', keydownCallback);
-    }, [isTranslator, navigateToNextUnapprovedVerse]);
+    }, [isTranslator, navigateToNextUnapprovedVerse, approveAllGlosses]);
 
     return (
         <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-500 px-6 md:px-8 py-4">
@@ -161,6 +170,7 @@ export default function TranslationToolbar({
                         <Button
                             variant="tertiary"
                             disabled={!canLinkWords}
+                            onClick={onLinkWords}
                         >
                             <Icon icon="link" className="me-1" />
                             {t('link_words')}

@@ -149,3 +149,81 @@ export async function approveAll(formData: FormData): Promise<void> {
         )
     })
 }
+
+const linkWordsSchema = z.object({
+    code: z.string(),
+    wordIds: z.array(z.string())
+})
+
+export async function linkWords(formData: FormData): Promise<void> {
+    const session = await verifySession()
+    if (!session?.user) {
+        notFound()
+    }
+
+    const request = linkWordsSchema.safeParse(parseForm(formData));
+    if (!request.success) {
+        return
+    }
+
+    const languageQuery = await query<{ roles: string[] }>(
+        `SELECT 
+            COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
+        FROM "LanguageMemberRole" AS r
+        WHERE r."languageId" = (SELECT id FROM "Language" WHERE code = $1) 
+            AND r."userId" = $2`,
+        [request.data.code, session.user.id]
+    )
+    const language = languageQuery.rows[0]
+    if (!language || (!session?.user.roles.includes('ADMIN') && !language.roles.includes('TRANSLATOR'))) {
+        notFound()
+    }
+
+    await transaction(async query => {
+        const phrasesQuery = await query(
+            `
+            SELECT FROM "Phrase" AS ph
+            JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
+            JOIN LATERAL (
+                SELECT COUNT(*) AS count FROM "PhraseWord" AS phw
+                WHERE phw."phraseId" = ph.id
+            ) AS words ON true
+            WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+                AND ph."deletedAt" IS NULL
+                AND phw."wordId" = ANY($2::text[])
+                AND words.count > 1
+            `,
+            [request.data.code, request.data.wordIds]
+        )
+        if (phrasesQuery.rows.length > 0) {
+            throw new Error('Words already linked')
+        }
+
+        await query(
+            `
+            UPDATE "Phrase" AS ph
+                SET "deletedAt" = NOW(),
+                    "deletedBy" = $3
+            FROM "PhraseWord" AS phw
+            WHERE phw."phraseId" = ph.id
+                AND phw."wordId" = ANY($2::text[])
+                AND ph."deletedAt" IS NULL
+                AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+            `,
+            [request.data.code, request.data.wordIds, session.user.id]
+        )
+
+        await query(
+            `
+                WITH phrase AS (
+                    INSERT INTO "Phrase" ("languageId", "createdBy", "createdAt")
+                    VALUES ((SELECT id FROM "Language" WHERE code = $1), $3, NOW())
+                    RETURNING id
+                )
+                INSERT INTO "PhraseWord" ("phraseId", "wordId")
+                SELECT phrase.id, UNNEST($2::text[]) FROM phrase
+            `,
+            [request.data.code, request.data.wordIds, session.user.id]
+        )
+    })
+}
