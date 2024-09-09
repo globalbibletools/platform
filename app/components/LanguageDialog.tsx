@@ -20,7 +20,7 @@ export default function LanguageDialog() {
           onClick={() => dialog.current?.show()}
         >
           <Icon icon="language" className="me-2" />
-          { languages[locale as keyof typeof languages] }
+          { languages[locale as keyof typeof languages]?.name }
         </Button>
         <dialog
           ref={dialog}
@@ -39,8 +39,8 @@ export default function LanguageDialog() {
             onChange={(language) => router.push(pathName.replace(new RegExp(`/${locale}(?=/|$)`), `/${language}`))}
             aria-label="Interface Language"
             up
-            items={Object.entries(languages).map(([value, label]) => ({
-              label,
+            items={Object.entries(languages).map(([value, config]) => ({
+              label: config.name,
               value,
             }))}
           />

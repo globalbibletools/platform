@@ -74,17 +74,18 @@ const config: Config = {
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "languages.json"
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-noto-sans)', ...defaultTheme.fontFamily.sans],
-        hebrew: ['"SBL-Hebrew"', ...defaultTheme.fontFamily.sans],
-        greek: ['"SBL-Greek"', ...defaultTheme.fontFamily.sans],
+        sans: ['var(--font-sans)', ...defaultTheme.fontFamily.sans],
+        hebrew: ['var(--font-sbl-hebrew)', 'var(--font-sans)', ...defaultTheme.fontFamily.sans],
+        greek: ['var(--font-sbl-greek)', 'var(--font-sans)', ...defaultTheme.fontFamily.sans],
         mixed: [
-          '"SBL-Greek"',
-          '"SBL-Hebrew"',
-          'var(--font-noto-sans)',
+          'var(--font-sbl-greek)',
+          'var(--font-sbl-hebrew)',
+          'var(--font-sans)',
           ...defaultTheme.fontFamily.sans,
         ],
       },

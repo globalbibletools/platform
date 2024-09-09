@@ -24,7 +24,7 @@ export async function generateMetadata(
 export default async function ProfileView() {
   const session = await verifySession();
   const result = session
-    ? await query<{ id: string; name?: string; email: string }>(
+    ? await query<{ name?: string; email: string }>(
         `SELECT name, email FROM "User" WHERE id = $1`,
         [session.user.id]
       )

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Noto_Sans } from "next/font/google";
-import "../globals.css";
- 
-const noto_sans = Noto_Sans({
-    subsets: ["latin"],
-    display: 'swap',
-    variable: "--font-noto-sans"
-});
+import { config } from '@fortawesome/fontawesome-svg-core'
+import { NextIntlClientProvider, useMessages } from "next-intl";
+import { getTranslations } from "next-intl/server";
 
+import '@fortawesome/fontawesome-svg-core/styles.css'
+import "../globals.css";
+import { headFontClass } from "../fonts";
+import languages from "../../languages.json";
+ 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("RootLayout")
   return {
@@ -15,13 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-import { config } from '@fortawesome/fontawesome-svg-core'
-import '@fortawesome/fontawesome-svg-core/styles.css'
-import { NextIntlClientProvider, useMessages } from "next-intl";
-import { getTranslations } from "next-intl/server";
 config.autoAddCss = false
-
-const RTL_LOCALES = ['ar']
 
 export default function RootLayout({
   children,
@@ -31,11 +25,14 @@ export default function RootLayout({
   params: { locale: string }
 }>) {
     const messages = useMessages()
+
+    const language = languages[params.locale as keyof typeof languages]
+
   return (
     <html
-        className={noto_sans.variable}
+        className={`${headFontClass} ${language.class}`}
         lang={params.locale}
-        dir={RTL_LOCALES.includes(params.locale) ? 'rtl' : 'ltr'}
+        dir={language.dir}
     >
       <body>
         <NextIntlClientProvider

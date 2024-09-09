@@ -13,6 +13,7 @@ import SortableMultiselectInput from "@/app/components/SortableMultiselectInput"
 import { BibleClient } from "@gracious.tech/fetch-client";
 import SavingIndicator from "./SavingIndicator";
 import { Metadata, ResolvingMetadata } from "next";
+import { fontMap } from "@/app/fonts";
 
 interface LanguageSettingsPageProps {
     params: { code: string }
@@ -35,7 +36,6 @@ export default async function LanguageSettingsPage({ params }: LanguageSettingsP
         WHERE code = $1`,
         [params.code]
     )
-    const fonts = await fetchFonts()
     const translations = await fetchTranslations(params.code)
 
     return <div className="px-8 py-6 w-fit overflow-y-auto h-full">
@@ -116,7 +116,7 @@ export default async function LanguageSettingsPage({ params }: LanguageSettingsP
                 id="font"
                 name="font"
                 className="w-full h-10"
-                items={fonts.map((font) => ({ label: font, value: font }))}
+                items={Object.keys(fontMap).map((name) => ({ label: name, value: name }))}
                 autosubmit
                 aria-describedby="font-error"
               />
@@ -171,38 +171,6 @@ export default async function LanguageSettingsPage({ params }: LanguageSettingsP
         </section>
       </LanguageSettingsForm>
     </div>
-}
-
-const FONT_API =
-  'https://www.googleapis.com/webfonts/v1/webfonts?key=' +
-  process.env.GOOGLE_FONT_API_KEY;
-
-interface RawFontOption {
-  family: string;
-  variants: string[];
-};
-
-async function fetchFonts(): Promise<string[]> {
-    const request = new Request(FONT_API, { method: 'GET', mode: 'cors' });
-    const response = await fetch(request);
-    let responseBody;
-    try {
-      responseBody = await response.json();
-    } catch (error) {
-      responseBody = {};
-    }
-    if (!responseBody.items) {
-      throw new Error('Could not fetch fonts.');
-    }
-    const options = (responseBody.items as RawFontOption[])
-      .filter(
-        ({ family, variants }) =>
-          variants.includes('regular') &&
-          family.startsWith('Noto') &&
-          !family.includes('Emoji')
-      )
-      .map(({ family }) => family);
-    return options;
 }
 
 async function fetchTranslations(languageCode: string): Promise<{ id: string, name: string}[]> {
