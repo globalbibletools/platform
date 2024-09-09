@@ -1,38 +1,35 @@
 "use client";
 import { FormContextProvider } from "@/app/components/FormContext";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useRef } from "react";
 import { useFormState } from "react-dom";
 import updateProfile, { ProfileState } from "./actions";
 
 export default function ProfileForm({
   children,
-  user,
+  userId,
 }: {
   children: ReactNode;
-  user: any;
+  userId: string;
 }) {
   const [state, formAction] = useFormState(
-    async (state: ProfileState, data: FormData) => {
-      const formSubmissionState = await updateProfile(state, data);
-      if (!formSubmissionState.errors) {
-        setShouldClearFormData(true);
+    async (prevState: ProfileState, data: FormData) => {
+      const formSubmissionState = await updateProfile(userId, data);
+      if (formSubmissionState.errors) {
+        return formSubmissionState;
       }
+
+      const passwordInput: HTMLInputElement | null | undefined =
+        formRef.current?.querySelector("#password");
+      if (passwordInput) passwordInput.value = "";
+      const confirmPasswordInput: HTMLInputElement | null | undefined =
+        formRef.current?.querySelector("#confirm-password");
+      if (confirmPasswordInput) confirmPasswordInput.value = "";
+
       return formSubmissionState;
     },
     {}
   );
   const formRef = useRef<HTMLFormElement>(null);
-  const [shouldClearFormData, setShouldClearFormData] = useState(false);
-
-  useEffect(() => {
-    if (shouldClearFormData) {
-      ((formRef.current?.querySelector("#password") as any) ?? {}).value = "";
-      (
-        (formRef.current?.querySelector("#confirm-password") as any) ?? {}
-      ).value = "";
-      setShouldClearFormData(false);
-    }
-  }, [shouldClearFormData]);
 
   return (
     <form ref={formRef} action={formAction}>

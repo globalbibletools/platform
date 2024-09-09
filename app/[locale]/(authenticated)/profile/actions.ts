@@ -25,16 +25,10 @@ export interface ProfileState {
 }
 
 export default async function updateProfile(
-  state: ProfileState,
+  userId: string,
   data: FormData
-) {
+): Promise<ProfileState> {
   const t = await getTranslations("ProfileView");
-  console.dir({
-    email: data.get("email"),
-    name: data.get("name"),
-    password: data.get("password"),
-    confirmPassword: data.get("confirmPassword"),
-  });
   const request = profileValidationSchema
     .refine((val) => val.password === val.confirmPassword, {
       path: ["confirmPassword"],
@@ -47,19 +41,14 @@ export default async function updateProfile(
         confirmPassword: data.get("confirmPassword"),
       },
       {
-        errorMap: (error, ctx) => {
+        errorMap: (error) => {
           switch (error.path[0]) {
             case "email":
               return { message: t("errors.email_required") };
             case "name":
               return { message: t("errors.name_required") };
             case "password":
-              return {
-                message:
-                  (ctx.data?.length ?? 0) === 0
-                    ? t("errors.password_required")
-                    : t("errors.password_format"),
-              };
+              return { message: t("errors.password_format") };
             case "confirmPassword":
               return { message: t("errors.password_confirmation") };
             default:
@@ -81,7 +70,7 @@ export default async function updateProfile(
       data.get("email"),
       data.get("name"),
       await scrypt.hash(data.get("password") as string),
-      data.get("userId"),
+      userId,
     ]
   );
   return {};
