@@ -8,7 +8,7 @@ import TextInput from "@/app/components/TextInput";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { approveAll, changeInterlinearLocation, linkWords, redirectToUnapproved } from "./actions";
+import { approveAll, changeInterlinearLocation, linkWords, redirectToUnapproved, unlinkPhrase } from "./actions";
 import { decrementVerseId, incrementVerseId } from "./verse-utils";
 import { useTranslationClientState } from "./TranslationClientState";
 
@@ -72,6 +72,15 @@ export default function TranslationToolbar({
         })
         linkWords(form)
     }, [code, selectedWords])
+
+    const onUnlinkWords = useCallback(() => {
+        if (focusedPhrase) {
+            const form = new FormData()
+            form.set('code', code)
+            form.set('phraseId', focusedPhrase.id)
+            unlinkPhrase(form)
+        }
+    }, [code, focusedPhrase])
 
     useEffect(() => {
         if (!isTranslator) return
@@ -176,7 +185,7 @@ export default function TranslationToolbar({
                             {t('link_words')}
                         </Button>
                     ) : (
-                        <Button variant="tertiary">
+                        <Button variant="tertiary" onClick={onUnlinkWords}>
                             <Icon icon="unlink" className="me-1" />
                             {t('unlink_words')}
                         </Button>

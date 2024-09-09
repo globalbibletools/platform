@@ -50,7 +50,18 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
 
     const sidebarRef = useRef<TranslationSidebarRef>(null)
 
-    const { selectedWords, focusedPhrase, selectWord, focusPhrase } = useTranslationClientState();
+    const { selectedWords, focusedPhrase, selectWord, focusPhrase, clearSelectedWords } = useTranslationClientState();
+    useEffect(() => {
+        if (focusedPhrase) {
+            const newPhrase = phrases.find(ph => ph.id === focusedPhrase.id)
+            if (newPhrase !== focusedPhrase) {
+                focusPhrase(newPhrase)
+            }
+        } else {
+            focusPhrase(undefined)
+            clearSelectedWords()
+        }
+    }, [selectWord, focusPhrase, focusedPhrase, phrases, clearSelectedWords])
 
     return <div className="flex flex-col flex-grow w-full min-h-0 lg:flex-row">
         <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-10 px-6">
