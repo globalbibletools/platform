@@ -16,7 +16,7 @@ interface Word {
     resource?: { name: string, entry: string }
 }
 interface Phrase {
-    id: string,
+    id: number,
     wordIds: string[],
     gloss?: { text: string, state: string },
     translatorNote?: { authorName: string, timestamp: string, content: string },
@@ -50,18 +50,18 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
 
     const sidebarRef = useRef<TranslationSidebarRef>(null)
 
-    const { selectedWords, focusedPhrase, selectWord, focusPhrase, clearSelectedWords } = useTranslationClientState();
+    const { selectedWords, focusedPhrase, selectWord, focusPhrase } = useTranslationClientState();
+
     useEffect(() => {
-        if (focusedPhrase) {
-            const newPhrase = phrases.find(ph => ph.id === focusedPhrase.id)
-            if (newPhrase !== focusedPhrase) {
-                focusPhrase(newPhrase)
-            }
+        const input = document.activeElement
+        if (input instanceof HTMLElement && input.dataset.phrase) {
+            const phraseId = parseInt(input.dataset.phrase)
+            const phrase = phrases.find(ph => ph.id === phraseId)
+            focusPhrase(phrase)
         } else {
             focusPhrase(undefined)
-            clearSelectedWords()
         }
-    }, [selectWord, focusPhrase, focusedPhrase, phrases, clearSelectedWords])
+    }, [phrases, focusPhrase])
 
     return <div className="flex flex-col flex-grow w-full min-h-0 lg:flex-row">
         <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-10 px-6">

@@ -3,7 +3,7 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 
 interface Phrase {
-    id: string
+    id: number
     wordIds: string[]
 }
 

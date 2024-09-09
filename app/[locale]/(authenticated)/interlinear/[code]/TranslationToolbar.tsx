@@ -26,7 +26,7 @@ export default function TranslationToolbar({
     const isTranslator = true;
     const isAdmin = true;
 
-    const { selectedWords, focusedPhrase } = useTranslationClientState()
+    const { selectedWords, focusedPhrase, focusPhrase, clearSelectedWords } = useTranslationClientState()
     const canLinkWords = selectedWords.length > 1;
     const canUnlinkWords = (focusedPhrase?.wordIds.length ?? 0) > 1;
 
@@ -71,7 +71,8 @@ export default function TranslationToolbar({
             form.set(`wordIds[${i}]`, wordId)
         })
         linkWords(form)
-    }, [code, selectedWords])
+        clearSelectedWords()
+    }, [code, selectedWords, clearSelectedWords])
 
     const onUnlinkWords = useCallback(() => {
         if (focusedPhrase) {
@@ -79,25 +80,30 @@ export default function TranslationToolbar({
             form.set('code', code)
             form.set('phraseId', focusedPhrase.id)
             unlinkPhrase(form)
+            focusPhrase(undefined)
         }
-    }, [code, focusedPhrase])
+    }, [code, focusedPhrase, focusPhrase])
 
     useEffect(() => {
         if (!isTranslator) return
 
         const keydownCallback = async (e: globalThis.KeyboardEvent) => {
-            if (e.shiftKey || e.ctrlKey) return
-            if (e.altKey && e.key === 'a') {
-                approveAllGlosses();
-            }
-            if (e.altKey && e.key === 'n') {
-                navigateToNextUnapprovedVerse();
+            if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+                switch (e.key) {
+                    case 'a': return approveAllGlosses();
+                    case 'n': return navigateToNextUnapprovedVerse();
+                }
+            } else if (e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
+                switch (e.key) {
+                    case 'l': return onLinkWords();
+                    case 'u': return onUnlinkWords();
+                }
             }
         };
 
         window.addEventListener('keydown', keydownCallback);
         return () => window.removeEventListener('keydown', keydownCallback);
-    }, [isTranslator, navigateToNextUnapprovedVerse, approveAllGlosses]);
+    }, [isTranslator, navigateToNextUnapprovedVerse, approveAllGlosses, onLinkWords, onUnlinkWords]);
 
     return (
         <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-500 px-6 md:px-8 py-4">
