@@ -50,14 +50,6 @@ export default async function ProfileView() {
   const user = result?.rows[0];
 
   const t = await getTranslations("ProfileView");
-  //   const flash = useFlash();
-
-  // useEffect(() => {
-  //   if (user) {
-  //     setValue("email", user.email ?? "");
-  //     setValue("name", user.name ?? "");
-  //   }
-  // }, [setValue, user]);
 
   return (
     <div className={`flex items-start justify-center absolute w-full h-full`}>
@@ -67,7 +59,7 @@ export default async function ProfileView() {
         dark:bg-gray-700 dark:border-gray-600 dark:shadow-none"
       >
         <ViewTitle>{t("title")}</ViewTitle>
-        <ProfileForm user={user} submitAction={updateProfile}>
+        <ProfileForm user={user}>
           <input
             readOnly
             className="hidden"

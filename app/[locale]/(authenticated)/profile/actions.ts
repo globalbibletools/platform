@@ -10,7 +10,7 @@ const scrypt = new Scrypt();
 const profileValidationSchema = z.object({
   email: z.string().min(1),
   name: z.string().min(1),
-  password: z.string().min(8),
+  password: z.union([z.string().min(8), z.literal("")]),
   confirmPassword: z.string(),
 });
 
@@ -84,6 +84,5 @@ export default async function updateProfile(
       data.get("userId"),
     ]
   );
-  console.log("Success!");
   return {};
 }

@@ -2,39 +2,40 @@
 import { FormContextProvider } from "@/app/components/FormContext";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useFormState } from "react-dom";
+import updateProfile, { ProfileState } from "./actions";
 
 export default function ProfileForm({
   children,
   user,
-  submitAction,
 }: {
   children: ReactNode;
   user: any;
-  submitAction: (state: any, data: FormData) => Promise<any>;
 }) {
-  const [state, formAction] = useFormState(submitAction, {});
+  const [state, formAction] = useFormState(
+    async (state: ProfileState, data: FormData) => {
+      const formSubmissionState = await updateProfile(state, data);
+      if (!formSubmissionState.errors) {
+        setShouldClearFormData(true);
+      }
+      return formSubmissionState;
+    },
+    {}
+  );
   const formRef = useRef<HTMLFormElement>(null);
   const [shouldClearFormData, setShouldClearFormData] = useState(false);
 
   useEffect(() => {
     if (shouldClearFormData) {
-      ((formRef.current?.querySelector("input#password") as any) ?? {}).value =
-        "";
+      ((formRef.current?.querySelector("#password") as any) ?? {}).value = "";
       (
-        (formRef.current?.querySelector("input#confirm-password") as any) ?? {}
+        (formRef.current?.querySelector("#confirm-password") as any) ?? {}
       ).value = "";
       setShouldClearFormData(false);
     }
   }, [shouldClearFormData]);
 
   return (
-    <form
-      ref={formRef}
-      action={(formData) => {
-        formAction(formData);
-        setShouldClearFormData(true);
-      }}
-    >
+    <form ref={formRef} action={formAction}>
       <FormContextProvider value={state}>{children}</FormContextProvider>
     </form>
   );
