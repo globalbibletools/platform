@@ -46,6 +46,16 @@ export function incrementVerseId(verseId: string) {
   return generateVerseId({ bookId, chapterNumber, verseNumber });
 }
 
+export function bookFirstVerseId(bookId: number) {
+  return generateVerseId({ bookId, chapterNumber: 1, verseNumber: 1 });
+}
+
+export function bookLastVerseId(bookId: number) {
+  const chapterNumber = chapterCount(bookId);
+  const verseNumber = verseCount(bookId, chapterNumber);
+  return generateVerseId({ bookId, chapterNumber, verseNumber });
+}
+
 
 const REFERENCE_REGEX = /^(.+?)(?:[.]?\s*(\d+)(?:([:.,]|\s)(\d+))?)?[;.,]?$/;
 

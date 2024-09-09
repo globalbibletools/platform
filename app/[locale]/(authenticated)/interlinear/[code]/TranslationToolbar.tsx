@@ -9,7 +9,7 @@ import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { approveAll, changeInterlinearLocation, linkWords, redirectToUnapproved, unlinkPhrase } from "./actions";
-import { decrementVerseId, incrementVerseId } from "./verse-utils";
+import { bookFirstVerseId, bookLastVerseId, decrementVerseId, incrementVerseId } from "./verse-utils";
 import { useTranslationClientState } from "./TranslationClientState";
 
 export interface TranslationToolbarProps {
@@ -99,8 +99,8 @@ export default function TranslationToolbar({
                 }
             } else if (e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey) {
                 switch (e.key) {
-                    case 'Home': return;
-                    case 'End': return;
+                    case 'Home': return router.push(`./${bookFirstVerseId(parseInt(verseId.slice(0,2)))}`);
+                    case 'End': return router.push(`./${bookLastVerseId(parseInt(verseId.slice(0,2)))}`);
                 }
             }
         };

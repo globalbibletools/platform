@@ -37,7 +37,7 @@ export interface TranslationViewProps {
 export default function TranslateView({ verseId, words, phrases, language }: TranslationViewProps) {
     const isHebrew = parseInt(verseId.slice(0, 2)) < 40
 
-    const [showSidebar, setShowSidebar] = useState(true)
+    const [showSidebar, setShowSidebar] = useState(false)
     const [sidebarWord, setSidebarWord] = useState(words[0])
     const sidebarPhrase = phrases.find(ph => ph.wordIds.includes(sidebarWord.id))
     const lastVerse = useRef(verseId)
@@ -63,12 +63,24 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
         }
     }, [phrases, focusPhrase])
 
+    const root = useRef<HTMLDivElement>(null)
     useEffect(() => {
         const keydownCallback = async (e: globalThis.KeyboardEvent) => {
             if (e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
                 switch (e.key) {
-                    case 'Home': return;
-                    case 'End': return;
+                    case 'd': return setShowSidebar(show => !show)
+                    case 'Home': {
+                        const words = Array.from(root.current?.querySelectorAll('input[data-phrase]') ?? [])
+                        const firstWord = words[0] as HTMLElement
+                        firstWord?.focus()
+                        break
+                    };
+                    case 'End': {
+                        const words = Array.from(root.current?.querySelectorAll('input[data-phrase]') ?? [])
+                        const lastWord = words.at(-1) as HTMLElement
+                        lastWord?.focus()
+                        break
+                    };
                 }
             }
         };
@@ -77,7 +89,7 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
         return () => window.removeEventListener('keydown', keydownCallback);
     }, [])
 
-    return <div className="flex flex-col flex-grow w-full min-h-0 lg:flex-row">
+    return <div ref={root} className="flex flex-col flex-grow w-full min-h-0 lg:flex-row">
         <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-10 px-6">
             <ol
                 className={`
