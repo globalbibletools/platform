@@ -26,7 +26,7 @@ export default function TranslationToolbar({
     const isTranslator = true;
     const isAdmin = true;
 
-    const { selectedWords, focusedPhrase, focusPhrase, clearSelectedWords } = useTranslationClientState()
+    const { selectedWords, focusedPhrase, clearSelectedWords } = useTranslationClientState()
     const canLinkWords = selectedWords.length > 1;
     const canUnlinkWords = (focusedPhrase?.wordIds.length ?? 0) > 1;
 
@@ -78,32 +78,36 @@ export default function TranslationToolbar({
         if (focusedPhrase) {
             const form = new FormData()
             form.set('code', code)
-            form.set('phraseId', focusedPhrase.id)
+            form.set('phraseId', focusedPhrase.id.toString())
             unlinkPhrase(form)
-            focusPhrase(undefined)
         }
-    }, [code, focusedPhrase, focusPhrase])
+    }, [code, focusedPhrase])
 
     useEffect(() => {
-        if (!isTranslator) return
-
         const keydownCallback = async (e: globalThis.KeyboardEvent) => {
             if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
                 switch (e.key) {
-                    case 'a': return approveAllGlosses();
-                    case 'n': return navigateToNextUnapprovedVerse();
+                    case 'a': return isTranslator && approveAllGlosses();
+                    case 'n': return isTranslator && navigateToNextUnapprovedVerse();
                 }
             } else if (e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
                 switch (e.key) {
-                    case 'l': return onLinkWords();
-                    case 'u': return onUnlinkWords();
+                    case 'l': return isTranslator && onLinkWords();
+                    case 'u': return isTranslator && onUnlinkWords();
+                    case 'ArrowUp': return router.push(`./${decrementVerseId(verseId)}`);
+                    case 'ArrowDown': return router.push(`./${incrementVerseId(verseId)}`);
+                }
+            } else if (e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey) {
+                switch (e.key) {
+                    case 'Home': return;
+                    case 'End': return;
                 }
             }
         };
 
         window.addEventListener('keydown', keydownCallback);
         return () => window.removeEventListener('keydown', keydownCallback);
-    }, [isTranslator, navigateToNextUnapprovedVerse, approveAllGlosses, onLinkWords, onUnlinkWords]);
+    }, [isTranslator, navigateToNextUnapprovedVerse, approveAllGlosses, onLinkWords, onUnlinkWords, router, verseId]);
 
     return (
         <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-500 px-6 md:px-8 py-4">

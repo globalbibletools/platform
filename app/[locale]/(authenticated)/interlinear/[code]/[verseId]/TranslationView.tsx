@@ -63,6 +63,20 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
         }
     }, [phrases, focusPhrase])
 
+    useEffect(() => {
+        const keydownCallback = async (e: globalThis.KeyboardEvent) => {
+            if (e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
+                switch (e.key) {
+                    case 'Home': return;
+                    case 'End': return;
+                }
+            }
+        };
+
+        window.addEventListener('keydown', keydownCallback);
+        return () => window.removeEventListener('keydown', keydownCallback);
+    }, [])
+
     return <div className="flex flex-col flex-grow w-full min-h-0 lg:flex-row">
         <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-10 px-6">
             <ol
