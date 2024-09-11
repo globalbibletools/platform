@@ -68,6 +68,19 @@
             "log_out": "Log Out"
         }
     },
+    "ForgotPasswordPage": {
+        "title": "Forgot Password",
+        "form": {
+            "email": "Email",
+            "submit": "Reset Password"
+        },
+        "errors": {
+            "email_required": "Please enter your email."
+        },
+        "actions": {
+            "log_in": "Log In"
+        }
+    },
     "InviteLanguageUserPage": {
         "title": "Invite User",
         "form": {
