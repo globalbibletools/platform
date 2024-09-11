@@ -4,7 +4,6 @@ import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import { verifySession } from "@/app/session"
 import TranslateView from "./TranslationView"
-import RichTextInput from "@/app/components/RichTextInput"
 
 interface Props {
     params: { code: string, verseId: string }
@@ -12,7 +11,7 @@ interface Props {
 
 interface VerseQueryResult {
     words: { id: string, text: string, referenceGloss?: string, suggestions: string[], lemma: string, grammar: string, resource?: { name: string, entry: string } }[]
-    phrases: { id: string, wordIds: string[], gloss?: { text: string, state: string }, translatorNote?: { authorName: string, timestamp: string, content: string }, footnote?: { authorName: string, timestamp: string, content: string } }[]
+    phrases: { id: number, wordIds: string[], gloss?: { text: string, state: string }, translatorNote?: { authorName: string, timestamp: string, content: string }, footnote?: { authorName: string, timestamp: string, content: string } }[]
 }
 
 export default async function InterlinearView({ params }: Props) {

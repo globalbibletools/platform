@@ -7,6 +7,7 @@ import { notFound, redirect } from 'next/navigation';
 import { parseReference } from './verse-utils';
 import { query, transaction } from '@/app/db';
 import { verifySession } from '@/app/session';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 const requestSchema = z.object({
     language: z.string(),
@@ -148,6 +149,20 @@ export async function approveAll(formData: FormData): Promise<void> {
             ]
         )
     })
+
+    const pathQuery = await query<{ verseId: string }>(
+        `
+        SELECT w."verseId" FROM "Phrase" AS ph
+        JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
+        JOIN "Word" AS w ON w.id = phw."wordId"
+        WHERE ph.id = $1
+        LIMIT 1
+        `,
+        [request.data.phrases[0].id]
+    )
+
+    const locale = await getLocale()
+    revalidatePath(`/${locale}/interlinear/${request.data.code}/${pathQuery.rows[0].verseId}`)
 }
 
 const linkWordsSchema = z.object({
@@ -226,4 +241,71 @@ export async function linkWords(formData: FormData): Promise<void> {
             [request.data.code, request.data.wordIds, session.user.id]
         )
     })
+
+    const pathQuery = await query<{ verseId: string }>(
+        `
+        SELECT w."verseId" FROM "Word" AS w
+        WHERE w.id = $1
+        `,
+        [request.data.wordIds[0]]
+    )
+
+    const locale = await getLocale()
+    revalidatePath(`/${locale}/interlinear/${request.data.code}/${pathQuery.rows[0].verseId}`)
+}
+
+const unlinkPhraseSchema = z.object({
+    code: z.string(),
+    phraseId: z.coerce.number()
+})
+
+export async function unlinkPhrase(formData: FormData): Promise<void> {
+    const session = await verifySession()
+    if (!session?.user) {
+        notFound()
+    }
+
+    const request = unlinkPhraseSchema.safeParse(parseForm(formData));
+    if (!request.success) {
+        return
+    }
+
+    const languageQuery = await query<{ roles: string[] }>(
+        `SELECT 
+            COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
+        FROM "LanguageMemberRole" AS r
+        WHERE r."languageId" = (SELECT id FROM "Language" WHERE code = $1) 
+            AND r."userId" = $2`,
+        [request.data.code, session.user.id]
+    )
+    const language = languageQuery.rows[0]
+    if (!language || (!session?.user.roles.includes('ADMIN') && !language.roles.includes('TRANSLATOR'))) {
+        notFound()
+    }
+
+    await query(
+        `
+        UPDATE "Phrase" AS ph
+            SET
+                "deletedAt" = NOW(),
+                "deletedBy" = $3
+        WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+            AND ph.id = $2
+        `,
+        [request.data.code, request.data.phraseId, session.user.id]
+    )
+
+    const pathQuery = await query<{ verseId: string }>(
+        `
+        SELECT w."verseId" FROM "Phrase" AS ph
+        JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
+        JOIN "Word" AS w ON w.id = phw."wordId"
+        WHERE ph.id = $1
+        LIMIT 1
+        `,
+        [request.data.phraseId]
+    )
+
+    const locale = await getLocale()
+    revalidatePath(`/${locale}/interlinear/${request.data.code}/${pathQuery.rows[0].verseId}`)
 }

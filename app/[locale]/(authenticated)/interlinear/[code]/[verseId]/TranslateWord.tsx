@@ -14,7 +14,7 @@ import { isRichTextEmpty } from "@/app/components/RichTextInput";
 
 export interface TranslateWordProps {
     word: { id: string, text: string, referenceGloss?: string, suggestions: string[], machineGloss?: string }
-    phrase: { id: string, wordIds: string[], gloss?: { text: string, state: string }, translatorNote?: { authorName: string, timestamp: string, content: string }, footnote?: { authorName: string, timestamp: string, content: string } }
+    phrase: { id: number, wordIds: string[], gloss?: { text: string, state: string }, translatorNote?: { authorName: string, timestamp: string, content: string }, footnote?: { authorName: string, timestamp: string, content: string } }
     language: {
         font: string
         textDirection: string
@@ -55,7 +55,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
     const [_, updateAction, saving] = useFormState(updateGloss, {})
     function onChange(change: { state?: string; gloss?: string }) {
         const formData = new FormData()
-        formData.set('phraseId', phrase.id)
+        formData.set('phraseId', phrase.id.toString())
         if (typeof change.state === 'string') {
             formData.set('state', change.state.toString())
         }

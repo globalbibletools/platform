@@ -68,6 +68,19 @@
             "log_out": "Log Out"
         }
     },
+    "ForgotPasswordPage": {
+        "title": "Forgot Password",
+        "form": {
+            "email": "Email",
+            "submit": "Reset Password"
+        },
+        "errors": {
+            "email_required": "Please enter your email."
+        },
+        "actions": {
+            "log_in": "Log In"
+        }
+    },
     "InviteLanguageUserPage": {
         "title": "Invite User",
         "form": {
@@ -184,6 +197,24 @@
         },
         "title": "Profile",
         "update_profile": "Update Profile"
+    },
+    "ResetPasswordPage": {
+        "title": "Reset Password",
+        "form": {
+            "password": "Password",
+            "confirm_password": "Confirm Password",
+            "submit": "Reset Password"
+        },
+        "errors": {
+            "password_required": "Please enter your password.",
+            "password_format": "Please enter a password with at least 8 characters.",
+            "confirm_password_required": "Please enter your password again.",
+            "confirm_password_mismatch": "Your password does not match."
+        },
+        "not_found": "We couldn't find your password reset.",
+        "actions": {
+            "log_in": "Log In"
+        }
     },
     "RichTextInput": {
         "bold_tooltip": "Bold",

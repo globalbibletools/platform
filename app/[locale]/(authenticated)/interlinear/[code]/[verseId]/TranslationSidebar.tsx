@@ -25,7 +25,7 @@ export interface Word {
 }
 
 export interface Phrase {
-    id: string
+    id: number
     translatorNote?: {
         authorName: string
         timestamp: string

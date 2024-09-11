@@ -3,15 +3,16 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 
 interface Phrase {
-    id: string
+    id: number
     wordIds: string[]
 }
 
 interface TranslationClientStateContextValue {
     selectedWords: string[],
     focusedPhrase?: Phrase
-    selectWord(wordId: string): void
-    focusPhrase(phrase: Phrase): void
+    selectWord(wordId?: string): void
+    clearSelectedWords(): void
+    focusPhrase(phrase?: Phrase): void
 }
 
 const TranslationClientStateContext = createContext<TranslationClientStateContextValue | null>(null)
@@ -34,7 +35,11 @@ export function TranslationClientStateProvider({ verseId, children }: { verseId:
         });
     }, [])
 
-    return <TranslationClientStateContext.Provider value={{ selectedWords, focusedPhrase, selectWord, focusPhrase }}>
+    const clearSelectedWords = useCallback(() => {
+        setSelectedWords([]);
+    }, [])
+
+    return <TranslationClientStateContext.Provider value={{ selectedWords, focusedPhrase, selectWord, clearSelectedWords, focusPhrase }}>
         {children}
     </TranslationClientStateContext.Provider>
 }

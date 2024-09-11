@@ -8,8 +8,8 @@ import TextInput from "@/app/components/TextInput";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { approveAll, changeInterlinearLocation, linkWords, redirectToUnapproved } from "./actions";
-import { decrementVerseId, incrementVerseId } from "./verse-utils";
+import { approveAll, changeInterlinearLocation, linkWords, redirectToUnapproved, unlinkPhrase } from "./actions";
+import { bookFirstVerseId, bookLastVerseId, decrementVerseId, incrementVerseId } from "./verse-utils";
 import { useTranslationClientState } from "./TranslationClientState";
 
 export interface TranslationToolbarProps {
@@ -26,7 +26,7 @@ export default function TranslationToolbar({
     const isTranslator = true;
     const isAdmin = true;
 
-    const { selectedWords, focusedPhrase } = useTranslationClientState()
+    const { selectedWords, focusedPhrase, clearSelectedWords } = useTranslationClientState()
     const canLinkWords = selectedWords.length > 1;
     const canUnlinkWords = (focusedPhrase?.wordIds.length ?? 0) > 1;
 
@@ -71,24 +71,43 @@ export default function TranslationToolbar({
             form.set(`wordIds[${i}]`, wordId)
         })
         linkWords(form)
-    }, [code, selectedWords])
+        clearSelectedWords()
+    }, [code, selectedWords, clearSelectedWords])
+
+    const onUnlinkWords = useCallback(() => {
+        if (focusedPhrase) {
+            const form = new FormData()
+            form.set('code', code)
+            form.set('phraseId', focusedPhrase.id.toString())
+            unlinkPhrase(form)
+        }
+    }, [code, focusedPhrase])
 
     useEffect(() => {
-        if (!isTranslator) return
-
         const keydownCallback = async (e: globalThis.KeyboardEvent) => {
-            if (e.shiftKey || e.ctrlKey) return
-            if (e.altKey && e.key === 'a') {
-                approveAllGlosses();
-            }
-            if (e.altKey && e.key === 'n') {
-                navigateToNextUnapprovedVerse();
+            if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+                switch (e.key) {
+                    case 'a': return isTranslator && approveAllGlosses();
+                    case 'n': return isTranslator && navigateToNextUnapprovedVerse();
+                }
+            } else if (e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
+                switch (e.key) {
+                    case 'l': return isTranslator && onLinkWords();
+                    case 'u': return isTranslator && onUnlinkWords();
+                    case 'ArrowUp': return router.push(`./${decrementVerseId(verseId)}`);
+                    case 'ArrowDown': return router.push(`./${incrementVerseId(verseId)}`);
+                }
+            } else if (e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey) {
+                switch (e.key) {
+                    case 'Home': return router.push(`./${bookFirstVerseId(parseInt(verseId.slice(0,2)))}`);
+                    case 'End': return router.push(`./${bookLastVerseId(parseInt(verseId.slice(0,2)))}`);
+                }
             }
         };
 
         window.addEventListener('keydown', keydownCallback);
         return () => window.removeEventListener('keydown', keydownCallback);
-    }, [isTranslator, navigateToNextUnapprovedVerse, approveAllGlosses]);
+    }, [isTranslator, navigateToNextUnapprovedVerse, approveAllGlosses, onLinkWords, onUnlinkWords, router, verseId]);
 
     return (
         <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-500 px-6 md:px-8 py-4">
@@ -176,7 +195,7 @@ export default function TranslationToolbar({
                             {t('link_words')}
                         </Button>
                     ) : (
-                        <Button variant="tertiary">
+                        <Button variant="tertiary" onClick={onUnlinkWords}>
                             <Icon icon="unlink" className="me-1" />
                             {t('unlink_words')}
                         </Button>
