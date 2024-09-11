@@ -1,12 +1,13 @@
 "use server";
 
 import * as z from 'zod';
-import {getTranslations, getLocale} from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { query } from '@/app/db';
 import { randomBytes } from 'crypto';
 import { parseForm } from '@/app/form-parser';
 import { verifySession } from '@/app/session';
+import mailer from '@/app/mailer';
 
 const requestSchema = z.object({
     code: z.string(),
@@ -86,6 +87,14 @@ export async function inviteUser(prevState: InviteUserState, formData: FormData)
             `,
             [request.data.email, token, Date.now() + INVITE_EXPIRES, request.data.code, roles]
         )
+
+        const url = `${process.env.ORIGIN}/invite?token=${token}`
+        await mailer.sendEmail({
+            email: request.data.email,
+            subject: 'GlobalBibleTools Invite',
+            text: `You've been invited to globalbibletools.com. Click the following to accept your invite and get started.\n\n${url.toString()}`,
+            html: `You've been invited to globalbibletools.com. <a href="${url.toString()}">Click here<a/> to accept your invite and get started.`,
+        });
     } else {
         await query(
             `INSERT INTO "LanguageMemberRole" ("languageId", "userId", "role")
