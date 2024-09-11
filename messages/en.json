@@ -181,6 +181,24 @@
             "submit": "Add"
         }
     },
+    "ResetPasswordPage": {
+        "title": "Reset Password",
+        "form": {
+            "password": "Password",
+            "confirm_password": "Confirm Password",
+            "submit": "Reset Password"
+        },
+        "errors": {
+            "password_required": "Please enter your password.",
+            "password_format": "Please enter a password with at least 8 characters.",
+            "confirm_password_required": "Please enter your password again.",
+            "confirm_password_mismatch": "Your password does not match."
+        },
+        "not_found": "We couldn't find your password reset.",
+        "actions": {
+            "log_in": "Log In"
+        }
+    },
     "RichTextInput": {
         "bold_tooltip": "Bold",
         "italic_tooltip": "Italic",
