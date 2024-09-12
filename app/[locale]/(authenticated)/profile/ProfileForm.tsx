@@ -1,39 +1,36 @@
 "use client";
-import { FormContextProvider } from "@/app/components/FormContext";
+
+import Form, { FormState } from "@/app/components/Form";
 import { ReactNode, useRef } from "react";
-import { useFormState } from "react-dom";
-import updateProfile, { ProfileState } from "./actions";
+import updateProfile from "./actions";
 
-export default function ProfileForm({
-  children,
-  userId,
-}: {
-  children: ReactNode;
-  userId: string;
-}) {
-  const [state, formAction] = useFormState(
-    async (prevState: ProfileState, data: FormData) => {
-      const formSubmissionState = await updateProfile(userId, data);
-      if (formSubmissionState.errors) {
-        return formSubmissionState;
-      }
-
-      const passwordInput: HTMLInputElement | null | undefined =
-        formRef.current?.querySelector("#password");
-      if (passwordInput) passwordInput.value = "";
-      const confirmPasswordInput: HTMLInputElement | null | undefined =
-        formRef.current?.querySelector("#confirm-password");
-      if (confirmPasswordInput) confirmPasswordInput.value = "";
-
-      return formSubmissionState;
-    },
-    {}
-  );
-  const formRef = useRef<HTMLFormElement>(null);
-
+export default function ProfileForm({ children }: { children: ReactNode }) {
+  "use client";
+  const formContainerRef = useRef<HTMLDivElement>(null);
   return (
-    <form ref={formRef} action={formAction}>
-      <FormContextProvider value={state}>{children}</FormContextProvider>
-    </form>
+    <div ref={formContainerRef}>
+      <Form
+        action={async (
+          _prevState: FormState,
+          data: FormData
+        ): Promise<FormState> => {
+          const formSubmissionState = await updateProfile(_prevState, data);
+          if (formSubmissionState.state === "error") {
+            return formSubmissionState;
+          }
+
+          const passwordInput: any =
+            formContainerRef.current?.querySelector("#password");
+          if (passwordInput) passwordInput.value = "";
+          const confirmPasswordInput: any =
+            formContainerRef.current?.querySelector("#confirm-password");
+          if (confirmPasswordInput) confirmPasswordInput.value = "";
+
+          return formSubmissionState;
+        }}
+      >
+        {children}
+      </Form>
+    </div>
   );
 }

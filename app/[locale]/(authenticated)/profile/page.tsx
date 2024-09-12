@@ -34,15 +34,16 @@ export default async function ProfileView() {
   const t = await getTranslations("ProfileView");
 
   return (
-    <div className={`flex items-start justify-center absolute w-full h-full`}>
+    <div className="flex items-start justify-center absolute w-full h-full">
       <div
         className="flex-shrink p-6 mx-4 mt-4 w-96
         border border-gray-300 rounded shadow-md
         dark:bg-gray-700 dark:border-gray-600 dark:shadow-none"
       >
         <ViewTitle>{t("title")}</ViewTitle>
-        {session?.user.id && (
-          <ProfileForm userId={session?.user.id}>
+        {session && (
+          <ProfileForm>
+            <input hidden name="user_id" value={session.user.id} />
             <div className="mb-2">
               <FormLabel htmlFor="email">
                 {t("form.email").toUpperCase()}
@@ -93,12 +94,12 @@ export default async function ProfileView() {
               <TextInput
                 type="password"
                 id="confirm-password"
-                name="confirmPassword"
+                name="confirm_password"
                 className="w-full"
                 autoComplete="new-password"
                 aria-describedby="confirm-password-error"
               />
-              <FieldError id="confirm-password-error" name="confirmPassword" />
+              <FieldError id="confirm-password-error" name="confirm_password" />
             </div>
             <div>
               <Button type="submit" className="w-full mb-2">
