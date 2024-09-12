@@ -14,6 +14,8 @@ import { BibleClient } from "@gracious.tech/fetch-client";
 import SavingIndicator from "./SavingIndicator";
 import { Metadata, ResolvingMetadata } from "next";
 import { fontMap } from "@/app/fonts";
+import { updateLanguageSettings } from "./actions";
+import Form from "@/app/components/Form";
 
 interface LanguageSettingsPageProps {
     params: { code: string }
@@ -39,7 +41,7 @@ export default async function LanguageSettingsPage({ params }: LanguageSettingsP
     const translations = await fetchTranslations(params.code)
 
     return <div className="px-8 py-6 w-fit overflow-y-auto h-full">
-      <LanguageSettingsForm>
+        <Form action={updateLanguageSettings} className="max-w-[1000px]">
           <div className="flex items-baseline mb-4">
             <ViewTitle>{t('title')}</ViewTitle>
             <SavingIndicator
@@ -169,7 +171,7 @@ export default async function LanguageSettingsPage({ params }: LanguageSettingsP
           </div>
           <FieldError id="bible-transations-error" name="bible_translations" />
         </section>
-      </LanguageSettingsForm>
+      </Form>
     </div>
 }
 

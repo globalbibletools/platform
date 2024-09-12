@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormContext } from "./FormContext";
+import { useFormContext } from "./Form";
 
 export interface FieldErrorProps {
   id?: string;
@@ -9,7 +9,7 @@ export interface FieldErrorProps {
 
 export default function FieldError({ id, name }: FieldErrorProps) {
     const formContext = useFormContext()
-    const errors = formContext?.errors?.[name]
+    const errors = formContext?.state === 'error' ? formContext.validation?.[name] : undefined
 
   if (errors?.[0]) {
     return (

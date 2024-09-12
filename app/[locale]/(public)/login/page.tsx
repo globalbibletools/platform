@@ -2,12 +2,13 @@ import ModalView, { ModalViewTitle } from "@/app/components/ModalView";
 import Button from "@/app/components/Button";
 import FormLabel from "@/app/components/FormLabel";
 import TextInput from "@/app/components/TextInput";
-import LoginForm from './LoginForm'
 import FieldError from '@/app/components/FieldError';
 import { verifySession } from '@/app/session';
 import { redirect, RedirectType } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Metadata, ResolvingMetadata } from "next";
+import Form from "@/app/components/Form";
+import { login } from "./actions";
 
 export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
   const t = await getTranslations("LoginPage")
@@ -29,7 +30,7 @@ export default async function LoginPage() {
 
     return <ModalView className="max-w-[480px] w-full">
         <ModalViewTitle>{t('title')}</ModalViewTitle>
-        <LoginForm>
+        <Form className="max-w-[300px] w-full mx-auto" action={login}>
             <div className="mb-4">
                 <FormLabel htmlFor="email">{t('form.email')}</FormLabel>
                 <TextInput
@@ -59,6 +60,6 @@ export default async function LoginPage() {
                     {t("forgot_password")}
                 </Button>
             </div>
-        </LoginForm>
+        </Form>
     </ModalView>
 }

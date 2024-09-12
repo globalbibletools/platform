@@ -1,9 +1,10 @@
 "use client";
 
-import { forwardRef } from 'react';
+import { ChangeEvent, forwardRef, useMemo, useRef } from 'react';
 import { Combobox } from '@headlessui/react';
 import { Icon } from './Icon';
-import { useFormContext } from './FormContext';
+import { useFormContext } from './Form';
+import debounce from './debounce';
 
 export interface MultiselectInputProps {
   className?: string;
@@ -12,6 +13,7 @@ export interface MultiselectInputProps {
   value?: string[];
   defaultValue?: string[];
   placeholder?: string;
+  autosubmit?: boolean
   onChange?(value: string[]): void;
   onBlur?(): void;
 }
@@ -27,17 +29,26 @@ const MultiselectInput = forwardRef<HTMLInputElement, MultiselectInputProps>(
       name,
       defaultValue,
       placeholder,
+      autosubmit
     },
     ref
   ) => {
     const formContext = useFormContext();
-    const hasErrors = (formContext?.errors?.[name ?? '']?.length ?? 0) > 0
+    const hasErrors = formContext?.state === 'error' && (formContext.validation?.[name ?? '']?.length ?? 0) > 0
+
+    const root = useRef<HTMLDivElement>(null)
+    const autosubmitForm = useMemo(() => autosubmit ? debounce(() => {
+        root.current?.closest('form')?.requestSubmit()
+    }, 1000) : undefined, [autosubmit])
 
     return (
-      <div className={`${className} relative`}>
+      <div ref={root} className={`${className} relative`}>
         <Combobox
           value={value}
-          onChange={onChange}
+            onChange={value => {
+                autosubmitForm?.()
+                onChange?.(value)
+            }}
           multiple
           name={name}
           defaultValue={defaultValue}

@@ -10,7 +10,7 @@ import {
   useState,
 } from 'react';
 import { Icon } from './Icon';
-import { useFormContext } from './FormContext';
+import { useFormContext } from './Form';
 
 export interface ComboboxItem {
   label: string;
@@ -53,7 +53,7 @@ const ComboboxInput = forwardRef<HTMLInputElement, BaseComboboxInputProps>(
     const [filteredItems, setFilteredItems] = useState<ComboboxItem[]>(items);
 
     const formContext = useFormContext()
-    const hasErrors = (formContext?.errors?.[name ?? '']?.length ?? 0) > 0
+    const hasErrors = formContext?.state === 'error' && (formContext.validation?.[name ?? '']?.length ?? 0) > 0
 
     // If none of the items matches the input value exactly,
     // then we want to give the option of creating a new item.

@@ -1,10 +1,11 @@
 "use server";
 
 import * as z from 'zod';
-import {getTranslations, getLocale} from 'next-intl/server';
-import { notFound, redirect } from 'next/navigation';
+import {getTranslations } from 'next-intl/server';
+import { notFound } from 'next/navigation';
 import { query } from '@/app/db';
 import { verifySession } from '@/app/session';
+import { FormState } from '@/app/components/Form';
 
 const requestSchema = z.object({
     code: z.string(),
@@ -14,12 +15,7 @@ const requestSchema = z.object({
     bibleTranslationIds: z.array(z.string()).optional()
 })
 
-export interface CreateLanguageState {
-    message?: string
-    errors?: {}
-}
-
-export async function updateLanguageSettings(prevState: CreateLanguageState, formData: FormData): Promise<CreateLanguageState> {
+export async function updateLanguageSettings(_prevState: FormState, formData: FormData): Promise<FormState> {
     const t = await getTranslations('LanguageSettingsPage');
 
     const session = await verifySession()
@@ -48,7 +44,8 @@ export async function updateLanguageSettings(prevState: CreateLanguageState, for
     });
     if (!request.success) {
         return {
-            errors: request.error.flatten().fieldErrors
+            state: 'error',
+            validation: request.error.flatten().fieldErrors
         }
     }
 
@@ -75,6 +72,6 @@ export async function updateLanguageSettings(prevState: CreateLanguageState, for
         [request.data.code, request.data.name, request.data.font, request.data.textDirection, request.data.bibleTranslationIds ?? []]
     )
 
-    return {}
+    return { state: 'success' }
 }
 

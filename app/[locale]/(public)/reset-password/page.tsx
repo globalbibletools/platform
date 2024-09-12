@@ -9,6 +9,8 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { Metadata, ResolvingMetadata } from "next";
 import ResetPasswordForm from "./ResetPasswordForm";
 import { query } from "@/app/db";
+import { resetPassword } from "./actions";
+import Form from "@/app/components/Form";
 
 export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
   const t = await getTranslations("ResetPasswordPage")
@@ -50,7 +52,7 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
       }
     >
         <ModalViewTitle>{t('title')}</ModalViewTitle>
-        <ResetPasswordForm>
+        <Form className="max-w-[300px] w-full mx-auto" action={resetPassword}>
             <input type="hidden" name="token" value={searchParams.token ?? ''} />
             <div className="mb-4">
               <FormLabel htmlFor="password">
@@ -81,6 +83,6 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
               <FieldError id="confirm-password-error" name="confirm_password" />
             </div>
             <Button type="submit" className="w-full mb-2">{t('form.submit')}</Button>
-        </ResetPasswordForm>
+        </Form>
     </ModalView>
 }

@@ -6,18 +6,14 @@ import { transaction } from '@/app/db';
 import { parseForm } from '@/app/form-parser';
 import { verifySession } from '@/app/session';
 import { notFound } from 'next/navigation';
+import { FormState } from '@/app/components/Form';
 
 const requestSchema = z.object({
     user_id: z.string().min(1),
     roles: z.array(z.string()).optional().default([]),
 })
 
-export interface ChangeUserRoleState {
-    roles: string[]
-    message?: string
-}
-
-export async function changeUserRole(prevState: ChangeUserRoleState, formData: FormData): Promise<ChangeUserRoleState> {
+export async function changeUserRole(_prevState: FormState, formData: FormData): Promise<FormState> {
     const t = await getTranslations('AdminUsersPage');
 
     const session = await verifySession()
@@ -28,8 +24,8 @@ export async function changeUserRole(prevState: ChangeUserRoleState, formData: F
     const request = requestSchema.safeParse(parseForm(formData));
     if (!request.success) {
         return {
-            roles: prevState.roles,
-            message: t('errors.invalid_request')
+            state: 'error',
+            error: t('errors.invalid_request')
         }
     }
 
@@ -49,7 +45,7 @@ export async function changeUserRole(prevState: ChangeUserRoleState, formData: F
         }
     })
 
-    return { roles: request.data.roles }
+    return { state: 'success' }
 }
 
 

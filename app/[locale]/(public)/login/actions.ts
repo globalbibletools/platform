@@ -6,6 +6,7 @@ import { Scrypt } from "oslo/password";
 import { createSession } from '@/app/session';
 import { redirect } from 'next/navigation';
 import { query } from '@/app/db';
+import { FormState } from '@/app/components/Form';
 
 const scrypt = new Scrypt()
 
@@ -14,17 +15,8 @@ const loginSchema = z.object({
     password: z.string().min(1)
 })
 
-export interface LoginState {
-    message?: string
-    errors?: {
-        email?: string[],
-        password?: string[]
-    }
-}
-
-export async function login(prevState: LoginState, formData: FormData): Promise<LoginState> {
+export async function login(_state: FormState, formData: FormData): Promise<FormState> {
     const t = await getTranslations('LoginPage');
-    const locale = await getLocale()
 
     const request = loginSchema.safeParse({
         email: formData.get('email'),
@@ -42,7 +34,8 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
     });
     if (!request.success) {
         return {
-            errors: request.error.flatten().fieldErrors
+            state: 'error',
+            validation: request.error.flatten().fieldErrors
         }
     }
 
@@ -51,18 +44,21 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
 
     if (!user) {
         return {
-            message: 'Invalid email or password.'
+            state: 'error',
+            error: 'Invalid email or password.'
         }
     }
 
-    console.log(user)
     const valid = await scrypt.verify(user.hashedPassword, request.data.password)
     if (!valid) {
         return {
-            message: 'Invalid email or password.'
+            state: 'error',
+            error: 'Invalid email or password.'
         }
     }
 
     await createSession(user.id)
+
+    const locale = await getLocale()
     redirect(`/${locale}/profile`)
 }
