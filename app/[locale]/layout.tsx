@@ -37,7 +37,9 @@ export default function RootLayout({
       <body>
         <NextIntlClientProvider
             messages={{
-                DocumentTitle: messages.DocumentTitle
+                DocumentTitle: messages.DocumentTitle,
+                Error: messages.Error,
+                ModalView: messages.ModalView // Needed for public error page
             }}
         >
             {children}

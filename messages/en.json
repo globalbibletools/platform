@@ -68,6 +68,15 @@
             "log_out": "Log Out"
         }
     },
+    "Error": {
+        "tab": "Error",
+        "title": "Something went wrong!",
+        "help": "An unknown error has occurred. Please contact support for assistance.",
+        "actions": {
+            "reload": "Reload",
+            "log_in": "Log In"
+        }
+    },
     "ForgotPasswordPage": {
         "title": "Forgot Password",
         "form": {
