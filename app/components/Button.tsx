@@ -7,14 +7,14 @@ import LoadingSpinner from './LoadingSpinner';
 
 type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'link';
 
-interface _LinkProps extends NextLinkProps {
+export interface LinkProps extends NextLinkProps {
     target?: string
   className?: string;
   variant?: ButtonVariant;
   destructive?: boolean;
   small?: boolean;
 }
-interface _ButtonProps extends ComponentProps<'button'> {
+export interface ActionProps extends ComponentProps<'button'> {
   className?: string;
   variant?: ButtonVariant;
   destructive?: boolean;
@@ -22,7 +22,7 @@ interface _ButtonProps extends ComponentProps<'button'> {
   submitting?: ReactNode
 }
 
-export type ButtonProps = _LinkProps | _ButtonProps;
+export type ButtonProps = LinkProps | ActionProps;
 
 const sharedClasses =
   'inline-flex justify-center items-center rounded-lg font-bold outline-2 disabled:opacity-50 focus-visible:outline';
@@ -64,11 +64,11 @@ function buttonClasses(
   }
 }
 
-function isLinkProps(props: ButtonProps): props is _LinkProps {
+function isLinkProps(props: ButtonProps): props is LinkProps {
     return 'href' in props
 }
 
-function isButtonProps(props: ButtonProps): props is _ButtonProps {
+function isButtonProps(props: ButtonProps): props is ActionProps {
     return !('href' in props)
 }
 

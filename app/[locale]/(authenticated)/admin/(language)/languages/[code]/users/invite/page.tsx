@@ -2,12 +2,13 @@ import { useTranslations } from 'next-intl';
 import Button from "@/app/components/Button";
 import FormLabel from "@/app/components/FormLabel";
 import TextInput from "@/app/components/TextInput";
-import InviteLanguageUserForm from './InviteLanguageUserForm'
 import FieldError from '@/app/components/FieldError';
 import ViewTitle from '@/app/components/ViewTitle';
 import MultiselectInput from '@/app/components/MultiselectInput';
 import { Metadata, ResolvingMetadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { inviteUser } from './actions';
+import Form from '@/app/components/Form';
 
 interface InviteLanguageUserPageProps {
     params: { code: string }
@@ -27,7 +28,7 @@ export default function InviteLanguageUserPage({ params }: InviteLanguageUserPag
 
     return <div className="px-8 py-6">
         <ViewTitle>{t('title')}</ViewTitle>
-        <InviteLanguageUserForm>
+        <Form action={inviteUser}>
             <input type="hidden" name="code" value={params.code} />
             <div className="mb-4">
                 <FormLabel htmlFor="email">{t('form.email')}</FormLabel>
@@ -60,6 +61,6 @@ export default function InviteLanguageUserPage({ params }: InviteLanguageUserPag
                 <FieldError id="role-error" name="roles"/>
             </div>
             <Button type="submit">{t('form.submit')}</Button>
-        </InviteLanguageUserForm>
+        </Form>
     </div>
 }

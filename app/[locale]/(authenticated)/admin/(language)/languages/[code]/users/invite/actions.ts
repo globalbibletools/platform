@@ -8,6 +8,7 @@ import { randomBytes } from 'crypto';
 import { parseForm } from '@/app/form-parser';
 import { verifySession } from '@/app/session';
 import mailer from '@/app/mailer';
+import { FormState } from '@/app/components/Form';
 
 const requestSchema = z.object({
     code: z.string(),
@@ -15,17 +16,9 @@ const requestSchema = z.object({
     roles: z.array(z.string())
 })
 
-export interface InviteUserState {
-    message?: string
-    errors?: {
-        email?: string[],
-        roles?: string[]
-    }
-}
-
 const INVITE_EXPIRES = 7 * 24 * 60 * 60 * 1000 // 7 days
 
-export async function inviteUser(prevState: InviteUserState, formData: FormData): Promise<InviteUserState> {
+export async function inviteUser(_prevState: FormState, formData: FormData): Promise<FormState> {
     const t = await getTranslations('InviteUserPage');
     const locale = await getLocale()
 
@@ -49,7 +42,8 @@ export async function inviteUser(prevState: InviteUserState, formData: FormData)
     });
     if (!request.success) {
         return {
-            errors: request.error.flatten().fieldErrors
+            state: 'error',
+            validation: request.error.flatten().fieldErrors
         }
     }
 

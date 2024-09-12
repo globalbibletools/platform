@@ -2,11 +2,12 @@ import { useTranslations } from 'next-intl';
 import Button from "@/app/components/Button";
 import FormLabel from "@/app/components/FormLabel";
 import TextInput from "@/app/components/TextInput";
-import NewLanguageForm from './NewLanguageForm'
 import FieldError from '@/app/components/FieldError';
 import ViewTitle from '@/app/components/ViewTitle';
 import { getTranslations } from 'next-intl/server';
 import { Metadata, ResolvingMetadata } from 'next';
+import { createLanguage } from './actions';
+import Form from '@/app/components/Form';
 
 export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
   const t = await getTranslations("NewLanguagePage")
@@ -22,7 +23,7 @@ export default function NewLanguagePage() {
 
     return <div className="px-8 py-6">
         <ViewTitle>{t('title')}</ViewTitle>
-        <NewLanguageForm>
+        <Form action={createLanguage}>
             <div className="mb-4">
                 <FormLabel htmlFor="code">{t('form.code')}</FormLabel>
                 <TextInput
@@ -44,6 +45,6 @@ export default function NewLanguagePage() {
                 <FieldError id="name-error" name="name"/>
             </div>
             <Button type="submit">{t('form.submit')}</Button>
-        </NewLanguageForm>
+        </Form>
     </div>
 }

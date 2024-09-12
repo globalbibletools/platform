@@ -2,12 +2,13 @@ import ModalView, { ModalViewTitle } from "@/app/components/ModalView";
 import Button from "@/app/components/Button";
 import FormLabel from "@/app/components/FormLabel";
 import TextInput from "@/app/components/TextInput";
-import AcceptInviteForm from './AcceptInviteForm'
 import FieldError from '@/app/components/FieldError';
 import { getTranslations } from 'next-intl/server';
 import { query } from '@/app/db';
 import { notFound } from 'next/navigation';
 import { Metadata, ResolvingMetadata } from "next";
+import { acceptInvite } from "./actions";
+import Form from "@/app/components/Form";
 
 interface Props {
     params: { locale: string },
@@ -44,7 +45,7 @@ export default async function LoginPage({ params, searchParams }: Props) {
       }
     >
         <ModalViewTitle>{t('title')}</ModalViewTitle>
-        <AcceptInviteForm>
+        <Form className="max-w-[300px] w-full mx-auto" action={acceptInvite}>
             <input type="hidden" name="token" value={searchParams.token} />
             <div className="mb-4">
               <FormLabel htmlFor="email">
@@ -114,6 +115,6 @@ export default async function LoginPage({ params, searchParams }: Props) {
               <FieldError id="confirm-password-error" name="confirm_password" />
             </div>
             <Button type="submit" className="w-full mb-2">{t('form.submit')}</Button>
-        </AcceptInviteForm>
+        </Form>
     </ModalView>
 }

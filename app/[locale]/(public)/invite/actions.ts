@@ -7,6 +7,7 @@ import { createSession } from '@/app/session';
 import { notFound, redirect } from 'next/navigation';
 import { transaction } from '@/app/db';
 import { parseForm } from '@/app/form-parser';
+import { FormState } from '@/app/components/Form';
 
 const scrypt = new Scrypt()
 
@@ -18,17 +19,7 @@ const loginSchema = z.object({
     confirm_password: z.string().min(1)
 }).refine(data => data.password === data.confirm_password, { path: ['confirm_password'] })
 
-export interface LoginState {
-    message?: string
-    errors?: {
-        first_name?: string[]
-        last_name?: string[]
-        password?: string[]
-        confirm_password?: string[]
-    }
-}
-
-export async function acceptInvite(prevState: LoginState, formData: FormData): Promise<LoginState> {
+export async function acceptInvite(prevState: FormState, formData: FormData): Promise<FormState> {
     const t = await getTranslations('AcceptInvitePage');
     const locale = await getLocale()
 
@@ -63,7 +54,8 @@ export async function acceptInvite(prevState: LoginState, formData: FormData): P
     });
     if (!request.success) {
         return {
-            errors: request.error.flatten().fieldErrors
+            state: 'error',
+            validation: request.error.flatten().fieldErrors
         }
     }
 
@@ -78,21 +70,19 @@ export async function acceptInvite(prevState: LoginState, formData: FormData): P
             `,
             [request.data.token, `${request.data.first_name} ${request.data.last_name}`, scrypt.hash(request.data.password)]
         )
-        const userId = updatedUserQuery.rows[0]?.id
 
-        if (userId) {
-            await query(
-                `DELETE FROM "UserInvitation" WHERE "userId" = $1`,
-                [userId]
-            )
+        const userId = updatedUserQuery.rows[0]?.id
+        if (!userId) {
+            notFound()
         }
+
+        await query(
+            `DELETE FROM "UserInvitation" WHERE "userId" = $1`,
+            [userId]
+        )
 
         return userId
     })
-
-    if (!userId) {
-        notFound()
-    }
 
     await createSession(userId)
     redirect(`/${locale}/interlinear`)

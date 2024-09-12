@@ -8,6 +8,7 @@ import { parseForm } from '@/app/form-parser';
 import mailer from '@/app/mailer';
 import { Scrypt } from 'oslo/password';
 import { createSession } from '@/app/session';
+import { FormState } from '@/app/components/Form';
 
 const scrypt = new Scrypt()
 
@@ -17,15 +18,7 @@ const resetPasswordSchema = z.object({
     confirm_password: z.string().min(1)
 }).refine(data => data.password === data.confirm_password, { path: ['confirm_password'] })
 
-export interface ResetPasswordState {
-    message?: string
-    errors?: {
-        password?: string[],
-        confirm_password?: string[],
-    }
-}
-
-export async function resetPassword(prevState: ResetPasswordState, formData: FormData): Promise<ResetPasswordState> {
+export async function resetPassword(_prevState: FormState, formData: FormData): Promise<FormState> {
     const t = await getTranslations('ResetPasswordPage');
 
     const request = resetPasswordSchema.safeParse(parseForm(formData), {
@@ -49,7 +42,8 @@ export async function resetPassword(prevState: ResetPasswordState, formData: For
     });
     if (!request.success) {
         return {
-            errors: request.error.flatten().fieldErrors
+            state: 'error',
+            validation: request.error.flatten().fieldErrors
         }
     }
 
@@ -61,7 +55,7 @@ export async function resetPassword(prevState: ResetPasswordState, formData: For
             FROM "ResetPasswordToken" AS t
             WHERE u.id = t."userId"
                 AND t.token = $1
-                AND t.expires > NOW()
+                AND t.expires > (EXTRACT(EPOCH FROM CURRENT_TIMESTAMP)::bigint * 1000::bigint)
             RETURNING id
         `,
         [request.data.token, hashedPassword]
@@ -73,12 +67,10 @@ export async function resetPassword(prevState: ResetPasswordState, formData: For
     }
 
     await Promise.all([
-        /*
         query(
             `DELETE FROM "ResetPasswordToken" WHERE token = $1`,
             [request.data.token]
         ),
-        */
         mailer.sendEmail({
             userId: user.id,
             subject: 'Password Changed',

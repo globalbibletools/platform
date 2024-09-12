@@ -7,7 +7,8 @@ import { verifySession } from '@/app/session';
 import { redirect, RedirectType } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Metadata, ResolvingMetadata } from "next";
-import ForgotPasswordForm from "./ForgotPasswordForm";
+import Form from "@/app/components/Form";
+import { forgotPassword } from "./actions";
 
 export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
   const t = await getTranslations("ForgotPasswordPage")
@@ -35,7 +36,7 @@ export default async function LoginPage() {
       }
     >
         <ModalViewTitle>{t('title')}</ModalViewTitle>
-        <ForgotPasswordForm>
+        <Form className="max-w-[300px] w-full mx-auto" action={forgotPassword}>
             <div className="mb-6">
                 <FormLabel htmlFor="email">{t('form.email')}</FormLabel>
                 <TextInput
@@ -48,6 +49,6 @@ export default async function LoginPage() {
                 <FieldError id="email-error" name="email"/>
             </div>
             <Button type="submit" className="w-full mb-2">{t('form.submit')}</Button>
-        </ForgotPasswordForm>
+        </Form>
     </ModalView>
 }

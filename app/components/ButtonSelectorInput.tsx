@@ -1,7 +1,7 @@
 "use client";
 
 import { ComponentProps, ReactNode, createContext, useContext } from 'react';
-import { useFormContext } from './FormContext';
+import { useFormContext } from './Form';
 
 interface ButtonSelectorContextValue {
   name: string;
@@ -38,7 +38,7 @@ export function ButtonSelectorInput({
   ...props
 }: ButtonSelectorInputProps) {
   const formContext = useFormContext();
-  const hasErrors = (formContext?.errors?.[name ?? '']?.length ?? 0) > 0
+  const hasErrors = formContext?.state === 'error' && (formContext.validation?.[name ?? '']?.length ?? 0) > 0
 
   return (
     <ButtonSelectorContext.Provider

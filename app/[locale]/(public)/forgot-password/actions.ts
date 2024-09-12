@@ -7,6 +7,7 @@ import { query } from '@/app/db';
 import { parseForm } from '@/app/form-parser';
 import { randomBytes } from 'crypto';
 import mailer from '@/app/mailer';
+import { FormState } from '@/app/components/Form';
 
 const EXPIRATION = 60 * 60 * 1000 // 1 hr
 
@@ -14,14 +15,7 @@ const loginSchema = z.object({
     email: z.string().min(1)
 })
 
-export interface ForgotPasswordState {
-    message?: string
-    errors?: {
-        email?: string[],
-    }
-}
-
-export async function forgotPassword(prevState: ForgotPasswordState, formData: FormData): Promise<ForgotPasswordState> {
+export async function forgotPassword(_prevState: FormState, formData: FormData): Promise<FormState> {
     const t = await getTranslations('ForgotPasswordPage');
 
     const request = loginSchema.safeParse(parseForm(formData), {
@@ -35,7 +29,8 @@ export async function forgotPassword(prevState: ForgotPasswordState, formData: F
     });
     if (!request.success) {
         return {
-            errors: request.error.flatten().fieldErrors
+            state: 'error',
+            validation: request.error.flatten().fieldErrors
         }
     }
 

@@ -7,19 +7,15 @@ import { parseForm } from '@/app/form-parser';
 import { revalidatePath } from 'next/cache';
 import { verifySession } from '@/app/session';
 import { notFound } from 'next/navigation';
+import { FormState } from '@/app/components/Form';
 
 const changeUserRequestSchema = z.object({
     code: z.string(),
-    user_id: z.string(),
+    userId: z.string(),
     roles: z.array(z.string()).optional().default([]),
 })
 
-export interface ChangeUserRoleState {
-    roles: string[]
-    message?: string
-}
-
-export async function changeUserLanguageRole(prevState: ChangeUserRoleState, formData: FormData): Promise<ChangeUserRoleState> {
+export async function changeUserLanguageRole(_prevState: FormState, formData: FormData): Promise<FormState> {
     const t = await getTranslations('AdminUsersPage');
 
     const session = await verifySession()
@@ -30,8 +26,8 @@ export async function changeUserLanguageRole(prevState: ChangeUserRoleState, for
     const request = changeUserRequestSchema.safeParse(parseForm(formData));
     if (!request.success) {
         return {
-            roles: prevState.roles,
-            message: t('errors.invalid_request')
+            state: 'error',
+            error: t('errors.invalid_request')
         }
     }
 
@@ -52,7 +48,7 @@ export async function changeUserLanguageRole(prevState: ChangeUserRoleState, for
         await query(
             `DELETE FROM "LanguageMemberRole" AS r
             WHERE r."languageId" = (SELECT id FROM "Language" WHERE code = $1) AND r."userId" = $2 AND r.role != 'VIEWER' AND r.role != ALL($3::"LanguageRole"[])`,
-            [request.data.code, request.data.user_id, request.data.roles]
+            [request.data.code, request.data.userId, request.data.roles]
         )
 
         if (request.data.roles && request.data.roles.length > 0) {
@@ -62,26 +58,24 @@ export async function changeUserLanguageRole(prevState: ChangeUserRoleState, for
                 FROM "Language" AS l
                 WHERE l.code = $1
                 ON CONFLICT DO NOTHING`,
-                [request.data.code, request.data.user_id, request.data.roles]
+                [request.data.code, request.data.userId, request.data.roles]
             )
         }
     })
 
-    return { roles: request.data.roles }
+    const locale = await getLocale()
+    revalidatePath(`/${locale}/admin/languages/${request.data.code}/users`)
+
+    return { state: 'success', message: 'User role updated' }
 }
 
 const removeUserRequestSchema = z.object({
     code: z.string(),
-    user_id: z.string()
+    userId: z.string()
 })
 
-export interface RemoveLanguageUserState {
-    message?: string
-}
-
-export async function removeLanguageUser(prevState: RemoveLanguageUserState, formData: FormData): Promise<RemoveLanguageUserState> {
+export async function removeLanguageUser(_prevState: FormState, formData: FormData): Promise<FormState> {
     const t = await getTranslations('AdminUsersPage');
-    const locale = await getLocale()
 
     const session = await verifySession()
     if (!session) {
@@ -91,7 +85,8 @@ export async function removeLanguageUser(prevState: RemoveLanguageUserState, for
     const request = removeUserRequestSchema.safeParse(parseForm(formData));
     if (!request.success) {
         return {
-            message: t('errors.invalid_request')
+            state: 'error',
+            error: t('errors.invalid_request')
         }
     }
 
@@ -110,11 +105,12 @@ export async function removeLanguageUser(prevState: RemoveLanguageUserState, for
 
     await query(
         `DELETE FROM "LanguageMemberRole" WHERE "languageId" = (SELECT id FROM "Language" WHERE code = $1) AND "userId" = $2`,
-        [request.data.code, request.data.user_id]
+        [request.data.code, request.data.userId]
     )
 
+    const locale = await getLocale()
     revalidatePath(`/${locale}/admin/languages/${request.data.code}/users`)
 
-    return {}
+    return { state: 'success', message: 'User removed successfully.' }
 }
 
