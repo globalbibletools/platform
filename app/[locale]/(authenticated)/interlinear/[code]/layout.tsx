@@ -53,7 +53,7 @@ export default async function InterlinearLayout({ children, params }: Props) {
 
 
     return <div className={`absolute w-full h-full flex flex-col flex-grow`}>
-        <TranslationClientStateProvider>
+        <TranslationClientStateProvider verseId={params.verseId}>
             <NextIntlClientProvider messages={{ TranslationToolbar: messages.TranslationToolbar }}>
                 <TranslationToolbar
                     languages={languages.rows}

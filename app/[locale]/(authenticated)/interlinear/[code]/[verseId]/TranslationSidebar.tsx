@@ -90,7 +90,7 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
           (note: string) => {
             if (phrase.id) {
                 const form = new FormData()
-                form.set('phraseId', phrase.id)
+                form.set('phraseId', phrase.id.toString())
                 form.set('note', note)
                 saveFootnoteAction(form)
             }
@@ -108,7 +108,7 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
           (note: string) => {
             if (phrase.id) {
                 const form = new FormData()
-                form.set('phraseId', phrase.id)
+                form.set('phraseId', phrase.id.toString())
                 form.set('note', note)
                 saveTranslatorNoteAction(form)
             }

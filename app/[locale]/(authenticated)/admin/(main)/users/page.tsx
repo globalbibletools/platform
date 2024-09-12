@@ -4,7 +4,6 @@ import { List, ListBody, ListCell, ListHeader, ListHeaderCell, ListRow } from "@
 import ViewTitle from "@/app/components/ViewTitle";
 import { query } from "@/app/db";
 import { getTranslations } from "next-intl/server";
-import RoleSelector from "./RoleSelector";
 import { Metadata, ResolvingMetadata } from "next";
 import { changeUserRole } from "./actions";
 import MultiselectInput from "@/app/components/MultiselectInput";
