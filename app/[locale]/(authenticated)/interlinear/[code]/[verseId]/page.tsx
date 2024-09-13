@@ -4,13 +4,14 @@ import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import { verifySession } from "@/app/session"
 import TranslateView from "./TranslationView"
+import { unstable_cache } from "next/cache"
 
 interface Props {
     params: { code: string, verseId: string }
 }
 
 interface VerseQueryResult {
-    words: { id: string, text: string, referenceGloss?: string, suggestions: string[], lemma: string, grammar: string, resource?: { name: string, entry: string } }[]
+    words: { id: string, suggestions: string[] }[]
     phrases: { id: number, wordIds: string[], gloss?: { text: string, state: string }, translatorNote?: { authorName: string, timestamp: string, content: string }, footnote?: { authorName: string, timestamp: string, content: string } }[]
 }
 
@@ -18,6 +19,11 @@ export default async function InterlinearView({ params }: Props) {
     const messages = await getMessages()
 
     const session = await verifySession()
+
+    const verse = await fetchVerse(params.verseId)
+    if (!verse) {
+        notFound()
+    }
 
     await query(
         `
@@ -49,23 +55,9 @@ export default async function InterlinearView({ params }: Props) {
                 SELECT
                     JSON_AGG(JSON_BUILD_OBJECT(
                         'id', w.id, 
-                        'text', w.text,
-                        'referenceGloss', ph.gloss,
-                        'suggestions', COALESCE(suggestion.suggestions, '[]'),
-                        'lemma', lf."lemmaId",
-                        'grammar', lf.grammar,
-                        'resource', lemma_resource.resource
+                        'suggestions', COALESCE(suggestion.suggestions, '[]')
                     ) ORDER BY w.id)
                 FROM "Word" AS w
-
-                LEFT JOIN LATERAL (
-                    SELECT g.gloss FROM "PhraseWord" AS phw
-                    JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
-                    JOIN "Gloss" AS g ON g."phraseId" = ph.id
-                    WHERE phw."wordId" = w.id
-                        AND ph."languageId" = (SELECT id FROM "Language" WHERE code = 'eng')
-						AND ph."deletedAt" IS NULL
-                ) AS ph ON true
 
                 LEFT JOIN (
                   SELECT
@@ -89,22 +81,6 @@ export default async function InterlinearView({ params }: Props) {
                   ) AS form_suggestion
                   GROUP BY id
                 ) AS suggestion ON suggestion.form_id = w."formId"
-
-                JOIN "LemmaForm" AS lf ON lf.id = w."formId"
-                LEFT JOIN LATERAL (
-                    SELECT
-						CASE
-							WHEN lr."resourceCode" IS NOT NULL
-							THEN JSON_BUILD_OBJECT(
-							  'name', lr."resourceCode",
-							  'entry', lr.content
-							)
-							ELSE NULL
-						END AS resource
-                    FROM "LemmaResource" AS lr
-                    WHERE lr."lemmaId" = lf."lemmaId"
-                    LIMIT 1
-                ) AS lemma_resource ON true
      
                 WHERE w."verseId" = v.id
             ) AS words,
@@ -190,13 +166,89 @@ export default async function InterlinearView({ params }: Props) {
         notFound()
     }
 
+    const words = verse.words.map(w => ({ ...w, suggestions: result.rows[0].words.find(w2 => w.id === w2.id)?.suggestions ?? [] }))
 
     return <NextIntlClientProvider messages={{ TranslateWord: messages.TranslateWord, TranslationSidebar: messages.TranslationSidebar, RichTextInput: messages.RichTextInput, VersesPreview: messages.VersesPreview }}>
         <TranslateView
             verseId={params.verseId}
-            words={result.rows[0].words}
+            words={words}
             phrases={result.rows[0].phrases}
             language={languageQuery.rows[0]}
         />
     </NextIntlClientProvider>
+}
+
+
+interface VerseWord {
+    id: string
+    text: string
+    referenceGloss?: string
+    lemma: string
+    grammar: string
+    resource?: { name: string, entry: string }
+}
+
+interface Verse {
+    words: VerseWord[]
+}
+
+function fetchVerse(verseId: string): Promise<Verse | undefined> {
+    return unstable_cache(
+      async (verseId: string) => {
+          const result = await query<Verse>(
+            `
+            SELECT
+                (
+                    SELECT
+                        JSON_AGG(JSON_BUILD_OBJECT(
+                            'id', w.id, 
+                            'text', w.text,
+                            'referenceGloss', ph.gloss,
+                            'lemma', lf."lemmaId",
+                            'grammar', lf.grammar,
+                            'resource', lemma_resource.resource
+                        ) ORDER BY w.id)
+                    FROM "Word" AS w
+
+                    LEFT JOIN LATERAL (
+                        SELECT g.gloss FROM "PhraseWord" AS phw
+                        JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
+                        JOIN "Gloss" AS g ON g."phraseId" = ph.id
+                        WHERE phw."wordId" = w.id
+                            AND ph."languageId" = (SELECT id FROM "Language" WHERE code = 'eng')
+                            AND ph."deletedAt" IS NULL
+                    ) AS ph ON true
+
+                    JOIN "LemmaForm" AS lf ON lf.id = w."formId"
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            CASE
+                                WHEN lr."resourceCode" IS NOT NULL
+                                THEN JSON_BUILD_OBJECT(
+                                  'name', lr."resourceCode",
+                                  'entry', lr.content
+                                )
+                                ELSE NULL
+                            END AS resource
+                        FROM "LemmaResource" AS lr
+                        WHERE lr."lemmaId" = lf."lemmaId"
+                        LIMIT 1
+                    ) AS lemma_resource ON true
+         
+                    WHERE w."verseId" = v.id
+                ) AS words
+            FROM "Verse" AS v
+            WHERE v.id = $1
+            `,
+            [verseId]
+          )
+
+          return result.rows[0]
+      },
+      undefined,
+      {
+          tags: [`verse-${verseId}`],
+          revalidate: 60 * 60 * 24 // 1 day
+      }
+    )(verseId)
 }
