@@ -230,6 +230,9 @@
        "saving": "Saving",
        "open_note_tooltip": "Jump to Note"
     },
+    "TranslationProgressBar": {
+        "progress": "{approvedCount}/{wordCount} words ({percent}%)"
+    },
     "TranslationSidebar": {
         "tabs": {
             "lexicon": "Lexicon",
