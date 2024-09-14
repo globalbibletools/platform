@@ -11,7 +11,6 @@ interface Props {
 }
 
 interface VerseQueryResult {
-    words: { id: string, suggestions: string[] }[]
     phrases: { id: number, wordIds: string[], gloss?: { text: string, state: string }, translatorNote?: { authorName: string, timestamp: string, content: string }, footnote?: { authorName: string, timestamp: string, content: string } }[]
 }
 
@@ -20,7 +19,11 @@ export default async function InterlinearView({ params }: Props) {
 
     const session = await verifySession()
 
-    const verse = await fetchVerse(params.verseId)
+    const [verse, suggestions] = await Promise.all([
+        fetchVerse(params.verseId),
+        fetchSuggestions(params.verseId, params.code)
+    ])
+
     if (!verse) {
         notFound()
     }
@@ -51,39 +54,6 @@ export default async function InterlinearView({ params }: Props) {
     const result = await query<VerseQueryResult>(
         `
         SELECT
-            (
-                SELECT
-                    JSON_AGG(JSON_BUILD_OBJECT(
-                        'id', w.id, 
-                        'suggestions', COALESCE(suggestion.suggestions, '[]')
-                    ) ORDER BY w.id)
-                FROM "Word" AS w
-
-                LEFT JOIN (
-                  SELECT
-                    id AS form_id,
-                    JSON_AGG(gloss ORDER BY count DESC) AS "suggestions"
-                  FROM (
-                    SELECT w."formId" AS id, g.gloss, COUNT(*)
-                    FROM "Word" AS w
-                    JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
-                    JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
-                    JOIN "Gloss" AS g ON g."phraseId" = ph.id
-                    WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $2)
-                      AND ph."deletedAt" IS NULL
-                      AND g.gloss IS NOT NULL
-                      AND EXISTS (
-                        SELECT 1 FROM "Word" AS wd
-                          WHERE wd."verseId" = $1
-                            AND wd."formId" = w."formId"
-                      )
-                    GROUP BY w."formId", g.gloss
-                  ) AS form_suggestion
-                  GROUP BY id
-                ) AS suggestion ON suggestion.form_id = w."formId"
-     
-                WHERE w."verseId" = v.id
-            ) AS words,
             (
                 SELECT
                     JSON_AGG(JSON_BUILD_OBJECT(
@@ -166,7 +136,7 @@ export default async function InterlinearView({ params }: Props) {
         notFound()
     }
 
-    const words = verse.words.map(w => ({ ...w, suggestions: result.rows[0].words.find(w2 => w.id === w2.id)?.suggestions ?? [] }))
+    const words = verse.words.map(w => ({ ...w, suggestions: suggestions.find(s => s.formId === w.formId)?.suggestions ?? [] }))
 
     return <NextIntlClientProvider messages={{ TranslateWord: messages.TranslateWord, TranslationSidebar: messages.TranslationSidebar, RichTextInput: messages.RichTextInput, VersesPreview: messages.VersesPreview }}>
         <TranslateView
@@ -178,12 +148,43 @@ export default async function InterlinearView({ params }: Props) {
     </NextIntlClientProvider>
 }
 
+interface FormSuggestion {
+    formId: string,
+    suggestions: string[]
+}
+
+async function fetchSuggestions(verseId: string, languageCode: string): Promise<FormSuggestion[]> {
+    const result = await query<FormSuggestion>(
+        `
+        SELECT "formId", ARRAY_AGG(gloss ORDER BY count DESC) AS suggestions
+        FROM (
+	        SELECT w."formId", g.gloss, COUNT(*) AS count FROM "Phrase" AS ph
+            JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
+            JOIN "Word" AS w ON w.id = phw."wordId"
+            JOIN "Gloss" AS g ON g."phraseId" = ph.id
+            WHERE ph."deletedAt" IS NULL
+                AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $2)
+                AND EXISTS (
+                    SELECT FROM "Word" AS wd
+                    WHERE wd."verseId" = $1
+                        AND wd."formId" = w."formId"
+                )
+                AND g.state = 'APPROVED'
+            GROUP BY w."formId", g.gloss
+        ) AS form_gloss
+        GROUP BY form_gloss."formId"
+        `,
+        [verseId, languageCode]
+    )
+    return result.rows
+}
 
 interface VerseWord {
     id: string
     text: string
     referenceGloss?: string
     lemma: string
+    formId: string
     grammar: string
     resource?: { name: string, entry: string }
 }
@@ -192,63 +193,55 @@ interface Verse {
     words: VerseWord[]
 }
 
-function fetchVerse(verseId: string): Promise<Verse | undefined> {
-    return unstable_cache(
-      async (verseId: string) => {
-          const result = await query<Verse>(
-            `
-            SELECT
-                (
+async function fetchVerse(verseId: string): Promise<Verse | undefined> {
+    const result = await query<Verse>(
+        `
+        SELECT
+            (
+                SELECT
+                    JSON_AGG(JSON_BUILD_OBJECT(
+                        'id', w.id, 
+                        'text', w.text,
+                        'referenceGloss', ph.gloss,
+                        'lemma', lf."lemmaId",
+                        'formId', lf.id,
+                        'grammar', lf.grammar,
+                        'resource', lemma_resource.resource
+                    ) ORDER BY w.id)
+                FROM "Word" AS w
+
+                LEFT JOIN LATERAL (
+                    SELECT g.gloss FROM "PhraseWord" AS phw
+                    JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
+                    JOIN "Gloss" AS g ON g."phraseId" = ph.id
+                    WHERE phw."wordId" = w.id
+                        AND ph."languageId" = (SELECT id FROM "Language" WHERE code = 'eng')
+                        AND ph."deletedAt" IS NULL
+                ) AS ph ON true
+
+                JOIN "LemmaForm" AS lf ON lf.id = w."formId"
+                LEFT JOIN LATERAL (
                     SELECT
-                        JSON_AGG(JSON_BUILD_OBJECT(
-                            'id', w.id, 
-                            'text', w.text,
-                            'referenceGloss', ph.gloss,
-                            'lemma', lf."lemmaId",
-                            'grammar', lf.grammar,
-                            'resource', lemma_resource.resource
-                        ) ORDER BY w.id)
-                    FROM "Word" AS w
+                        CASE
+                            WHEN lr."resourceCode" IS NOT NULL
+                            THEN JSON_BUILD_OBJECT(
+                              'name', lr."resourceCode",
+                              'entry', lr.content
+                            )
+                            ELSE NULL
+                        END AS resource
+                    FROM "LemmaResource" AS lr
+                    WHERE lr."lemmaId" = lf."lemmaId"
+                    LIMIT 1
+                ) AS lemma_resource ON true
+     
+                WHERE w."verseId" = v.id
+            ) AS words
+        FROM "Verse" AS v
+        WHERE v.id = $1
+        `,
+        [verseId]
+    )
 
-                    LEFT JOIN LATERAL (
-                        SELECT g.gloss FROM "PhraseWord" AS phw
-                        JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
-                        JOIN "Gloss" AS g ON g."phraseId" = ph.id
-                        WHERE phw."wordId" = w.id
-                            AND ph."languageId" = (SELECT id FROM "Language" WHERE code = 'eng')
-                            AND ph."deletedAt" IS NULL
-                    ) AS ph ON true
-
-                    JOIN "LemmaForm" AS lf ON lf.id = w."formId"
-                    LEFT JOIN LATERAL (
-                        SELECT
-                            CASE
-                                WHEN lr."resourceCode" IS NOT NULL
-                                THEN JSON_BUILD_OBJECT(
-                                  'name', lr."resourceCode",
-                                  'entry', lr.content
-                                )
-                                ELSE NULL
-                            END AS resource
-                        FROM "LemmaResource" AS lr
-                        WHERE lr."lemmaId" = lf."lemmaId"
-                        LIMIT 1
-                    ) AS lemma_resource ON true
-         
-                    WHERE w."verseId" = v.id
-                ) AS words
-            FROM "Verse" AS v
-            WHERE v.id = $1
-            `,
-            [verseId]
-          )
-
-          return result.rows[0]
-      },
-      undefined,
-      {
-          tags: [`verse-${verseId}`],
-          revalidate: 60 * 60 * 24 // 1 day
-      }
-    )(verseId)
+    return result.rows[0]
 }

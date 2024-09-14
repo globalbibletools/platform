@@ -2,7 +2,6 @@
 
 import { query } from "@/app/db";
 import { randomBytes } from "crypto";
-import { revalidateTag, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { cache } from "react";
 
@@ -65,29 +64,20 @@ interface Session {
     }
 }
 
-const fetchSession = cache((sessionId: string): Promise<Session | undefined> => {
-    return unstable_cache(
-        async (sessionId) => {
-            const result = await query<Session>(
-                `
-                    SELECT
-                        "Session".id, "expiresAt",
-                        JSON_BUILD_OBJECT(
-                            'id', "User".id, 'email', email, 'name', name,
-                            'roles', (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') FROM "UserSystemRole" AS r WHERE r."userId" = "User".id)
-                        ) AS user
-                    FROM "Session"
-                    JOIN "User" ON "User".id = "Session"."userId"
-                    WHERE "Session".id = $1
-                    `,
-                [sessionId]
-            )
-            return result.rows[0]
-        },
-        undefined,
-        {
-            tags: [`session-${sessionId}`],
-            revalidate: 60 * 5 // 5 minutes
-        }
-    )(sessionId)
+const fetchSession = cache(async (sessionId: string): Promise<Session | undefined> => {
+    const result = await query<Session>(
+        `
+            SELECT
+                "Session".id, "expiresAt",
+                JSON_BUILD_OBJECT(
+                    'id', "User".id, 'email', email, 'name', name,
+                    'roles', (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') FROM "UserSystemRole" AS r WHERE r."userId" = "User".id)
+                ) AS user
+            FROM "Session"
+            JOIN "User" ON "User".id = "Session"."userId"
+            WHERE "Session".id = $1
+            `,
+        [sessionId]
+    )
+    return result.rows[0]
 })
