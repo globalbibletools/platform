@@ -4,14 +4,9 @@ import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import { verifySession } from "@/app/session"
 import TranslateView from "./TranslationView"
-import { unstable_cache } from "next/cache"
 
 interface Props {
     params: { code: string, verseId: string }
-}
-
-interface VerseQueryResult {
-    phrases: { id: number, wordIds: string[], gloss?: { text: string, state: string }, translatorNote?: { authorName: string, timestamp: string, content: string }, footnote?: { authorName: string, timestamp: string, content: string } }[]
 }
 
 export default async function InterlinearView({ params }: Props) {
@@ -19,15 +14,60 @@ export default async function InterlinearView({ params }: Props) {
 
     const session = await verifySession()
 
-    const [verse, suggestions] = await Promise.all([
+    const [language, verse, phrases, suggestions] = await Promise.all([
+        fetchLanguage(params.code),
         fetchVerse(params.verseId),
+        fetchPhrases(params.verseId, params.code, session?.user.id),
         fetchSuggestions(params.verseId, params.code)
     ])
 
-    if (!verse) {
+    if (!verse || !language) {
         notFound()
     }
 
+    const words = verse.words.map(w => ({ ...w, suggestions: suggestions.find(s => s.formId === w.formId)?.suggestions ?? [] }))
+
+    return <NextIntlClientProvider messages={{ TranslateWord: messages.TranslateWord, TranslationSidebar: messages.TranslationSidebar, RichTextInput: messages.RichTextInput, VersesPreview: messages.VersesPreview }}>
+        <TranslateView
+            verseId={params.verseId}
+            words={words}
+            phrases={phrases}
+            language={language}
+        />
+    </NextIntlClientProvider>
+}
+
+interface Language {
+    code: string,
+    font: string,
+    textDirection: string
+}
+
+// TODO: cache this, it should only change when the language settings change
+async function fetchLanguage(code: string): Promise<Language | undefined> {
+    const result = await query<Language>(
+        `
+        SELECT
+            l."code",
+            l."font",
+            l."textDirection"
+        FROM "Language" AS l
+        WHERE l.code = $1
+        `,
+        [code]
+    )
+    return result.rows[0]
+}
+
+interface Phrase {
+    id: number,
+    wordIds: string[],
+    gloss?: { text: string, state: string },
+    translatorNote?: { authorName: string, timestamp: string, content: string },
+    footnote?: { authorName: string, timestamp: string, content: string }
+}
+
+async function fetchPhrases(verseId: string, languageCode: string, userId?: string): Promise<Phrase[]> {
     await query(
         `
             WITH phw AS (
@@ -48,104 +88,66 @@ export default async function InterlinearView({ params }: Props) {
             INSERT INTO "Phrase" (id, "languageId", "createdAt", "createdBy")
             SELECT phw."phraseId", (SELECT id FROM "Language" WHERE code = $1), now(), $3::uuid FROM phw
         `,
-        [params.code, params.verseId, session?.user.id]
+        [languageCode, verseId, userId]
     )
-
-    const result = await query<VerseQueryResult>(
+    const result = await query<Phrase>(
         `
         SELECT
-            (
-                SELECT
-                    JSON_AGG(JSON_BUILD_OBJECT(
-                        'id', ph.id,
-                        'wordIds', ph."wordIds",
-						'gloss', gloss.gloss,
-                        'translatorNote', tn.note,
-                        'footnote', fn.note
-                    ) ORDER BY ph.id)
-                FROM (
-				  	SELECT
-						phw."phraseId" AS id,
-						ARRAY_AGG(phw."wordId") AS "wordIds"
-				  	FROM "Phrase" AS ph
-				  	JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
-				  	JOIN "Word" AS w ON phw."wordId" = w.id
-				  	WHERE w."verseId" = v.id
-						AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $2)
-						AND ph."deletedAt" IS NULL
-				  	GROUP BY phw."phraseId"
-				) AS ph
-
-        		LEFT JOIN LATERAL (
-					SELECT
-						CASE
-							WHEN g."phraseId" IS NOT NULL
-							THEN JSON_BUILD_OBJECT(
-							  'text', g.gloss,
-							  'state', g.state
-							)
-							ELSE NULL
-						END AS gloss
-					FROM "Gloss" AS g
-					WHERE g."phraseId" = ph.id
-				) AS gloss ON true
-
-                LEFT JOIN LATERAL (
-                    SELECT
-                        JSON_BUILD_OBJECT(
-                          'timestamp', n.timestamp,
-                          'content', n.content,
-                          'authorName', COALESCE(u.name, '')
-                        ) AS note
-                    FROM "Footnote" AS n
-                    LEFT JOIN "User" AS u ON u.id = n."authorId"
-                    WHERE n."phraseId" = ph.id
-                ) AS fn ON true
-
-                LEFT JOIN LATERAL (
-                    SELECT
-                        JSON_BUILD_OBJECT(
-                          'timestamp', n.timestamp,
-                          'content', n.content,
-                          'authorName', COALESCE(u.name, '')
-                        ) AS note
-                    FROM "TranslatorNote" AS n
-                    LEFT JOIN "User" AS u ON u.id = n."authorId"
-                    WHERE n."phraseId" = ph.id
-                ) AS tn ON true
-            ) AS phrases
-        FROM "Verse" AS v
-        WHERE v.id = $1
+			ph.id,
+			ph.word_ids AS "wordIds",
+			CASE
+				WHEN g."phraseId" IS NOT NULL
+				THEN JSON_BUILD_OBJECT(
+				  'text', g.gloss,
+				  'state', g.state
+				)
+				ELSE NULL
+			END AS gloss,
+			fn.note AS "footnote",
+			tn.note AS "translatorNote"
+		FROM (
+			SELECT ph.id, ARRAY_AGG(phw."wordId" ORDER BY phw."wordId") AS word_ids FROM "Phrase" AS ph
+			JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
+			WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $2)
+				AND ph."deletedAt" IS NULL
+				AND EXISTS (
+					SELECT FROM "Word" AS w
+					JOIN "PhraseWord" AS phw2 ON phw2."wordId" = w.id
+					WHERE w.id = phw."wordId"
+						AND w."verseId" = $1
+						AND phw2."phraseId" = ph.id
+				)
+			GROUP BY ph.id
+		) AS ph
+		
+		LEFT JOIN "Gloss" AS g ON g."phraseId" = ph.id
+		LEFT JOIN (
+			SELECT
+				n."phraseId",
+				JSON_BUILD_OBJECT(
+				  'timestamp', n.timestamp,
+				  'content', n.content,
+				  'authorName', COALESCE(u.name, '')
+				) AS note
+			FROM "Footnote" AS n
+			JOIN "User" AS u ON u.id = n."authorId"
+		) AS fn ON fn."phraseId" = ph.id
+		LEFT JOIN LATERAL (
+			SELECT
+				n."phraseId",
+				JSON_BUILD_OBJECT(
+				  'timestamp', n.timestamp,
+				  'content', n.content,
+				  'authorName', COALESCE(u.name, '')
+				) AS note
+			FROM "TranslatorNote" AS n
+			JOIN "User" AS u ON u.id = n."authorId"
+		) AS tn ON tn."phraseId" = ph.id
+		ORDER BY ph.id
         `,
-        [params.verseId, params.code]
+        [verseId, languageCode]
     )
-
-    const languageQuery = await query<{ code: string; font: string, textDirection: string }>(
-        `
-        SELECT
-            l."code",
-            l."font",
-            l."textDirection"
-        FROM "Language" AS l
-        WHERE l.code = $1
-        `,
-        [params.code]
-    )
-
-    if (result.rows.length === 0 || languageQuery.rows.length === 0) {
-        notFound()
-    }
-
-    const words = verse.words.map(w => ({ ...w, suggestions: suggestions.find(s => s.formId === w.formId)?.suggestions ?? [] }))
-
-    return <NextIntlClientProvider messages={{ TranslateWord: messages.TranslateWord, TranslationSidebar: messages.TranslationSidebar, RichTextInput: messages.RichTextInput, VersesPreview: messages.VersesPreview }}>
-        <TranslateView
-            verseId={params.verseId}
-            words={words}
-            phrases={result.rows[0].phrases}
-            language={languageQuery.rows[0]}
-        />
-    </NextIntlClientProvider>
+    return result.rows
 }
 
 interface FormSuggestion {
@@ -193,6 +195,7 @@ interface Verse {
     words: VerseWord[]
 }
 
+// TODO: cache this, it should almost never change
 async function fetchVerse(verseId: string): Promise<Verse | undefined> {
     const result = await query<Verse>(
         `
