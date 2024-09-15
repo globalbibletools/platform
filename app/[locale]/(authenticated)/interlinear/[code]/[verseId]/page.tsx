@@ -14,15 +14,14 @@ export default async function InterlinearView({ params }: Props) {
 
     const session = await verifySession()
 
-    const [language, verse, phrases, suggestions, bookProgress] = await Promise.all([
+    const [language, verse, phrases, suggestions] = await Promise.all([
         fetchLanguage(params.code),
         fetchVerse(params.verseId),
         fetchPhrases(params.verseId, params.code, session?.user.id),
-        fetchSuggestions(params.verseId, params.code),
-        fetchBookProgress(parseInt(params.verseId.slice(0, 3)), params.code)
+        fetchSuggestions(params.verseId, params.code)
     ])
 
-    if (!verse || !language || !bookProgress) {
+    if (!verse || !language) {
         notFound()
     }
 
@@ -33,14 +32,12 @@ export default async function InterlinearView({ params }: Props) {
         TranslationSidebar: messages.TranslationSidebar,
         RichTextInput: messages.RichTextInput,
         VersesPreview: messages.VersesPreview,
-        TranslationProgressBar: messages.TranslationProgressBar
     }}>
         <TranslateView
             verseId={params.verseId}
             words={words}
             phrases={phrases}
             language={language}
-            bookProgress={bookProgress}
         />
     </NextIntlClientProvider>
 }
@@ -156,47 +153,6 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
         [verseId, languageCode]
     )
     return result.rows
-}
-
-interface BookProgress {
-    wordCount: number
-    approvedCount: number
-}
-
-async function fetchBookProgress(bookId: number, languageCode: string): Promise<BookProgress | undefined> {
-    const result = await query<BookProgress>(
-        `
-        SELECT
-            (
-                SELECT
-                    COUNT(*)
-                FROM "Verse" AS v
-                JOIN "Word" AS w ON w."verseId" = v.id
-                WHERE v."bookId" = b.id
-            ) AS "wordCount",
-            (
-                SELECT
-                    COUNT(*)
-                FROM (
-                    SELECT ph.id FROM "Phrase" AS ph
-                    JOIN "Gloss" AS g ON g."phraseId" = ph.id
-                    WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $2)
-                        AND ph."deletedAt" IS NULL
-                        AND EXISTS (
-                            SELECT FROM "Verse" AS v
-                            JOIN "Word" AS w ON w."verseId" = v.id
-                            JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
-                            WHERE phw."phraseId" = ph.id
-                                AND v."bookId" = b.id
-                        )
-                ) AS ph
-            ) AS "approvedCount"
-        FROM "Book" AS b
-        WHERE b.id = $1
-        `,
-        [bookId, languageCode]
-    )
-    return result.rows[0]
 }
 
 interface FormSuggestion {

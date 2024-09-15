@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import TranslateWord from "./TranslateWord"
 import TranslationSidebar, { TranslationSidebarRef } from "./TranslationSidebar";
 import { useTranslationClientState } from "../TranslationClientState";
-import TranslationProgressBar from "./TranslationProgressBar";
 
 interface Word {
     id: string,
@@ -24,16 +23,10 @@ interface Phrase {
     footnote?: { authorName: string, timestamp: string, content: string }
 }
 
-interface BookProgress {
-    wordCount: number
-    approvedCount: number
-}
-
 export interface TranslationViewProps {
     verseId: string
     words: Word[]
     phrases: Phrase[]
-    bookProgress: BookProgress
     language: {
         code: string
         font: string
@@ -41,7 +34,7 @@ export interface TranslationViewProps {
     }
 }
 
-export default function TranslateView({ verseId, words, phrases, language, bookProgress }: TranslationViewProps) {
+export default function TranslateView({ verseId, words, phrases, language }: TranslationViewProps) {
     const isHebrew = parseInt(verseId.slice(0, 2)) < 40
 
     const [showSidebar, setShowSidebar] = useState(false)
@@ -96,9 +89,7 @@ export default function TranslateView({ verseId, words, phrases, language, bookP
         return () => window.removeEventListener('keydown', keydownCallback);
     }, [])
 
-
-    return <div ref={root} className="relative flex flex-col flex-grow w-full min-h-0 lg:flex-row">
-        <TranslationProgressBar wordCount={bookProgress.wordCount} approvedCount={bookProgress.approvedCount} />
+    return <div ref={root} className="flex flex-col flex-grow w-full min-h-0 lg:flex-row">
         <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-10 px-6">
             <ol
                 className={`
