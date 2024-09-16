@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import { verifySession } from "@/app/session"
 import TranslateView from "./TranslationView"
+import { fetchCurrentLanguage } from "../layout"
 
 interface Props {
     params: { code: string, verseId: string }
@@ -15,7 +16,7 @@ export default async function InterlinearView({ params }: Props) {
     const session = await verifySession()
 
     const [language, verse, phrases, suggestions] = await Promise.all([
-        fetchLanguage(params.code),
+        fetchCurrentLanguage(params.code, session?.user.id),
         fetchVerse(params.verseId),
         fetchPhrases(params.verseId, params.code, session?.user.id),
         fetchSuggestions(params.verseId, params.code)
@@ -40,28 +41,6 @@ export default async function InterlinearView({ params }: Props) {
             language={language}
         />
     </NextIntlClientProvider>
-}
-
-interface Language {
-    code: string,
-    font: string,
-    textDirection: string
-}
-
-// TODO: cache this, it should only change when the language settings change
-async function fetchLanguage(code: string): Promise<Language | undefined> {
-    const result = await query<Language>(
-        `
-        SELECT
-            l."code",
-            l."font",
-            l."textDirection"
-        FROM "Language" AS l
-        WHERE l.code = $1
-        `,
-        [code]
-    )
-    return result.rows[0]
 }
 
 interface Phrase {

@@ -42,9 +42,7 @@ export interface TranslationSidebarProps {
     className?: string
     word: Word
     phrase: Phrase
-    language: { code: string, font: string, textDirection: string }
-    canReadTranslatorNotes: boolean
-    canEditNotes: boolean
+    language: { code: string, font: string, textDirection: string, roles: string[] }
     onClose?(): void
 };
 export interface TranslationSidebarRef {
@@ -52,8 +50,11 @@ export interface TranslationSidebarRef {
 };
 
 
-const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarProps>(({ className = '', language, word, phrase, canReadTranslatorNotes, canEditNotes, onClose }, ref) => {
+const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarProps>(({ className = '', language, word, phrase, onClose }, ref) => {
     const t = useTranslations("TranslationSidebar")
+
+    const canReadTranslatorNotes = language.roles.includes('VIEWER')
+    const canEditNotes = language.roles.includes('TRANSLATOR')
 
     // These two are difficult to handle until React 19, Next 15
     const isSavingTranslatorNote = false

@@ -20,6 +20,7 @@ export interface TranslateWordProps {
     language: {
         font: string
         textDirection: string
+        roles: string[]
     }
     isHebrew: boolean
     wordSelected: boolean
@@ -39,12 +40,14 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
     const refGloss = useRef<HTMLSpanElement>(null)
     const input = useRef<HTMLInputElement>(null)
 
-    const editable = true
-    const hasMachineSuggestions = false
+    const editable = language.roles.includes('TRANSLATOR')
+    const canViewTranslatorNotes = language.roles.includes('VIEWER')
 
-    const hasNote = !isRichTextEmpty(phrase.footnote?.content ?? '') || !isRichTextEmpty(phrase.translatorNote?.content ?? '')
+    const hasNote = !isRichTextEmpty(phrase.footnote?.content ?? '') ||
+        (!isRichTextEmpty(phrase.translatorNote?.content ?? '') && canViewTranslatorNotes)
     const dir = 'ltr'
 
+    const hasMachineSuggestions = false
     const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
     const glossValue =
         phrase?.gloss?.text ||

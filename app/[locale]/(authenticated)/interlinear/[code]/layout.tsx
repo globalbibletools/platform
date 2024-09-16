@@ -5,6 +5,7 @@ import { ReactNode } from "react"
 import TranslationToolbar from "./TranslationToolbar"
 import {  NextIntlClientProvider } from "next-intl"
 import { TranslationClientStateProvider } from "./TranslationClientState"
+import { verifySession } from "@/app/session"
 
 interface Props {
     children: ReactNode
@@ -21,46 +22,67 @@ export default async function InterlinearLayout({ children, params }: Props) {
     const messages = await getMessages()
     const locale = await getLocale()
 
-    const languages = await query<{ code: string, name: string, font: string }>(
-        `SELECT code, name, font FROM "Language" ORDER BY name`,
-        []
-    )
-    const selectedLanguage = languages.rows.find(l => l.code === params.code)
-    if (!selectedLanguage) {
+    const session = await verifySession()
+
+    const [languages, currentLanguage] = await Promise.all([
+        fetchLanguages(),
+        fetchCurrentLanguage(params.code, session?.user.id)
+    ])
+    if (!currentLanguage) {
         notFound()
     }
-
-    /*
-    const result = await query<VerseQueryResult>(
-        `SELECT
-            JSON_BUILD_OBJECT(
-                'bookId', v."bookId",
-                'chapter', v.chapter,
-                'number', v.number
-            ) AS verse,
-            (SELECT id FROM "Verse" WHERE id > $1 ORDER BY id LIMIT 1) AS "nextVerse",
-            (SELECT id FROM "Verse" WHERE id < $1 ORDER BY id DESC LIMIT 1) AS "prevVerse"
-        FROM "Verse" AS v
-        WHERE v.id = $1`,
-        [params.verseId]
-    )
-    const data = result.rows[0]
-    if (!data) {
-        notFound()
-    }
-    const { verse } = data
-    */
-
 
     return <div className={`absolute w-full h-full flex flex-col flex-grow`}>
         <TranslationClientStateProvider verseId={params.verseId}>
             <NextIntlClientProvider messages={{ TranslationToolbar: messages.TranslationToolbar }}>
                 <TranslationToolbar
-                    languages={languages.rows}
+                    languages={languages}
+                    currentLanguage={currentLanguage}
                 />
             </NextIntlClientProvider>
             {children}
         </TranslationClientStateProvider>
     </div>
 
+}
+
+interface Language {
+    code: string
+    name: string
+}
+
+// TODO: cache this, it will only change when languages are added or reconfigured
+async function fetchLanguages(): Promise<Language[]> {
+    const result = await query<Language>(
+        `SELECT code, name FROM "Language" ORDER BY name`,
+        []
+    )
+    return result.rows
+}
+
+interface CurrentLanguage {
+    code: string
+    name: string
+    font: string
+    textDirection: string
+    roles: string[]
+}
+
+// TODO: cache this, it will only change when the language settings are changed or the user roles change on the language.
+export async function fetchCurrentLanguage(code: string, userId?: string): Promise<CurrentLanguage | undefined> {
+    const result = await query<CurrentLanguage>(
+        `
+        SELECT
+            code, name, font, "textDirection",
+            (
+                SELECT COALESCE(JSON_AGG(r."role"), '[]') FROM "LanguageMemberRole" AS r
+                WHERE r."languageId" = l.id
+                    AND r."userId" = $2
+            ) AS roles
+        FROM "Language" AS l
+        WHERE code = $1
+        `,
+        [code, userId]
+    )
+    return result.rows[0]
 }
