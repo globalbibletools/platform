@@ -9,7 +9,7 @@ import { verifySession } from "@/app/session"
 
 interface Props {
     children: ReactNode
-    params: { code: string, verseId: string }
+    params: { code: string }
 }
 
 interface VerseQueryResult {
@@ -33,7 +33,7 @@ export default async function InterlinearLayout({ children, params }: Props) {
     }
 
     return <div className={`absolute w-full h-full flex flex-col flex-grow`}>
-        <TranslationClientStateProvider verseId={params.verseId}>
+        <TranslationClientStateProvider>
             <NextIntlClientProvider messages={{ TranslationToolbar: messages.TranslationToolbar }}>
                 <TranslationToolbar
                     languages={languages}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 
 interface Phrase {
@@ -17,7 +18,9 @@ interface TranslationClientStateContextValue {
 
 const TranslationClientStateContext = createContext<TranslationClientStateContextValue | null>(null)
 
-export function TranslationClientStateProvider({ verseId, children }: { verseId: string, children: ReactNode }) {
+export function TranslationClientStateProvider({ children }: { children: ReactNode }) {
+    const { verseId } = useParams<{ verseId: string }>()
+
     const [focusedPhrase, focusPhrase] = useState<Phrase>()
     const [selectedWords, setSelectedWords] = useState<string[]>([])
     useEffect(() => {

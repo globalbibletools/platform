@@ -37,6 +37,8 @@ export default function TranslationToolbar({
 
     const [reference, setReference] = useState('')
     useEffect(() => {
+        if (!verseId) return setReference('')
+
         const bookId = parseInt(verseId.slice(0, 2)) || 1
         const chapter = parseInt(verseId.slice(2, 5)) || 1
         const verse = parseInt(verseId.slice(5, 8)) || 1
@@ -107,6 +109,8 @@ export default function TranslationToolbar({
     }, [code, focusedPhrase, verseId, locale, mutate])
 
     useEffect(() => {
+        if (!verseId) return
+
         const keydownCallback = async (e: globalThis.KeyboardEvent) => {
             if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
                 switch (e.key) {
@@ -152,7 +156,7 @@ export default function TranslationToolbar({
                             <Button
                                 className="absolute end-8 top-1 w-7 !h-7"
                                 variant="tertiary"
-                                href={`./${decrementVerseId(verseId)}`}
+                                href={verseId ? `./${decrementVerseId(verseId)}` : '#'}
                             >
                                 <Icon icon="arrow-up" />
                                 <span className="sr-only">{t('previous_verse')}</span>
@@ -160,7 +164,7 @@ export default function TranslationToolbar({
                             <Button
                                 className="absolute end-1 top-1 w-7 !h-7"
                                 variant="tertiary"
-                                href={`./${incrementVerseId(verseId)}`}
+                                href={verseId ? `./${incrementVerseId(verseId)}` : '#'}
                                 prefetch
                             >
                                 <Icon icon="arrow-down" />
@@ -171,7 +175,7 @@ export default function TranslationToolbar({
                 </form>
                 {isTranslator && (
                     <div className="me-16 pt-6">
-                        <Button variant="tertiary" onClick={navigateToNextUnapprovedVerse}>
+                        <Button variant="tertiary" disabled={!verseId} onClick={navigateToNextUnapprovedVerse}>
                             {t('next_unapproved')}
                             <Icon icon="arrow-right" className="ms-1 rtl:hidden" />
                             <Icon icon="arrow-left" className="ms-1 ltr:hidden" />
@@ -201,6 +205,7 @@ export default function TranslationToolbar({
                     <div className="pt-6 flex items-center">
                         <Button
                             variant="tertiary"
+                            disabled={!verseId}
                             onClick={approveAllGlosses}
                         >
                             <Icon icon="check" className="me-1" />
@@ -212,14 +217,14 @@ export default function TranslationToolbar({
                         {!canUnlinkWords || canLinkWords ? (
                             <Button
                                 variant="tertiary"
-                                disabled={!canLinkWords}
+                                disabled={!canLinkWords || !verseId}
                                 onClick={onLinkWords}
                             >
                                 <Icon icon="link" className="me-1" />
                                 {t('link_words')}
                             </Button>
                         ) : (
-                            <Button variant="tertiary" onClick={onUnlinkWords}>
+                            <Button variant="tertiary" disabled={!verseId} onClick={onUnlinkWords}>
                                 <Icon icon="unlink" className="me-1" />
                                 {t('unlink_words')}
                             </Button>
@@ -227,7 +232,7 @@ export default function TranslationToolbar({
                     </div>
                 )}
             </div>
-            <TranslationProgressBar />
+            { verseId && <TranslationProgressBar /> }
         </div>
     );
 }
