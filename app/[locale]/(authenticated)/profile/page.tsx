@@ -4,10 +4,13 @@ import ViewTitle from "@/app/components/ViewTitle";
 import { query } from "@/app/db";
 import { verifySession } from "@/app/session";
 import { ResolvingMetadata, Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import FieldError from "@/app/components/FieldError";
 import Button from "@/app/components/Button";
-import ProfileForm from "./ProfileForm";
+import { notFound } from "next/navigation";
+import Form, { FormState } from "@/app/components/Form";
+import { revalidatePath } from "next/cache";
+import updateProfile from "./actions";
 
 export async function generateMetadata(
   _: any,
@@ -23,12 +26,13 @@ export async function generateMetadata(
 
 export default async function ProfileView() {
   const session = await verifySession();
-  const result = session
-    ? await query<{ name?: string; email: string }>(
-        `SELECT name, email FROM "User" WHERE id = $1`,
-        [session.user.id]
-      )
-    : undefined;
+  const locale = await getLocale();
+  if (!session) notFound();
+
+  const result = await query<{ name?: string; email: string }>(
+    `SELECT name, email FROM "User" WHERE id = $1`,
+    [session.user.id]
+  );
   const user = result?.rows[0];
 
   const t = await getTranslations("ProfileView");
@@ -41,73 +45,65 @@ export default async function ProfileView() {
         dark:bg-gray-700 dark:border-gray-600 dark:shadow-none"
       >
         <ViewTitle>{t("title")}</ViewTitle>
-        {session && (
-          <ProfileForm>
-            <input hidden name="user_id" value={session.user.id} />
-            <div className="mb-2">
-              <FormLabel htmlFor="email">
-                {t("form.email").toUpperCase()}
-              </FormLabel>
-              <TextInput
-                id="email"
-                name="email"
-                type="email"
-                className="w-full"
-                autoComplete="email"
-                aria-describedby="email-error"
-                defaultValue={user?.email}
-              />
-              <FieldError id="email-error" name="email" />
-            </div>
-            <div className="mb-2">
-              <FormLabel htmlFor="name">
-                {t("form.name").toUpperCase()}
-              </FormLabel>
-              <TextInput
-                id="name"
-                name="name"
-                className="w-full"
-                autoComplete="name"
-                aria-describedby="name-error"
-                defaultValue={user?.name}
-              />
-              <FieldError id="name-error" name="name" />
-            </div>
-            <div className="mb-2">
-              <FormLabel htmlFor="password">
-                {t("form.password").toUpperCase()}
-              </FormLabel>
-              <TextInput
-                type="password"
-                id="password"
-                name="password"
-                className="w-full"
-                autoComplete="new-password"
-                aria-describedby="password-error"
-              />
-              <FieldError id="password-error" name="password" />
-            </div>
-            <div className="mb-4">
-              <FormLabel htmlFor="confirm-password">
-                {t("form.confirm_password").toUpperCase()}
-              </FormLabel>
-              <TextInput
-                type="password"
-                id="confirm-password"
-                name="confirm_password"
-                className="w-full"
-                autoComplete="new-password"
-                aria-describedby="confirm-password-error"
-              />
-              <FieldError id="confirm-password-error" name="confirm_password" />
-            </div>
-            <div>
-              <Button type="submit" className="w-full mb-2">
-                {t("form.submit")}
-              </Button>
-            </div>
-          </ProfileForm>
-        )}
+        <Form action={updateProfile}>
+          <input hidden name="user_id" value={session.user.id} />
+          <div className="mb-2">
+            <FormLabel htmlFor="email">{t("form.email")}</FormLabel>
+            <TextInput
+              id="email"
+              name="email"
+              type="email"
+              className="w-full"
+              autoComplete="email"
+              aria-describedby="email-error"
+              defaultValue={user?.email}
+            />
+            <FieldError id="email-error" name="email" />
+          </div>
+          <div className="mb-2">
+            <FormLabel htmlFor="name">{t("form.name")}</FormLabel>
+            <TextInput
+              id="name"
+              name="name"
+              className="w-full"
+              autoComplete="name"
+              aria-describedby="name-error"
+              defaultValue={user?.name}
+            />
+            <FieldError id="name-error" name="name" />
+          </div>
+          <div className="mb-2">
+            <FormLabel htmlFor="password">{t("form.password")}</FormLabel>
+            <TextInput
+              type="password"
+              id="password"
+              name="password"
+              className="w-full"
+              autoComplete="new-password"
+              aria-describedby="password-error"
+            />
+            <FieldError id="password-error" name="password" />
+          </div>
+          <div className="mb-4">
+            <FormLabel htmlFor="confirm-password">
+              {t("form.confirm_password")}
+            </FormLabel>
+            <TextInput
+              type="password"
+              id="confirm-password"
+              name="confirm_password"
+              className="w-full"
+              autoComplete="new-password"
+              aria-describedby="confirm-password-error"
+            />
+            <FieldError id="confirm-password-error" name="confirm_password" />
+          </div>
+          <div>
+            <Button type="submit" className="w-full mb-2">
+              {t("form.submit")}
+            </Button>
+          </div>
+        </Form>
       </div>
     </div>
   );

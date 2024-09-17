@@ -200,6 +200,7 @@
     },
     "errors": {
       "email_required": "Please enter your email.",
+      "email_format": "Please enter a valid email.",
       "name_required": "Please input your name",
       "password_confirmation": "Your password confirmation does not match.",
       "password_format": "Your password should be at least 8 characters."
