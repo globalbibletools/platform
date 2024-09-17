@@ -174,7 +174,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                     className="text-gray-600 dark:text-gray-400"
                 />
             ) : (
-                <Checkbox
+                editable && <Checkbox
                     className="invisible group-hover/word:visible group-focus-within/word:visible [&:has(:checked)]:visible"
                     aria-label="word selected"
                     tabIndex={-1}
