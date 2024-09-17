@@ -16,9 +16,9 @@ const profileValidationSchema = z
     email: z.string().email().min(1),
     name: z.string().min(1),
     password: z.union([z.string().min(8), z.literal("")]).optional(),
-    confirmPassword: z.string().optional(),
+    confirm_password: z.string().optional(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((data) => data.password === data.confirm_password, {
     path: ["confirm_password"],
   });
 
@@ -54,7 +54,7 @@ export default async function updateProfile(
 
   if (parsedData.password) {
     await mailer.sendEmail({
-      userId: parsedData.userId,
+      userId: parsedData.user_id,
       subject: "Password Changed",
       text: `Your password for Global Bible Tools has changed.`,
       html: `Your password for Global Bible Tools has changed.`,
@@ -69,7 +69,7 @@ export default async function updateProfile(
         parsedData.email,
         parsedData.name,
         await scrypt.hash(parsedData.password),
-        parsedData.userId,
+        parsedData.user_id,
       ]
     );
   } else {
@@ -78,7 +78,7 @@ export default async function updateProfile(
                 SET "email" = $1,
                     "name" = $2
               WHERE "id" = $3`,
-      [parsedData.email, parsedData.name, parsedData.userId]
+      [parsedData.email, parsedData.name, parsedData.user_id]
     );
   }
 
