@@ -3,6 +3,7 @@
 import { query } from "@/app/db";
 import { randomBytes } from "crypto";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
 const DAY_FROM_MS = 24 * 60 * 60 * 1000
 const EXPIRES_IN = DAY_FROM_MS * (process.env.SESSION_EXPIRATION_DAYS ? parseInt(process.env.SESSION_EXPIRATION_DAYS) : 30)
@@ -28,7 +29,7 @@ export async function createSession(userId?: string) {
         expires: session.expiresAt,
         sameSite: 'lax',
         path: '/',
-      })
+    })
 
     return session
 }
@@ -44,19 +45,39 @@ export async function verifySession() {
     const sessionId = cookies().get('session')?.value
     if (!sessionId) return
 
-    const result = await query<{ id: string, expiresAt: Date, user: { id: string, name: string, email: string, roles: string[] }}>(
-        `SELECT
-            "Session".id, "expiresAt",
-            JSON_BUILD_OBJECT(
-                'id', "User".id, 'email', email, 'name', name,
-                'roles', (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') FROM "UserSystemRole" AS r WHERE r."userId" = "User".id)
-            ) AS user
-        FROM "Session"
-        JOIN "User" ON "User".id = "Session"."userId"
-        WHERE "Session".id = $1`,
-        [sessionId]
-    )
-    const session = result.rows[0]
-    if (!session || session.expiresAt < new Date()) return
+    const session = await fetchSession(sessionId)
+    if (!session || session.expiresAt < new Date()) {
+        return
+    }
+
     return session
 }
+
+interface Session {
+    id: string,
+    expiresAt: Date,
+    user: {
+        id: string,
+        name: string,
+        email: string,
+        roles: string[]
+    }
+}
+
+const fetchSession = cache(async (sessionId: string): Promise<Session | undefined> => {
+    const result = await query<Session>(
+        `
+            SELECT
+                "Session".id, "expiresAt",
+                JSON_BUILD_OBJECT(
+                    'id', "User".id, 'email', email, 'name', name,
+                    'roles', (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') FROM "UserSystemRole" AS r WHERE r."userId" = "User".id)
+                ) AS user
+            FROM "Session"
+            JOIN "User" ON "User".id = "Session"."userId"
+            WHERE "Session".id = $1
+            `,
+        [sessionId]
+    )
+    return result.rows[0]
+})

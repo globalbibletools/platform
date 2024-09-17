@@ -11,6 +11,8 @@ import { useFormState } from "react-dom";
 import { updateGloss } from "./actions";
 import { fontMap } from "@/app/fonts";
 import { isRichTextEmpty } from "@/app/components/RichTextInput";
+import { useSWRConfig } from "swr";
+import { useParams } from "next/navigation";
 
 export interface TranslateWordProps {
     word: { id: string, text: string, referenceGloss?: string, suggestions: string[], machineGloss?: string }
@@ -18,6 +20,7 @@ export interface TranslateWordProps {
     language: {
         font: string
         textDirection: string
+        roles: string[]
     }
     isHebrew: boolean
     wordSelected: boolean
@@ -30,18 +33,21 @@ export interface TranslateWordProps {
 
 export default function TranslateWord({ word, phrase, isHebrew, language, phraseFocused, wordSelected, onSelect, onFocus, onShowDetail, onOpenNotes }: TranslateWordProps) {
     const t = useTranslations("TranslateWord")
+    const { mutate } = useSWRConfig()
 
     const root = useRef<HTMLLIElement>(null)
     const ancientWord = useRef<HTMLSpanElement>(null)
     const refGloss = useRef<HTMLSpanElement>(null)
     const input = useRef<HTMLInputElement>(null)
 
-    const editable = true
-    const hasMachineSuggestions = false
+    const editable = language.roles.includes('TRANSLATOR')
+    const canViewTranslatorNotes = language.roles.includes('VIEWER')
 
-    const hasNote = !isRichTextEmpty(phrase.footnote?.content ?? '') || !isRichTextEmpty(phrase.translatorNote?.content ?? '')
+    const hasNote = !isRichTextEmpty(phrase.footnote?.content ?? '') ||
+        (!isRichTextEmpty(phrase.translatorNote?.content ?? '') && canViewTranslatorNotes)
     const dir = 'ltr'
 
+    const hasMachineSuggestions = false
     const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
     const glossValue =
         phrase?.gloss?.text ||
@@ -52,8 +58,18 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
         glossValue ?? ''
     );
 
-    const [_, updateAction, saving] = useFormState(updateGloss, {})
-    function onChange(change: { state?: string; gloss?: string }) {
+    const { locale, code } = useParams<{ locale: string, code: string }>()
+    const [_, updateAction, saving] = useFormState(async (prevState: any, formData: FormData) => {
+        const response = await updateGloss(prevState, formData)
+        mutate({
+            type: 'book-progress',
+            bookId: parseInt(word.id.slice(0, 2)),
+            locale,
+            code
+        })
+        return response
+    }, {})
+    async function onChange(change: { state?: string; gloss?: string }) {
         const formData = new FormData()
         formData.set('phraseId', phrase.id.toString())
         if (typeof change.state === 'string') {

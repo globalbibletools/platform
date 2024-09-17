@@ -1,6 +1,5 @@
 import ViewTitle from "@/app/components/ViewTitle";
 import { getTranslations } from "next-intl/server";
-import LanguageSettingsForm from "./LanguageSettingsForm";
 import { query } from "@/app/db";
 import FormLabel from "@/app/components/FormLabel";
 import TextInput from "@/app/components/TextInput";
