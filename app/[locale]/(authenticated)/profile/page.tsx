@@ -26,7 +26,6 @@ export async function generateMetadata(
 
 export default async function ProfileView() {
   const session = await verifySession();
-  const locale = await getLocale();
   if (!session) notFound();
 
   const result = await query<{ name?: string; email: string }>(
