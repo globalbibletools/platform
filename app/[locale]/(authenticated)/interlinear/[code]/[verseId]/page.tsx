@@ -5,28 +5,57 @@ import { getMessages } from "next-intl/server"
 import { verifySession } from "@/app/session"
 import TranslateView from "./TranslationView"
 import { fetchCurrentLanguage } from "../layout"
+import { translateClient } from "@/app/google-translate"
+import languageMap from "@/data/locale-mapping.json"
 
 interface Props {
     params: { code: string, verseId: string }
 }
+
+const CHAR_REGEX = /\w/
 
 export default async function InterlinearView({ params }: Props) {
     const messages = await getMessages()
 
     const session = await verifySession()
 
-    const [language, verse, phrases, suggestions] = await Promise.all([
+    const [language, verse, phrases, suggestions, machineSuggestions] = await Promise.all([
         fetchCurrentLanguage(params.code, session?.user.id),
         fetchVerse(params.verseId),
         fetchPhrases(params.verseId, params.code, session?.user.id),
-        fetchSuggestions(params.verseId, params.code)
+        fetchSuggestions(params.verseId, params.code),
+        fetchMachineSuggestions(params.verseId, params.code)
     ])
 
     if (!verse || !language) {
         notFound()
     }
 
-    const words = verse.words.map(w => ({ ...w, suggestions: suggestions.find(s => s.formId === w.formId)?.suggestions ?? [] }))
+    // We only want to machine translate words that
+    // 1. Don't have an approved gloss
+    // 2. Already have a machine gloss
+    // 3. Have no suggestions from other verses
+    // 4. Have a reference gloss in English to translate from.
+    const wordsToTranslate = Array.from(new Set(
+        verse.words
+            .filter(w =>
+                phrases.find(ph => ph.wordIds.includes(w.id))?.gloss?.state !== 'APPROVED' &&
+                !machineSuggestions.find(s => s.wordId === w.id) &&
+                !suggestions.find(s => s.formId === w.formId)?.suggestions.length &&
+                !!w.referenceGloss?.match(CHAR_REGEX)
+            )
+            .map(w => (w.referenceGloss ?? '').toLowerCase())
+    ))
+
+    const newMachineSuggestions = language.roles.includes('TRANSLATOR')
+        ? await machineTranslate(wordsToTranslate, params.code)
+        : {}
+
+    const words = verse.words.map(w => ({
+        ...w,
+        suggestions: suggestions.find(s => s.formId === w.formId)?.suggestions ?? [],
+        machineSuggestion: machineSuggestions.find(s => s.wordId === w.id)?.suggestion ?? newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? '']
+    }))
 
     return <NextIntlClientProvider messages={{
         TranslateWord: messages.TranslateWord,
@@ -134,6 +163,25 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
     return result.rows
 }
 
+interface MachineSuggestion {
+    wordId: string
+    suggestion: string
+}
+
+async function fetchMachineSuggestions(verseId: string, languageCode: string): Promise<MachineSuggestion[]> {
+    const result = await query<MachineSuggestion>(
+        `
+        SELECT w.id AS "wordId", mg.gloss AS suggestion
+        FROM "Word" AS w
+        JOIN "MachineGloss" AS mg ON mg."wordId" = w.id
+        WHERE w."verseId" = $1
+			AND mg."languageId" = (SELECT id FROM "Language" WHERE code = $2)
+        `,
+        [verseId, languageCode]
+    )
+    return result.rows
+}
+
 interface FormSuggestion {
     formId: string,
     suggestions: string[]
@@ -232,3 +280,53 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
 
     return result.rows[0]
 }
+
+async function machineTranslate(
+    words: string[],
+    code: string
+): Promise<Record<string, string>> {
+    const languageCode = languageMap[code as keyof typeof languageMap];
+    if (!languageCode || !translateClient || words.length === 0) return {};
+
+    const start = performance.now()
+    const machineGlosses = await translateClient.translate(
+        words,
+        languageCode
+    );
+    const duration = performance.now() - start
+    const wordMap = Object.fromEntries(
+        words.map((word, i) => [word, machineGlosses[i]])
+    );
+
+    console.log(`Finished translating ${words.length} words (${duration.toFixed(0)}) ms`)
+    Object.entries(wordMap).forEach(([ref, gloss]) => console.log(`Translated to ${code}: ${ref} --> ${gloss}`))
+
+    // We do not await this so that the request can return quickly. It is not needed to finish the request.
+    saveMachineTranslations(code, words, machineGlosses)
+
+    return wordMap
+}
+
+async function saveMachineTranslations(code: string, referenceGlosses: string[], machineGlosses: string[]) {
+    try {
+        await query(
+            `
+            INSERT INTO "MachineGloss" ("wordId", "gloss", "languageId")
+            SELECT phw."wordId", data.machine_gloss, (SELECT id FROM "Language" WHERE code = $1)
+            FROM "PhraseWord" AS phw
+            JOIN "Gloss" AS g ON g."phraseId" = phw."phraseId"
+            JOIN "Phrase" AS ph ON phw."phraseId" = ph.id
+            JOIN UNNEST($2::text[], $3::text[]) data (ref_gloss, machine_gloss)
+                ON LOWER(g.gloss) = data.ref_gloss
+            WHERE ph."deletedAt" IS NULL
+                AND ph."languageId" = (SELECT id FROM "Language" WHERE code = 'eng')
+            ON CONFLICT ON CONSTRAINT "MachineGloss_pkey"
+            DO UPDATE SET gloss = EXCLUDED."gloss"
+            `,
+            [code, referenceGlosses, machineGlosses]
+        )
+    } catch (error) {
+        console.log(`Failed to save machine translations: ${error}`)
+    }
+}
+

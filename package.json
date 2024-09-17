@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@google-cloud/translate": "8.5.0",
     "@gracious.tech/fetch-client": "0.8.9",
     "fuzzysort": "3.0.2",
     "isomorphic-dompurify": "2.15.0",

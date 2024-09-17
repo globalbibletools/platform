@@ -6,7 +6,7 @@ if (!connectionString) {
     throw new Error('DATABASE_URL env var missing');
 }
  
-const pool = new Pool({ connectionString })
+const pool = new Pool({ connectionString, max: 20 })
 
 async function _query<T extends QueryResultRow>(client: pg.Pool | pg.PoolClient, text: string, params: any): Promise<QueryResult<T>> {
   const start = performance.now()
