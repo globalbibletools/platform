@@ -64,17 +64,9 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
     );
 
     const { locale, code } = useParams<{ locale: string, code: string }>()
-    const [_, updateAction, saving] = useFormState(async (prevState: any, formData: FormData) => {
-        const response = await updateGloss(prevState, formData)
-        mutate({
-            type: 'book-progress',
-            bookId: parseInt(word.id.slice(0, 2)),
-            locale,
-            code
-        })
-        return response
-    }, {})
+    const [saving, setSaving] = useState(false)
     async function onChange(change: { state?: string; gloss?: string }) {
+        setSaving(true)
         const formData = new FormData()
         formData.set('phraseId', phrase.id.toString())
         if (typeof change.state === 'string') {
@@ -83,7 +75,15 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
         if (typeof change.gloss === 'string') {
             formData.set('gloss', change.gloss)
         }
-        updateAction(formData)
+        // TODO: handle errors in this result
+        const _result = await updateGloss(formData)
+        mutate({
+            type: 'book-progress',
+            bookId: parseInt(word.id.slice(0, 2)),
+            locale,
+            code
+        })
+        setSaving(false)
     }
 
     let status: 'empty' | 'saving' | 'saved' | 'approved' = 'empty';
