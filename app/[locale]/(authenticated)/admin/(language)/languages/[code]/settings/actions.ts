@@ -3,7 +3,7 @@
 import * as z from 'zod';
 import {getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { query } from '@/app/db';
+import { query } from '@/shared/db';
 import { verifySession } from '@/app/session';
 import { FormState } from '@/app/components/Form';
 

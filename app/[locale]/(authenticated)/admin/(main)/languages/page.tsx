@@ -10,7 +10,7 @@ import {
 import ViewTitle from '@/app/components/ViewTitle';
 import Button from '@/app/components/Button';
 import { getTranslations } from 'next-intl/server';
-import { query } from '@/app/db';
+import { query } from '@/shared/db';
 import { Metadata, ResolvingMetadata } from 'next';
 
 interface AdminLanguagePageProps {

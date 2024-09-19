@@ -1,4 +1,4 @@
-import { query } from "@/app/db"
+import { query } from "@/shared/db"
 import { notFound } from "next/navigation"
 import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"

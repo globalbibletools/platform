@@ -37,3 +37,7 @@ export async function transaction<T>(tx: (q: typeof query) => Promise<T>): Promi
         client.release()
     }
 }
+
+export async function close() {
+    await pool.end()
+}

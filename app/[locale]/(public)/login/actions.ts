@@ -5,7 +5,7 @@ import {getTranslations, getLocale} from 'next-intl/server';
 import { Scrypt } from "oslo/password";
 import { createSession } from '@/app/session';
 import { redirect } from 'next/navigation';
-import { query } from '@/app/db';
+import { query } from '@/shared/db';
 import { FormState } from '@/app/components/Form';
 
 const scrypt = new Scrypt()

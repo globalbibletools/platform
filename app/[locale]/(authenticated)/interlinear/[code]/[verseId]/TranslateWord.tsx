@@ -216,6 +216,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                                 className="!bg-green-600 w-9"
                                 tabIndex={-1}
                                 title={t('approve_tooltip') ?? ''}
+                                disabled={saving}
                                 onClick={(e: MouseEvent) => {
                                     e.stopPropagation();
                                     if (status === 'saved') {
@@ -234,6 +235,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                                 className="!bg-red-600 w-9"
                                 tabIndex={-1}
                                 title={t('revoke_tooltip') ?? ''}
+                                disabled={saving}
                                 onClick={(e: MouseEvent) => {
                                     e.stopPropagation();
                                     onChange({ state: 'UNAPPROVED' });

@@ -1,4 +1,4 @@
-import { query } from "@/app/db"
+import { query } from "@/shared/db"
 import { verifySession } from "@/app/session"
 
 export default async function ProfileView() {
