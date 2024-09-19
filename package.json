@@ -6,9 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "build:workers": "tsc --project tsconfig.workers.json",
-    "start:import-worker": "node .workers/workers/import.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "@google-cloud/translate": "8.5.0",
@@ -50,6 +48,7 @@
     "lodash": "4.17.21",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "webpack-merge": "6.0.1"
   }
 }
