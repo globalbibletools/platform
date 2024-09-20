@@ -1,777 +1,439 @@
 {
   "AcceptInvitePage": {
-    "title": "Accept Invite",
-    "form": {
-      "email": "Email",
-      "first_name": "First Name",
-      "last_name": "Last Name",
-      "password": "Password",
-      "confirm_password": "Confirm Password",
-      "submit": "Sign Up"
-    },
-    "errors": {
-      "email_required": "Please enter your email.",
-      "email_format": "Please enter a valid email.",
-      "password_required": "Please enter your password.",
-      "password_format": "Please enter a password with at least 8 characters.",
-      "confirm_password_required": "Please enter your password again.",
-      "confirm_password_mismatch": "Your password does not match.",
-      "first_name_required": "Please enter your first name.",
-      "last_name_required": "Please enter your last name."
-    },
-    "AdminLayout": {
-        "title": "Admin",
-        "links": {
-            "languages": "Languages",
-            "users": "Users"
-        }
-    },
-    "AdminUsersPage": {
-        "title": "Users",
-        "links": {
-            "add_user": "Invite User"
-        },
-        "headers": {
-            "name": "Name",
-            "email": "Email",
-            "role": "Role"
-        },
-        "errors": {
-            "invalid_request": "Invalid request"
-        },
-        "role": "{role, select, ADMIN {Admin} other {}}",
-        "email_status": "{status, select, BOUNCED {Bounced} COMPLAINED {Complained} UNVERIFIED {Unverified} other {}}"
-    },
-    "AuthenticatedLayout": {
-        "app_name": "Global Bible Tools",
-        "links": {
-            "interlinear": "Interlinear",
-            "admin": "Admin",
-            "profile": "Profile",
-            "log_out": "Log Out"
-        }
-    },
-    "Error": {
-        "tab": "Error",
-        "title": "Something went wrong!",
-        "help": "An unknown error has occurred. Please contact support for assistance.",
-        "actions": {
-            "reload": "Reload",
-            "log_in": "Log In"
-        }
-    },
-    "ForgotPasswordPage": {
-        "title": "Forgot Password",
-        "form": {
-            "email": "Email",
-            "submit": "Reset Password"
-        },
-        "errors": {
-            "email_required": "Please enter your email."
-        },
-        "actions": {
-            "log_in": "Log In"
-        }
-    },
-    "InviteLanguageUserPage": {
-        "title": "Invite User",
-        "form": {
-            "email": "Email",
-            "role": "Role",
-            "submit": "Invite"
-        },
-        "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
-    },
-    "InviteUserPage": {
-        "title": "Invite User",
-        "form": {
-            "email": "Email",
-            "submit": "Invite"
-        },
-        "errors": {
-            "email_required": "Please enter your email.",
-            "email_format": "Please enter a valid email.",
-            "user_exists": "This user already exists."
-        }
-    },
-    "LanguageLayout": {
-        "links": {
-            "settings": "Settings",
-            "users": "Users",
-            "reports": "Reports",
-            "import": "Import"
-        }
-    },
-    "LanguageReportsPage": {
-        "title": "Reports"
-    },
-    "LanguageSettingsPage": {
-        "title": "Settings",
-        "form": {
-            "name": "Name",
-            "code": "Code",
-            "font": "Font",
-            "text_direction": "Text Direction",
-            "text_direction_option": "{dir, select, ltr {Left to Right} rtl {Right to Left} other {}}",
-            "translation_placeholder": "Select Translation"
-        },
-        "errors": {
-            "name_required": "Please enter the language name.",
-            "font_required": "Please select a font.",
-            "text_direction_required": "Please select a text direction."
-        },
-        "headings": {
-            "identification": "Identification",
-            "text": "Text",
-            "bible_translation": "Bible Translations"
-        },
-        "name_description": "The name of the language is shown throughout the app. We prefer it to be written in the language rather than English.",
-        "code_description": "The language code follows <a>ISO 639-3</a> which uniquely identifies languages across systems.",
-        "text_description": "Configure the text of the language as you would like it to appear in the platform.",
-        "translation_description": "These translation are used in the platform when showing a passage from the Bible.",
-        "saving": "Saving",
-        "saved": "Saved"
-    },
-    "LanguageUsersPage": {
-        "title": "Users",
-        "links": {
-            "invite_user": "Invite User",
-            "remove": "Remove User"
-        },
-        "headers": {
-            "name": "Name",
-            "role": "Role"
-        },
-        "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
-    },
-    "LoginPage": {
-        "title": "Log In",
-        "form": {
-            "email": "Email",
-            "password": "Password",
-            "submit": "Log In"
-        },
-        "errors": {
-            "email_required": "Please enter your email.",
-            "password_required": "Please enter your password."
-        },
-        "forgot_password": "Forgot Password?"
-    },
-    "ModalView": {
-        "app_name": "Global Bible Tools"
-    },
-    "NewLanguagePage": {
-        "title": "Add Language",
-        "errors": {
-            "name_required": "Please enter the language name.",
-            "code_size": "The language code must be 3 characters.",
-            "language_exists": "This language already exists."
-        },
-        "form": {
-            "code": "Code",
-            "name": "Name",
-            "submit": "Add"
-        }
-    },
-    "ResetPasswordPage": {
-        "title": "Reset Password",
-        "form": {
-            "password": "Password",
-            "confirm_password": "Confirm Password",
-            "submit": "Reset Password"
-        },
-        "errors": {
-            "password_required": "Please enter your password.",
-            "password_format": "Please enter a password with at least 8 characters.",
-            "confirm_password_required": "Please enter your password again.",
-            "confirm_password_mismatch": "Your password does not match."
-        },
-        "not_found": "We couldn't find your password reset.",
-        "actions": {
-            "log_in": "Log In"
-        }
-    },
-    "RichTextInput": {
-        "bold_tooltip": "Bold",
-        "italic_tooltip": "Italic",
-        "strike_tooltip": "Strikethough",
-        "bullet_list_tooltip": "Bullet List",
-        "ordered_list_tooltip": "Ordered List",
-        "indent_tooltip": "Indent",
-        "outdent_tooltip": "Outdent"
-    },
-    "RootLayout": {
-        "app_name": "Global Bible Tools"
-    },
-    "RootNotFoundPage": {
-        "title": "Not Found"
-    },
-    "TranslateWord": {
-       "approve_tooltip": "Approve", 
-       "revoke_tooltip": "Revoke",
-       "approved": "Approved",
-       "saving": "Saving",
-       "open_note_tooltip": "Jump to Note"
-    },
-    "TranslationProgressBar": {
-        "progress": "{approvedCount}/{wordCount} words ({percent}%)"
-    },
-    "TranslationSidebar": {
-        "tabs": {
-            "lexicon": "Lexicon",
-            "notes": "Notes"
-        },
-        "close": "Close",
-        "notes": {
-            "translator_notes": "Translator Notes",
-            "footnotes": "Footnotes",
-            "note_description": "Updated at {timestamp} by {authorName}",
-            "saving": "Saving..."
-        },
-        "book_names": [
-            "Genesis",
-            "Exodus",
-            "Leviticus",
-            "Numbers",
-            "Deuteronomy",
-            "Joshua",
-            "Judges",
-            "Ruth",
-            "1 Samuel",
-            "2 Samuel", 
-            "1 Kings", 
-            "2 Kings", 
-            "1 Chronicles", 
-            "2 Chronicles", 
-            "Ezra", 
-            "Nehemiah", 
-            "Esther", 
-            "Job", 
-            "Psalm", 
-            "Proverbs", 
-            "Ecclesiastes", 
-            "Song of Songs", 
-            "Isaiah", 
-            "Jeremiah", 
-            "Lamentations", 
-            "Ezekiel", 
-            "Daniel", 
-            "Hosea", 
-            "Joel", 
-            "Amos", 
-            "Obadiah", 
-            "Jonah", 
-            "Micah", 
-            "Nahum", 
-            "Habakkuk", 
-            "Zephaniah", 
-            "Haggai", 
-            "Zechariah", 
-            "Malachi", 
-            "Matthew", 
-            "Mark", 
-            "Luke", 
-            "John", 
-            "Acts", 
-            "Romans", 
-            "1 Corinthians", 
-            "2 Corinthians", 
-            "Galatians", 
-            "Ephesians", 
-            "Philippians", 
-            "Colossians", 
-            "1 Thessalonians", 
-            "2 Thessalonians", 
-            "1 Timothy", 
-            "2 Timothy", 
-            "Titus", 
-            "Philemon", 
-            "Hebrews", 
-            "James", 
-            "1 Peter", 
-            "2 Peter", 
-            "1 John", 
-            "2 John", 
-            "3 John", 
-            "Jude", 
-            "Revelation"
-        ]
-    },
-    "TranslationToolbar": {
-        "verse": "Verse",
-        "previous_verse": "Previous Verse",
-        "next_verse": "Next Verse",
-        "next_unapproved": "Next Unapproved",
-        "language": "Language",
-        "manage_language": "Manage",
-        "approve_all": "Approve All",
-        "link_words": "Link Words",
-        "unlink_words": "Unlink Words",
-        "verse_reference": "{bookId, select, 1 {Genesis} 2 {Exodus} 3 {Leviticus} 4 {Numbers} 5 {Deuteronomy} 6 {Joshua} 7 {Judges} 8 {Ruth} 9 {1 Samuel} 10 {2 Samuel} 11 {1 Kings} 12 {2 Kings} 13 {1 Chronicles} 14 {2 Chronicles} 15 {Ezra} 16 {Nehemiah} 17 {Esther} 18 {Job} 19 {Psalm} 20 {Proverbs} 21 {Ecclesiastes} 22 {Song of Songs} 23 {Isaiah} 24 {Jeremiah} 25 {Lamentations} 26 {Ezekiel} 27 {Daniel} 28 {Hosea} 29 {Joel} 30 {Amos} 31 {Obadiah} 32 {Jonah} 33 {Micah} 34 {Nahum} 35 {Habakkuk} 36 {Zephaniah} 37 {Haggai} 38 {Zechariah} 39 {Malachi} 40 {Matthew} 41 {Mark} 42 {Luke} 43 {John} 44 {Acts} 45 {Romans} 46 {1 Corinthians} 47 {2 Corinthians} 48 {Galatians} 49 {Ephesians} 50 {Philippians} 51 {Colossians} 52 {1 Thessalonians} 53 {2 Thessalonians} 54 {1 Timothy} 55 {2 Timothy} 56 {Titus} 57 {Philemon} 58 {Hebrews} 59 {James} 60 {1 Peter} 61 {2 Peter} 62 {1 John} 63 {2 John} 64 {3 John} 65 {Jude} 66 {Revelation} other {}} {chapter}:{verse}",
-        "book_names": [
-            "Genesis",
-            "Exodus",
-            "Leviticus",
-            "Numbers",
-            "Deuteronomy",
-            "Joshua",
-            "Judges",
-            "Ruth",
-            "1 Samuel",
-            "2 Samuel", 
-            "1 Kings", 
-            "2 Kings", 
-            "1 Chronicles", 
-            "2 Chronicles", 
-            "Ezra", 
-            "Nehemiah", 
-            "Esther", 
-            "Job", 
-            "Psalm", 
-            "Proverbs", 
-            "Ecclesiastes", 
-            "Song of Songs", 
-            "Isaiah", 
-            "Jeremiah", 
-            "Lamentations", 
-            "Ezekiel", 
-            "Daniel", 
-            "Hosea", 
-            "Joel", 
-            "Amos", 
-            "Obadiah", 
-            "Jonah", 
-            "Micah", 
-            "Nahum", 
-            "Habakkuk", 
-            "Zephaniah", 
-            "Haggai", 
-            "Zechariah", 
-            "Malachi", 
-            "Matthew", 
-            "Mark", 
-            "Luke", 
-            "John", 
-            "Acts", 
-            "Romans", 
-            "1 Corinthians", 
-            "2 Corinthians", 
-            "Galatians", 
-            "Ephesians", 
-            "Philippians", 
-            "Colossians", 
-            "1 Thessalonians", 
-            "2 Thessalonians", 
-            "1 Timothy", 
-            "2 Timothy", 
-            "Titus", 
-            "Philemon", 
-            "Hebrews", 
-            "James", 
-            "1 Peter", 
-            "2 Peter", 
-            "1 John", 
-            "2 John", 
-            "3 John", 
-            "Jude", 
-            "Revelation"
-        ]
-    },
-    "VersesPreview": {
-        "reference": "{bookId, select, 1 {Genesis} 2 {Exodus} 3 {Leviticus} 4 {Numbers} 5 {Deuteronomy} 6 {Joshua} 7 {Judges} 8 {Ruth} 9 {1 Samuel} 10 {2 Samuel} 11 {1 Kings} 12 {2 Kings} 13 {1 Chronicles} 14 {2 Chronicles} 15 {Ezra} 16 {Nehemiah} 17 {Esther} 18 {Job} 19 {Psalm} 20 {Proverbs} 21 {Ecclesiastes} 22 {Song of Songs} 23 {Isaiah} 24 {Jeremiah} 25 {Lamentations} 26 {Ezekiel} 27 {Daniel} 28 {Hosea} 29 {Joel} 30 {Amos} 31 {Obadiah} 32 {Jonah} 33 {Micah} 34 {Nahum} 35 {Habakkuk} 36 {Zephaniah} 37 {Haggai} 38 {Zechariah} 39 {Malachi} 40 {Matthew} 41 {Mark} 42 {Luke} 43 {John} 44 {Acts} 45 {Romans} 46 {1 Corinthians} 47 {2 Corinthians} 48 {Galatians} 49 {Ephesians} 50 {Philippians} 51 {Colossians} 52 {1 Thessalonians} 53 {2 Thessalonians} 54 {1 Timothy} 55 {2 Timothy} 56 {Titus} 57 {Philemon} 58 {Hebrews} 59 {James} 60 {1 Peter} 61 {2 Peter} 62 {1 John} 63 {2 John} 64 {3 John} 65 {Jude} 66 {Revelation} other {}} {chapterNumber}:{verseNumber}",
-        "not_found": "Not Found",
-        "close": "Close"
-    }
+      "title": "Accept Invite",
+      "form": {
+          "email": "Email",
+          "first_name": "First Name",
+          "last_name": "Last Name",
+          "password": "Password",
+          "confirm_password": "Confirm Password",
+          "submit": "Sign Up"
+      },
+      "errors": {
+          "email_required": "Please enter your email.",
+          "email_format": "Please enter a valid email.",
+          "password_required": "Please enter your password.",
+          "password_format": "Please enter a password with at least 8 characters.",
+          "confirm_password_required": "Please enter your password again.",
+          "confirm_password_mismatch": "Your password does not match.",
+          "first_name_required": "Please enter your first name.",
+          "last_name_required": "Please enter your last name."
+      },
+      "not_found": "We couldn't find your invitation to Global Bible Tools.",
+      "actions": {
+          "log_in": "Log In"
+      }
   },
   "AdminLanguagesPage": {
-    "title": "Languages",
-    "headers": {
-      "language": "Language",
-      "ot_progress": "OT Progress",
-      "nt_progress": "NT Progress"
-    },
-    "actions": {
-      "add_language": "Add Language",
-      "manage": "Manage"
-    }
+      "title": "Languages",
+      "headers": {
+          "language": "Language",
+          "ot_progress": "OT Progress",
+          "nt_progress": "NT Progress"
+      },
+      "actions": {
+          "add_language": "Add Language",
+          "manage": "Manage"
+      }
   },
   "AdminLayout": {
-    "title": "Admin",
-    "links": {
-      "languages": "Languages",
-      "users": "Users"
-    }
+      "title": "Admin",
+      "links": {
+          "languages": "Languages",
+          "users": "Users"
+      }
   },
   "AdminUsersPage": {
-    "title": "Users",
-    "links": {
-      "add_user": "Invite User"
-    },
-    "headers": {
-      "name": "Name",
-      "email": "Email",
-      "role": "Role"
-    },
-    "errors": {
-      "invalid_request": "Invalid request"
-    },
-    "role": "{role, select, ADMIN {Admin} other {}}",
-    "email_status": "{status, select, BOUNCED {Bounced} COMPLAINED {Complained} UNVERIFIED {Unverified} other {}}"
+      "title": "Users",
+      "links": {
+          "add_user": "Invite User"
+      },
+      "headers": {
+          "name": "Name",
+          "email": "Email",
+          "role": "Role"
+      },
+      "errors": {
+          "invalid_request": "Invalid request"
+      },
+      "role": "{role, select, ADMIN {Admin} other {}}",
+      "email_status": "{status, select, BOUNCED {Bounced} COMPLAINED {Complained} UNVERIFIED {Unverified} other {}}"
   },
   "AuthenticatedLayout": {
-    "app_name": "Global Bible Tools",
-    "links": {
-      "interlinear": "Interlinear",
-      "admin": "Admin",
-      "profile": "Profile",
-      "log_out": "Log Out"
-    }
+      "app_name": "Global Bible Tools",
+      "links": {
+          "interlinear": "Interlinear",
+          "admin": "Admin",
+          "profile": "Profile",
+          "log_out": "Log Out"
+      }
   },
   "Error": {
-    "tab": "Error",
-    "title": "Something went wrong!",
-    "help": "An unknown error has occurred. Please contact support for assistance.",
-    "actions": {
-      "reload": "Reload",
-      "log_in": "Log In"
-    }
+      "tab": "Error",
+      "title": "Something went wrong!",
+      "help": "An unknown error has occurred. Please contact support for assistance.",
+      "actions": {
+          "reload": "Reload",
+          "log_in": "Log In"
+      }
   },
   "ForgotPasswordPage": {
-    "title": "Forgot Password",
-    "form": {
-      "email": "Email",
-      "submit": "Reset Password"
-    },
-    "errors": {
-      "email_required": "Please enter your email."
-    },
-    "actions": {
-      "log_in": "Log In"
-    }
+      "title": "Forgot Password",
+      "form": {
+          "email": "Email",
+          "submit": "Reset Password"
+      },
+      "errors": {
+          "email_required": "Please enter your email."
+      },
+      "actions": {
+          "log_in": "Log In"
+      }
   },
   "InviteLanguageUserPage": {
-    "title": "Invite User",
-    "form": {
-      "email": "Email",
-      "role": "Role",
-      "submit": "Invite"
-    },
-    "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
+      "title": "Invite User",
+      "form": {
+          "email": "Email",
+          "role": "Role",
+          "submit": "Invite"
+      },
+      "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
   },
   "InviteUserPage": {
-    "title": "Invite User",
-    "form": {
-      "email": "Email",
-      "submit": "Invite"
-    },
-    "errors": {
-      "email_required": "Please enter your email.",
-      "email_format": "Please enter a valid email.",
-      "user_exists": "This user already exists."
-    }
+      "title": "Invite User",
+      "form": {
+          "email": "Email",
+          "submit": "Invite"
+      },
+      "errors": {
+          "email_required": "Please enter your email.",
+          "email_format": "Please enter a valid email.",
+          "user_exists": "This user already exists."
+      }
+  },
+  "LanguageImportPage": {
+      "title": "Import",
+      "form": {
+          "language": "Language",
+          "submit": "Import"
+      },
+      "errors": {
+          "language_required": "Please select a language to import."
+      },
+      "status": {
+          "fail": "Error importing glosses",
+          "running": "Gloss import running",
+          "success": "Imported glosses successfully!"
+      },
+      "actions": {
+          "reset": "Import Again"
+      }
   },
   "LanguageLayout": {
-    "links": {
-      "settings": "Settings",
-      "users": "Users",
-      "reports": "Reports",
-      "import": "Import"
-    }
+      "links": {
+          "settings": "Settings",
+          "users": "Users",
+          "reports": "Reports",
+          "import": "Import"
+      }
   },
   "LanguageReportsPage": {
-    "title": "Reports"
+      "title": "Reports"
   },
   "LanguageSettingsPage": {
-    "title": "Settings",
-    "form": {
-      "name": "Name",
-      "code": "Code",
-      "font": "Font",
-      "text_direction": "Text Direction",
-      "text_direction_option": "{dir, select, ltr {Left to Right} rtl {Right to Left} other {}}",
-      "translation_placeholder": "Select Translation"
-    },
-    "errors": {
-      "name_required": "Please enter the language name.",
-      "font_required": "Please select a font.",
-      "text_direction_required": "Please select a text direction."
-    },
-    "headings": {
-      "identification": "Identification",
-      "text": "Text",
-      "bible_translation": "Bible Translations"
-    },
-    "name_description": "The name of the language is shown throughout the app. We prefer it to be written in the language rather than English.",
-    "code_description": "The language code follows <a>ISO 639-3</a> which uniquely identifies languages across systems.",
-    "text_description": "Configure the text of the language as you would like it to appear in the platform.",
-    "translation_description": "These translation are used in the platform when showing a passage from the Bible.",
-    "saving": "Saving",
-    "saved": "Saved"
+      "title": "Settings",
+      "form": {
+          "name": "Name",
+          "code": "Code",
+          "font": "Font",
+          "text_direction": "Text Direction",
+          "text_direction_option": "{dir, select, ltr {Left to Right} rtl {Right to Left} other {}}",
+          "translation_placeholder": "Select Translation"
+      },
+      "errors": {
+          "name_required": "Please enter the language name.",
+          "font_required": "Please select a font.",
+          "text_direction_required": "Please select a text direction."
+      },
+      "headings": {
+          "identification": "Identification",
+          "text": "Text",
+          "bible_translation": "Bible Translations"
+      },
+      "name_description": "The name of the language is shown throughout the app. We prefer it to be written in the language rather than English.",
+      "code_description": "The language code follows <a>ISO 639-3</a> which uniquely identifies languages across systems.",
+      "text_description": "Configure the text of the language as you would like it to appear in the platform.",
+      "translation_description": "These translation are used in the platform when showing a passage from the Bible.",
+      "saving": "Saving",
+      "saved": "Saved"
   },
   "LanguageUsersPage": {
-    "title": "Users",
-    "links": {
-      "invite_user": "Invite User",
-      "remove": "Remove User"
-    },
-    "headers": {
-      "name": "Name",
-      "role": "Role"
-    },
-    "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
+      "title": "Users",
+      "links": {
+          "invite_user": "Invite User",
+          "remove": "Remove User"
+      },
+      "headers": {
+          "name": "Name",
+          "role": "Role"
+      },
+      "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
   },
   "LoginPage": {
-    "title": "Log In",
-    "form": {
-      "email": "Email",
-      "password": "Password",
-      "submit": "Log In"
-    },
-    "errors": {
-      "email_required": "Please enter your email.",
-      "password_required": "Please enter your password."
-    },
-    "forgot_password": "Forgot Password?"
+      "title": "Log In",
+      "form": {
+          "email": "Email",
+          "password": "Password",
+          "submit": "Log In"
+      },
+      "errors": {
+          "email_required": "Please enter your email.",
+          "password_required": "Please enter your password."
+      },
+      "forgot_password": "Forgot Password?"
   },
   "ModalView": {
-    "app_name": "Global Bible Tools"
+      "app_name": "Global Bible Tools"
   },
   "NewLanguagePage": {
-    "title": "Add Language",
-    "errors": {
-      "name_required": "Please enter the language name.",
-      "code_size": "The language code must be 3 characters.",
-      "language_exists": "This language already exists."
-    },
-    "form": {
-      "code": "Code",
-      "name": "Name",
-      "submit": "Add"
-    }
+      "title": "Add Language",
+      "errors": {
+          "name_required": "Please enter the language name.",
+          "code_size": "The language code must be 3 characters.",
+          "language_exists": "This language already exists."
+      },
+      "form": {
+          "code": "Code",
+          "name": "Name",
+          "submit": "Add"
+      }
   },
   "ProfileView": {
-    "form": {
-      "confirm_password": "Confirm Password",
-      "email": "Email",
-      "name": "Name",
-      "password": "Password",
-      "submit": "Update"
-    },
-    "errors": {
-      "email_required": "Please enter your email.",
-      "email_format": "Please enter a valid email.",
-      "name_required": "Please input your name",
-      "password_confirmation": "Your password confirmation does not match.",
-      "password_format": "Your password should be at least 8 characters."
-    },
-    "profile_updated": "Profile updated successfully!",
-    "title": "Profile",
-    "update_profile": "Update Profile"
+      "form": {
+          "confirm_password": "Confirm Password",
+          "email": "Email",
+          "name": "Name",
+          "password": "Password",
+          "submit": "Update"
+      },
+      "errors": {
+          "email_required": "Please enter your email.",
+          "email_format": "Please enter a valid email.",
+          "name_required": "Please input your name",
+          "password_confirmation": "Your password confirmation does not match.",
+          "password_format": "Your password should be at least 8 characters."
+      },
+      "profile_updated": "Profile updated successfully!",
+      "title": "Profile",
+      "update_profile": "Update Profile"
   },
   "ResetPasswordPage": {
-    "title": "Reset Password",
-    "form": {
-      "password": "Password",
-      "confirm_password": "Confirm Password",
-      "submit": "Reset Password"
-    },
-    "errors": {
-      "password_required": "Please enter your password.",
-      "password_format": "Please enter a password with at least 8 characters.",
-      "confirm_password_required": "Please enter your password again.",
-      "confirm_password_mismatch": "Your password does not match."
-    },
-    "not_found": "We couldn't find your password reset.",
-    "actions": {
-      "log_in": "Log In"
-    }
+      "title": "Reset Password",
+      "form": {
+          "password": "Password",
+          "confirm_password": "Confirm Password",
+          "submit": "Reset Password"
+      },
+      "errors": {
+          "password_required": "Please enter your password.",
+          "password_format": "Please enter a password with at least 8 characters.",
+          "confirm_password_required": "Please enter your password again.",
+          "confirm_password_mismatch": "Your password does not match."
+      },
+      "not_found": "We couldn't find your password reset.",
+      "actions": {
+          "log_in": "Log In"
+      }
   },
   "RichTextInput": {
-    "bold_tooltip": "Bold",
-    "italic_tooltip": "Italic",
-    "strike_tooltip": "Strikethough",
-    "bullet_list_tooltip": "Bullet List",
-    "ordered_list_tooltip": "Ordered List",
-    "indent_tooltip": "Indent",
-    "outdent_tooltip": "Outdent"
+      "bold_tooltip": "Bold",
+      "italic_tooltip": "Italic",
+      "strike_tooltip": "Strikethough",
+      "bullet_list_tooltip": "Bullet List",
+      "ordered_list_tooltip": "Ordered List",
+      "indent_tooltip": "Indent",
+      "outdent_tooltip": "Outdent"
   },
   "RootLayout": {
-    "app_name": "Global Bible Tools"
+      "app_name": "Global Bible Tools"
   },
   "RootNotFoundPage": {
-    "title": "Not Found"
+      "title": "Not Found"
   },
   "TranslateWord": {
-    "approve_tooltip": "Approve",
-    "revoke_tooltip": "Revoke",
-    "approved": "Approved",
-    "saving": "Saving",
-    "open_note_tooltip": "Jump to Note"
+      "approve_tooltip": "Approve",
+      "revoke_tooltip": "Revoke",
+      "approved": "Approved",
+      "saving": "Saving",
+      "open_note_tooltip": "Jump to Note"
+  },
+  "TranslationProgressBar": {
+      "progress": "{approvedCount}/{wordCount} words ({percent}%)"
   },
   "TranslationSidebar": {
-    "tabs": {
-      "lexicon": "Lexicon",
-      "notes": "Notes"
-    },
-    "close": "Close",
-    "notes": {
-      "translator_notes": "Translator Notes",
-      "footnotes": "Footnotes",
-      "note_description": "Updated at {timestamp} by {authorName}",
-      "saving": "Saving..."
-    },
-    "book_names": [
-      "Genesis",
-      "Exodus",
-      "Leviticus",
-      "Numbers",
-      "Deuteronomy",
-      "Joshua",
-      "Judges",
-      "Ruth",
-      "1 Samuel",
-      "2 Samuel",
-      "1 Kings",
-      "2 Kings",
-      "1 Chronicles",
-      "2 Chronicles",
-      "Ezra",
-      "Nehemiah",
-      "Esther",
-      "Job",
-      "Psalm",
-      "Proverbs",
-      "Ecclesiastes",
-      "Song of Songs",
-      "Isaiah",
-      "Jeremiah",
-      "Lamentations",
-      "Ezekiel",
-      "Daniel",
-      "Hosea",
-      "Joel",
-      "Amos",
-      "Obadiah",
-      "Jonah",
-      "Micah",
-      "Nahum",
-      "Habakkuk",
-      "Zephaniah",
-      "Haggai",
-      "Zechariah",
-      "Malachi",
-      "Matthew",
-      "Mark",
-      "Luke",
-      "John",
-      "Acts",
-      "Romans",
-      "1 Corinthians",
-      "2 Corinthians",
-      "Galatians",
-      "Ephesians",
-      "Philippians",
-      "Colossians",
-      "1 Thessalonians",
-      "2 Thessalonians",
-      "1 Timothy",
-      "2 Timothy",
-      "Titus",
-      "Philemon",
-      "Hebrews",
-      "James",
-      "1 Peter",
-      "2 Peter",
-      "1 John",
-      "2 John",
-      "3 John",
-      "Jude",
-      "Revelation"
-    ]
+      "tabs": {
+          "lexicon": "Lexicon",
+          "notes": "Notes"
+      },
+      "close": "Close",
+      "notes": {
+          "translator_notes": "Translator Notes",
+          "footnotes": "Footnotes",
+          "note_description": "Updated at {timestamp} by {authorName}",
+          "saving": "Saving..."
+      },
+      "book_names": [
+          "Genesis",
+          "Exodus",
+          "Leviticus",
+          "Numbers",
+          "Deuteronomy",
+          "Joshua",
+          "Judges",
+          "Ruth",
+          "1 Samuel",
+          "2 Samuel",
+          "1 Kings",
+          "2 Kings",
+          "1 Chronicles",
+          "2 Chronicles",
+          "Ezra",
+          "Nehemiah",
+          "Esther",
+          "Job",
+          "Psalm",
+          "Proverbs",
+          "Ecclesiastes",
+          "Song of Songs",
+          "Isaiah",
+          "Jeremiah",
+          "Lamentations",
+          "Ezekiel",
+          "Daniel",
+          "Hosea",
+          "Joel",
+          "Amos",
+          "Obadiah",
+          "Jonah",
+          "Micah",
+          "Nahum",
+          "Habakkuk",
+          "Zephaniah",
+          "Haggai",
+          "Zechariah",
+          "Malachi",
+          "Matthew",
+          "Mark",
+          "Luke",
+          "John",
+          "Acts",
+          "Romans",
+          "1 Corinthians",
+          "2 Corinthians",
+          "Galatians",
+          "Ephesians",
+          "Philippians",
+          "Colossians",
+          "1 Thessalonians",
+          "2 Thessalonians",
+          "1 Timothy",
+          "2 Timothy",
+          "Titus",
+          "Philemon",
+          "Hebrews",
+          "James",
+          "1 Peter",
+          "2 Peter",
+          "1 John",
+          "2 John",
+          "3 John",
+          "Jude",
+          "Revelation"
+      ]
   },
   "TranslationToolbar": {
-    "verse": "Verse",
-    "previous_verse": "Previous Verse",
-    "next_verse": "Next Verse",
-    "next_unapproved": "Next Unapproved",
-    "language": "Language",
-    "manage_language": "Manage",
-    "approve_all": "Approve All",
-    "link_words": "Link Words",
-    "unlink_words": "Unlink Words",
-    "verse_reference": "{bookId, select, 1 {Genesis} 2 {Exodus} 3 {Leviticus} 4 {Numbers} 5 {Deuteronomy} 6 {Joshua} 7 {Judges} 8 {Ruth} 9 {1 Samuel} 10 {2 Samuel} 11 {1 Kings} 12 {2 Kings} 13 {1 Chronicles} 14 {2 Chronicles} 15 {Ezra} 16 {Nehemiah} 17 {Esther} 18 {Job} 19 {Psalm} 20 {Proverbs} 21 {Ecclesiastes} 22 {Song of Songs} 23 {Isaiah} 24 {Jeremiah} 25 {Lamentations} 26 {Ezekiel} 27 {Daniel} 28 {Hosea} 29 {Joel} 30 {Amos} 31 {Obadiah} 32 {Jonah} 33 {Micah} 34 {Nahum} 35 {Habakkuk} 36 {Zephaniah} 37 {Haggai} 38 {Zechariah} 39 {Malachi} 40 {Matthew} 41 {Mark} 42 {Luke} 43 {John} 44 {Acts} 45 {Romans} 46 {1 Corinthians} 47 {2 Corinthians} 48 {Galatians} 49 {Ephesians} 50 {Philippians} 51 {Colossians} 52 {1 Thessalonians} 53 {2 Thessalonians} 54 {1 Timothy} 55 {2 Timothy} 56 {Titus} 57 {Philemon} 58 {Hebrews} 59 {James} 60 {1 Peter} 61 {2 Peter} 62 {1 John} 63 {2 John} 64 {3 John} 65 {Jude} 66 {Revelation} other {}} {chapter}:{verse}",
-    "book_names": [
-      "Genesis",
-      "Exodus",
-      "Leviticus",
-      "Numbers",
-      "Deuteronomy",
-      "Joshua",
-      "Judges",
-      "Ruth",
-      "1 Samuel",
-      "2 Samuel",
-      "1 Kings",
-      "2 Kings",
-      "1 Chronicles",
-      "2 Chronicles",
-      "Ezra",
-      "Nehemiah",
-      "Esther",
-      "Job",
-      "Psalm",
-      "Proverbs",
-      "Ecclesiastes",
-      "Song of Songs",
-      "Isaiah",
-      "Jeremiah",
-      "Lamentations",
-      "Ezekiel",
-      "Daniel",
-      "Hosea",
-      "Joel",
-      "Amos",
-      "Obadiah",
-      "Jonah",
-      "Micah",
-      "Nahum",
-      "Habakkuk",
-      "Zephaniah",
-      "Haggai",
-      "Zechariah",
-      "Malachi",
-      "Matthew",
-      "Mark",
-      "Luke",
-      "John",
-      "Acts",
-      "Romans",
-      "1 Corinthians",
-      "2 Corinthians",
-      "Galatians",
-      "Ephesians",
-      "Philippians",
-      "Colossians",
-      "1 Thessalonians",
-      "2 Thessalonians",
-      "1 Timothy",
-      "2 Timothy",
-      "Titus",
-      "Philemon",
-      "Hebrews",
-      "James",
-      "1 Peter",
-      "2 Peter",
-      "1 John",
-      "2 John",
-      "3 John",
-      "Jude",
-      "Revelation"
-    ]
+      "verse": "Verse",
+      "previous_verse": "Previous Verse",
+      "next_verse": "Next Verse",
+      "next_unapproved": "Next Unapproved",
+      "language": "Language",
+      "manage_language": "Manage",
+      "approve_all": "Approve All",
+      "link_words": "Link Words",
+      "unlink_words": "Unlink Words",
+      "verse_reference": "{bookId, select, 1 {Genesis} 2 {Exodus} 3 {Leviticus} 4 {Numbers} 5 {Deuteronomy} 6 {Joshua} 7 {Judges} 8 {Ruth} 9 {1 Samuel} 10 {2 Samuel} 11 {1 Kings} 12 {2 Kings} 13 {1 Chronicles} 14 {2 Chronicles} 15 {Ezra} 16 {Nehemiah} 17 {Esther} 18 {Job} 19 {Psalm} 20 {Proverbs} 21 {Ecclesiastes} 22 {Song of Songs} 23 {Isaiah} 24 {Jeremiah} 25 {Lamentations} 26 {Ezekiel} 27 {Daniel} 28 {Hosea} 29 {Joel} 30 {Amos} 31 {Obadiah} 32 {Jonah} 33 {Micah} 34 {Nahum} 35 {Habakkuk} 36 {Zephaniah} 37 {Haggai} 38 {Zechariah} 39 {Malachi} 40 {Matthew} 41 {Mark} 42 {Luke} 43 {John} 44 {Acts} 45 {Romans} 46 {1 Corinthians} 47 {2 Corinthians} 48 {Galatians} 49 {Ephesians} 50 {Philippians} 51 {Colossians} 52 {1 Thessalonians} 53 {2 Thessalonians} 54 {1 Timothy} 55 {2 Timothy} 56 {Titus} 57 {Philemon} 58 {Hebrews} 59 {James} 60 {1 Peter} 61 {2 Peter} 62 {1 John} 63 {2 John} 64 {3 John} 65 {Jude} 66 {Revelation} other {}} {chapter}:{verse}",
+      "book_names": [
+          "Genesis",
+          "Exodus",
+          "Leviticus",
+          "Numbers",
+          "Deuteronomy",
+          "Joshua",
+          "Judges",
+          "Ruth",
+          "1 Samuel",
+          "2 Samuel",
+          "1 Kings",
+          "2 Kings",
+          "1 Chronicles",
+          "2 Chronicles",
+          "Ezra",
+          "Nehemiah",
+          "Esther",
+          "Job",
+          "Psalm",
+          "Proverbs",
+          "Ecclesiastes",
+          "Song of Songs",
+          "Isaiah",
+          "Jeremiah",
+          "Lamentations",
+          "Ezekiel",
+          "Daniel",
+          "Hosea",
+          "Joel",
+          "Amos",
+          "Obadiah",
+          "Jonah",
+          "Micah",
+          "Nahum",
+          "Habakkuk",
+          "Zephaniah",
+          "Haggai",
+          "Zechariah",
+          "Malachi",
+          "Matthew",
+          "Mark",
+          "Luke",
+          "John",
+          "Acts",
+          "Romans",
+          "1 Corinthians",
+          "2 Corinthians",
+          "Galatians",
+          "Ephesians",
+          "Philippians",
+          "Colossians",
+          "1 Thessalonians",
+          "2 Thessalonians",
+          "1 Timothy",
+          "2 Timothy",
+          "Titus",
+          "Philemon",
+          "Hebrews",
+          "James",
+          "1 Peter",
+          "2 Peter",
+          "1 John",
+          "2 John",
+          "3 John",
+          "Jude",
+          "Revelation"
+      ]
   },
   "VersesPreview": {
-    "reference": "{bookId, select, 1 {Genesis} 2 {Exodus} 3 {Leviticus} 4 {Numbers} 5 {Deuteronomy} 6 {Joshua} 7 {Judges} 8 {Ruth} 9 {1 Samuel} 10 {2 Samuel} 11 {1 Kings} 12 {2 Kings} 13 {1 Chronicles} 14 {2 Chronicles} 15 {Ezra} 16 {Nehemiah} 17 {Esther} 18 {Job} 19 {Psalm} 20 {Proverbs} 21 {Ecclesiastes} 22 {Song of Songs} 23 {Isaiah} 24 {Jeremiah} 25 {Lamentations} 26 {Ezekiel} 27 {Daniel} 28 {Hosea} 29 {Joel} 30 {Amos} 31 {Obadiah} 32 {Jonah} 33 {Micah} 34 {Nahum} 35 {Habakkuk} 36 {Zephaniah} 37 {Haggai} 38 {Zechariah} 39 {Malachi} 40 {Matthew} 41 {Mark} 42 {Luke} 43 {John} 44 {Acts} 45 {Romans} 46 {1 Corinthians} 47 {2 Corinthians} 48 {Galatians} 49 {Ephesians} 50 {Philippians} 51 {Colossians} 52 {1 Thessalonians} 53 {2 Thessalonians} 54 {1 Timothy} 55 {2 Timothy} 56 {Titus} 57 {Philemon} 58 {Hebrews} 59 {James} 60 {1 Peter} 61 {2 Peter} 62 {1 John} 63 {2 John} 64 {3 John} 65 {Jude} 66 {Revelation} other {}} {chapterNumber}:{verseNumber}",
-    "not_found": "Not Found",
-    "close": "Close"
+      "reference": "{bookId, select, 1 {Genesis} 2 {Exodus} 3 {Leviticus} 4 {Numbers} 5 {Deuteronomy} 6 {Joshua} 7 {Judges} 8 {Ruth} 9 {1 Samuel} 10 {2 Samuel} 11 {1 Kings} 12 {2 Kings} 13 {1 Chronicles} 14 {2 Chronicles} 15 {Ezra} 16 {Nehemiah} 17 {Esther} 18 {Job} 19 {Psalm} 20 {Proverbs} 21 {Ecclesiastes} 22 {Song of Songs} 23 {Isaiah} 24 {Jeremiah} 25 {Lamentations} 26 {Ezekiel} 27 {Daniel} 28 {Hosea} 29 {Joel} 30 {Amos} 31 {Obadiah} 32 {Jonah} 33 {Micah} 34 {Nahum} 35 {Habakkuk} 36 {Zephaniah} 37 {Haggai} 38 {Zechariah} 39 {Malachi} 40 {Matthew} 41 {Mark} 42 {Luke} 43 {John} 44 {Acts} 45 {Romans} 46 {1 Corinthians} 47 {2 Corinthians} 48 {Galatians} 49 {Ephesians} 50 {Philippians} 51 {Colossians} 52 {1 Thessalonians} 53 {2 Thessalonians} 54 {1 Timothy} 55 {2 Timothy} 56 {Titus} 57 {Philemon} 58 {Hebrews} 59 {James} 60 {1 Peter} 61 {2 Peter} 62 {1 John} 63 {2 John} 64 {3 John} 65 {Jude} 66 {Revelation} other {}} {chapterNumber}:{verseNumber}",
+      "not_found": "Not Found",
+      "close": "Close"
   }
 }
