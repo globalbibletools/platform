@@ -117,7 +117,7 @@ interface LanguageImportJob {
     succeeded?: boolean
 }
 
-export async function fetchImportJob(code: string): Promise<LanguageImportJob | undefined> {
+async function fetchImportJob(code: string): Promise<LanguageImportJob | undefined> {
     const jobQuery = await query<LanguageImportJob>(
         `
         SELECT "startDate", "endDate", succeeded FROM "LanguageImportJob" AS j
