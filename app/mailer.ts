@@ -1,9 +1,5 @@
 import { createTransport, SendMailOptions } from 'nodemailer';
-import { query } from './db';
-
-if (!process.env['EMAIL_SERVER'] && process.env.NODE_ENV === 'production') {
-  throw new Error('missing EMAIL_SERVER environment variable');
-}
+import { query } from '@/shared/db';
 
 const transporter = process.env['EMAIL_SERVER']
   ? createTransport({

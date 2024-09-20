@@ -3,7 +3,7 @@
 import * as z from 'zod';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
-import { query } from '@/app/db';
+import { query } from '@/shared/db';
 import { parseForm } from '@/app/form-parser';
 import mailer from '@/app/mailer';
 import { Scrypt } from 'oslo/password';

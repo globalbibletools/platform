@@ -15,7 +15,7 @@ import { useSWRConfig } from "swr";
 import { useParams } from "next/navigation";
 
 export interface TranslateWordProps {
-    word: { id: string, text: string, referenceGloss?: string, suggestions: string[], machineGloss?: string }
+    word: { id: string, text: string, referenceGloss?: string, suggestions: string[], machineSuggestion?: string }
     phrase: { id: number, wordIds: string[], gloss?: { text: string, state: string }, translatorNote?: { authorName: string, timestamp: string, content: string }, footnote?: { authorName: string, timestamp: string, content: string } }
     language: {
         font: string
@@ -47,29 +47,26 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
         (!isRichTextEmpty(phrase.translatorNote?.content ?? '') && canViewTranslatorNotes)
     const dir = 'ltr'
 
-    const hasMachineSuggestions = false
+
     const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
+    const hasMachineSuggestion =
+          !isMultiWord &&
+         !phrase.gloss?.text &&
+         word.suggestions.length === 0 &&
+         !!word.machineSuggestion
     const glossValue =
         phrase?.gloss?.text ||
         (isMultiWord
             ? undefined
-            : word.suggestions[0] || word.machineGloss);
+            : word.suggestions[0] || word.machineSuggestion);
     const [currentInputValue, setCurrentInputValue] = useState(
         glossValue ?? ''
     );
 
     const { locale, code } = useParams<{ locale: string, code: string }>()
-    const [_, updateAction, saving] = useFormState(async (prevState: any, formData: FormData) => {
-        const response = await updateGloss(prevState, formData)
-        mutate({
-            type: 'book-progress',
-            bookId: parseInt(word.id.slice(0, 2)),
-            locale,
-            code
-        })
-        return response
-    }, {})
+    const [saving, setSaving] = useState(false)
     async function onChange(change: { state?: string; gloss?: string }) {
+        setSaving(true)
         const formData = new FormData()
         formData.set('phraseId', phrase.id.toString())
         if (typeof change.state === 'string') {
@@ -78,7 +75,15 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
         if (typeof change.gloss === 'string') {
             formData.set('gloss', change.gloss)
         }
-        updateAction(formData)
+        // TODO: handle errors in this result
+        const _result = await updateGloss(formData)
+        mutate({
+            type: 'book-progress',
+            bookId: parseInt(word.id.slice(0, 2)),
+            locale,
+            code
+        })
+        setSaving(false)
     }
 
     let status: 'empty' | 'saving' | 'saved' | 'approved' = 'empty';
@@ -104,10 +109,10 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                 refGloss.current?.clientWidth ?? 0,
                 // The extra 24 pixels accommodates the google icon
                 // The extra 48 pixels accommodates the approval button
-                glossWidth + (hasMachineSuggestions ? 24 : 0) + 44
+                glossWidth + (hasMachineSuggestion ? 24 : 0) + 44
             )
         );
-    }, [hasNote, glossWidth, hasMachineSuggestions, isMultiWord]);
+    }, [hasNote, glossWidth, hasMachineSuggestion, isMultiWord]);
 
     return <li
         key={word.id}
@@ -169,7 +174,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                     className="text-gray-600 dark:text-gray-400"
                 />
             ) : (
-                <Checkbox
+                editable && <Checkbox
                     className="invisible group-hover/word:visible group-focus-within/word:visible [&:has(:checked)]:visible"
                     aria-label="word selected"
                     tabIndex={-1}
@@ -211,6 +216,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                                 className="!bg-green-600 w-9"
                                 tabIndex={-1}
                                 title={t('approve_tooltip') ?? ''}
+                                disabled={saving}
                                 onClick={(e: MouseEvent) => {
                                     e.stopPropagation();
                                     if (status === 'saved') {
@@ -229,6 +235,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                                 className="!bg-red-600 w-9"
                                 tabIndex={-1}
                                 title={t('revoke_tooltip') ?? ''}
+                                disabled={saving}
                                 onClick={(e: MouseEvent) => {
                                     e.stopPropagation();
                                     onChange({ state: 'UNAPPROVED' });
@@ -240,12 +247,6 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                         )}
                     </div>
                     <div className="relative grow">
-                        {hasMachineSuggestions && (
-                            <Icon
-                                className={`absolute top-1/2 -translate-y-1/2 ${isHebrew ? 'left-3' : 'right-3'}`}
-                                icon={['fab', 'google']}
-                            />
-                        )}
                         <AutocompleteInput
                             className={`w-full ${isHebrew ? 'text-right' : 'text-left'}`}
                             style={{
@@ -257,7 +258,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                             renderOption={(item, i) => (
                                 <div
                                     className={
-                                        word.machineGloss
+                                        word.machineSuggestion
                                             ? `relative ${isHebrew ? 'pl-5' : 'pr-5'}`
                                             : ''
                                     }
@@ -325,12 +326,18 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                             }}
                             onFocus={() => onFocus?.()}
                             suggestions={
-                                word.machineGloss
-                                    ? [...word.suggestions, word.machineGloss]
+                                word.machineSuggestion
+                                    ? [...word.suggestions, word.machineSuggestion]
                                     : word.suggestions
                             }
                             ref={input}
                         />
+                        {hasMachineSuggestion && (
+                            <Icon
+                                className={`absolute top-1/2 -translate-y-1/2 ${isHebrew ? 'left-3' : 'right-3'}`}
+                                icon={['fab', 'google']}
+                            />
+                        )}
                     </div>
                 </div>
                 <div

@@ -1,16 +1,15 @@
 import FormLabel from "@/app/components/FormLabel";
 import TextInput from "@/app/components/TextInput";
 import ViewTitle from "@/app/components/ViewTitle";
-import { query } from "@/app/db";
 import { verifySession } from "@/app/session";
 import { ResolvingMetadata, Metadata } from "next";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import FieldError from "@/app/components/FieldError";
 import Button from "@/app/components/Button";
 import { notFound } from "next/navigation";
-import Form, { FormState } from "@/app/components/Form";
-import { revalidatePath } from "next/cache";
+import Form from "@/app/components/Form";
 import updateProfile from "./actions";
+import { query } from "@/shared/db";
 
 export async function generateMetadata(
   _: any,

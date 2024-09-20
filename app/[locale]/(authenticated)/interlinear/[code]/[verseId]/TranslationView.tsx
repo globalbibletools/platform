@@ -14,6 +14,7 @@ interface Word {
     lemma: string,
     grammar: string,
     resource?: { name: string, entry: string }
+    machineSuggestion?: string
 }
 interface Phrase {
     id: number,

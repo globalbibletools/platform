@@ -2,7 +2,7 @@
 
 import * as z from 'zod';
 import {getLocale, getTranslations } from 'next-intl/server';
-import { query, transaction } from '@/app/db';
+import { query, transaction } from '@/shared/db';
 import { parseForm } from '@/app/form-parser';
 import { revalidatePath } from 'next/cache';
 import { verifySession } from '@/app/session';

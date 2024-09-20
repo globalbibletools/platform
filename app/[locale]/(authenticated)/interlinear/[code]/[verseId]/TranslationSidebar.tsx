@@ -56,10 +56,6 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
     const canReadTranslatorNotes = language.roles.includes('VIEWER')
     const canEditNotes = language.roles.includes('TRANSLATOR')
 
-    // These two are difficult to handle until React 19, Next 15
-    const isSavingTranslatorNote = false
-    const isSavingFootnote = false
-
     const [tabIndex, setTabIndex] = useState(0)
 
     const [translatorNoteContent, setTranslatorNoteContent] = useState('');
@@ -84,40 +80,44 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
       },
     }));
 
-    const [footnoteState, saveFootnoteAction] = useFormState(updateFootnote, {})
+    const [isSavingFootnote, setSavingFootnote] = useState(false)
     const saveFootnote = useMemo(
       () =>
         throttle(
-          (note: string) => {
+          async (note: string) => {
             if (phrase.id) {
+                setSavingFootnote(true)
                 const form = new FormData()
                 form.set('phraseId', phrase.id.toString())
                 form.set('note', note)
-                saveFootnoteAction(form)
+                await updateFootnote(form)
+                setSavingFootnote(false)
             }
           },
           5000,
           { leading: false, trailing: true }
         ),
-      [phrase.id, saveFootnoteAction]
+      [phrase.id]
     );
 
-    const [translatorNoteState, saveTranslatorNoteAction] = useFormState(updateTranslatorNote, {})
+    const [isSavingTranslatorNote, setSavingTranslatorNote] = useState(false)
     const saveTranslatorNote = useMemo(
       () =>
         throttle(
-          (note: string) => {
+          async (note: string) => {
             if (phrase.id) {
+                setSavingTranslatorNote(true)
                 const form = new FormData()
                 form.set('phraseId', phrase.id.toString())
                 form.set('note', note)
-                saveTranslatorNoteAction(form)
+                await updateTranslatorNote(form)
+                setSavingTranslatorNote(false)
             }
           },
           5000,
           { leading: false, trailing: true }
         ),
-      [phrase.id, saveTranslatorNoteAction]
+      [phrase.id]
     );
 
     const lexiconEntryRef = useRef<HTMLDivElement>(null);

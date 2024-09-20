@@ -7,7 +7,7 @@ import { verifySession } from "@/app/session";
 import { notFound, redirect, RedirectType } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
-import { query } from "@/app/db";
+import { query } from "@/shared/db";
 import { resetPassword } from "./actions";
 import Form from "@/app/components/Form";
 

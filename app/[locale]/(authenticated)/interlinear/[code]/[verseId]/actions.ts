@@ -1,6 +1,6 @@
 "use server";
 
-import { query, transaction } from '@/app/db';
+import { query, transaction } from '@/shared/db';
 import { parseForm } from '@/app/form-parser';
 import { verifySession } from '@/app/session';
 import { bookKeys } from '@/data/book-keys';
@@ -17,7 +17,7 @@ const updateGlossSchema = z.object({
     gloss: z.string().optional()
 })
 
-export async function updateGloss(prevState: any, formData: FormData): Promise<any> {
+export async function updateGloss(formData: FormData): Promise<any> {
     const session = await verifySession()
     if (!session?.user) {
         notFound()
@@ -95,7 +95,7 @@ const updateTranslatorNoteSchema = z.object({
     note: z.string()
 })
 
-export async function updateTranslatorNote(prevState: any, formData: FormData): Promise<any> {
+export async function updateTranslatorNote(formData: FormData): Promise<any> {
     const session = await verifySession()
     if (!session?.user) {
         notFound()
@@ -154,7 +154,7 @@ const updateFootnoteSchema = z.object({
     note: z.string()
 })
 
-export async function updateFootnote(prevState: any, formData: FormData): Promise<any> {
+export async function updateFootnote(formData: FormData): Promise<any> {
     const session = await verifySession()
     if (!session?.user) {
         notFound()

@@ -1,6 +1,6 @@
 "use server";
 
-import { query } from "@/app/db";
+import { query } from "@/shared/db";
 import { randomBytes } from "crypto";
 import { cookies } from "next/headers";
 import { cache } from "react";

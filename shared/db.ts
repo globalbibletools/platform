@@ -6,14 +6,14 @@ if (!connectionString) {
     throw new Error('DATABASE_URL env var missing');
 }
  
-const pool = new Pool({ connectionString })
+const pool = new Pool({ connectionString, max: 20 })
 
 async function _query<T extends QueryResultRow>(client: pg.Pool | pg.PoolClient, text: string, params: any): Promise<QueryResult<T>> {
   const start = performance.now()
   const result = await client.query<T>(text, params)
   const duration = performance.now() - start
   if (process.env.LOG_DB_QUERIES === 'true') {
-      console.log(`QUERY ${duration.toFixed(0)}ms ${text.replaceAll(/\s+/g, ' ').slice(0, 100)} params: ${JSON.stringify(params)}`)
+      console.log(`QUERY ${duration.toFixed(0)}ms ${text.replaceAll(/\s+/g, ' ').slice(0, 100)}`)
   }
   return result
 }
@@ -36,4 +36,8 @@ export async function transaction<T>(tx: (q: typeof query) => Promise<T>): Promi
     } finally {
         client.release()
     }
+}
+
+export async function close() {
+    await pool.end()
 }
