@@ -77,6 +77,11 @@
             "log_in": "Log In"
         }
     },
+    "Flash": {
+        "close": "Close",
+        "success": "Success",
+        "error": "Error"
+    },
     "ForgotPasswordPage": {
         "title": "Forgot Password",
         "form": {

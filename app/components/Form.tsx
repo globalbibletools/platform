@@ -1,6 +1,7 @@
 "use client";
 import { createContext, ReactNode, useContext, useEffect } from 'react';
 import { useFormState } from 'react-dom'
+import { useFlash } from '../flash';
 
 export type FormState =
     | { state: 'idle' }
@@ -16,13 +17,15 @@ export interface FormProps {
 export default function Form({ className = '', children, action }: FormProps) {
     const [state, formAction] = useFormState(action, { state: 'idle' })
 
+    const flash = useFlash()
+
     useEffect(() => {
         if (state.state === 'error' && state.error) {
-            alert(`ERROR: ${state.error}`)
+            flash.error(state.error)
         } else if (state.state === 'success' && state.message) {
-            alert(state.message)
+            flash.success(state.message)
         }
-    }, [state])
+    }, [state, flash])
 
     return <form className={className} action={formAction}>
         <FormContext.Provider value={state}>
