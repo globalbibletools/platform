@@ -10,12 +10,12 @@ export interface PollerProps {
 export default function Poller({ code }: PollerProps) {
     const router = useRouter()
 
-    const { data } = useSWR(['import-progress', code], async ([,code]) => {
+    const { data } = useSWR(['import-progress', code], async () => {
         const response = await fetch('./import/progress')
         const body = await response.json()
         return body as { done: boolean }
     }, {
-        refreshInterval: 1000
+        refreshInterval: 15000
     })
 
     if (data?.done) {
