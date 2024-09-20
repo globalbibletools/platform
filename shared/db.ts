@@ -13,7 +13,7 @@ async function _query<T extends QueryResultRow>(client: pg.Pool | pg.PoolClient,
   const result = await client.query<T>(text, params)
   const duration = performance.now() - start
   if (process.env.LOG_DB_QUERIES === 'true') {
-      console.log(`QUERY ${duration.toFixed(0)}ms ${text.replaceAll(/\s+/g, ' ').slice(0, 100)} params: ${JSON.stringify(params)}`)
+      console.log(`QUERY ${duration.toFixed(0)}ms ${text.replaceAll(/\s+/g, ' ').slice(0, 100)}`)
   }
   return result
 }
