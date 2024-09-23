@@ -7,6 +7,7 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 import "../globals.css";
 import { headFontClass } from "../fonts";
 import languages from "../../languages.json";
+import { FlashProvider } from "../flash";
  
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("RootLayout")
@@ -39,10 +40,13 @@ export default function RootLayout({
             messages={{
                 DocumentTitle: messages.DocumentTitle,
                 Error: messages.Error,
-                ModalView: messages.ModalView // Needed for public error page
+                ModalView: messages.ModalView, // Needed for public error page
+                Flash: messages.Flash
             }}
         >
-            {children}
+            <FlashProvider>
+                {children}
+            </FlashProvider>
         </NextIntlClientProvider>
       </body>
     </html>
