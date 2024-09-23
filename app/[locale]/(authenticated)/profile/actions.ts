@@ -1,13 +1,13 @@
 "use server";
 
 import * as z from "zod";
-import { query } from "@/app/db";
 import { Scrypt } from "oslo/password";
 import { getLocale, getTranslations } from "next-intl/server";
 import { FormState } from "@/app/components/Form";
 import { revalidatePath } from "next/cache";
 import { parseForm } from "@/app/form-parser";
 import mailer from "@/app/mailer";
+import { query } from "@/shared/db";
 
 const scrypt = new Scrypt();
 
