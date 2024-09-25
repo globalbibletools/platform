@@ -213,6 +213,25 @@
             "submit": "Add"
         }
     },
+    "ProfileView": {
+        "form": {
+            "confirm_password": "Confirm Password",
+            "email": "Email",
+            "name": "Name",
+            "password": "Password",
+            "submit": "Update"
+        },
+        "errors": {
+            "email_required": "Please enter your email.",
+            "email_format": "Please enter a valid email.",
+            "name_required": "Please input your name",
+            "password_confirmation": "Your password confirmation does not match.",
+            "password_format": "Your password should be at least 8 characters."
+        },
+        "profile_updated": "Profile updated successfully!",
+        "title": "Profile",
+        "update_profile": "Update Profile"
+    },
     "ResetPasswordPage": {
         "title": "Reset Password",
         "form": {
