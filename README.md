@@ -1,27 +1,40 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## Docker
+
+Both the database and dev server can be run from a docker container using the command:
+```bash
+docker compose up
+```
+
+If you want to reset the database and rebuild from scratch, run:
+```bash
+docker compose down
+docker volume rm platform_db-data
+```
+
 ## Database
 
 ### Set up database
 
 Restore the database schema:
 ```bash
-pg_restore --dbname=DATABASE_URL data/schema.sql
+psql DATABASE_URL db/schema.sql
 ```
 
 Restore the database seed data:
 ```bash
-pg_restore -Fc --format=custom --dbname=DATABASE_URL data/seed.dump
+pg_restore -Fc --format=custom --dbname=DATABASE_URL db/data.dump
 ```
 
 Export the latest database schema:
 ```bash
-pg_dump --exclude-table _prisma_migrations DATABASE_URL > data/schema.sql
+pg_dump --exclude-table _prisma_migrations DATABASE_URL > db/schema.sql
 ```
 
 Export the latest database seed data:
 ```bash
-pg_dump -Fc --data-only --exclude-table _prisma_migrations DATABASE_URL > data/seed.dump
+pg_dump -Fc --data-only --exclude-table _prisma_migrations DATABASE_URL > db/data.dump
 ```
 
 ## Getting Started

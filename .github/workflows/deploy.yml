@@ -35,6 +35,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
+          target: runner
           push: true
           tags: ${{ steps.login-ecr.outputs.registry }}/globalbibletools-platform:${{ steps.get-commit-hash.outputs.commit-hash }}
           secrets: |
