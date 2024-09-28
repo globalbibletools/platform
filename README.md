@@ -1,5 +1,29 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## Database
+
+### Set up database
+
+Restore the database schema:
+```bash
+pg_restore --dbname=DATABASE_URL data/schema.sql
+```
+
+Restore the database seed data:
+```bash
+pg_restore -Fc --format=custom --dbname=DATABASE_URL data/seed.dump
+```
+
+Export the latest database schema:
+```bash
+pg_dump --exclude-table _prisma_migrations DATABASE_URL > data/schema.sql
+```
+
+Export the latest database seed data:
+```bash
+pg_dump -Fc --data-only --exclude-table _prisma_migrations DATABASE_URL > data/seed.dump
+```
+
 ## Getting Started
 
 First, run the development server:
