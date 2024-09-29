@@ -35,7 +35,7 @@ export default function RootLayout({
         lang={params.locale}
         dir={language.dir}
     >
-      <body>
+      <body className="dark:bg-gray-800 dark:text-gray-200">
         <NextIntlClientProvider
             messages={{
                 DocumentTitle: messages.DocumentTitle,
