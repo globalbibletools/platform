@@ -1,0 +1,40 @@
+services:
+  server:
+    build:
+      context: .
+      target: dev
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
+    volumes:
+      - ./:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - 3000:3000
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    user: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./db/docker-initdb.sh:/docker-entrypoint-initdb.d/docker-initdb.sh
+      - ./db:/db
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=asdfasdf
+    expose:
+      - 5432
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  db-data:

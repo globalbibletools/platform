@@ -65,6 +65,7 @@ interface CurrentLanguage {
     name: string
     font: string
     textDirection: string
+    translationIds: string[]
     roles: string[]
 }
 
@@ -73,7 +74,7 @@ export async function fetchCurrentLanguage(code: string, userId?: string): Promi
     const result = await query<CurrentLanguage>(
         `
         SELECT
-            code, name, font, "textDirection",
+            code, name, font, "textDirection", "bibleTranslationIds" AS "translationIds",
             (
                 SELECT COALESCE(JSON_AGG(r."role"), '[]') FROM "LanguageMemberRole" AS r
                 WHERE r."languageId" = l.id

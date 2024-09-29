@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import TranslateWord from "./TranslateWord"
 import TranslationSidebar, { TranslationSidebarRef } from "./TranslationSidebar";
 import { useTranslationClientState } from "../TranslationClientState";
+import TranslationReference from "./TranslationReference";
 
 interface Word {
     id: string,
@@ -32,6 +33,7 @@ export interface TranslationViewProps {
         code: string
         font: string
         textDirection: string
+        translationIds: string[]
         roles: string[]
     }
 }
@@ -93,6 +95,10 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
 
     return <div ref={root} className="flex flex-col flex-grow w-full min-h-0 lg:flex-row">
         <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-10 px-6">
+            <TranslationReference
+                verseId={verseId}
+                language={language}
+            />
             <ol
                 className={`
                         flex h-fit content-start flex-wrap gap-x-2 gap-y-4
