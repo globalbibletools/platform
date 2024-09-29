@@ -55,7 +55,7 @@ export default async function AuthenticatedLayout({ children, params }: { childr
                 className="h-full px-2 text-center block pt-[28px] md:pt-[30px] font-bold md:mx-2 border-b-4"
             >Log In</Link>}
         </nav>
-        <div className="flex-grow relative flex flex-col max-w-[1800px] mx-auto w-full">
+        <div className="flex-grow relative flex flex-col w-full">
             {children}
         </div>
         <footer className="absolute bottom-0 w-full p-2 flex flex-row z-10 justify-end">
