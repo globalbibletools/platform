@@ -18,6 +18,7 @@ services:
   db:
     image: postgres
     restart: always
+    shm_size: 128mb
     user: postgres
     volumes:
       - db-data:/var/lib/postgresql/data
