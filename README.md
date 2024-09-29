@@ -7,7 +7,7 @@ Both the database and dev server can be run from a docker container using the co
 docker compose up
 ```
 
-If you want to reset the database and rebuild from scratch, run:
+To reset the database and rebuild from scratch, run:
 ```bash
 docker compose down
 docker volume rm platform_db-data
@@ -35,6 +35,15 @@ pg_dump --exclude-table _prisma_migrations DATABASE_URL > db/schema.sql
 Export the latest database seed data:
 ```bash
 pg_dump -Fc --data-only --exclude-table _prisma_migrations DATABASE_URL > db/data.dump
+```
+
+### Migrations
+
+Migrations are stored in `db/migrations` in order. The files are named with a timestamp and a description.
+We will run these manually in production as needed.
+
+```bash
+psql DATABASE_URL db/migrations/{migration}.sql
 ```
 
 ## Getting Started
