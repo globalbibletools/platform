@@ -5,6 +5,7 @@ import { Fragment, MouseEvent, useEffect, useRef, useState } from "react";
 import { useFloating, autoUpdate } from '@floating-ui/react-dom';
 import { createPortal } from "react-dom";
 import ReadingSidebar, { ReadingSidebarRef } from "./ReadingSidebar";
+import { useReadingClientState } from "../ReadingClientState";
 
 interface VerseWord {
     id: string
@@ -37,6 +38,22 @@ export interface ReadingViewProps {
     verses: Verse[]
 }
 
+const textSizeMap: Record<number, string> = {
+    1: 'text-xs',
+    2: 'text-sm',
+    3: 'text-base',
+    4: 'text-lg',
+    5: 'text-xl',
+    6: 'text-2xl',
+    7: 'text-3xl',
+    8: 'text-4xl',
+    9: 'text-5xl',
+    10: 'text-6xl',
+    11: 'text-7xl',
+    12: 'text-8xl',
+    13: 'text-9xl',
+}
+
 export default function ReadingView({ chapterId, language, verses }: ReadingViewProps) {
     const isOT = isOldTestament(chapterId + '001');
 
@@ -51,12 +68,16 @@ export default function ReadingView({ chapterId, language, verses }: ReadingView
 
     const sidebarRef = useRef<ReadingSidebarRef>(null)
 
+    const { textSize } = useReadingClientState()
+
     return <>
-        <div className="flex flex-col flex-grow justify-center w-full min-h-0 lg:flex-row">
+        <div className="flex flex-col flex-grow lg:justify-center w-full min-h-0 lg:flex-row">
             <div
                 className={`
                     max-h-full min-h-0 overflow-auto pt-8 pb-10 px-6
                     font-mixed max-w-[960px] leading-loose
+                    ${textSizeMap[textSize]}
+
                     ${isOT ? 'text-right' : 'text-left'}
                 `}
                 dir={isOT ? 'rtl' : 'ltr'}

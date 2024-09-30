@@ -9,6 +9,8 @@ import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { bookFirstChapterId, bookLastChapterId, decrementChapterId, incrementChapterId } from "@/app/verse-utils";
+import { useReadingClientState } from "./ReadingClientState";
+import SliderInput from "@/app/components/SliderInput";
 
 export interface TranslationToolbarProps {
     languages: { name: string; code: string }[];
@@ -54,6 +56,8 @@ export default function ReadingToolbar({
     function onSelectChapter(e: FormEvent) {
     }
 
+    const { textSize, setTextSize } = useReadingClientState()
+
     return (
         <div>
             <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-500 px-6 md:px-8 py-4">
@@ -91,7 +95,7 @@ export default function ReadingToolbar({
                         </div>
                     </div>
                 </form>
-                <div className="me-2">
+                <div className="me-16">
                     <FormLabel htmlFor="target-language">{t("language")}</FormLabel>
                     <ComboboxInput
                         id="target-language"
@@ -101,6 +105,20 @@ export default function ReadingToolbar({
                         className="w-40"
                         autoComplete="off"
                     />
+                </div>
+                <div className="me-2">
+                    <FormLabel htmlFor="text-size">{t("text_size")}</FormLabel>
+                    <div className="h-[34px] flex items-center">
+                    <SliderInput
+                        id="text-size"
+                        className="w-40"
+                        min={1}
+                        max={10}
+                        step={1}
+                        value={textSize}
+                        onChange={(e) => setTextSize(e.target.valueAsNumber)}
+                    />
+                    </div>
                 </div>
             </div>
         </div>

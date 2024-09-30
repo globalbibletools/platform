@@ -3,7 +3,8 @@ import { getMessages } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { ReactNode } from "react"
 import ReadingToolbar from "./ReadingToolbar"
-import {  NextIntlClientProvider } from "next-intl"
+import { NextIntlClientProvider } from "next-intl"
+import { ReadingClientStateProvider } from "./ReadingClientState"
 
 interface Props {
     children: ReactNode
@@ -22,13 +23,14 @@ export default async function InterlinearLayout({ children, params }: Props) {
     }
 
     return <div className={`absolute w-full h-full flex flex-col flex-grow`}>
-        <NextIntlClientProvider messages={{ ReadingToolbar: messages.ReadingToolbar }}>
-            <ReadingToolbar
-                languages={languages}
-                currentLanguage={currentLanguage}
-            />
-        </NextIntlClientProvider>
-        {children}
+        <ReadingClientStateProvider>
+            <NextIntlClientProvider messages={{ ReadingToolbar: messages.ReadingToolbar }}>
+                <ReadingToolbar
+                    languages={languages}
+                />
+            </NextIntlClientProvider>
+            {children}
+        </ReadingClientStateProvider>
     </div>
 
 }
