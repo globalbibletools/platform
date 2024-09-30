@@ -5,7 +5,7 @@ import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { useTranslations } from 'next-intl';
 import { fontMap } from '@/app/fonts';
 import { useFormState } from 'react-dom';
-import { loadVersesPreview } from './actions';
+// import { loadVersesPreview } from './actions';
 
 type VersesPreviewProps = {
   language: { font: string, textDirection: string, code: string };
@@ -18,6 +18,8 @@ export const VersesPreview = ({
   verseIds,
   onClose,
 }: VersesPreviewProps) => {
+    return null
+    /*
   const t = useTranslations("VersesPreview");
   let title = '';
   let isValid = false;
@@ -98,4 +100,5 @@ export const VersesPreview = ({
         ))}
     </div>
   );
+  */
 };

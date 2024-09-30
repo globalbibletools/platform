@@ -8,10 +8,10 @@ import DOMPurify from "isomorphic-dompurify";
 import { throttle } from "lodash";
 import { useTranslations } from "next-intl";
 import { forwardRef, Fragment, memo, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { createPortal, useFormState } from "react-dom";
+import { createPortal } from "react-dom";
 import { updateFootnote, updateTranslatorNote } from "./actions";
 import { parseReferenceRange } from "@/app/verse-utils";
-import { VersesPreview } from "./VersesPreview";
+import { VersesPreview } from "@/app/components/VersesPreview";
 
 export interface Word {
     id: string

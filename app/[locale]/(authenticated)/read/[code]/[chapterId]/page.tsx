@@ -15,6 +15,7 @@ export default async function ReadingPage({ params }: ReadingPageProps) {
     const chapterVerses = await fetchChapterVerses(bookId, chapterNumber, params.code)
 
     return <NextIntlClientProvider messages={{
+        ReadingSidebar: messages.ReadingSidebar
     }}>
         <ReadingView
             chapterId={params.chapterId}
@@ -44,7 +45,11 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
             'id', w.id,
             'text', w.text,
             'gloss', g.gloss,
-            'linkedWords', ph.linked_words
+            'linkedWords', ph.linked_words,
+            'footnote', fn.content,
+            'lemma', lf."lemmaId",
+            'grammar', lf."grammar",
+            'resource', lemma_resource.resource
           )) ORDER BY w.id) AS words
         FROM "Verse" AS v
         JOIN "Word" AS w ON w."verseId" = v.id
@@ -62,6 +67,22 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
             AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $3)
         ) AS ph ON true
         LEFT JOIN "Gloss" AS g ON g."phraseId" = ph.id AND g.state = 'APPROVED'
+        LEFT JOIN "Footnote" AS fn ON fn."phraseId" = ph.id
+        JOIN "LemmaForm" AS lf ON lf.id = w."formId"
+        LEFT JOIN LATERAL (
+            SELECT
+                CASE
+                    WHEN lr."resourceCode" IS NOT NULL
+                    THEN JSON_BUILD_OBJECT(
+                      'name', lr."resourceCode",
+                      'entry', lr.content
+                    )
+                    ELSE NULL
+                END AS resource
+            FROM "LemmaResource" AS lr
+            WHERE lr."lemmaId" = lf."lemmaId"
+            LIMIT 1
+        ) AS lemma_resource ON true
         WHERE v."bookId" = $1 AND v.chapter = $2
         GROUP BY v.id
         `,

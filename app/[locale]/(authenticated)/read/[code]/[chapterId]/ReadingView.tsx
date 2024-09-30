@@ -1,15 +1,23 @@
 "use client";
 
 import { isOldTestament } from "@/app/verse-utils";
-import { Fragment, MouseEvent, useEffect, useState } from "react";
+import { Fragment, MouseEvent, useEffect, useRef, useState } from "react";
 import { useFloating, autoUpdate } from '@floating-ui/react-dom';
 import { createPortal } from "react-dom";
+import ReadingSidebar, { ReadingSidebarRef } from "./ReadingSidebar";
 
 interface VerseWord {
     id: string
     text: string
     gloss?: string
     linkedWords?: string[]
+    lemma: string
+    grammar: string
+    resource?: {
+        name: string
+        entry: string
+    }
+    footnote?: string
 }
 
 interface Verse {
@@ -17,58 +25,86 @@ interface Verse {
     words: VerseWord[]
 }
 
+interface Language {
+    font: string,
+    textDirection: string
+}
+
 export interface ReadingViewProps {
     chapterId: string
+    language: Language
     verses: Verse[]
 }
 
-export default function ReadingView({ chapterId, verses }: ReadingViewProps) {
+export default function ReadingView({ chapterId, language, verses }: ReadingViewProps) {
     const isOT = isOldTestament(chapterId + '001');
 
     const popover = usePopover();
     const linkedWords = popover.selectedWord?.word.linkedWords ?? [];
 
+    const [showSidebar, setShowSidebar] = useState(false)
+    const [sidebarWord, setSidebarWord] = useState(verses[0].words[0])
+    useEffect(() => {
+        setSidebarWord(verses[0].words[0])
+    }, [verses])
+
+    const sidebarRef = useRef<ReadingSidebarRef>(null)
+
     return <>
-        <div className="flex flex-col flex-grow w-full min-h-0 lg:flex-row">
-            <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-10 px-6">
-                <div
-                    className={`font-mixed mx-auto max-w-[960px] leading-loose ${isOT ? 'text-right' : 'text-left'
-                        }`}
-                    dir={isOT ? 'rtl' : 'ltr'}
-                >
-                    {verses.flatMap((verse) => {
-                        const words = verse.words.map((word, i) => (
-                            <Fragment key={word.id}>
-                                <span
-                                    className={`
-                                        ${i === verse.words.length - 1 ? 'me-1' : ''}
-                                        ${(linkedWords.length > 0 &&
-                                            popover.selectedWord?.word.id === word.id) ||
-                                            linkedWords.includes(word.id)
-                                            ? 'bg-green-200 dark:bg-gray-600 rounded-sm'
-                                            : ''
-                                        }
-                                    `}
-                                    onClick={(e) => popover.onWordClick(e, word)}
-                                    onMouseEnter={(e) =>
-                                        popover.onWordMouseEnter(e, word)
+        <div className="flex flex-col flex-grow justify-center w-full min-h-0 lg:flex-row">
+            <div
+                className={`
+                    max-h-full min-h-0 overflow-auto pt-8 pb-10 px-6
+                    font-mixed max-w-[960px] leading-loose
+                    ${isOT ? 'text-right' : 'text-left'}
+                `}
+                dir={isOT ? 'rtl' : 'ltr'}
+            >
+                {verses.flatMap((verse) => {
+                    const words = verse.words.map((word, i) => (
+                        <Fragment key={word.id}>
+                            <span
+                                className={`
+                                    ${i === verse.words.length - 1 ? 'me-1' : ''}
+                                    ${(linkedWords.length > 0 &&
+                                        popover.selectedWord?.word.id === word.id) ||
+                                        linkedWords.includes(word.id)
+                                        ? 'bg-green-200 dark:bg-gray-600 rounded-sm'
+                                        : ''
                                     }
-                                    onMouseLeave={(e) => popover.onWordMouseLeave(e)}
-                                >
-                                    {word.text}
-                                </span>
-                                {!word.text.endsWith('־') && ' '}
-                            </Fragment>
-                        ));
-                        words.unshift(
-                            <span className={'font-sans text-xs'}>
-                                {verse.number}&nbsp;
+                                `}
+                                onClick={(e) => {
+                                    // popover.onWordClick(e, word)
+                                    setSidebarWord(word)
+                                    setShowSidebar(true)
+                                }}
+                                onMouseEnter={(e) =>
+                                    popover.onWordMouseEnter(e, word)
+                                }
+                                onMouseLeave={(e) => popover.onWordMouseLeave(e)}
+                            >
+                                {word.text}
                             </span>
-                        );
-                        return words;
-                    })}
-                </div>
+                            {!word.text.endsWith('־') && ' '}
+                        </Fragment>
+                    ));
+                    words.unshift(
+                        <span className={'font-sans text-xs'}>
+                            {verse.number}&nbsp;
+                        </span>
+                    );
+                    return words;
+                })}
             </div>
+            {showSidebar && (
+                <ReadingSidebar
+                    ref={sidebarRef}
+                    language={language}
+                    word={sidebarWord}
+                    className="h-[320px] lg:h-auto lg:w-1/3 lg:min-w-[320px] lg:max-w-[480px] mt-8 mb-10 mx-6 lg:ms-0 lg:me-8"
+                    onClose={() => setShowSidebar(false)}
+                />
+            )}
         </div>
         {popover.selectedWord &&
             createPortal(
