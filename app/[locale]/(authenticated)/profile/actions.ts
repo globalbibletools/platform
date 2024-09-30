@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { parseForm } from "@/app/form-parser";
 import mailer from "@/app/mailer";
 import { query } from "@/shared/db";
+import { randomBytes } from "crypto";
 
 const scrypt = new Scrypt();
 
@@ -21,6 +22,8 @@ const profileValidationSchema = z
   .refine((data) => data.password === data.confirm_password, {
     path: ["confirm_password"],
   });
+
+const EMAIL_VERIFICATION_EXPIRES = 60 * 60 * 1000; // 1 hour
 
 export default async function updateProfile(
   _prevState: FormState,
@@ -53,12 +56,20 @@ export default async function updateProfile(
   }
 
   if(parsedData.email && parsedData.email !== parsedData.prev_email){
-    const url = "https://foobarbaz.com";
+    const token = randomBytes(12).toString('hex');
+    await query(
+      `INSERT INTO "UserEmailVerification"
+          ("userId", "token", "email", "expires") 
+          VALUES ($1, $2, $3, $4)
+      `, 
+      [parsedData.user_id, token, parsedData.email, Date.now() + EMAIL_VERIFICATION_EXPIRES]
+    );
+    const url = `${process.env.ORIGIN}/verify-email?token=${token}`;
     await mailer.sendEmail({
       email: parsedData.email,
       subject: 'Email Verification',
       text: `Please click the link to verify your new email \n\n${url.toString()}`,
-      html: `<a href="${url.toString()}">Click here<a/> to verify your new email.`,
+      html: `<a href="${url.toString()}">Click here</a> to verify your new email.`,
     })
   }
 
