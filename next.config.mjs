@@ -23,8 +23,13 @@ const nextConfig = {
     async redirects() {
         return [
             {
+                source: '/:locale(\\w{2})/interlinear/:rest*',
+                destination: '/:locale/translate/:rest*',
+                permanent: true
+            },
+            {
                 source: '/:locale(\\w{2})',
-                destination: '/:locale/interlinear',
+                destination: '/:locale/translate',
                 permanent: false
             },
             {

@@ -12,23 +12,20 @@ interface Props {
     params: { code: string }
 }
 
-interface VerseQueryResult {
-    verse: { bookId: number, chapter: number, number: number }
-    prevVerse?: string
-    nextVerse?: string
-}
-
 export default async function InterlinearLayout({ children, params }: Props) {
     const messages = await getMessages()
-    const locale = await getLocale()
 
     const session = await verifySession()
+    if (!session) {
+        notFound()
+    }
+    const isAdmin = session.user.roles.includes('ADMIN')
 
     const [languages, currentLanguage] = await Promise.all([
         fetchLanguages(),
         fetchCurrentLanguage(params.code, session?.user.id)
     ])
-    if (!currentLanguage) {
+    if (!currentLanguage || (!isAdmin && currentLanguage.roles.length === 0)) {
         notFound()
     }
 

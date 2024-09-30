@@ -62,7 +62,8 @@
     "AuthenticatedLayout": {
         "app_name": "Global Bible Tools",
         "links": {
-            "interlinear": "Interlinear",
+            "translate": "Translate",
+            "read": "Read",
             "admin": "Admin",
             "profile": "Profile",
             "log_out": "Log Out"

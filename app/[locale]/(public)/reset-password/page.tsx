@@ -33,7 +33,7 @@ export default async function ResetPasswordPage({
 
   const session = await verifySession();
   if (session) {
-    redirect(`/${locale}/interlinear`, RedirectType.replace);
+    redirect(`/${locale}/translate`, RedirectType.replace);
   }
 
   if (!searchParams.token) {

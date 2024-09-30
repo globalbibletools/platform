@@ -8,7 +8,7 @@ export default function Redirect() {
     if (lastVisited) {
         const [code, chapterId] = lastVisited.split(',')
         if (code && chapterId) {
-            redirect(`./interlinear/${code}/${chapterId}`)
+            redirect(`./translate/${code}/${chapterId}`)
         }
     }
 

@@ -81,5 +81,5 @@ export async function resetPassword(_prevState: FormState, formData: FormData): 
     ]);
 
     const locale = await getLocale()
-    redirect(`/${locale}/interlinear`)
+    redirect(`/${locale}/translate`)
 }

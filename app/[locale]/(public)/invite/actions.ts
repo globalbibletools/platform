@@ -85,5 +85,5 @@ export async function acceptInvite(prevState: FormState, formData: FormData): Pr
     })
 
     await createSession(userId)
-    redirect(`/${locale}/interlinear`)
+    redirect(`/${locale}/translate`)
 }

@@ -25,7 +25,7 @@ export default async function LoginPage() {
 
     const session = await verifySession();
     if (session) {
-        redirect(`/${locale}/interlinear`, RedirectType.replace)
+        redirect(`/${locale}/translate`, RedirectType.replace)
     }
 
     return <ModalView className="max-w-[480px] w-full"
