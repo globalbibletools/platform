@@ -77,7 +77,6 @@ export default function ReadingView({ chapterId, language, verses }: ReadingView
                     max-h-full min-h-0 overflow-auto pt-8 pb-10 px-6
                     font-mixed max-w-[960px] leading-loose
                     ${textSizeMap[textSize]}
-
                     ${isOT ? 'text-right' : 'text-left'}
                 `}
                 dir={isOT ? 'rtl' : 'ltr'}
@@ -131,7 +130,11 @@ export default function ReadingView({ chapterId, language, verses }: ReadingView
         {popover.selectedWord &&
             createPortal(
                 <div
-                    className="bg-brown-100 dark:bg-gray-700 rounded-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:shadow-none px-1 font-bold"
+                    className={`
+                        bg-brown-100 dark:bg-gray-700 rounded-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:shadow-none px-1 font-bold
+                        ${textSizeMap[textSize]}
+                    `}
+                    dir={language.textDirection}
                     ref={popover.refs.setFloating}
                     style={popover.floatingStyles}
                 >
