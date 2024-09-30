@@ -28,6 +28,7 @@ interface Verse {
 interface Language {
     font: string,
     textDirection: string
+    code: string
 }
 
 export interface ReadingViewProps {
@@ -89,7 +90,7 @@ export default function ReadingView({ chapterId, language, verses }: ReadingView
                         </Fragment>
                     ));
                     words.unshift(
-                        <span className={'font-sans text-xs'}>
+                        <span key={`verse-${verse.number}`} className={'font-sans text-xs'}>
                             {verse.number}&nbsp;
                         </span>
                     );

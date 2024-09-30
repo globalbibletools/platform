@@ -121,7 +121,7 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
                         }}
                         onShowDetail={() => setShowSidebar(true)}
                         onOpenNotes={() => setTimeout(() => sidebarRef.current?.openNotes(), 0)}
-                        onSelect={() => selectWord(word.id)} 
+                        onSelect={() => selectWord(word.id)}
                     />
                 })}
             </ol>

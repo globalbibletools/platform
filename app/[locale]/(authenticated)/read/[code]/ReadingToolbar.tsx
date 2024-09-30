@@ -77,7 +77,7 @@ export default function ReadingToolbar({
                                 href={chapterId ? `./${decrementChapterId(chapterId)}` : '#'}
                             >
                                 <Icon icon="arrow-up" />
-                                <span className="sr-only">{t('previous_verse')}</span>
+                                <span className="sr-only">{t('previous_chapter')}</span>
                             </Button>
                             <Button
                                 className="absolute end-1 top-1 w-7 !h-7"
@@ -86,7 +86,7 @@ export default function ReadingToolbar({
                                 prefetch
                             >
                                 <Icon icon="arrow-down" />
-                                <span className="sr-only">{t('next_verse')}</span>
+                                <span className="sr-only">{t('next_chapter')}</span>
                             </Button>
                         </div>
                     </div>

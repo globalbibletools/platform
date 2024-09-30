@@ -2,6 +2,8 @@ import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import ReadingView from "./ReadingView"
 import { query } from "@/shared/db"
+import { fetchCurrentLanguage } from "../layout"
+import { notFound } from "next/navigation"
 
 export interface ReadingPageProps {
     params: { chapterId: string, code: string }
@@ -12,13 +14,22 @@ export default async function ReadingPage({ params }: ReadingPageProps) {
 
     const bookId = parseInt(params.chapterId.slice(0, 2)) || 1;
     const chapterNumber = parseInt(params.chapterId.slice(2, 5)) || 1;
-    const chapterVerses = await fetchChapterVerses(bookId, chapterNumber, params.code)
+    const [chapterVerses, currentLanguage] = await Promise.all([
+        fetchChapterVerses(bookId, chapterNumber, params.code),
+        fetchCurrentLanguage(params.code)
+    ])
+
+    if (!currentLanguage) {
+        notFound()
+    }
 
     return <NextIntlClientProvider messages={{
-        ReadingSidebar: messages.ReadingSidebar
+        ReadingSidebar: messages.ReadingSidebar,
+        VersesPreview: messages.VersesPreview
     }}>
         <ReadingView
             chapterId={params.chapterId}
+            language={currentLanguage}
             verses={chapterVerses}
         />
     </NextIntlClientProvider>
@@ -32,6 +43,13 @@ interface Verse {
         text: string
         gloss?: string
         linkedWords?: string[]
+        lemma: string
+        grammar: string
+        resource?: {
+            name: string
+            entry: string
+        }
+        footnote?: string
     }[]
 }
 
