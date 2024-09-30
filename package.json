@@ -27,6 +27,7 @@
     "zod": "3.23.8"
   },
   "devDependencies": {
+    "@floating-ui/react-dom": "2.1.2",
     "@fortawesome/fontawesome-svg-core": "6.6.0",
     "@fortawesome/free-brands-svg-icons": "6.6.0",
     "@fortawesome/free-solid-svg-icons": "6.6.0",

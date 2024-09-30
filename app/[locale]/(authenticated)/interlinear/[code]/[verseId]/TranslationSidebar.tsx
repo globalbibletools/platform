@@ -10,7 +10,7 @@ import { useTranslations } from "next-intl";
 import { forwardRef, Fragment, memo, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { createPortal, useFormState } from "react-dom";
 import { updateFootnote, updateTranslatorNote } from "./actions";
-import { parseReferenceRange } from "../verse-utils";
+import { parseReferenceRange } from "@/app/verse-utils";
 import { VersesPreview } from "./VersesPreview";
 
 export interface Word {

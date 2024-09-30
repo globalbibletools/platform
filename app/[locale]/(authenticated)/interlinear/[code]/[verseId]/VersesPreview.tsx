@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '@/app/components/Icon';
-import { isOldTestament, parseVerseId } from '../verse-utils';
+import { isOldTestament, parseVerseId } from '@/app/verse-utils';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { useTranslations } from 'next-intl';
 import { fontMap } from '@/app/fonts';

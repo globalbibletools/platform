@@ -9,7 +9,7 @@ import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { approveAll, changeInterlinearLocation, linkWords, redirectToUnapproved, unlinkPhrase } from "./actions";
-import { bookFirstVerseId, bookLastVerseId, decrementVerseId, incrementVerseId } from "./verse-utils";
+import { bookFirstVerseId, bookLastVerseId, decrementVerseId, incrementVerseId } from "@/app/verse-utils";
 import { useTranslationClientState } from "./TranslationClientState";
 import TranslationProgressBar from "./TranslationProgressBar";
 import { useSWRConfig } from "swr";

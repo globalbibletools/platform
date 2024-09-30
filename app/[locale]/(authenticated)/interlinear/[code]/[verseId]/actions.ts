@@ -9,7 +9,7 @@ import { getLocale } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 import { notFound } from 'next/navigation';
 import * as z from 'zod';
-import { parseVerseId } from '../verse-utils';
+import { parseVerseId } from '@/app/verse-utils';
 
 const updateGlossSchema = z.object({
     phraseId: z.coerce.number().int(),
