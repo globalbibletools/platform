@@ -11,6 +11,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { bookFirstChapterId, bookLastChapterId, decrementChapterId, incrementChapterId } from "@/app/verse-utils";
 import { useReadingClientState } from "./ReadingClientState";
 import SliderInput from "@/app/components/SliderInput";
+import { changeChapter } from "./actions";
 
 export interface TranslationToolbarProps {
     languages: { name: string; code: string }[];
@@ -53,15 +54,12 @@ export default function ReadingToolbar({
         return () => window.removeEventListener('keydown', keydownCallback);
     }, [router, chapterId]);
 
-    function onSelectChapter(e: FormEvent) {
-    }
-
     const { textSize, setTextSize } = useReadingClientState()
 
     return (
         <div>
             <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-500 px-6 md:px-8 py-4">
-                <form onSubmit={onSelectChapter}>
+                <form action={changeChapter}>
                     <div className='me-16'>
                         <FormLabel htmlFor="chapter-reference">{t("chapter")}</FormLabel>
                         <input type="hidden" value={code} name="language" />
