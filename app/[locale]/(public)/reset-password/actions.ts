@@ -1,7 +1,7 @@
 "use server";
 
 import * as z from 'zod';
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { query } from '@/shared/db';
 import { parseForm } from '@/app/form-parser';
@@ -9,6 +9,7 @@ import mailer from '@/app/mailer';
 import { Scrypt } from 'oslo/password';
 import { createSession } from '@/app/session';
 import { FormState } from '@/app/components/Form';
+import homeRedirect from '@/app/home-redirect';
 
 const scrypt = new Scrypt()
 
@@ -80,6 +81,5 @@ export async function resetPassword(_prevState: FormState, formData: FormData): 
         createSession(user.id)
     ]);
 
-    const locale = await getLocale()
-    redirect(`/${locale}/translate`)
+    redirect(await homeRedirect())
 }

@@ -8,6 +8,7 @@ import { notFound, redirect } from 'next/navigation';
 import { transaction } from '@/shared/db';
 import { parseForm } from '@/app/form-parser';
 import { FormState } from '@/app/components/Form';
+import homeRedirect from '@/app/home-redirect';
 
 const scrypt = new Scrypt()
 
@@ -85,5 +86,5 @@ export async function acceptInvite(prevState: FormState, formData: FormData): Pr
     })
 
     await createSession(userId)
-    redirect(`/${locale}/translate`)
+    redirect(await homeRedirect())
 }

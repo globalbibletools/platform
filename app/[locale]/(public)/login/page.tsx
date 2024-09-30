@@ -5,10 +5,11 @@ import TextInput from "@/app/components/TextInput";
 import FieldError from '@/app/components/FieldError';
 import { verifySession } from '@/app/session';
 import { redirect, RedirectType } from 'next/navigation';
-import { getLocale, getTranslations } from 'next-intl/server';
+import { getTranslations } from 'next-intl/server';
 import { Metadata, ResolvingMetadata } from "next";
 import Form from "@/app/components/Form";
 import { login } from "./actions";
+import homeRedirect from "@/app/home-redirect";
 
 export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
   const t = await getTranslations("LoginPage")
@@ -21,11 +22,10 @@ export async function generateMetadata(_: any, parent: ResolvingMetadata): Promi
 
 export default async function LoginPage() {
     const t = await getTranslations('LoginPage');
-    const locale = await getLocale()
 
     const session = await verifySession();
     if (session) {
-        redirect(`/${locale}/translate`, RedirectType.replace)
+        redirect(await homeRedirect(), RedirectType.replace)
     }
 
     return <ModalView className="max-w-[480px] w-full">
