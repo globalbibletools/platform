@@ -29,7 +29,7 @@ const nextConfig = {
             },
             {
                 source: '/:locale(\\w{2})',
-                destination: '/:locale/translate',
+                destination: '/:locale/read',
                 permanent: false
             },
             {
