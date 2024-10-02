@@ -19,7 +19,7 @@ async function downloadFile(version, bookId) {
 const client = new Client({ connectionString: process.env.DATABASE_URL, max: 20 })
 
 async function saveVerseTimings(version, bookId, timings) {
-    const data = timings.slice(0, 1)
+    const data = timings
         .flatMap((ch, chid) =>
             ch.map((start, vid) => ({
                 verseId: `${(bookId + 1).toString().padStart(2, '0')}${(chid + 1).toString().padStart(3, '0')}${(vid + 1).toString().padStart(3, '0')}`,
@@ -30,6 +30,11 @@ async function saveVerseTimings(version, bookId, timings) {
             verse.end = verses[i + 1]?.start
             return verse
         })
+
+    // There is one extra verse in Exodus in th HEB source
+    if (version === 'HEB' && bookId === 1) {
+        data.splice(581, 1)
+    }
 
     const result = await client.query(
         `
