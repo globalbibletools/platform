@@ -22,8 +22,14 @@ interface VerseWord {
 }
 
 interface Verse {
+    id: string
     number: number
     words: VerseWord[]
+    timings: {
+        speaker: string
+        start?: number
+        end?: number
+    }[]
 }
 
 interface Language {
@@ -68,7 +74,10 @@ export default function ReadingView({ chapterId, language, verses }: ReadingView
 
     const sidebarRef = useRef<ReadingSidebarRef>(null)
 
-    const { textSize } = useReadingClientState()
+    const { textSize, setVerseAudioTimings } = useReadingClientState()
+    useEffect(() => {
+        setVerseAudioTimings(verses.map(v => ({ id: v.id, timings: v.timings })))
+    }, [verses])
 
     return <>
         <div className="flex flex-col flex-grow lg:justify-center w-full min-h-0 lg:flex-row">

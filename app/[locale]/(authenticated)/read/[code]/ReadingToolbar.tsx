@@ -12,6 +12,8 @@ import { bookFirstChapterId, bookLastChapterId, decrementChapterId, incrementCha
 import { useReadingClientState } from "./ReadingClientState";
 import SliderInput from "@/app/components/SliderInput";
 import { changeChapter } from "./actions";
+import { bookKeys } from "@/data/book-keys";
+import AudioPlayer from "./AudioPlayer";
 
 export interface TranslationToolbarProps {
     languages: { name: string; code: string }[];
@@ -23,15 +25,15 @@ export default function ReadingToolbar({
     const t = useTranslations("ReadingToolbar");
     const { chapterId, code } = useParams<{ locale: string, code: string, chapterId: string }>()
     const router = useRouter()
+    const { textSize, verseAudioTimings, setTextSize } = useReadingClientState()
+
+    const bookId = parseInt(chapterId.slice(0, 2)) || 1
+    const chapter = parseInt(chapterId.slice(2, 5)) || 1
 
     const [reference, setReference] = useState('')
     useEffect(() => {
-        if (!chapterId) return setReference('')
-
-        const bookId = parseInt(chapterId.slice(0, 2)) || 1
-        const chapter = parseInt(chapterId.slice(2, 5)) || 1
         setReference(t('verse_reference', { bookId, chapter }))
-    }, [chapterId, t])
+    }, [bookId, chapter])
 
     useEffect(() => {
         if (!chapterId) return
@@ -53,8 +55,6 @@ export default function ReadingToolbar({
         window.addEventListener('keydown', keydownCallback);
         return () => window.removeEventListener('keydown', keydownCallback);
     }, [router, chapterId]);
-
-    const { textSize, setTextSize } = useReadingClientState()
 
     return (
         <div>
@@ -104,7 +104,7 @@ export default function ReadingToolbar({
                         autoComplete="off"
                     />
                 </div>
-                <div className="me-2">
+                <div className="me-16">
                     <FormLabel htmlFor="text-size">{t("text_size")}</FormLabel>
                     <div className="h-[34px] flex items-center">
                     <SliderInput
@@ -117,6 +117,10 @@ export default function ReadingToolbar({
                         onChange={(e) => setTextSize(e.target.valueAsNumber)}
                     />
                     </div>
+                </div>
+                <div className="me-2">
+                    <FormLabel >{t("audio")}</FormLabel>
+                    <AudioPlayer className="h-[34px]" bookId={bookId} chapter={chapter} verseTimings={verseAudioTimings} />
                 </div>
             </div>
         </div>

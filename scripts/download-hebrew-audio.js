@@ -45,7 +45,11 @@ async function transferBook(version, bookId) {
     const chapterCount = VERSE_COUNTS[bookId]?.length ?? 0
     console.log(`Transferring ${version} ${SHORT_BOOKS[bookId]} ${chapterCount} chapters`)
     for (let c = 1; c <= chapterCount; c++) {
-        await transferFile(version, bookId, c)
+        try {
+            await transferFile(version, bookId, c)
+        } catch (error) {
+            console.log(`Error transferring ${version} ${SHORT_BOOKS[bookId]} ${c}: ${error}`)
+        }
     }
 }
 
@@ -55,5 +59,6 @@ async function transferOT(version) {
     }
 }
 
-transferOT('HEB').catch(console.error)
+// transferOT('HEB').catch(console.error)
+transferOT('RDB').catch(console.error)
 

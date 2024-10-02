@@ -24,7 +24,7 @@ export default async function InterlinearLayout({ children, params }: Props) {
 
     return <div className={`absolute w-full h-full flex flex-col flex-grow`}>
         <ReadingClientStateProvider>
-            <NextIntlClientProvider messages={{ ReadingToolbar: messages.ReadingToolbar }}>
+            <NextIntlClientProvider messages={{ ReadingToolbar: messages.ReadingToolbar, AudioPlayer: messages.AudioPlayer }}>
                 <ReadingToolbar
                     languages={languages}
                 />
