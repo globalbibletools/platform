@@ -16,6 +16,8 @@ services:
       db:
         condition: service_healthy
   db:
+    build:
+      dockerfile: db/Dockerfile
     image: postgres
     restart: always
     shm_size: 128mb
