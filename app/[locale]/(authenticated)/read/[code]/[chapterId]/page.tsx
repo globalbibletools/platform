@@ -2,7 +2,6 @@ import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import ReadingView from "./ReadingView"
 import { query } from "@/shared/db"
-import { fetchCurrentLanguage } from "../layout"
 import { notFound } from "next/navigation"
 
 export interface ReadingPageProps {
@@ -107,4 +106,25 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
         [bookId, chapterId, code]
     )
     return result.rows
+}
+
+interface CurrentLanguage {
+    code: string
+    name: string
+    font: string
+    textDirection: string
+}
+
+// TODO: cache this, it will only change when the language settings are changed or the user roles change on the language.
+async function fetchCurrentLanguage(code: string): Promise<CurrentLanguage | undefined> {
+    const result = await query<CurrentLanguage>(
+        `
+        SELECT
+            code, name, font, "textDirection"
+        FROM "Language" AS l
+        WHERE code = $1
+        `,
+        [code]
+    )
+    return result.rows[0]
 }
