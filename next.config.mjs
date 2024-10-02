@@ -28,11 +28,6 @@ const nextConfig = {
                 permanent: true
             },
             {
-                source: '/:locale(\\w{2})',
-                destination: '/:locale/read',
-                permanent: false
-            },
-            {
                 source: '/:locale(\\w{2})/admin',
                 destination: '/:locale/admin/languages',
                 permanent: false

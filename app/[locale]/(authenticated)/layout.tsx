@@ -31,9 +31,11 @@ export default async function AuthenticatedLayout({ children, params }: { childr
             </h1>
           </Link>
           <div className="flex-grow md:flex-grow-0" />
+          { !!session &&
           <HeaderLink href={`/${params.locale}/read`}>
             {t('links.read')}
           </HeaderLink>
+          }
           { (isAdmin || canTranslate) &&
           <HeaderLink href={`/${params.locale}/translate`}>
             {t('links.translate')}
