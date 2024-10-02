@@ -50,11 +50,6 @@ interface Verse {
         }
         footnote?: string
     }[]
-    timings: {
-        speaker: string
-        start?: number
-        end?: number
-    }[]
 }
 
 async function fetchChapterVerses(bookId: number, chapterId: number, code: string): Promise<Verse[]> {
@@ -63,8 +58,7 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
         SELECT
           v.id,
           v.number,
-          words.words,
-          COALESCE(timings.timings, '[]') AS timings
+          words.words
         FROM "Verse" AS v
         JOIN LATERAL (
             SELECT
@@ -111,16 +105,6 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
             ) AS lemma_resource ON true
             WHERE w."verseId" = v.id
         ) AS words ON true
-        LEFT JOIN LATERAL (
-            SELECT
-                JSON_AGG(JSON_BUILD_OBJECT(
-                    'speaker', t."recordingId",
-                    'start', t."start",
-                    'end', t."end"
-                )) AS timings
-            FROM "VerseAudioTiming" AS t
-            WHERE t."verseId" = v.id
-        ) AS timings ON true
         WHERE v."bookId" = $1 AND v.chapter = $2
         `,
         [bookId, chapterId, code]

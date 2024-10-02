@@ -2,29 +2,17 @@
 
 import { createContext, ReactNode, useContext, useState } from "react";
 
-interface VerseAudioTimings {
-    id: string
-    timings: {
-        speaker: string
-        start?: number
-        end?: number
-    }[]
-}
-
 interface ReadingClientState {
     textSize: number
-    verseAudioTimings: VerseAudioTimings[]
     setTextSize(textSize: number): void
-    setVerseAudioTimings(timings: VerseAudioTimings[]): void
 }
 
 const ReadingClientStateContext = createContext<ReadingClientState | null>(null)
 
 export function ReadingClientStateProvider({ children }: { children: ReactNode }) {
     const [textSize, setTextSize] = useState(3)
-    const [verseAudioTimings, setVerseAudioTimings] = useState<VerseAudioTimings[]>([])
 
-    return <ReadingClientStateContext.Provider value={{ textSize, verseAudioTimings, setTextSize, setVerseAudioTimings }}>
+    return <ReadingClientStateContext.Provider value={{ textSize, setTextSize }}>
         {children}
     </ReadingClientStateContext.Provider>
 }
