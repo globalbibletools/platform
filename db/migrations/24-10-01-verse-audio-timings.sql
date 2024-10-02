@@ -1,8 +1,5 @@
 BEGIN;
 
-DROP TABLE "VerseAudioTiming";
-DROP TABLE "Recording";
-
 CREATE TABLE "Recording" (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL
