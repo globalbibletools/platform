@@ -120,7 +120,7 @@ export default function ReadingToolbar({
                 </div>
                 <div className="me-2">
                     <FormLabel >{t("audio")}</FormLabel>
-                    <AudioPlayer className="h-[34px]" bookId={bookId} chapter={chapter} verseTimings={verseAudioTimings} />
+                    <AudioPlayer className="h-[34px]" chapterId={chapterId} />
                 </div>
             </div>
         </div>
