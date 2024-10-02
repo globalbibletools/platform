@@ -7,6 +7,7 @@ import { createSession } from '@/app/session';
 import { redirect } from 'next/navigation';
 import { query } from '@/shared/db';
 import { FormState } from '@/app/components/Form';
+import homeRedirect from '@/app/home-redirect';
 
 const scrypt = new Scrypt()
 
@@ -60,5 +61,5 @@ export async function login(_state: FormState, formData: FormData): Promise<Form
     await createSession(user.id)
 
     const locale = await getLocale()
-    redirect(`/${locale}/profile`)
+    redirect(await homeRedirect())
 }

@@ -1,16 +1,16 @@
 import { verseCounts } from "@/data/verse-counts";
 import fuzzysort from "fuzzysort";
 
-export function isOldTestament(verseId: string): boolean {
-  const matthewBookId = 40;
-  return parseVerseId(verseId).bookId < matthewBookId;
-}
-
 export interface VerseInfo {
     bookId: number,
     chapterNumber: number,
     verseNumber: number
 }
+
+export type ChapterInfo = {
+  bookId: number;
+  chapterNumber: number;
+};
 
 export function decrementVerseId(verseId: string) {
   let { bookId, chapterNumber, verseNumber }: VerseInfo = parseVerseId(verseId);
@@ -28,7 +28,6 @@ export function decrementVerseId(verseId: string) {
   }
   return generateVerseId({ bookId, chapterNumber, verseNumber });
 }
-
 export function incrementVerseId(verseId: string) {
   let { bookId, chapterNumber, verseNumber }: VerseInfo = parseVerseId(verseId);
   verseNumber += 1;
@@ -49,7 +48,6 @@ export function incrementVerseId(verseId: string) {
 export function bookFirstVerseId(bookId: number) {
   return generateVerseId({ bookId, chapterNumber: 1, verseNumber: 1 });
 }
-
 export function bookLastVerseId(bookId: number) {
   const chapterNumber = chapterCount(bookId);
   const verseNumber = verseCount(bookId, chapterNumber);
@@ -99,7 +97,6 @@ export function parseVerseId(verseId: string): VerseInfo {
   const verseNumber = parseInt(verseId.slice(5, 8));
   return { bookId, chapterNumber, verseNumber };
 }
-
 export function generateVerseId({
   bookId,
   chapterNumber,
@@ -111,17 +108,14 @@ export function generateVerseId({
     verseNumber.toString().padStart(3, '0'),
   ].join('');
 }
-
-export function chapterCount(bookId: number): number {
-  return verseCounts[bookId - 1].length;
-}
-
-export function verseCount(bookId: number, chapterNumber: number): number {
-  return verseCounts[bookId - 1][chapterNumber - 1];
-}
-
-function clamp(num: number, min: number, max: number) {
-  return Math.min(Math.max(num, min), max);
+export function generateChapterId({
+  bookId,
+  chapterNumber,
+}: ChapterInfo) {
+  return [
+    bookId.toString().padStart(2, '0'),
+    chapterNumber.toString().padStart(3, '0')
+  ].join('');
 }
 
 export function parseReferenceRange(reference: string, bookNameList: string[]): string[] {
@@ -150,4 +144,56 @@ export function parseReferenceRange(reference: string, bookNameList: string[]): 
   }
 }
 
+export function decrementChapterId(chapterId: string) {
+  let { bookId, chapterNumber }: VerseInfo = parseVerseId(chapterId);
+  chapterNumber -= 1;
+  if (chapterNumber < 1) {
+    bookId -= 1; // Wrap to previous book.
+    if (bookId < 1) {
+      bookId = 66; // Wrap around to Revelations.
+    }
+    chapterNumber = chapterCount(bookId); // Last chapter of the book.
+  }
+  return `${bookId.toString().padStart(2, '0')}${chapterNumber
+    .toString()
+    .padStart(3, '0')}`;
+}
+export function incrementChapterId(chapterId: string) {
+  let { bookId, chapterNumber }: VerseInfo = parseVerseId(chapterId);
+  chapterNumber += 1; // Wrap to next chapter.
+  if (chapterNumber > chapterCount(bookId)) {
+    bookId += 1; // Wrap to next book.
+    if (bookId > 66) {
+      bookId = 1; // Wrap around to Genesis.
+    }
+    chapterNumber = 1;
+  }
+  return `${bookId.toString().padStart(2, '0')}${chapterNumber
+    .toString()
+    .padStart(3, '0')}`;
+}
 
+export function bookFirstChapterId(bookId: number) {
+  return generateChapterId({ bookId, chapterNumber: 1 });
+}
+export function bookLastChapterId(bookId: number) {
+  const chapterNumber = chapterCount(bookId);
+  return generateChapterId({ bookId, chapterNumber });
+}
+
+export function isOldTestament(verseId: string): boolean {
+  const matthewBookId = 40;
+  return parseVerseId(verseId).bookId < matthewBookId;
+}
+
+export function chapterCount(bookId: number): number {
+  return verseCounts[bookId - 1].length;
+}
+
+export function verseCount(bookId: number, chapterNumber: number): number {
+  return verseCounts[bookId - 1][chapterNumber - 1];
+}
+
+function clamp(num: number, min: number, max: number) {
+  return Math.min(Math.max(num, min), max);
+}

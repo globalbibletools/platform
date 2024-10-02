@@ -138,7 +138,14 @@ const config: Config = {
       },
     },
   },
-  plugins: [rtl, require('@headlessui/tailwindcss')],
+  plugins: [
+      rtl,
+      require('@headlessui/tailwindcss'),
+      plugin(({ addVariant }) => {
+          addVariant('slider-thumb', '&::-webkit-slider-thumb, &::-moz-range-thumb')
+          addVariant('slider-track', '&::-webkit-slider-runnable-track, &::-moz-range-track')
+      })
+  ],
 };
 
 export default config;

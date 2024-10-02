@@ -11,7 +11,7 @@ export default function TranslationProgressBar() {
     const { isLoading, data } = useSWR(
         { type: 'book-progress', locale, bookId, code },
         async ({ locale, bookId, code }) => {
-            const response = await fetch(`/${locale}/interlinear/${code}/books/${bookId}/progress`)
+            const response = await fetch(`/${locale}/translate/${code}/books/${bookId}/progress`)
             const data = await response.json()
             return data as { wordCount: number, approvedCount: number, description: string }
         }

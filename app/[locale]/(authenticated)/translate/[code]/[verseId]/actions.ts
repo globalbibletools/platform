@@ -3,13 +3,10 @@
 import { query, transaction } from '@/shared/db';
 import { parseForm } from '@/app/form-parser';
 import { verifySession } from '@/app/session';
-import { bookKeys } from '@/data/book-keys';
-import { BibleClient } from '@gracious.tech/fetch-client';
 import { getLocale } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 import { notFound } from 'next/navigation';
 import * as z from 'zod';
-import { parseVerseId } from '../verse-utils';
 
 const updateGlossSchema = z.object({
     phraseId: z.coerce.number().int(),
@@ -86,7 +83,7 @@ export async function updateGloss(formData: FormData): Promise<any> {
 
     if (pathQuery.rows.length > 0) {
         const locale = await getLocale()
-        revalidatePath(`/${locale}/interlinear/${pathQuery.rows[0].code}/${pathQuery.rows[0].code}`)
+        revalidatePath(`/${locale}/translate/${pathQuery.rows[0].code}/${pathQuery.rows[0].code}`)
     }
 }
 
@@ -145,7 +142,7 @@ export async function updateTranslatorNote(formData: FormData): Promise<any> {
 
     if (pathQuery.rows.length > 0) {
         const locale = await getLocale()
-        revalidatePath(`/${locale}/interlinear/${pathQuery.rows[0].code}/${pathQuery.rows[0].code}`)
+        revalidatePath(`/${locale}/translate/${pathQuery.rows[0].code}/${pathQuery.rows[0].code}`)
     }
 }
 
@@ -204,84 +201,7 @@ export async function updateFootnote(formData: FormData): Promise<any> {
 
     if (pathQuery.rows.length > 0) {
         const locale = await getLocale()
-        revalidatePath(`/${locale}/interlinear/${pathQuery.rows[0].code}/${pathQuery.rows[0].code}`)
-    }
-}
-
-const loadVersesPreviewSchema = z.object({
-    verseIds: z.array(z.string()),
-    code: z.string()
-})
-
-type VersesPreviewState = {
-    state: 'success'
-    verses: { id: string, original: string, translation: string }[]
-} | {
-    state: 'error',
-    error: string
-} | { state: 'initial' }
-
-const bibleClient = new BibleClient()
-
-export async function loadVersesPreview(_: VersesPreviewState, formData: FormData): Promise<VersesPreviewState> {
-    const request = loadVersesPreviewSchema.safeParse(parseForm(formData));
-    if (!request.success) {
-        return { state: 'error', error: request.error.toString() }
-    }
-
-    const languageQuery = await query<{ bibleTranslationIds: string[] }>(
-        `
-        SELECT "bibleTranslationIds" FROM "Language" WHERE code = $1
-        `,
-        [request.data.code]
-    )
-    const language = languageQuery.rows[0]
-    if (!language) {
-        notFound()
-    }
-
-    const verseQuery = await query<{ id: string, text: string }>(
-        `
-        SELECT
-            w."verseId" AS id,
-            STRING_AGG(w."text", ' ' ORDER BY w.id) AS text
-        FROM "Word" AS w
-        WHERE w."verseId" = ANY($1::text[])
-        GROUP BY w."verseId"
-        `,
-        [request.data.verseIds]
-    )
-
-
-    const translations = await Promise.all(request.data.verseIds.map(async verseId => {
-        const { bookId, chapterNumber, verseNumber } = parseVerseId(verseId);
-        const bookKey = bookKeys[bookId - 1].toLowerCase();
-        const collection = await bibleClient.fetch_collection();
-        for (const translationId of language.bibleTranslationIds) {
-            try {
-                const book = await collection.fetch_book(translationId, bookKey, 'txt');
-                const text = book.get_verse(chapterNumber, verseNumber, {
-                    attribute: false,
-                    verse_nums: false,
-                    headings: false,
-                    notes: false,
-                });
-                return { verseId, text }
-            } catch (e) {
-                console.log(e);
-                // There was some issue getting the verse in this translation, try the
-                // next translation.
-                continue;
-            }
-        }
-        // Must return null, not undefined, so that this will work with useQuery
-        return { verseId, text: '' };
-    }))
-
-
-    return {
-        state: 'success',
-        verses: request.data.verseIds.map(verseId => ({ id: verseId, original: verseQuery.rows.find(v => v.id === verseId)?.text ?? '', translation: translations.find(t => t.verseId === verseId)?.text ?? '' }))
+        revalidatePath(`/${locale}/translate/${pathQuery.rows[0].code}/${pathQuery.rows[0].code}`)
     }
 }
 

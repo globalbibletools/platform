@@ -6,12 +6,15 @@ import { Icon } from '@/app/components/Icon';
 import LanguageDialog from '@/app/components/LanguageDialog';
 import HeaderLink from './HeaderLink';
 import { verifySession } from '@/app/session';
+import { query } from '@/shared/db';
 
 export default async function AuthenticatedLayout({ children, params }: { children: ReactNode, params: { locale: string }}) {
     const t = await getTranslations("AuthenticatedLayout")
 
     const session = await verifySession()
     const isAdmin = session?.user.roles.includes('ADMIN')
+
+    const canTranslate = session ? await fetchCanTranslate(session.user.id) : false
 
     return (
       <div className="relative min-h-screen flex flex-col">
@@ -28,9 +31,14 @@ export default async function AuthenticatedLayout({ children, params }: { childr
             </h1>
           </Link>
           <div className="flex-grow md:flex-grow-0" />
-          <HeaderLink href={`/${params.locale}/interlinear`}>
-            {t('links.interlinear')}
+          <HeaderLink href={`/${params.locale}/read`}>
+            {t('links.read')}
           </HeaderLink>
+          { (isAdmin || canTranslate) &&
+          <HeaderLink href={`/${params.locale}/translate`}>
+            {t('links.translate')}
+          </HeaderLink>
+          }
           { isAdmin && 
           <HeaderLink href={`/${params.locale}/admin`}>
             {t('links.admin')}
@@ -63,4 +71,16 @@ export default async function AuthenticatedLayout({ children, params }: { childr
         </footer>
       </div>
   );
+}
+
+async function fetchCanTranslate(userId: string): Promise<boolean> {
+    const result = await query(
+        `
+        SELECT FROM "LanguageMemberRole"
+        WHERE "userId" = $1
+        LIMIT 1
+        `,
+        [userId]
+    )
+    return result.rows.length > 0
 }

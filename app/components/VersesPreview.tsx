@@ -1,11 +1,9 @@
-import { useEffect, useState } from 'react';
 import { Icon } from '@/app/components/Icon';
-import { isOldTestament, parseVerseId } from '../verse-utils';
+import { isOldTestament, parseVerseId } from '@/app/verse-utils';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { useTranslations } from 'next-intl';
 import { fontMap } from '@/app/fonts';
-import { useFormState } from 'react-dom';
-import { loadVersesPreview } from './actions';
+import useSWR from 'swr';
 
 type VersesPreviewProps = {
   language: { font: string, textDirection: string, code: string };
@@ -38,22 +36,16 @@ export const VersesPreview = ({
     isValid = false;
   }
 
-  const [versesTextState, fetchVersesText] = useFormState(loadVersesPreview, { state: 'initial' })
-  const [isLoading, setLoading] = useState(false)
+  const { isLoading, data, error } = useSWR(['verses-preview', language.code, verseIds], async ([,code, verseIds]) => {
+      const searchParams = new URLSearchParams({
+          code,
+          verseIds: verseIds.join(',')
+      })
+      const response = await fetch(`/api/verse-preview?${searchParams.toString()}`)
+      return response.json() as Promise<{ verses: {id: string, original: string, translation?: string}[] }>
+  })
 
-  useEffect(() => {
-      setLoading(true)
-      const form = new FormData()
-      verseIds.forEach((verseId, i) => form.set(`verseIds[${i}]`, verseId))
-      form.set('code', language.code)
-      fetchVersesText(form)
-  }, [language.code, fetchVersesText, verseIds])
-
-  useEffect(() => {
-      if (versesTextState.state !== 'initial') {
-        setLoading(false)
-      }
-  }, [versesTextState])
+  console.log(error)
 
   return (
     <div className="my-1 -mx-4 py-2 px-4 bg-brown-50 dark:bg-gray-600">
@@ -75,7 +67,7 @@ export const VersesPreview = ({
           </div>
         )}
       {isValid &&
-        versesTextState.state === 'success' &&
+        !isLoading &&
         verseIds.map((verseId) => (
           <div key={verseId} className="mb-4">
             <p
@@ -83,7 +75,7 @@ export const VersesPreview = ({
                 isHebrew ? 'text-right' : 'text-left'
               }`}
             >
-              <span>{versesTextState.verses.find(v => v.id === verseId)?.original}</span>
+              <span>{data?.verses.find(v => v.id === verseId)?.original}</span>
             </p>
             <p
               className="mx-2 text-base"
@@ -92,7 +84,7 @@ export const VersesPreview = ({
                 fontFamily: fontMap[language.font],
               }}
             >
-              <span>{versesTextState.verses.find(v => v.id === verseId)?.translation}</span>
+              <span>{data?.verses.find(v => v.id === verseId)?.translation}</span>
             </p>
           </div>
         ))}

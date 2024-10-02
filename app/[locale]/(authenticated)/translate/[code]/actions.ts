@@ -4,7 +4,7 @@ import * as z from 'zod';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { parseForm } from '@/app/form-parser';
 import { notFound, redirect } from 'next/navigation';
-import { parseReference } from './verse-utils';
+import { parseReference } from '@/app/verse-utils';
 import { query, transaction } from '@/shared/db';
 import { verifySession } from '@/app/session';
 import { revalidatePath, revalidateTag } from 'next/cache';
@@ -31,7 +31,7 @@ export async function changeInterlinearLocation(formData: FormData): Promise<voi
         return
     }
 
-    redirect(`/${locale}/interlinear/${request.data.language}/${verseId}`)
+    redirect(`/${locale}/translate/${request.data.language}/${verseId}`)
 }
 
 const redirectToUnapprovedSchema = z.object({
@@ -66,7 +66,7 @@ export async function redirectToUnapproved(formData: FormData): Promise<void> {
     )
 
     const locale = await getLocale();
-    redirect(`/${locale}/interlinear/${request.data.code}/${result.rows[0].nextUnapprovedVerseId}`)
+    redirect(`/${locale}/translate/${request.data.code}/${result.rows[0].nextUnapprovedVerseId}`)
 }
 
 const approveAllSchema = z.object({
@@ -162,7 +162,7 @@ export async function approveAll(formData: FormData): Promise<void> {
     )
 
     const locale = await getLocale()
-    revalidatePath(`/${locale}/interlinear/${request.data.code}/${pathQuery.rows[0].verseId}`)
+    revalidatePath(`/${locale}/translate/${request.data.code}/${pathQuery.rows[0].verseId}`)
 }
 
 const linkWordsSchema = z.object({
@@ -251,7 +251,7 @@ export async function linkWords(formData: FormData): Promise<void> {
     )
 
     const locale = await getLocale()
-    revalidatePath(`/${locale}/interlinear/${request.data.code}/${pathQuery.rows[0].verseId}`)
+    revalidatePath(`/${locale}/translate/${request.data.code}/${pathQuery.rows[0].verseId}`)
 }
 
 const unlinkPhraseSchema = z.object({
@@ -307,5 +307,5 @@ export async function unlinkPhrase(formData: FormData): Promise<void> {
     )
 
     const locale = await getLocale()
-    revalidatePath(`/${locale}/interlinear/${request.data.code}/${pathQuery.rows[0].verseId}`)
+    revalidatePath(`/${locale}/translate/${request.data.code}/${pathQuery.rows[0].verseId}`)
 }

@@ -10,6 +10,7 @@ import { Metadata, ResolvingMetadata } from "next";
 import { query } from "@/shared/db";
 import { resetPassword } from "./actions";
 import Form from "@/app/components/Form";
+import homeRedirect from "@/app/home-redirect";
 
 export async function generateMetadata(
   _: any,
@@ -33,7 +34,7 @@ export default async function ResetPasswordPage({
 
   const session = await verifySession();
   if (session) {
-    redirect(`/${locale}/interlinear`, RedirectType.replace);
+    redirect(await homeRedirect(), RedirectType.replace)
   }
 
   if (!searchParams.token) {
