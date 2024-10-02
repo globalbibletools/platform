@@ -7,12 +7,11 @@ import { Icon } from "@/app/components/Icon";
 import TextInput from "@/app/components/TextInput";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { bookFirstChapterId, bookLastChapterId, decrementChapterId, incrementChapterId } from "@/app/verse-utils";
 import { useReadingClientState } from "./ReadingClientState";
 import SliderInput from "@/app/components/SliderInput";
 import { changeChapter } from "./actions";
-import { bookKeys } from "@/data/book-keys";
 import AudioPlayer from "./AudioPlayer";
 
 export interface TranslationToolbarProps {
@@ -25,7 +24,7 @@ export default function ReadingToolbar({
     const t = useTranslations("ReadingToolbar");
     const { chapterId, code } = useParams<{ locale: string, code: string, chapterId: string }>()
     const router = useRouter()
-    const { textSize, verseAudioTimings, setTextSize } = useReadingClientState()
+    const { textSize, setAudioVerse, setTextSize } = useReadingClientState()
 
     const bookId = parseInt(chapterId.slice(0, 2)) || 1
     const chapter = parseInt(chapterId.slice(2, 5)) || 1
@@ -120,7 +119,7 @@ export default function ReadingToolbar({
                 </div>
                 <div className="me-2">
                     <FormLabel >{t("audio")}</FormLabel>
-                    <AudioPlayer className="h-[34px]" chapterId={chapterId} />
+                    <AudioPlayer className="h-[34px]" chapterId={chapterId} onVerseChange={setAudioVerse} />
                 </div>
             </div>
         </div>
