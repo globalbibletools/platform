@@ -34,7 +34,7 @@ export interface ReadingSidebarRef {
 };
 
 
-const ReadingSidebar = forwardRef<ReadingSidebarRef, ReadingSidebarProps>(({ className = '', language, word, phrase, onClose }, ref) => {
+const ReadingSidebar = forwardRef<ReadingSidebarRef, ReadingSidebarProps>(({ className = '', language, word, onClose }) => {
     const t = useTranslations("ReadingSidebar")
 
     const [tabIndex, setTabIndex] = useState(0)
