@@ -16,12 +16,13 @@ interface VerseAudioTiming {
 export interface AudioPlayerProps {
     className?: string
     chapterId: string
+    onVerseChange?(verseId: string | undefined): void
 }
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5]
 const PREV_THRESHOLD = 1.5 // The time threshold after which clicking previous verse, restarts the current verse.
 
-export default function AudioPlayer({ className = '', chapterId }: AudioPlayerProps) {
+export default function AudioPlayer({ className = '', chapterId, onVerseChange }: AudioPlayerProps) {
     const t = useTranslations('AudioPlayer')
 
     const bookId = parseInt(chapterId.slice(0, 2)) || 1;
@@ -90,11 +91,32 @@ export default function AudioPlayer({ className = '', chapterId }: AudioPlayerPr
     }
 
     const src = `https://gbt-audio.s3.amazonaws.com/${speaker}/${bookKeys[bookId - 1]}/${chapter.toString().padStart(3, '0')}.mp3`
+    const progressInterval = useRef<NodeJS.Timeout>()
+    const lastVerseId = useRef<string>()
     useEffect(() => {
         if (isPlaying && data) {
             audio.current?.play()
+            progressInterval.current = setInterval(() => {
+                const el = audio.current
+                if (!el) return
+
+                const verse = data.reduce<VerseAudioTiming | undefined>(
+                    (last, v) => v.start > el.currentTime ? last : v,
+                    undefined
+                )
+
+                if (lastVerseId.current !== verse?.verseId) {
+                    onVerseChange?.(verse?.verseId)
+                    lastVerseId.current = verse?.verseId
+                }
+            }, 500)
+            return () => clearInterval(progressInterval.current)
         } else {
             audio.current?.pause()
+            if (lastVerseId.current !== undefined) {
+                onVerseChange?.(undefined)
+                lastVerseId.current = undefined
+            }
         }
     }, [isPlaying, src, data])
 
