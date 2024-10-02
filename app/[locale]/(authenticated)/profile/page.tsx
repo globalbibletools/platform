@@ -45,6 +45,7 @@ export default async function ProfileView() {
         <ViewTitle>{t("title")}</ViewTitle>
         <Form action={updateProfile}>
           <input hidden name="user_id" value={session.user.id} />
+          <input hidden name="prev_email" value={user.email}/>
           <div className="mb-2">
             <FormLabel htmlFor="email">{t("form.email")}</FormLabel>
             <TextInput

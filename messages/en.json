@@ -69,6 +69,11 @@
             "log_out": "Log Out"
         }
     },
+    "EmailVerification": {
+        "title": "Verify Email",
+        "email_verification_error": "Could not verify email. The verification may have expired.",
+        "email_verified": "Email address verified."
+    },
     "Error": {
         "tab": "Error",
         "title": "Something went wrong!",

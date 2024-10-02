@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { parseForm } from "@/app/form-parser";
 import mailer from "@/app/mailer";
 import { query } from "@/shared/db";
+import { randomBytes } from "crypto";
 
 const scrypt = new Scrypt();
 
@@ -21,6 +22,8 @@ const profileValidationSchema = z
   .refine((data) => data.password === data.confirm_password, {
     path: ["confirm_password"],
   });
+
+const EMAIL_VERIFICATION_EXPIRES = 60 * 60 * 1000; // 1 hour
 
 export default async function updateProfile(
   _prevState: FormState,
@@ -52,6 +55,24 @@ export default async function updateProfile(
     return { state: "error", validation: request.error.flatten().fieldErrors };
   }
 
+  if(parsedData.email && parsedData.email !== parsedData.prev_email){
+    const token = randomBytes(12).toString('hex');
+    await query(
+      `INSERT INTO "UserEmailVerification"
+          ("userId", "token", "email", "expires") 
+          VALUES ($1, $2, $3, $4)
+      `, 
+      [parsedData.user_id, token, parsedData.email, Date.now() + EMAIL_VERIFICATION_EXPIRES]
+    );
+    const url = `${process.env.ORIGIN}/verify-email?token=${token}`;
+    await mailer.sendEmail({
+      email: parsedData.email,
+      subject: 'Email Verification',
+      text: `Please click the link to verify your new email \n\n${url.toString()}`,
+      html: `<a href="${url.toString()}">Click here</a> to verify your new email.`,
+    })
+  }
+
   if (parsedData.password) {
     await mailer.sendEmail({
       userId: parsedData.user_id,
@@ -61,12 +82,10 @@ export default async function updateProfile(
     });
     await query(
       `UPDATE "User"
-                  SET "email" = $1,
-                      "name" = $2, 
-                      "hashedPassword" = $3
-                WHERE "id" = $4`,
+                  SET "name" = $1, 
+                      "hashedPassword" = $2
+                WHERE "id" = $3`,
       [
-        parsedData.email,
         parsedData.name,
         await scrypt.hash(parsedData.password),
         parsedData.user_id,
@@ -75,10 +94,9 @@ export default async function updateProfile(
   } else {
     await query(
       `UPDATE "User"
-                SET "email" = $1,
-                    "name" = $2
-              WHERE "id" = $3`,
-      [parsedData.email, parsedData.name, parsedData.user_id]
+                SET "name" = $1
+              WHERE "id" = $2`,
+      [parsedData.name, parsedData.user_id]
     );
   }
 
