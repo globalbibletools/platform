@@ -91,7 +91,7 @@ export default function LandingPage() {
                             </p>
                         </div>
                         <div className="rounded-[16px] bg-white p-6 shadow">
-                            <h4 className="text-lg font-bold mb-3">Reader's Bible</h4>
+                            <h4 className="text-lg font-bold mb-3">Reader&apos;s Bible</h4>
                             <p>
                                 A digital reader’s Bible helps language learners accelerate
                                 their comprehension by reading the biblical text with
