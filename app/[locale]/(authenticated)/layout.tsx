@@ -42,7 +42,7 @@ export default async function AuthenticatedLayout({ children, params }: { childr
           </HeaderLink>
           }
           { isAdmin && 
-          <HeaderLink href={`/${params.locale}/admin`}>
+          <HeaderLink href={`/${params.locale}/admin/languages`}>
             {t('links.admin')}
           </HeaderLink> }
           <div className="md:flex-grow" />

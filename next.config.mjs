@@ -26,16 +26,6 @@ const nextConfig = {
                 source: '/:locale(\\w{2})/interlinear/:rest*',
                 destination: '/:locale/translate/:rest*',
                 permanent: true
-            },
-            {
-                source: '/:locale(\\w{2})/admin',
-                destination: '/:locale/admin/languages',
-                permanent: false
-            },
-            {
-                source: '/:locale(\\w{2})/admin/languages/:code((?!new))',
-                destination: '/:locale/admin/languages/:code/settings',
-                permanent: false
             }
         ]
     },

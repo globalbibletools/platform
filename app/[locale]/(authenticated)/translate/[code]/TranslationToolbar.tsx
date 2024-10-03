@@ -182,25 +182,25 @@ export default function TranslationToolbar({
                         </Button>
                     </div>
                 )}
-                <div className="me-2">
+                <div className="me-16">
                     <FormLabel htmlFor="target-language">{t("language")}</FormLabel>
-                    <ComboboxInput
-                        id="target-language"
-                        items={languages.map((l) => ({ label: l.name, value: l.code }))}
-                        value={code}
-                        onChange={(code) => router.push(`../${code}/${verseId}`)}
-                        className="w-40"
-                        autoComplete="off"
-                    />
-                </div>
-                {isAdmin && (
-                    <div className="pt-6 me-16">
-                        <Button variant="tertiary" href={`/languages/${code}`}>
-                            <Icon icon="sliders" className="me-1" />
-                            {t('manage_language')}
-                        </Button>
+                    <div className="flex">
+                        <ComboboxInput
+                            id="target-language"
+                            items={languages.map((l) => ({ label: l.name, value: l.code }))}
+                            value={code}
+                            onChange={(code) => router.push(`../${code}/${verseId}`)}
+                            className="w-40"
+                            autoComplete="off"
+                        />
+                        {isAdmin && (
+                            <Button className="ms-2" variant="tertiary" href={`/admin/languages/${code}/settings`}>
+                                <Icon icon="sliders" className="me-1" />
+                                {t('manage_language')}
+                            </Button>
+                        )}
                     </div>
-                )}
+                </div>
                 {isTranslator && (
                     <div className="pt-6 flex items-center">
                         <Button
