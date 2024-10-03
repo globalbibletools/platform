@@ -66,13 +66,14 @@ export default function DropdownMenu({
 export interface DropdownMenuItemProps {
   children: ReactNode;
   href?: LinkProps['href'];
+  prefetch?: boolean
   onClick?(): void
 }
 
 const className =
   'focus:outline-none focus:underline hover:underline block whitespace-nowrap px-4 py-1 text-start w-full';
 
-export function DropdownMenuItem({ children, href, onClick }: DropdownMenuItemProps) {
+export function DropdownMenuItem({ children, href, onClick, prefetch }: DropdownMenuItemProps) {
   return (
     <li className="w-full">
       {/* If we want to link to external URLs, we have use a standard anchor element. */}
@@ -82,7 +83,7 @@ export function DropdownMenuItem({ children, href, onClick }: DropdownMenuItemPr
               {children}
             </a>
           } else if (href) {
-            return <Link className={className} href={href} onClick={onClick}>
+            return <Link className={className} href={href} onClick={onClick} prefetch={prefetch}>
               {children}
             </Link>
           } else {

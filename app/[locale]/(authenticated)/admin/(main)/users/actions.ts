@@ -9,7 +9,7 @@ import { notFound } from 'next/navigation';
 import { FormState } from '@/app/components/Form';
 
 const requestSchema = z.object({
-    user_id: z.string().min(1),
+    userId: z.string().min(1),
     roles: z.array(z.string()).optional().default([]),
 })
 
@@ -32,7 +32,7 @@ export async function changeUserRole(_prevState: FormState, formData: FormData):
     await transaction(async query => {
         await query(
             `DELETE FROM "UserSystemRole" AS r WHERE r."userId" = $1 AND r.role != ALL($2::"SystemRole"[])`,
-            [request.data.user_id, request.data.roles]
+            [request.data.userId, request.data.roles]
         )
 
         if (request.data.roles && request.data.roles.length > 0) {
@@ -40,7 +40,7 @@ export async function changeUserRole(_prevState: FormState, formData: FormData):
                 INSERT INTO "UserSystemRole" ("userId", "role")
                 SELECT $1, UNNEST($2::"SystemRole"[])
                 ON CONFLICT DO NOTHING`,
-                [request.data.user_id, request.data.roles]
+                [request.data.userId, request.data.roles]
             )
         }
     })

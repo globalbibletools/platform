@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     const languageQuery = await query<{ bibleTranslationIds: string[] }>(
         `
-        SELECT "bibleTranslationIds" FROM "Language" WHERE code = $1
+        SELECT COALESCE("bibleTranslationIds", '{}') AS "bibleTranslationIds" FROM "Language" WHERE code = $1
         `,
         [request.data.code]
     )
@@ -33,6 +33,8 @@ export async function GET(req: NextRequest) {
     if (!language) {
         return new NextResponse(undefined, { status: 404 })
     }
+
+    console.log(language)
 
     const verseQuery = await query<{ id: string, text: string }>(
         `

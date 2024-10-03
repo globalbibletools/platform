@@ -134,6 +134,7 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
 
       const previewElement = document.createElement('div');
       previewElement.id = 'ref-preview';
+      previewElement.className = 'float-left w-full';
       anchorElement.insertAdjacentElement('afterend', previewElement);
       setPreviewElement(previewElement);
     };

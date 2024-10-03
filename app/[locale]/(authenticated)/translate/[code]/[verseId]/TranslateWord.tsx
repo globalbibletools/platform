@@ -182,7 +182,6 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                     onChange={() => onSelect?.()}
                     onFocus={() => {
                         onFocus?.();
-                        onShowDetail?.();
                     }}
                 />
             )}

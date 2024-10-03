@@ -56,7 +56,7 @@ export default async function AuthenticatedLayout({ children, params }: { childr
                 <Icon icon="user" className="me-2" fixedWidth />
                 <span className="font-bold">{t('links.profile')}</span>
               </DropdownMenuItem>
-              <DropdownMenuItem href={`/${params.locale}/logout`}>
+              <DropdownMenuItem href={`/${params.locale}/logout`} prefetch={false}>
                 <Icon icon="right-from-bracket" className="me-2" fixedWidth />
                 <span className="font-bold">{t('links.log_out')}</span>
               </DropdownMenuItem>
