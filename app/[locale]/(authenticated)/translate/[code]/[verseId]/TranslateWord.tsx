@@ -6,7 +6,7 @@ import Checkbox from "@/app/components/Checkbox";
 import { Icon } from "@/app/components/Icon";
 import { useTextWidth } from "@/app/utils/text-width";
 import { useTranslations } from "next-intl";
-import { MouseEvent, useLayoutEffect, useRef, useState } from "react";
+import { FormEvent, MouseEvent, useLayoutEffect, useRef, useState } from "react";
 import { useFormState } from "react-dom";
 import { updateGloss } from "./actions";
 import { fontMap } from "@/app/fonts";
@@ -65,16 +65,11 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
 
     const { locale, code } = useParams<{ locale: string, code: string }>()
     const [saving, setSaving] = useState(false)
-    async function onChange(change: { state?: string; gloss?: string }) {
+    async function onSubmit(e: FormEvent) {
+        e.preventDefault()
         setSaving(true)
-        const formData = new FormData()
-        formData.set('phraseId', phrase.id.toString())
-        if (typeof change.state === 'string') {
-            formData.set('state', change.state.toString())
-        }
-        if (typeof change.gloss === 'string') {
-            formData.set('gloss', change.gloss)
-        }
+        const formData = new FormData(e.target as HTMLFormElement)
+        console.log(Object.fromEntries(formData.entries()))
         // TODO: handle errors in this result
         const _result = await updateGloss(formData)
         mutate({
@@ -113,6 +108,8 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
             )
         );
     }, [hasNote, glossWidth, hasMachineSuggestion, isMultiWord]);
+
+    const stateInput = useRef<HTMLInputElement>(null)
 
     return <li
         key={word.id}
@@ -198,7 +195,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
         </div>
         {editable && (
             <>
-                <div
+                <form
                     className={`
                         min-w-[128px] group/input-row flex gap-2 items-center
                         ${isHebrew ? 'flex-row' : 'flex-row-reverse'}
@@ -208,7 +205,10 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                         width: width + 26,
                     }}
                     dir={language.textDirection}
+                    onSubmit={onSubmit}
                 >
+                    <input type="hidden" name="phraseId" value={phrase.id} />
+                    <input ref={stateInput} type="hidden" name="state" defaultValue={phrase.gloss?.state ?? 'UNAPPROVED'} />
                     <div className="group-focus-within/input-row:block hidden">
                         {currentInputValue && status !== 'approved' && (
                             <Button
@@ -218,11 +218,11 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                                 disabled={saving}
                                 onClick={(e: MouseEvent) => {
                                     e.stopPropagation();
-                                    if (status === 'saved') {
-                                        onChange({ state: 'APPROVED' });
-                                    } else {
-                                        onChange({ state: 'APPROVED', gloss: glossValue });
-                                    }
+
+                                    const state = stateInput.current
+                                    if (state) state.value === 'APPROVED'
+
+                                    input.current?.form?.requestSubmit()
                                     input.current?.focus();
                                 }}
                             >
@@ -237,7 +237,11 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                                 disabled={saving}
                                 onClick={(e: MouseEvent) => {
                                     e.stopPropagation();
-                                    onChange({ state: 'UNAPPROVED' });
+
+                                    const state = stateInput.current
+                                    if (state) state.value === 'UNAPPROVED'
+
+                                    input.current?.form?.requestSubmit()
                                     input.current?.focus();
                                 }}
                             >
@@ -281,10 +285,12 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                                     value !== phrase?.gloss?.text ||
                                     (!implicit && status !== 'approved')
                                 ) {
-                                    onChange({
-                                        gloss: value,
-                                        state: !implicit && !!value ? 'APPROVED' : 'UNAPPROVED',
-                                    });
+                                    /*
+                                    const state = stateInput.current
+                                    if (state) state.value === (!implicit && !!value ? 'APPROVED' : 'UNAPPROVED')
+
+                                    input.current?.form?.requestSubmit()
+                                    */
                                 }
                             }}
                             onInput={(event) => {
@@ -318,7 +324,10 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                                     case 'Escape': {
                                         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
                                             return;
-                                        onChange({ state: 'UNAPPROVED' });
+                                        const state = stateInput.current
+                                        if (state) state.value === 'UNAPPROVED'
+
+                                        input.current?.form?.requestSubmit()
                                         break;
                                     }
                                 }
@@ -338,7 +347,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                             />
                         )}
                     </div>
-                </div>
+                </form>
                 <div
                     id={`word-help-${word.id}`}
                     className={`
