@@ -8,20 +8,13 @@ import {
 } from 'react';
 
 export interface AutocompleteInputProps
-  extends Omit<ComponentProps<'input'>, 'value' | 'onChange'> {
+  extends Omit<ComponentProps<'input'>, 'value' | 'onChange' | 'onSelect'> {
   inputClassName?: string;
   state?: 'success';
   value?: string;
   right?: boolean;
-  /** A change is implicit if it occurs:
-   *    - when a user clicks out of the input
-   *    - when a user uses the tab key to select
-   *
-   *  A change is explicit if it occurs:
-   *    - when a user clicks on an autocomplete suggestion
-   *    - when a user uses the enter key to select
-   */
-  onChange(value: string, implicit: boolean): void;
+  onChange?(value: string): void;
+  onSelect?(value: string): void;
   suggestions: string[];
   renderOption?(item: string, index: number): ReactNode;
 }
@@ -41,6 +34,7 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
       value,
       right,
       onChange,
+      onSelect,
       onKeyDown,
       state,
       renderOption,
@@ -85,9 +79,10 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
       setActiveIndex(undefined);
     }
 
-    function change(newValue: string, implicit: boolean) {
-      if (newValue !== value || !implicit) {
-        onChange(newValue, implicit);
+    function change(newValue: string) {
+      setInput(newValue)
+      if (newValue !== value) {
+        onChange?.(newValue);
       }
     }
 
@@ -103,7 +98,7 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
               newValue = input;
             }
             if (newValue !== value) {
-              onChange(newValue, true);
+              onChange?.(newValue);
             }
             close();
           }
@@ -141,6 +136,7 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
           }}
           onBlur={(e) => {
             setFocus(false);
+            close()
             props.onBlur?.(e);
           }}
           onChange={(e) => {
@@ -152,18 +148,21 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
               switch (e.key) {
                 case 'Enter':
                 case 'Tab': {
-                  if (typeof activeIndex === 'number') {
-                    change(filteredSuggestions[activeIndex], e.key === 'Tab');
-                  } else {
-                    change(input, e.key === 'Tab');
+                  if (isOpen && typeof activeIndex === 'number') {
+                    change(filteredSuggestions[activeIndex]);
+                    onSelect?.(filteredSuggestions[activeIndex])
+                    close();
+                    return
                   }
-                  close();
                   break;
                 }
                 case 'Escape': {
-                  close();
                   e.preventDefault();
                   e.stopPropagation();
+                  if (isOpen) {
+                      close();
+                      return
+                  }
                   break;
                 }
                 case 'ArrowDown': {
@@ -182,7 +181,7 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
                   }
                   e.preventDefault();
                   e.stopPropagation();
-                  break;
+                  return
                 }
                 case 'ArrowUp': {
                   if (isOpen) {
@@ -200,7 +199,7 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
                   }
                   e.preventDefault();
                   e.stopPropagation();
-                  break;
+                  return
                 }
               }
             }
@@ -235,9 +234,10 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
                       : ''
                   }
                 `}
-                key={suggestion}
+                key={i}
                 onClick={() => {
-                  change(suggestion, false);
+                  change(suggestion);
+                  onSelect?.(suggestion);
                   close();
                 }}
               >
