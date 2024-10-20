@@ -7,15 +7,28 @@ Both the database and dev server can be run from a docker container using the co
 docker compose up
 ```
 
+If you have added new node_modules, you need to run:
+```bash
+docker compose up --build
+```
+
 To reset the database and rebuild from scratch, run:
 ```bash
 docker compose down
 docker volume rm platform_db-data
+docker compose up
+```
+
+To get a shell in a container run:
+```bash
+docker exec -it [platform-db-1|platform-server-1] [bash|sh]
 ```
 
 ## Database
 
 ### Set up database
+
+If you are running these from the db container, you can use an absolute URL (`/db/data.dump`) because the db directory is mounted at the root of the container.
 
 Restore the database schema:
 ```bash
@@ -29,12 +42,12 @@ pg_restore -Fc --format=custom --dbname=DATABASE_URL db/data.dump
 
 Export the latest database schema:
 ```bash
-pg_dump --exclude-table _prisma_migrations DATABASE_URL > db/schema.sql
+pg_dump --schema-only --no-owner DATABASE_URL > db/schema.sql
 ```
 
 Export the latest database seed data:
 ```bash
-pg_dump -Fc --data-only --exclude-table _prisma_migrations DATABASE_URL > db/data.dump
+pg_dump -Fc --data-only DATABASE_URL > db/data.dump
 ```
 
 ### Migrations
