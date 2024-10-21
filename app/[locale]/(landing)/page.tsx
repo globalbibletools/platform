@@ -1,4 +1,9 @@
-export default function LandingPage() {
+import { query } from "@/shared/db"
+import ProgressChart from "./ProgressChart"
+
+export default async function LandingPage() {
+    const stats = await fetchLanguageProgressStats()
+
     return <div className="flex flex-col h-screen text-gray-800">
         <nav
             className="bg-white flex items-center h-20 border-b border-gray-200 relative flex-shrink-0 px-4 md:px-8"
@@ -18,6 +23,12 @@ export default function LandingPage() {
                 href="#resources"
             >
                 Resources
+            </a>
+            <a
+                className="h-full text-center hidden md:block pt-[30px] font-bold mx-3"
+                href="#progress"
+            >
+                Progress
             </a>
             <a
                 className="h-full text-center hidden md:block pt-[30px] font-bold mx-3"
@@ -128,12 +139,24 @@ export default function LandingPage() {
                 </div>
             </section>
             <section
-                id="volunteer"
+                id="progress"
                 className="bg-blue-800 -mt-10 pt-20 md:pt-24 pb-40 px-6 md:px-8"
                 style={{ clipPath: 'polygon(0 0, 100% 40px, 100% 100%, 0 100%)' }}
             >
                 <div className="w-full max-w-[1000px] mx-auto">
-                    <h2 className="text-3xl md:text-5xl font-bold mb-8 text-white">
+                    <h2 className="text-3xl md:text-5xl font-bold mb-8 text-white text-white">Reader's Bible Progress</h2>
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <ProgressChart languageStats={stats} />
+                    </div>
+                </div>
+            </section>
+            <section
+                id="volunteer"
+                className="bg-brown-100 -mt-10 pt-20 md:pt-24 pb-16 md:pb-24 lg:pb-32 px-6 md:px-8"
+                style={{ clipPath: 'polygon(0 40px, 100% 0, 100% 100%, 0 100%)' }}
+            >
+                <div className="w-full max-w-[1000px] mx-auto">
+                    <h2 className="text-3xl md:text-5xl font-bold mb-8">
                         Volunteer
                     </h2>
                     <ul
@@ -180,15 +203,15 @@ export default function LandingPage() {
             </section>
             <section
                 id="go-deeper"
-                className="bg-brown-100 -mt-10 pt-20 md:pt-24 pb-16 md:pb-24 lg:pb-32 px-6 md:px-8"
-                style={{ clipPath: 'polygon(0 40px, 100% 0, 100% 100%, 0 100%)' }}
+                className="bg-blue-800 -mt-10 pt-20 md:pt-24 pb-40 px-6 md:px-8"
+                style={{ clipPath: 'polygon(0 0, 100% 40px, 100% 100%, 0 100%)' }}
             >
                 <div className="w-full max-w-[1000px] mx-auto">
-                    <h2 className="text-3xl md:text-5xl font-bold mb-8">Go Deeper</h2>
-                    <p>
+                    <h2 className="text-3xl md:text-5xl font-bold mb-8 text-white text-white">Go Deeper</h2>
+                    <p className="text-white">
                         This is a significant need and endeavor for the global Church. We
                         invite you to <a
-                            className="font-bold text-blue-800 underline"
+                            className="font-bold text-white underline"
                             href="https://docs.google.com/document/d/1PfgkStvqrCJutpcQzq73zN_fZkfl17zs3MdQIhT3xg4/"
                         >read the introduction</a> to our vision and roadmap for democratizing access to serious
                         bibilical language tools.
@@ -197,4 +220,23 @@ export default function LandingPage() {
             </section>
         </main>
     </div>
+}
+
+interface LanguageProgressStats {
+    code: string
+    name: string
+    otProgress: number
+    ntProgress: number
+}
+
+async function fetchLanguageProgressStats() {
+    const result = await query<LanguageProgressStats>(
+        `
+        SELECT l.code, l.name, s."otProgress", s."ntProgress" FROM "LanguageProgress" AS s
+        JOIN "Language" AS l ON l.code = s.code
+        ORDER BY (s."otProgress" + s."ntProgress") DESC
+        `,
+        []
+    )
+    return result.rows
 }
