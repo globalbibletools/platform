@@ -145,7 +145,7 @@ export default async function LandingPage() {
             >
                 <div className="w-full max-w-[1000px] mx-auto">
                     <h2 className="text-3xl md:text-5xl font-bold mb-8 text-white text-white">Reader&apos;s Bible Progress</h2>
-                    <div className="bg-white rounded-lg shadow p-6">
+                    <div className="bg-white rounded-lg shadow p-6 max-h-[80vh] overflow-y-auto">
                         <ProgressChart languageStats={stats} />
                     </div>
                 </div>

@@ -40,7 +40,7 @@ export default function ProgressChart({ languageStats }: ProgressChartProps) {
             {
               label: 'New Testament',
               data: languageStats.map((lang) => lang.ntProgress * 100),
-              backgroundColor: isDarkMode ? '#DED6AA' : '#d1d5db',
+              backgroundColor: isDarkMode ? '#CBBA79' : '#d1d5db',
             },
           ],
         },
@@ -52,7 +52,7 @@ export default function ProgressChart({ languageStats }: ProgressChartProps) {
             indexAxis: 'y',
             datasets: {
                 bar: {
-                    barThickness: 16
+                    barThickness: 8
                 }
             },
             plugins: {
@@ -71,5 +71,7 @@ export default function ProgressChart({ languageStats }: ProgressChartProps) {
     }
   }, [languageStats, isDarkMode]);
 
-    return <canvas ref={chartRoot} />
+    return <div className="w-full" style={{ height: 80 + 24 * languageStats.length }} >
+        <canvas ref={chartRoot} />
+    </div>
 }
