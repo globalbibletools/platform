@@ -232,8 +232,8 @@ interface LanguageProgressStats {
 async function fetchLanguageProgressStats() {
     const result = await query<LanguageProgressStats>(
         `
-        SELECT l.code, l.name, s."otProgress", s."ntProgress" FROM "LanguageProgress" AS s
-        JOIN "Language" AS l ON l.code = s.code
+        SELECT l.code, l.name, COALESCE(s."otProgress", 0) AS "otProgress", COALESCE(s."ntProgress", 0) AS "ntProgress" FROM "Language" AS l
+        LEFT JOIN "LanguageProgress" AS s ON l.code = s.code
         ORDER BY (s."otProgress" + s."ntProgress") DESC
         `,
         []
