@@ -144,7 +144,7 @@ export default async function LandingPage() {
                 style={{ clipPath: 'polygon(0 0, 100% 40px, 100% 100%, 0 100%)' }}
             >
                 <div className="w-full max-w-[1000px] mx-auto">
-                    <h2 className="text-3xl md:text-5xl font-bold mb-8 text-white text-white">Reader's Bible Progress</h2>
+                    <h2 className="text-3xl md:text-5xl font-bold mb-8 text-white text-white">Reader&apos;s Bible Progress</h2>
                     <div className="bg-white rounded-lg shadow p-6">
                         <ProgressChart languageStats={stats} />
                     </div>
