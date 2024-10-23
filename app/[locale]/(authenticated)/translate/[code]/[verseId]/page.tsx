@@ -190,10 +190,17 @@ interface FormSuggestion {
 async function fetchSuggestions(verseId: string, languageCode: string): Promise<FormSuggestion[]> {
     const result = await query<FormSuggestion>(
         `
-        SELECT DISTINCT s."formId", s.suggestions FROM "Word" AS w
-        JOIN "LemmaFormSuggestions" AS s ON s."formId" = w."formId"
-        WHERE w."verseId" = $1
-            AND s."languageId" = (SELECT id FROM "Language" WHERE code = $2);
+        SELECT 
+            sc."formId",
+            ARRAY_AGG(sc.gloss ORDER BY sc.count DESC) AS suggestions
+        FROM "LemmaFormSuggestionCount" AS sc
+        JOIN (
+            SELECT DISTINCT "formId" AS id FROM "Word"
+            WHERE "verseId" = $1
+        ) AS form ON form.id = sc."formId"
+        WHERE sc."languageId" = (SELECT id FROM "Language" WHERE code = $2)
+            AND sc.count > 0
+        GROUP BY sc."formId"
         `,
         [verseId, languageCode]
     )
