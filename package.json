@@ -9,9 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-sqs": "^3.678.0",
     "@google-cloud/translate": "8.5.0",
     "@gracious.tech/fetch-client": "0.8.9",
     "@next/env": "14.2.12",
+    "aws-lambda": "^1.0.7",
     "fuzzysort": "3.0.2",
     "install": "0.13.0",
     "isomorphic-dompurify": "2.15.0",
@@ -36,6 +38,7 @@
     "@headlessui/tailwindcss": "0.2.1",
     "@tiptap/react": "2.6.6",
     "@tiptap/starter-kit": "2.6.6",
+    "@types/aws-lambda": "^8.10.145",
     "@types/dompurify": "3.0.5",
     "@types/lodash": "4.17.7",
     "@types/node": "^20",

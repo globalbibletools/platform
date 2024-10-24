@@ -1,14 +1,14 @@
 "use server";
 
 import * as z from 'zod';
-import {getTranslations, getLocale} from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
+import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import { query } from '@/shared/db';
 import { FormState } from '@/app/components/Form';
 import { parseForm } from '@/app/form-parser';
 import { verifySession } from '@/app/session';
 import { notFound, redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { fork } from 'child_process';
 
 const importSchema = z.object({
     code: z.string(),
@@ -66,7 +66,26 @@ export async function importLanguage(_state: FormState, formData: FormData): Pro
     )
 
     if ((result.rowCount ?? 0) > 0) {
-        fork("./.next/server/import.worker.js", [request.data.code, request.data.language], { cwd: process.cwd() });
+        if (process.env.NODE_ENV === 'production') {
+            const sqsClient = new SQSClient({
+                credentials: {
+                    accessKeyId: process.env.ACCESS_KEY_ID ?? '',
+                    secretAccessKey: process.env.SECRET_ACCESS_KEY ?? '',
+                },
+            });
+            await sqsClient.send(
+                new SendMessageCommand({
+                    QueueUrl: process.env.LANGUAGE_IMPORT_QUEUE_URL,
+                    MessageGroupId: request.data.code,
+                    MessageBody: JSON.stringify({
+                        languageCode: request.data.code,
+                        importLanguage: request.data.language,
+                    }),
+                })
+            );
+        } else {
+            console.log(`Importing ${request.data.language} to ${request.data.code}`)
+        }
     }
 
     revalidatePath(`/${locale}/admin/languages/${request.data.code}/import`)

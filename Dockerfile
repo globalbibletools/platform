@@ -37,7 +37,7 @@ RUN --mount=type=secret,id=database-url,env=DATABASE_URL \
     npm run build
 
 # Run the server in production
-FROM base AS runner
+FROM base AS server
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -67,3 +67,10 @@ ENV PORT=3000
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
 CMD ["node", "server.js"]
+
+# Run the import worker in production
+FROM public.ecr.aws/lambda/nodejs:18 AS import-worker
+RUN npm i pg@8.12.0
+COPY --from=builder /app/.next/server/import-worker.js ${LAMBDA_TASK_ROOT}
+COPY --from=builder /app/.next/server/webpack-runtime.js ${LAMBDA_TASK_ROOT}
+CMD ["import-worker.handler"]

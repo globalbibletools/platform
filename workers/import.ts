@@ -1,17 +1,11 @@
-import './worker-env';
-import { query, close } from '@/shared/db';
+import { query } from '@/shared/db';
 import { bookKeys } from '@/data/book-keys';
+import { SQSEvent } from 'aws-lambda'
 
 const IMPORT_SERVER = 'https://hebrewgreekbible.online';
 
-const languageCode = process.argv[2]
-const importLanguage = process.argv[3]
-
-if (!languageCode || !importLanguage) {
-    throw new Error('usage: node ./import.js [languageCode] [importLanguage]')
-}
-
-async function run(languageCode: string, importLanguage: string) {
+export async function handler(event: SQSEvent) {
+    const { languageCode, importLanguage } = JSON.parse(event.Records[0].body)
     const jobQuery = await query<{ languageId: string, userId: string }>(
         `
         SELECT j."languageId", j."userId" FROM "LanguageImportJob" AS j
@@ -25,7 +19,7 @@ async function run(languageCode: string, importLanguage: string) {
         throw new Error(`no import job for language ${languageCode}`)
     }
 
-    log('starting import')
+    log(languageCode, 'starting import')
 
     await query(
         `
@@ -37,11 +31,11 @@ async function run(languageCode: string, importLanguage: string) {
         `,
         [job.languageId, job.userId]
     )
-    log(`existing phrases deleted`);
+    log(languageCode, `existing phrases deleted`);
 
     for (const key of bookKeys) {
         try {
-            log(`${key} ... start`);
+            log(languageCode, `${key} ... start`);
 
             const bookId = bookKeys.indexOf(key) + 1;
             const glossUrl = `${IMPORT_SERVER}/${importLanguage}Glosses/${key}Gloss.js`;
@@ -123,9 +117,9 @@ async function run(languageCode: string, importLanguage: string) {
                 [job.languageId, job.userId, glossData.map(d => d.wordId), glossData.map(d => d.gloss)]
             )
 
-            log(`${key} ... complete`);
+            log(languageCode, `${key} ... complete`);
         } catch (error) {
-            log(`${error}`);
+            log(languageCode, `${error}`);
         }
     }
 
@@ -140,10 +134,10 @@ async function run(languageCode: string, importLanguage: string) {
         [job.languageId]
     )
 
-    log('import complete')
+    log(languageCode, 'import complete')
 }
 
-function log(message: string) {
+function log(languageCode: string, message: string) {
     console.log(`IMPORT (${languageCode}) ${message}`)
 }
 
@@ -169,10 +163,3 @@ function parseGlossJs(jsCode: string) {
     return JSON.parse(jsCode);
 }
 
-// For future unit testing:
-//     Test input: `var gloss=[[["test", "item; item 2; item 3", "var gloss=test", ";", ], ], ];`
-//     Expected output: [ [ [ 'test', 'item; item 2; item 3', 'var gloss=test', ';' ] ] ]
-
-run(languageCode, importLanguage)
-    .catch(error => log(`${error}`))
-    .finally(async () => await close())
