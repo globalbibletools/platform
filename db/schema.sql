@@ -512,6 +512,16 @@ ALTER SEQUENCE public."Phrase_id_seq" OWNED BY public."Phrase".id;
 
 
 --
+-- Name: Recording; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."Recording" (
+    id text NOT NULL,
+    name text NOT NULL
+);
+
+
+--
 -- Name: ResetPasswordToken; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -592,6 +602,39 @@ CREATE TABLE public."UserSystemRole" (
 
 
 --
+-- Name: VerseAudioTiming; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."VerseAudioTiming" (
+    id integer NOT NULL,
+    "verseId" text NOT NULL,
+    "recordingId" text NOT NULL,
+    start double precision,
+    "end" double precision
+);
+
+
+--
+-- Name: VerseAudioTiming_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."VerseAudioTiming_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: VerseAudioTiming_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."VerseAudioTiming_id_seq" OWNED BY public."VerseAudioTiming".id;
+
+
+--
 -- Name: GlossEvent id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -610,6 +653,13 @@ ALTER TABLE ONLY public."LemmaFormSuggestionCount" ALTER COLUMN id SET DEFAULT n
 --
 
 ALTER TABLE ONLY public."Phrase" ALTER COLUMN id SET DEFAULT nextval('public."Phrase_id_seq"'::regclass);
+
+
+--
+-- Name: VerseAudioTiming id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."VerseAudioTiming" ALTER COLUMN id SET DEFAULT nextval('public."VerseAudioTiming_id_seq"'::regclass);
 
 
 --
@@ -733,6 +783,14 @@ ALTER TABLE ONLY public."Phrase"
 
 
 --
+-- Name: Recording Recording_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."Recording"
+    ADD CONSTRAINT "Recording_pkey" PRIMARY KEY (id);
+
+
+--
 -- Name: ResetPasswordToken ResetPasswordToken_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -786,6 +844,22 @@ ALTER TABLE ONLY public."UserSystemRole"
 
 ALTER TABLE ONLY public."User"
     ADD CONSTRAINT "User_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: VerseAudioTiming VerseAudioTiming_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."VerseAudioTiming"
+    ADD CONSTRAINT "VerseAudioTiming_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: VerseAudioTiming VerseAudioTiming_verseId_recordingId_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."VerseAudioTiming"
+    ADD CONSTRAINT "VerseAudioTiming_verseId_recordingId_key" UNIQUE ("verseId", "recordingId");
 
 
 --
@@ -1158,6 +1232,22 @@ ALTER TABLE ONLY public."UserInvitation"
 
 ALTER TABLE ONLY public."UserSystemRole"
     ADD CONSTRAINT "UserSystemRole_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: VerseAudioTiming VerseAudioTiming_recordingId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."VerseAudioTiming"
+    ADD CONSTRAINT "VerseAudioTiming_recordingId_fkey" FOREIGN KEY ("recordingId") REFERENCES public."Recording"(id);
+
+
+--
+-- Name: VerseAudioTiming VerseAudioTiming_verseId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."VerseAudioTiming"
+    ADD CONSTRAINT "VerseAudioTiming_verseId_fkey" FOREIGN KEY ("verseId") REFERENCES public."Verse"(id);
 
 
 --
