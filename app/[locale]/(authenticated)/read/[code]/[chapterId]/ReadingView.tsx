@@ -22,6 +22,7 @@ interface VerseWord {
 }
 
 interface Verse {
+    id: string
     number: number
     words: VerseWord[]
 }
@@ -68,7 +69,7 @@ export default function ReadingView({ chapterId, language, verses }: ReadingView
 
     const sidebarRef = useRef<ReadingSidebarRef>(null)
 
-    const { textSize } = useReadingClientState()
+    const { textSize, audioVerse } = useReadingClientState()
 
     return <>
         <div className="flex flex-col flex-grow lg:justify-center w-full min-h-0 lg:flex-row">
@@ -114,7 +115,15 @@ export default function ReadingView({ chapterId, language, verses }: ReadingView
                             {verse.number}&nbsp;
                         </span>
                     );
-                    return words;
+                    return <span
+                        key={verse.id}
+                        className={`
+                            rounded
+                            ${audioVerse === verse.id ? 'bg-green-200 dark:bg-gray-600' : ''}
+                        `}
+                    >
+                        {words}
+                    </span>;
                 })}
             </div>
             {showSidebar && (
