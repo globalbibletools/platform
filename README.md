@@ -34,7 +34,7 @@ pg_dump --no-owner --schema-only DATABASE_URL > db/schema.sql
 
 Export the latest database seed data:
 ```bash
-pg_dump -Fc --data-only  DATABASE_URL > db/data.dump
+pg_dump -Fc --data-only DATABASE_URL > db/data.dump
 ```
 
 ### Migrations
