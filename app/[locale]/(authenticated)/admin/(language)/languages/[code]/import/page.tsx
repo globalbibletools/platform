@@ -10,6 +10,7 @@ import { importLanguage, resetImport } from "./actions"
 import { query } from "@/shared/db"
 import LoadingSpinner from "@/app/components/LoadingSpinner"
 import Poller from "./Poller"
+import TextInput from "@/app/components/TextInput"
 
 const IMPORT_SERVER = 'https://hebrewgreekbible.online';
 
@@ -52,7 +53,7 @@ export default async function LanguageImportPage({ params }: LanguageImportPageP
                         />
                         <FieldError id="language-error" name="language" />
                     </div>
-                    <Button type="submit" className="mb-2">{t('form.submit')}</Button>
+                    <Button destructive type="submit" className="mb-2">{t('form.submit')}</Button>
                 </Form>
             </div>
         )
