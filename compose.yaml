@@ -8,8 +8,7 @@ services:
       DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
     volumes:
       - ./:/app
-      - /app/node_modules
-      - /app/.next
+      - node-modules:/app/node_modules
     ports:
       - 3000:3000
     depends_on:
@@ -40,3 +39,4 @@ services:
       retries: 5
 volumes:
   db-data:
+  node-modules:
