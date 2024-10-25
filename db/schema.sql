@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.9 (Homebrew)
--- Dumped by pg_dump version 14.9 (Homebrew)
+-- Dumped from database version 14.13 (Debian 14.13-1.pgdg120+1)
+-- Dumped by pg_dump version 14.13 (Debian 14.13-1.pgdg120+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -15,6 +15,20 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
+
+--
+-- Name: pg_cron; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION pg_cron; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pg_cron IS 'Job scheduler for PostgreSQL';
+
 
 --
 -- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
@@ -104,6 +118,70 @@ CREATE TYPE public."TextDirection" AS ENUM (
 
 
 --
+-- Name: decrement_suggestion(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.decrement_suggestion() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    IF OLD.state = 'APPROVED' AND (NEW.gloss <> OLD.gloss OR NEW.state <> 'APPROVED') THEN
+        UPDATE "LemmaFormSuggestionCount" AS c
+        SET
+            count = c.count - 1 
+        WHERE c.gloss = OLD.gloss
+            AND c."languageId" = (SELECT "languageId" FROM "Phrase" WHERE id = OLD."phraseId")
+            AND c."formId" IN (
+                SELECT w."formId" FROM "Word" AS w
+                JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
+                JOIN "Phrase" AS ph ON  phw."phraseId" = ph.id
+                WHERE ph.id = OLD."phraseId"
+            );
+    END IF;
+
+    RETURN NULL;
+END;
+$$;
+
+
+--
+-- Name: decrement_suggestion_after_phrase_delete(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.decrement_suggestion_after_phrase_delete() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    t_gloss TEXT;
+BEGIN
+    IF NEW."deletedAt" IS NOT NULL THEN
+        -- Ignore phrases with unapproved glosses.
+        SELECT "Gloss".gloss INTO t_gloss
+        FROM "Gloss"
+        WHERE "phraseId" = NEW.id
+            AND state = 'APPROVED';
+        IF NOT FOUND THEN
+            RETURN NULL;
+        END IF;
+
+        UPDATE "LemmaFormSuggestionCount" AS c
+        SET
+            count = c.count - 1 
+        WHERE c.gloss = t_gloss
+            AND c."languageId" = NEW."languageId"
+            AND c."formId" IN (
+                SELECT w."formId" FROM "Word" AS w
+                JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
+                WHERE phw."phraseId" = NEW.id
+            );
+    END IF;
+
+    RETURN NULL;
+END;
+$$;
+
+
+--
 -- Name: generate_ulid(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -112,6 +190,34 @@ CREATE FUNCTION public.generate_ulid() RETURNS uuid
     AS $$
         SELECT (lpad(to_hex(floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint), 12, '0') || encode(gen_random_bytes(10), 'hex'))::uuid;
     $$;
+
+
+--
+-- Name: increment_suggestion(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.increment_suggestion() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    IF NEW.state = 'APPROVED' AND (OLD IS NULL OR NEW.gloss <> OLD.gloss OR OLD.state <> 'APPROVED') THEN
+        INSERT INTO "LemmaFormSuggestionCount" AS c ("languageId", "formId", "gloss", "count")
+        SELECT
+            ph."languageId",
+            w."formId",
+            NEW.gloss,
+            1
+        FROM "Word" AS w
+        JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
+        JOIN "Phrase" AS ph ON  phw."phraseId" = ph.id
+        WHERE ph.id = NEW."phraseId"
+        ON CONFLICT ("languageId", "formId", gloss) DO UPDATE
+            SET count = c.count + 1;
+    END IF;
+
+    RETURN NULL;
+END;
+$$;
 
 
 SET default_tablespace = '';
@@ -225,6 +331,92 @@ CREATE TABLE public."LanguageMemberRole" (
 
 
 --
+-- Name: Phrase; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."Phrase" (
+    id integer NOT NULL,
+    "languageId" uuid NOT NULL,
+    "createdAt" timestamp(3) without time zone NOT NULL,
+    "createdBy" uuid,
+    "deletedAt" timestamp(3) without time zone,
+    "deletedBy" uuid
+);
+
+
+--
+-- Name: PhraseWord; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."PhraseWord" (
+    "phraseId" integer NOT NULL,
+    "wordId" text NOT NULL
+);
+
+
+--
+-- Name: Verse; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."Verse" (
+    id text NOT NULL,
+    number integer NOT NULL,
+    "bookId" integer NOT NULL,
+    chapter integer NOT NULL
+);
+
+
+--
+-- Name: Word; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."Word" (
+    id text NOT NULL,
+    text text NOT NULL,
+    "verseId" text NOT NULL,
+    "formId" text NOT NULL
+);
+
+
+--
+-- Name: LanguageProgress; Type: MATERIALIZED VIEW; Schema: public; Owner: -
+--
+
+CREATE MATERIALIZED VIEW public."LanguageProgress" AS
+ WITH data AS (
+         SELECT ph."languageId" AS id,
+            (v."bookId" >= 40) AS is_nt,
+            count(*) AS count
+           FROM ((((public."Phrase" ph
+             JOIN public."PhraseWord" phw ON ((phw."phraseId" = ph.id)))
+             JOIN public."Word" w ON ((w.id = phw."wordId")))
+             JOIN public."Verse" v ON ((v.id = w."verseId")))
+             JOIN public."Gloss" g ON ((g."phraseId" = ph.id)))
+          WHERE (ph."deletedAt" IS NULL)
+          GROUP BY ph."languageId", (v."bookId" >= 40)
+        ), ot_total AS (
+         SELECT count(*) AS total
+           FROM (public."Word" w
+             JOIN public."Verse" v ON ((v.id = w."verseId")))
+          WHERE (v."bookId" < 40)
+        ), nt_total AS (
+         SELECT count(*) AS total
+           FROM (public."Word" w
+             JOIN public."Verse" v ON ((v.id = w."verseId")))
+          WHERE (v."bookId" >= 40)
+        )
+ SELECT l.code,
+    ((COALESCE(nt_data.count, (0)::bigint))::double precision / ( SELECT (nt_total.total)::double precision AS total
+           FROM nt_total)) AS "ntProgress",
+    ((COALESCE(ot_data.count, (0)::bigint))::double precision / ( SELECT (ot_total.total)::double precision AS total
+           FROM ot_total)) AS "otProgress"
+   FROM ((public."Language" l
+     LEFT JOIN data nt_data ON (((nt_data.id = l.id) AND (nt_data.is_nt = true))))
+     LEFT JOIN data ot_data ON (((ot_data.id = l.id) AND (ot_data.is_nt = false))))
+  WITH NO DATA;
+
+
+--
 -- Name: Lemma; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -242,6 +434,39 @@ CREATE TABLE public."LemmaForm" (
     grammar text NOT NULL,
     "lemmaId" text NOT NULL
 );
+
+
+--
+-- Name: LemmaFormSuggestionCount; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."LemmaFormSuggestionCount" (
+    id integer NOT NULL,
+    "languageId" uuid NOT NULL,
+    "formId" text NOT NULL,
+    gloss text NOT NULL,
+    count integer NOT NULL
+);
+
+
+--
+-- Name: LemmaFormSuggestionCount_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public."LemmaFormSuggestionCount_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: LemmaFormSuggestionCount_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public."LemmaFormSuggestionCount_id_seq" OWNED BY public."LemmaFormSuggestionCount".id;
 
 
 --
@@ -263,30 +488,6 @@ CREATE TABLE public."MachineGloss" (
     "wordId" text NOT NULL,
     "languageId" uuid NOT NULL,
     gloss text
-);
-
-
---
--- Name: Phrase; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."Phrase" (
-    id integer NOT NULL,
-    "languageId" uuid NOT NULL,
-    "createdAt" timestamp(3) without time zone NOT NULL,
-    "createdBy" uuid,
-    "deletedAt" timestamp(3) without time zone,
-    "deletedBy" uuid
-);
-
-
---
--- Name: PhraseWord; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."PhraseWord" (
-    "phraseId" integer NOT NULL,
-    "wordId" text NOT NULL
 );
 
 
@@ -391,34 +592,17 @@ CREATE TABLE public."UserSystemRole" (
 
 
 --
--- Name: Verse; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."Verse" (
-    id text NOT NULL,
-    number integer NOT NULL,
-    "bookId" integer NOT NULL,
-    chapter integer NOT NULL
-);
-
-
---
--- Name: Word; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."Word" (
-    id text NOT NULL,
-    text text NOT NULL,
-    "verseId" text NOT NULL,
-    "formId" text NOT NULL
-);
-
-
---
 -- Name: GlossEvent id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."GlossEvent" ALTER COLUMN id SET DEFAULT nextval('public."GlossEvent_id_seq"'::regclass);
+
+
+--
+-- Name: LemmaFormSuggestionCount id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."LemmaFormSuggestionCount" ALTER COLUMN id SET DEFAULT nextval('public."LemmaFormSuggestionCount_id_seq"'::regclass);
 
 
 --
@@ -482,6 +666,22 @@ ALTER TABLE ONLY public."LanguageMemberRole"
 
 ALTER TABLE ONLY public."Language"
     ADD CONSTRAINT "Language_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: LemmaFormSuggestionCount LemmaFormSuggestionCount_languageId_formId_gloss_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."LemmaFormSuggestionCount"
+    ADD CONSTRAINT "LemmaFormSuggestionCount_languageId_formId_gloss_key" UNIQUE ("languageId", "formId", gloss);
+
+
+--
+-- Name: LemmaFormSuggestionCount LemmaFormSuggestionCount_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."LemmaFormSuggestionCount"
+    ADD CONSTRAINT "LemmaFormSuggestionCount_pkey" PRIMARY KEY (id);
 
 
 --
@@ -724,6 +924,27 @@ CREATE INDEX "Word_verseId_idx" ON public."Word" USING btree ("verseId");
 
 
 --
+-- Name: Gloss decrement_suggestion; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER decrement_suggestion AFTER DELETE OR UPDATE OF gloss, state ON public."Gloss" FOR EACH ROW EXECUTE FUNCTION public.decrement_suggestion();
+
+
+--
+-- Name: Phrase decrement_suggestion; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER decrement_suggestion AFTER UPDATE OF "deletedAt" ON public."Phrase" FOR EACH ROW EXECUTE FUNCTION public.decrement_suggestion_after_phrase_delete();
+
+
+--
+-- Name: Gloss increment_suggestion; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER increment_suggestion AFTER INSERT OR UPDATE OF gloss, state ON public."Gloss" FOR EACH ROW EXECUTE FUNCTION public.increment_suggestion();
+
+
+--
 -- Name: Footnote Footnote_authorId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -793,6 +1014,22 @@ ALTER TABLE ONLY public."LanguageMemberRole"
 
 ALTER TABLE ONLY public."LanguageMemberRole"
     ADD CONSTRAINT "LanguageMemberRole_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: LemmaFormSuggestionCount LemmaFormSuggestionCount_formId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."LemmaFormSuggestionCount"
+    ADD CONSTRAINT "LemmaFormSuggestionCount_formId_fkey" FOREIGN KEY ("formId") REFERENCES public."LemmaForm"(id);
+
+
+--
+-- Name: LemmaFormSuggestionCount LemmaFormSuggestionCount_languageId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."LemmaFormSuggestionCount"
+    ADD CONSTRAINT "LemmaFormSuggestionCount_languageId_fkey" FOREIGN KEY ("languageId") REFERENCES public."Language"(id);
 
 
 --
