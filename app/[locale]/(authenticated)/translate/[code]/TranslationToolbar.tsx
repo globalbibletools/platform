@@ -16,7 +16,7 @@ import { useSWRConfig } from "swr";
 
 export interface TranslationToolbarProps {
     languages: { name: string; code: string }[];
-    currentLanguage: { roles: string [] };
+    currentLanguage?: { roles: string [] };
 }
 
 export default function TranslationToolbar({
@@ -28,8 +28,8 @@ export default function TranslationToolbar({
     const router = useRouter()
     const { mutate } = useSWRConfig()
 
-    const isTranslator = currentLanguage.roles.includes('TRANSLATOR');
-    const isAdmin = currentLanguage.roles.includes('ADMIN');
+    const isTranslator = !!currentLanguage?.roles.includes('TRANSLATOR');
+    const isAdmin = !!currentLanguage?.roles.includes('ADMIN');
 
     const { selectedWords, focusedPhrase, clearSelectedWords } = useTranslationClientState()
     const canLinkWords = selectedWords.length > 1;

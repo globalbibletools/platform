@@ -19,15 +19,11 @@ export default async function InterlinearLayout({ children, params }: Props) {
     if (!session) {
         notFound()
     }
-    const isAdmin = session.user.roles.includes('ADMIN')
 
     const [languages, currentLanguage] = await Promise.all([
         fetchLanguages(),
         fetchCurrentLanguage(params.code, session?.user.id)
     ])
-    if (!currentLanguage || (!isAdmin && currentLanguage.roles.length === 0)) {
-        notFound()
-    }
 
     return <div className={`absolute w-full h-full flex flex-col flex-grow`}>
         <TranslationClientStateProvider>
