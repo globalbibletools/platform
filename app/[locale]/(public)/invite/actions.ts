@@ -69,7 +69,7 @@ export async function acceptInvite(prevState: FormState, formData: FormData): Pr
             WHERE u.id = (SELECT "userId" FROM "UserInvitation" WHERE token = $1)
             RETURNING id
             `,
-            [request.data.token, `${request.data.first_name} ${request.data.last_name}`, scrypt.hash(request.data.password)]
+            [request.data.token, `${request.data.first_name} ${request.data.last_name}`, await scrypt.hash(request.data.password)]
         )
 
         const userId = updatedUserQuery.rows[0]?.id

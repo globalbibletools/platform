@@ -5,6 +5,9 @@ import TranslateWord from "./TranslateWord"
 import TranslationSidebar, { TranslationSidebarRef } from "./TranslationSidebar";
 import { useTranslationClientState } from "../TranslationClientState";
 import TranslationReference from "./TranslationReference";
+import Button from "@/app/components/Button";
+import { Icon } from "@/app/components/Icon";
+import { incrementVerseId } from "@/app/verse-utils";
 
 interface Word {
     id: string,
@@ -124,6 +127,21 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
                         onSelect={() => selectWord(word.id)}
                     />
                 })}
+                {language.roles.includes('TRANSLATOR') &&
+                    <li className="mx-2" dir={isHebrew ? 'rtl' : 'ltr'}>
+                        <Button
+                            variant="tertiary"
+                            className="mt-[72px]"
+                            href={`./${incrementVerseId(verseId)}`}
+                        >
+                            Next
+                            <Icon
+                                icon={isHebrew ? 'arrow-left' : 'arrow-right'}
+                                className="ms-1"
+                            />
+                        </Button>
+                    </li>
+                }
             </ol>
         </div>
         {showSidebar && (
