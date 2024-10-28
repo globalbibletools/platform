@@ -87,6 +87,7 @@ export default function ReadingView({ chapterId, language, verses }: ReadingView
                         <Fragment key={word.id}>
                             <span
                                 className={`
+                                    cursor-pointer
                                     ${i === verse.words.length - 1 ? 'me-1' : ''}
                                     ${(linkedWords.length > 0 &&
                                         popover.selectedWord?.word.id === word.id) ||
@@ -95,15 +96,13 @@ export default function ReadingView({ chapterId, language, verses }: ReadingView
                                         : ''
                                     }
                                 `}
-                                onClick={(e) => {
-                                    // popover.onWordClick(e, word)
-                                    setSidebarWord(word)
+                                onDoubleClick={(e) => {
                                     setShowSidebar(true)
                                 }}
-                                onMouseEnter={(e) =>
-                                    popover.onWordMouseEnter(e, word)
-                                }
-                                onMouseLeave={(e) => popover.onWordMouseLeave(e)}
+                                onClick={(e) => {
+                                    setSidebarWord(word)
+                                    popover.onWordClick(e, word)
+                                }}
                             >
                                 {word.text}
                             </span>
