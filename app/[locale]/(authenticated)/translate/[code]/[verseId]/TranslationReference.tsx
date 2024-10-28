@@ -25,8 +25,8 @@ export default function TranslationReference({ verseId, language }: TranslationR
             fontFamily: fontMap[language.font]
         }}
     >
-        <span className="text-sm font-bold me-2">
-            {data.name}
+        <span className="text-sm font-bold me-2" title={data.name}>
+            {data.shortName}
         </span>
         <span>{data.translation}</span>
     </p>
@@ -49,9 +49,10 @@ function useTranslationQuery(verseId: string, translationIds: string[]) {
                 });
                 const translation = translations.find((t) => t.id === translationId);
                 if (translation) {
-                    const { name_local, name_english } = translation;
+                    const { name_local, name_english, name_abbrev } = translation;
                     return {
                         name: name_local ? name_local : name_english,
+                        shortName: name_abbrev,
                         translation: verseTranslation,
                     };
                 }
