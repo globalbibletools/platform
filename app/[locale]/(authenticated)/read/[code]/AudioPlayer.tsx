@@ -127,6 +127,26 @@ export default function AudioPlayer({ className = '', chapterId, onVerseChange }
         el.currentTime = data?.[0].start ?? 0
     }, [data])
 
+    useEffect(() => {
+        function handler(e: MouseEvent) {
+            if (!data || !(e.target instanceof HTMLElement)) return
+
+            const verseNumber = e.target.dataset.verseNumber
+            if (!verseNumber) return
+
+            const el = audio.current
+            if (!el) return
+
+            const index = parseInt(verseNumber) - 1
+            if (data[index]) {
+                el.currentTime = data[index].start
+                setPlaying(true)
+            }
+        }
+        window.addEventListener('click', handler)
+        return () => window.removeEventListener('click', handler)
+    }, [data])
+
     return <div className={`${className} flex items-center`}>
         <audio ref={audio} src={src} />
         <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={prevVerse}>

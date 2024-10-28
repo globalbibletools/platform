@@ -111,7 +111,12 @@ export default function ReadingView({ chapterId, language, verses }: ReadingView
                         </Fragment>
                     ));
                     words.unshift(
-                        <span key={`verse-${verse.number}`} className={'font-sans text-xs'}>
+                        <span
+                            key={`verse-${verse.number}`}
+                            className={'font-sans text-xs cursor-pointer'}
+                            // Allows audio player to start playing at this verse when clicked
+                            data-verse-number={verse.number}
+                        >
                             {verse.number}&nbsp;
                         </span>
                     );
