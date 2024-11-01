@@ -47,7 +47,7 @@ export default async function LandingPage() {
                 href="/read"
                 className="rounded-lg bg-blue-800 text-white font-bold shadow-md px-4 flex items-center justify-center h-8 md:mt-[4px] ms-1"
             >
-                Interlinear
+                Reader's Bible
             </a>
         </nav>
         <main className="flex-grow overflow-auto">
