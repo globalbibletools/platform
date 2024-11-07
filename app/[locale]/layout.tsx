@@ -2,13 +2,12 @@ import type { Metadata } from "next";
 import { config } from '@fortawesome/fontawesome-svg-core'
 import { NextIntlClientProvider, useMessages } from "next-intl";
 import { getTranslations } from "next-intl/server";
-
+import { GoogleAnalytics } from '@next/third-parties/google'
 import '@fortawesome/fontawesome-svg-core/styles.css'
 import "../globals.css";
 import { headFontClass } from "../fonts";
 import languages from "../../languages.json";
 import { FlashProvider } from "../flash";
-import Script from "next/script";
 import ChatBubble from "./ChatBubble";
  
 export async function generateMetadata(): Promise<Metadata> {
@@ -50,7 +49,12 @@ export default function RootLayout({
                 {children}
             </FlashProvider>
         </NextIntlClientProvider>
-        <ChatBubble placement={language.dir === 'rtl' ? 'bl' : 'br'} />
+        {process.env.NODE_ENV === 'production' && (
+            <>
+                <ChatBubble placement={language.dir === 'rtl' ? 'bl' : 'br'} />
+                <GoogleAnalytics gaId="G-0SEF50D4GK" debugMode={true} />
+            </>
+        )}
       </body>
     </html>
   );

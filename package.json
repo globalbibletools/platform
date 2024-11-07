@@ -13,6 +13,7 @@
     "@google-cloud/translate": "8.5.0",
     "@gracious.tech/fetch-client": "0.8.9",
     "@next/env": "14.2.12",
+    "@next/third-parties": "^15.0.3",
     "aws-lambda": "^1.0.7",
     "fuzzysort": "3.0.2",
     "install": "0.13.0",

@@ -1,8 +1,6 @@
 import Script from "next/script";
 
 export default function ChatBubble({ placement }: { placement: 'bl' | 'br' }) {
-    if (process.env.NODE_ENV !== 'production') return null
-
     return <Script id="show-banner" strategy="lazyOnload">
       {`
         var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
