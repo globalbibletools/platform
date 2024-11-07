@@ -67,7 +67,7 @@ export default async function AuthenticatedLayout({ children, params }: { childr
         <div className="flex-grow relative flex flex-col w-full">
             {children}
         </div>
-        <footer className="absolute bottom-0 w-full p-2 flex flex-row z-10 justify-end">
+        <footer className="absolute bottom-0 w-full p-2 flex flex-row z-10 justify-start">
             <LanguageDialog />
         </footer>
       </div>
