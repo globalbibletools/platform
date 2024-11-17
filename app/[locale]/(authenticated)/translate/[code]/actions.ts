@@ -39,13 +39,13 @@ const redirectToUnapprovedSchema = z.object({
     verseId: z.string()
 })
 
-export async function redirectToUnapproved(formData: FormData): Promise<void> {
+export async function redirectToUnapproved(formData: FormData): Promise<void | string> {
     const request = redirectToUnapprovedSchema.safeParse(parseForm(formData));
     if (!request.success) {
         return
     }
 
-    const result = await query<{ nextUnapprovedVerseId: string }>(
+    let result = await query<{ nextUnapprovedVerseId: string }>(
         `
         SELECT w."verseId" as "nextUnapprovedVerseId"
         FROM "Word" AS w
@@ -64,6 +64,32 @@ export async function redirectToUnapproved(formData: FormData): Promise<void> {
         `,
         [request.data.code, request.data.verseId]
     )
+
+    if (result.rows.length === 0) {
+        result = await query<{ nextUnapprovedVerseId: string }>(
+            `
+            SELECT w."verseId" as "nextUnapprovedVerseId"
+            FROM "Word" AS w
+            LEFT JOIN LATERAL (
+              SELECT g.state AS state FROM "PhraseWord" AS phw
+              JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
+              LEFT JOIN "Gloss" AS g ON g."phraseId" = ph.id
+              WHERE phw."wordId" = w.id
+                      AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+                      AND ph."deletedAt" IS NULL
+            ) AS g ON true
+            WHERE (g."state" = 'UNAPPROVED' OR g."state" IS NULL)
+            ORDER BY w."id"
+            LIMIT 1
+            `,
+            [request.data.code]
+        )
+
+        if (result.rows.length === 0) {
+            const t = await getTranslations('TranslationToolbar')
+            return t('errors.all_approved')
+        }
+    }
 
     const locale = await getLocale();
     redirect(`/${locale}/translate/${request.data.code}/${result.rows[0].nextUnapprovedVerseId}`)

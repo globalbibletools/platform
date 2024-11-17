@@ -527,6 +527,9 @@
         ]
     },
     "TranslationToolbar": {
+        "errors": {
+            "all_approved": "All glosses have been approved"
+        },
         "verse": "Verse",
         "previous_verse": "Previous Verse",
         "next_verse": "Next Verse",

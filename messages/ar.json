@@ -527,6 +527,9 @@
         ]
     },
     "TranslationToolbar": {
+        "errors": {
+            "all_approved": "تمت الموافقة على جميع التفسيرات"
+        },
         "verse": "الآية",
         "previous_verse": "الآية السابقة",
         "next_verse": "الآية التالية",
