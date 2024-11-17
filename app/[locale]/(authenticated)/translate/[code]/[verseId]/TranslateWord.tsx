@@ -194,155 +194,158 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
         </div>
         {editable && (
             <>
-                <div
-                    className={`
-                        min-w-[128px] group/input-row flex gap-2 items-center
-                        ${isHebrew ? 'flex-row' : 'flex-row-reverse'}
-                    `}
-                    // The extra 26 pixels give room for the padding and border.
-                    style={{
-                        width: width + 26,
-                    }}
-                    dir={language.textDirection}
-                >
-                    <div className="group-focus-within/input-row:block hidden">
-                        {status !== 'approved' && (
-                            <Button
-                                className="!bg-green-600 w-9"
-                                tabIndex={-1}
-                                title={t('approve_tooltip') ?? ''}
-                                disabled={saving}
-                                onClick={(e: MouseEvent) => {
-                                    e.stopPropagation();
-                                    saveGloss('APPROVED')
-                                    input.current?.focus();
-                                }}
-                            >
-                                <Icon icon="check" />
-                            </Button>
-                        )}
-                        {status === 'approved' && (
-                            <Button
-                                className="!bg-red-600 w-9"
-                                tabIndex={-1}
-                                title={t('revoke_tooltip') ?? ''}
-                                disabled={saving}
-                                onClick={(e: MouseEvent) => {
-                                    e.stopPropagation();
-                                    saveGloss('UNAPPROVED')
-                                    input.current?.focus();
-                                }}
-                            >
-                                <Icon icon="arrow-rotate-left" />
-                            </Button>
-                        )}
-                    </div>
-                    <div className="relative grow">
-                        <AutocompleteInput
-                            className={`w-full ${isHebrew ? 'text-right' : 'text-left'}`}
-                            style={{
-                                fontFamily: fontMap[language.font]
-                            }}
-                            data-phrase={phrase.id}
-                            inputClassName={isHebrew ? 'text-right' : 'text-left'}
-                            right={isHebrew}
-                            renderOption={(item, i) => (
-                                <div
-                                    className={
-                                        word.machineSuggestion
-                                            ? `relative ${isHebrew ? 'pl-5' : 'pr-5'}`
-                                            : ''
-                                    }
+                {
+                    phrase.wordIds.indexOf(word.id) === 0 &&
+                    <div
+                        className={`
+                            min-w-[128px] group/input-row flex gap-2 items-center
+                            ${isHebrew ? 'flex-row' : 'flex-row-reverse'}
+                        `}
+                        // The extra 26 pixels give room for the padding and border.
+                        style={{
+                            width: width + 26,
+                        }}
+                        dir={language.textDirection}
+                    >
+                        <div className="group-focus-within/input-row:block hidden">
+                            {status !== 'approved' && (
+                                <Button
+                                    className="!bg-green-600 w-9"
+                                    tabIndex={-1}
+                                    title={t('approve_tooltip') ?? ''}
+                                    disabled={saving}
+                                    onClick={(e: MouseEvent) => {
+                                        e.stopPropagation();
+                                        saveGloss('APPROVED')
+                                        input.current?.focus();
+                                    }}
                                 >
-                                    {item}
-                                    {i === word.suggestions.length ? (
-                                        <Icon
-                                            className={`absolute top-1 ${isHebrew ? 'left-0' : 'right-0'}`}
-                                            icon={['fab', 'google']}
-                                        />
-                                    ) : undefined}
-                                </div>
+                                    <Icon icon="check" />
+                                </Button>
                             )}
-                            name="gloss"
-                            value={glossValue}
-                            state={status === 'approved' ? 'success' : undefined}
-                            aria-describedby={`word-help-${word.id}`}
-                            aria-labelledby={`word-${word.id}`}
-                            onChange={(value) => {
-                                console.log('blur')
-                                autosaveQueued.current = true
-                                setTimeout(() => {
-                                    console.log('autosave')
-                                    if (autosaveQueued.current && value !== phrase.gloss?.text) {
+                            {status === 'approved' && (
+                                <Button
+                                    className="!bg-red-600 w-9"
+                                    tabIndex={-1}
+                                    title={t('revoke_tooltip') ?? ''}
+                                    disabled={saving}
+                                    onClick={(e: MouseEvent) => {
+                                        e.stopPropagation();
                                         saveGloss('UNAPPROVED')
-                                    }
-                                }, 200)
-                            }}
-                            onSelect={() => {
-                                console.log('select')
-                                saveGloss('APPROVED')
-
-                                const nextRoot = root.current?.nextElementSibling;
-                                const next =
-                                    nextRoot?.querySelector('input:not([type])') ??
-                                    nextRoot?.querySelector('button');
-                                if (next && next instanceof HTMLElement) {
-                                    next.focus();
-                                }
-                            }}
-                            onKeyDown={(e) => {
-                                if (e.metaKey || e.altKey) return;
-                                switch (e.key) {
-                                    case 'Enter': {
-                                        e.preventDefault();
-                                        if (e.shiftKey) {
-                                            const prev = root.current?.previousElementSibling;
-                                            prev?.querySelector('input')?.focus();
-                                        } else if (e.ctrlKey) {
-                                            if (!isMultiWord) {
-                                                onSelect?.();
-                                            }
-                                        } else {
-                                            setTimeout(() => {
-                                                console.log('enter')
-                                                saveGloss('APPROVED')
-                                            })
-
-                                            const nextRoot = root.current?.nextElementSibling;
-                                            const next =
-                                                nextRoot?.querySelector('input:not([type])') ??
-                                                nextRoot?.querySelector('button');
-                                            if (next && next instanceof HTMLElement) {
-                                                next.focus();
-                                            }
+                                        input.current?.focus();
+                                    }}
+                                >
+                                    <Icon icon="arrow-rotate-left" />
+                                </Button>
+                            )}
+                        </div>
+                        <div className="relative grow">
+                            <AutocompleteInput
+                                className={`w-full ${isHebrew ? 'text-right' : 'text-left'}`}
+                                style={{
+                                    fontFamily: fontMap[language.font]
+                                }}
+                                data-phrase={phrase.id}
+                                inputClassName={isHebrew ? 'text-right' : 'text-left'}
+                                right={isHebrew}
+                                renderOption={(item, i) => (
+                                    <div
+                                        className={
+                                            word.machineSuggestion
+                                                ? `relative ${isHebrew ? 'pl-5' : 'pr-5'}`
+                                                : ''
                                         }
-                                        break;
-                                    }
-                                    case 'Escape': {
-                                        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
-                                            return;
+                                    >
+                                        {item}
+                                        {i === word.suggestions.length ? (
+                                            <Icon
+                                                className={`absolute top-1 ${isHebrew ? 'left-0' : 'right-0'}`}
+                                                icon={['fab', 'google']}
+                                            />
+                                        ) : undefined}
+                                    </div>
+                                )}
+                                name="gloss"
+                                value={glossValue}
+                                state={status === 'approved' ? 'success' : undefined}
+                                aria-describedby={`word-help-${word.id}`}
+                                aria-labelledby={`word-${word.id}`}
+                                onChange={(value) => {
+                                    console.log('blur')
+                                    autosaveQueued.current = true
+                                    setTimeout(() => {
+                                        console.log('autosave')
+                                        if (autosaveQueued.current && value !== phrase.gloss?.text) {
+                                            saveGloss('UNAPPROVED')
+                                        }
+                                    }, 200)
+                                }}
+                                onSelect={() => {
+                                    console.log('select')
+                                    saveGloss('APPROVED')
 
-                                        saveGloss('UNAPPROVED')
-                                        break;
+                                    const nextRoot = root.current?.nextElementSibling;
+                                    const next =
+                                        nextRoot?.querySelector('input:not([type])') ??
+                                        nextRoot?.querySelector('button');
+                                    if (next && next instanceof HTMLElement) {
+                                        next.focus();
                                     }
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.metaKey || e.altKey) return;
+                                    switch (e.key) {
+                                        case 'Enter': {
+                                            e.preventDefault();
+                                            if (e.shiftKey) {
+                                                const prev = root.current?.previousElementSibling;
+                                                prev?.querySelector('input')?.focus();
+                                            } else if (e.ctrlKey) {
+                                                if (!isMultiWord) {
+                                                    onSelect?.();
+                                                }
+                                            } else {
+                                                setTimeout(() => {
+                                                    console.log('enter')
+                                                    saveGloss('APPROVED')
+                                                })
+
+                                                const nextRoot = root.current?.nextElementSibling;
+                                                const next =
+                                                    nextRoot?.querySelector('input:not([type])') ??
+                                                    nextRoot?.querySelector('button');
+                                                if (next && next instanceof HTMLElement) {
+                                                    next.focus();
+                                                }
+                                            }
+                                            break;
+                                        }
+                                        case 'Escape': {
+                                            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
+                                                return;
+
+                                            saveGloss('UNAPPROVED')
+                                            break;
+                                        }
+                                    }
+                                }}
+                                onFocus={() => onFocus?.()}
+                                suggestions={
+                                    word.machineSuggestion
+                                        ? [...word.suggestions, word.machineSuggestion]
+                                        : word.suggestions
                                 }
-                            }}
-                            onFocus={() => onFocus?.()}
-                            suggestions={
-                                word.machineSuggestion
-                                    ? [...word.suggestions, word.machineSuggestion]
-                                    : word.suggestions
-                            }
-                            ref={input}
-                        />
-                        {hasMachineSuggestion && (
-                            <Icon
-                                className={`absolute top-1/2 -translate-y-1/2 ${isHebrew ? 'left-3' : 'right-3'}`}
-                                icon={['fab', 'google']}
+                                ref={input}
                             />
-                        )}
+                            {hasMachineSuggestion && (
+                                <Icon
+                                    className={`absolute top-1/2 -translate-y-1/2 ${isHebrew ? 'left-3' : 'right-3'}`}
+                                    icon={['fab', 'google']}
+                                />
+                            )}
+                        </div>
                     </div>
-                </div>
+                }
                 <div
                     id={`word-help-${word.id}`}
                     className={`
