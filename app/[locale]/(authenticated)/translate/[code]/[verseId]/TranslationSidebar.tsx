@@ -183,7 +183,7 @@ const TranslationSidebar = forwardRef<TranslationSidebarRef, TranslationSidebarP
                     ))}
                     <div className="border-b border-blue-800 dark:border-green-400 h-full grow"></div>
                 </Tab.List>
-                <Tab.Panels className="overflow-y-auto grow px-4 pt-4 mb-4">
+                <Tab.Panels className="overflow-y-auto grow px-4 pt-4 pb-10 mb-4">
                     <Tab.Panel unmount={false}>
                         <div>
                             {word.resource && (<>

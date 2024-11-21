@@ -75,7 +75,7 @@ export default function ReadingView({ chapterId, language, verses }: ReadingView
         <div className="flex flex-col flex-grow lg:justify-center w-full min-h-0 lg:flex-row">
             <div
                 className={`
-                    max-h-full min-h-0 overflow-auto pt-8 pb-10 px-6
+                    max-h-full min-h-0 overflow-auto pt-8 pb-24 px-6
                     font-mixed max-w-[960px] leading-loose
                     ${textSizeMap[textSize]}
                     ${isOT ? 'text-right' : 'text-left'}
