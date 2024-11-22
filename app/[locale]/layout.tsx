@@ -8,7 +8,6 @@ import "../globals.css";
 import { headFontClass } from "../fonts";
 import languages from "../../languages.json";
 import { FlashProvider } from "../flash";
-import ChatBubble from "./ChatBubble";
  
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("RootLayout")
@@ -50,10 +49,7 @@ export default function RootLayout({
             </FlashProvider>
         </NextIntlClientProvider>
         {process.env.NODE_ENV === 'production' && (
-            <>
-                <ChatBubble placement={language.dir === 'rtl' ? 'bl' : 'br'} />
-                <GoogleAnalytics gaId="G-0SEF50D4GK" debugMode={true} />
-            </>
+            <GoogleAnalytics gaId="G-0SEF50D4GK" debugMode={true} />
         )}
       </body>
     </html>
