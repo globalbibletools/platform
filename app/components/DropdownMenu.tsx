@@ -71,7 +71,7 @@ export interface DropdownMenuItemProps {
 }
 
 const className =
-  'focus:outline-none focus:underline hover:underline block whitespace-nowrap px-4 py-1 text-start w-full';
+  'focus:outline-none focus:bg-gray-200 hover:bg-gray-200 block whitespace-nowrap px-4 py-1 text-start w-full';
 
 export function DropdownMenuItem({ children, href, onClick, prefetch }: DropdownMenuItemProps) {
   return (
@@ -89,7 +89,7 @@ export function DropdownMenuItem({ children, href, onClick, prefetch }: Dropdown
           } else {
               return <button
                 type="button"
-                className="focus:outline-none focus:underline hover:underline whitespace-nowrap px-4 py-1 text-start w-full"
+                className={className}
                 onClick={onClick}
               >
                 {children}

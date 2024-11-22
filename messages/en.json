@@ -75,7 +75,9 @@
             "read": "Read",
             "admin": "Admin",
             "profile": "Profile",
-            "log_out": "Log Out"
+            "log_out": "Log Out",
+            "log_in": "Log In",
+            "help": "Help"
         }
     },
     "EmailVerification": {

@@ -2,20 +2,21 @@
 
 import Link, { LinkProps } from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode } from "react";
+import { ComponentProps, ReactNode } from "react";
 
-export interface NavLinkProps {
+export interface NavLinkProps extends Omit<ComponentProps<typeof Link>, 'className'> {
     href: LinkProps['href'],
     children?: ReactNode
     className?: string | ((isActive: boolean) => string)
 }
 
-export default function NavLink({ children, href, className = '' }: NavLinkProps) {
+export default function NavLink({ children, href, className = '', ...props }: NavLinkProps) {
     const pathname = usePathname()
     const linkPathname = href instanceof URL ? href.pathname : href.toString()
     const isActive = pathname.startsWith(linkPathname)
 
     return <Link
+        {...props}
         href={href}
         className={typeof className === 'string' ? className : className(isActive)}
     >
