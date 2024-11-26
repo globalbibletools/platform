@@ -1,0 +1,38 @@
+name: Feature Idea
+description: Suggest a feature or change to Global Bible Tools
+body:
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Precheck
+      options:
+        - label: I have searched the issues list for similar ideas.
+          required: true
+
+  - type: textarea
+    attributes:
+      label: Problem
+      description: |
+        What problem are you trying to solve? (eg: I'm always frustrated when ...)
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Solutions
+      description: Describe what solutions you've considered and which you prefer.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency
+      description: How urgent is this idea?
+      options:
+        - Urgent (No practical workaround, blocking work)
+        - High (Important work is made difficult without this)
+        - Medium (Less urgent quality of life improvements, new features to expand offerings)
+        - Low (An idea I want to log, but doesn't need immediate attention)
+    validations:
+      required: true

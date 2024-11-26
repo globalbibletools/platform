@@ -1,0 +1,40 @@
+name: Bug Report
+description: Report a problem with the site.
+labels:
+  - bug
+body:
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Precheck
+      options:
+        - label: I have searched the issues list for similar issues.
+          required: true
+
+  - type: textarea
+    attributes:
+      label: Description
+      description: |
+        Please include the following:
+        - Description of the buggy behavior
+        - Description of the expected behavior
+        - Steps to reproduce the buggy behavior
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Screenshots
+      description: If you have a screenshot or screen recording of the issue, that will help us identify the issue.
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: Environment
+      description: |
+        - Device: [eg: Laptop, iPhone]
+        - OS Version: [eg: iOS 14, Windows 10]
+        - Browser Version: [eg: Chrome 160, Safari 17.5]
+    validations:
+      required: true
