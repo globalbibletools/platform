@@ -1,6 +1,8 @@
 # Contributing to Global Bible Tools
 
-Thank you for your interest in contributing to Global Bible Tools! Please familiarize yourself with this document before you open a PR. Accepted PRs are automatically deployed to globalbibletools.com.
+Thank you for your interest in contributing to Global Bible Tools! Please familiarize yourself with this document before you open a PR.
+
+We would also appreciate if you filled out this [form](https://enormous-square-660.notion.site/1468e90207d68038b9e5f22949d40b87?pvs=105), so we can get to know you a little better.
 
 ## Getting Started
 
