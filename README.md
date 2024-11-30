@@ -22,8 +22,8 @@ As we are able to translate additional resources, we will make them available in
 #### Additional Resources
 We intend to build similar interfaces to translate the following resources for the study app:
 * **Lexicons**: Users will be able to learn, in their own language, the breadth of meaning for a Hebrew or Greek word.
-* **Grammars**: Users will be able to learn, in their own langauge, the grammatical structure of Hebrew and Greek in their language.
-* **Textual Critism Notes**: Users will be able to learn, in their own language, about the variants in the manuscript evidence for the Hebrew and Greek scriptures.
+* **Grammars**: Users will be able to learn, in their own language, the grammatical structure of Hebrew and Greek in their language.
+* **Textual Criticism Notes**: Users will be able to learn, in their own language, about the variants in the manuscript evidence for the Hebrew and Greek scriptures.
 
 ## Contributing
 
