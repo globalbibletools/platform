@@ -46,7 +46,8 @@
     "AdminUsersPage": {
         "title": "Users",
         "links": {
-            "add_user": "Invite User"
+            "add_user": "Invite User",
+            "resend_invite": "Resend Invite"
         },
         "headers": {
             "name": "Name",
@@ -193,7 +194,8 @@
         "title": "Users",
         "links": {
             "invite_user": "Invite User",
-            "remove": "Remove User"
+            "remove": "Remove User",
+            "resend_invite": "Resend Invite"
         },
         "headers": {
             "name": "Name",

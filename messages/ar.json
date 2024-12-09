@@ -46,7 +46,8 @@
     "AdminUsersPage": {
         "title": "المستخدمون",
         "links": {
-            "add_user": "دعوة مستخدم"
+            "add_user": "دعوة مستخدم",
+            "resend_invite": "إعادة إرسال الدعوة"
         },
         "headers": {
             "name": "الاسم",
@@ -193,7 +194,8 @@
         "title": "المستخدمون",
         "links": {
             "invite_user": "دعوة مستخدم",
-            "remove": "إزالة المستخدم"
+            "remove": "إزالة المستخدم",
+            "resend_invite": "إعادة إرسال الدعوة"
         },
         "headers": {
             "name": "الاسم",
