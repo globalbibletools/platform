@@ -8,7 +8,6 @@ import { Metadata, ResolvingMetadata } from "next";
 import { changeUserRole, resendUserInvite } from "./actions";
 import MultiselectInput from "@/app/components/MultiselectInput";
 import Form from "@/app/components/Form";
-import ResendInviteAction from "./ResendInviteAction";
 import ServerAction from "@/app/components/ServerAction";
 
 export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
