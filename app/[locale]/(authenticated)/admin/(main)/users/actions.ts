@@ -60,7 +60,7 @@ export async function resendUserInvite(formData: FormData): Promise<FormState> {
     const t = await getTranslations('AdminUsersPage');
 
     const session = await verifySession()
-    if (!session?.user.roles.includes('ADMIN')) {
+    if (!session) {
         notFound()
     }
 
@@ -72,21 +72,38 @@ export async function resendUserInvite(formData: FormData): Promise<FormState> {
         }
     }
 
+    const accessQuery = await query<{ isLanguageAdmin: boolean }>(
+        `
+        SELECT
+            COUNT(*) > 0 AS "isLanguageAdmin"
+        FROM (
+            SELECT DISTINCT("languageId") AS id FROM "LanguageMemberRole" AS role
+            WHERE role."userId" = $1
+        ) AS lang
+        JOIN "LanguageMemberRole" AS role ON role."languageId" = lang.id
+        WHERE role."userId" = $2
+            AND role.role = 'ADMIN'
+        `,
+        [request.data.userId, session.user.id]
+    )
+    const access = accessQuery.rows[0] ?? { isLanguageAdmin: false }
+
+    if (!session?.user.roles.includes('ADMIN') && !access.isLanguageAdmin) {
+        notFound()
+    }
+
     const userQuery = await query<{ email: string, isActive: boolean }>(
         `SELECT
             u.email,
-            u."hashedPassword" <> NULL AS "isActive"
+            u."hashedPassword" IS NOT NULL AS "isActive"
         FROM "User" AS u
         WHERE u.id = $1`,
         [request.data.userId]
     )
     const user = userQuery.rows[0]
     if (!user) {
-        return {
-            state: 'error',
-            error: 'User does not exist'
-        }
-    } else if (!user.isActive) {
+        notFound()
+    } else if (user.isActive) {
         return {
             state: 'error',
             error: 'User has already signed up'
