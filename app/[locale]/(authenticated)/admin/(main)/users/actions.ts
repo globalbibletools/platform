@@ -72,9 +72,12 @@ export async function resendUserInvite(formData: FormData): Promise<FormState> {
         }
     }
 
-    // TODO: confirm user exists and isn't already joined. 
-    const userQuery = await query<{ email: string }>(
-        `SELECT email FROM "User" WHERE id = $1`,
+    const userQuery = await query<{ email: string, isActive: boolean }>(
+        `SELECT
+            u.email,
+            u."hashedPassword" <> NULL AS "isActive"
+        FROM "User" AS u
+        WHERE u.id = $1`,
         [request.data.userId]
     )
     const user = userQuery.rows[0]
@@ -82,6 +85,11 @@ export async function resendUserInvite(formData: FormData): Promise<FormState> {
         return {
             state: 'error',
             error: 'User does not exist'
+        }
+    } else if (!user.isActive) {
+        return {
+            state: 'error',
+            error: 'User has already signed up'
         }
     }
     
