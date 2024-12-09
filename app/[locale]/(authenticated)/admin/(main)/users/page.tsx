@@ -8,6 +8,7 @@ import { Metadata, ResolvingMetadata } from "next";
 import { changeUserRole } from "./actions";
 import MultiselectInput from "@/app/components/MultiselectInput";
 import Form from "@/app/components/Form";
+import ResendInviteAction from "./ResendInviteAction";
 
 export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
     const t = await getTranslations("AdminUsersPage")
@@ -22,7 +23,6 @@ export default async function AdminUsersPage() {
     const t = await getTranslations("AdminUsersPage")
 
     const users = await fetchUsers()
-    console.log(users)
 
     return <div className="px-8 py-6 w-fit">
         <div className="flex items-baseline mb-4">
@@ -81,7 +81,7 @@ export default async function AdminUsersPage() {
                         </ListCell>
                         <ListCell className="ps-4">
                             {user.invite !== null &&
-                                <Button variant="link">Resend Invite</Button>
+                                <ResendInviteAction userId={user.id} />
                             }
                         </ListCell>
                     </ListRow>
