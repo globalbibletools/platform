@@ -20,17 +20,9 @@ export async function generateMetadata(_: any, parent: ResolvingMetadata): Promi
 
 export default async function AdminUsersPage() {
     const t = await getTranslations("AdminUsersPage")
-    const usersQuery = await query<{ id: string, name: string, email: string, emailStatus: string, roles: [] }>(
-        `SELECT
-            id, name, email, "emailStatus",
-            COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM "User" AS u
-        LEFT JOIN "UserSystemRole" AS r ON r."userId" = u.id
-        GROUP BY u.id
-        ORDER BY u.name`,
-        []
-    )
-    const users = usersQuery.rows
+
+    const users = await fetchUsers()
+    console.log(users)
 
     return <div className="px-8 py-6 w-fit">
         <div className="flex items-baseline mb-4">
@@ -55,6 +47,7 @@ export default async function AdminUsersPage() {
                 <ListHeaderCell className="min-w-[80px]">
                     {t('headers.role')}
                 </ListHeaderCell>
+                <ListHeaderCell />
             </ListHeader>
             <ListBody>
                 {users.map((user) => (
@@ -86,9 +79,56 @@ export default async function AdminUsersPage() {
                                 />
                             </Form>
                         </ListCell>
+                        <ListCell className="ps-4">
+                            {user.invite !== null &&
+                                <Button variant="link">Resend Invite</Button>
+                            }
+                        </ListCell>
                     </ListRow>
                 ))}
             </ListBody>
         </List>
     </div>
+}
+
+interface User {
+    id: string,
+    name: string,
+    email: string,
+    emailStatus: string,
+    roles: []
+    invite: null | {
+        token: string
+        expires: number
+    }
+}
+
+async function fetchUsers() {
+    const usersQuery = await query<User>(
+        `SELECT
+            id, name, email, "emailStatus",
+            roles.list AS roles,
+            invitation.json AS invite
+        FROM "User" AS u
+        JOIN LATERAL (
+            SELECT
+                COALESCE(json_agg(r.role), '[]') AS list
+            FROM "UserSystemRole" AS r
+            WHERE r."userId" = u.id
+        ) AS roles ON true
+        LEFT JOIN LATERAL (
+            SELECT
+				JSON_BUILD_OBJECT(
+				  'token', i.token,
+				  'expires', i.expires
+				) as json
+            FROM "UserInvitation" AS i
+            WHERE i."userId" = u.id
+            ORDER BY i."expires" DESC
+            LIMIT 1
+        ) AS invitation ON true
+        ORDER BY u.name`,
+        []
+    )
+    return usersQuery.rows
 }
