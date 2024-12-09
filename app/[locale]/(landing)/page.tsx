@@ -1,6 +1,7 @@
 import { query } from "@/shared/db"
 import ProgressChart from "./ProgressChart"
 import { Icon } from "@/app/components/Icon"
+import { trace } from '@opentelemetry/api'
 
 export default async function LandingPage() {
     const stats = await fetchLanguageProgressStats()
@@ -238,13 +239,19 @@ interface LanguageProgressStats {
 }
 
 async function fetchLanguageProgressStats() {
-    const result = await query<LanguageProgressStats>(
-        `
-        SELECT l.code, l.name, COALESCE(s."otProgress", 0) AS "otProgress", COALESCE(s."ntProgress", 0) AS "ntProgress" FROM "Language" AS l
-        LEFT JOIN "LanguageProgress" AS s ON l.code = s.code
-        ORDER BY (s."otProgress" + s."ntProgress") DESC
-        `,
-        []
-    )
-    return result.rows
+    return await trace.getTracer('test').startActiveSpan('fetchLanguageProgressStats', async (span) => {
+        try {
+            const result = await query<LanguageProgressStats>(
+                `
+                SELECT l.code, l.name, COALESCE(s."otProgress", 0) AS "otProgress", COALESCE(s."ntProgress", 0) AS "ntProgress" FROM "Language" AS l
+                LEFT JOIN "LanguageProgress" AS s ON l.code = s.code
+                ORDER BY (s."otProgress" + s."ntProgress") DESC
+                `,
+                []
+            )
+            return result.rows
+        } finally {
+            span.end()
+        }
+    })
 }

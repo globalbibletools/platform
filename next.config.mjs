@@ -29,7 +29,10 @@ const nextConfig = {
             }
         ]
     },
-    output: "standalone"
+    output: "standalone",
+    experimental: {
+        instrumentationHook: true
+    }
 };
 
 export default withNextIntl(nextConfig);
