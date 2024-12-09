@@ -9,6 +9,7 @@ import MultiselectInput from "@/app/components/MultiselectInput";
 import Form from "@/app/components/Form";
 import { changeUserLanguageRole, removeLanguageUser } from "./actions";
 import ServerAction from "@/app/components/ServerAction";
+import { resendUserInvite } from "../../../../(main)/users/actions";
 
 interface LanguageUsersPageProps {
     params: { code: string }
@@ -25,18 +26,7 @@ export async function generateMetadata(_: any, parent: ResolvingMetadata): Promi
 
 export default async function LanguageUsersPage({ params }: LanguageUsersPageProps) {
     const t = await getTranslations('LanguageUsersPage')
-    const usersQuery = await query<{ id: string, name: string, email: string, roles: string[] }>(
-        `SELECT
-            u.id, u.name, u.email,
-            COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL AND r.role != 'VIEWER'), '[]') AS roles
-        FROM "LanguageMemberRole" AS r
-        JOIN "User" AS u ON u.id = r."userId"
-        JOIN "Language" AS l ON l.id = r."languageId"
-        WHERE l.code = $1
-        GROUP BY u.id
-        `,
-        [params.code]
-    )
+    const users = await fetchUsers(params.code)
 
     return (
         <div className="px-8 py-6 w-fit">
@@ -64,7 +54,7 @@ export default async function LanguageUsersPage({ params }: LanguageUsersPagePro
                     <ListHeaderCell />
                 </ListHeader>
                 <ListBody>
-                    {usersQuery.rows.map((user) => (
+                    {users.map((user) => (
                         <ListRow key={user.id}>
                             <ListCell header className="pe-4 py-2">
                                 <div className="">{user.name}</div>
@@ -94,6 +84,16 @@ export default async function LanguageUsersPage({ params }: LanguageUsersPagePro
                                 </Form>
                             </ListCell>
                             <ListCell className="py-2">
+                                {user.invite &&
+                                    <ServerAction
+                                        variant="tertiary"
+                                        className="ms-4"
+                                        actionData={{ userId: user.id }}
+                                        action={resendUserInvite}
+                                    >
+                                        {t("links.resend_invite")}
+                                    </ServerAction>
+                                }
                                 <ServerAction
                                     variant="tertiary"
                                     className="text-red-700 ms-2 -me-2"
@@ -113,3 +113,47 @@ export default async function LanguageUsersPage({ params }: LanguageUsersPagePro
     );
 
 }
+
+interface User {
+    id: string,
+    name: string,
+    email: string,
+    roles: string[]
+    invite: null | {
+        token: string
+        expires: number
+    }
+}
+
+async function fetchUsers(code: string) {
+    const usersQuery = await query<User>(
+        `SELECT
+            u.id, u.name, u.email,
+            m.roles AS roles,
+            invitation.json AS invite
+        FROM (
+            SELECT 
+                r."userId" AS id,
+                COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL AND r.role != 'VIEWER'), '[]') AS roles
+            FROM "LanguageMemberRole" AS r
+            WHERE r."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+            GROUP BY r."userId"
+        ) AS m
+        JOIN "User" AS u ON m.id = u.id
+        LEFT JOIN LATERAL (
+            SELECT
+				JSON_BUILD_OBJECT(
+				  'token', i.token,
+				  'expires', i.expires
+				) as json
+            FROM "UserInvitation" AS i
+            WHERE i."userId" = u.id
+            ORDER BY i."expires" DESC
+            LIMIT 1
+        ) AS invitation ON true
+        ORDER BY u.name`,
+        [code]
+    )
+    return usersQuery.rows
+}
+

@@ -56,7 +56,7 @@ const resendUserInviteSchema = z.object({
     userId: z.string().min(1)
 })
 
-export async function resendUserInvite(formData: FormData): Promise<FormState> {
+export async function resendUserInvite(_prevState: FormState, formData: FormData): Promise<FormState> {
     const t = await getTranslations('AdminUsersPage');
 
     const session = await verifySession()

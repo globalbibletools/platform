@@ -5,10 +5,11 @@ import ViewTitle from "@/app/components/ViewTitle";
 import { query } from "@/shared/db";
 import { getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
-import { changeUserRole } from "./actions";
+import { changeUserRole, resendUserInvite } from "./actions";
 import MultiselectInput from "@/app/components/MultiselectInput";
 import Form from "@/app/components/Form";
 import ResendInviteAction from "./ResendInviteAction";
+import ServerAction from "@/app/components/ServerAction";
 
 export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
     const t = await getTranslations("AdminUsersPage")
@@ -81,7 +82,14 @@ export default async function AdminUsersPage() {
                         </ListCell>
                         <ListCell className="ps-4">
                             {user.invite !== null &&
-                                <ResendInviteAction userId={user.id} />
+                                <ServerAction
+                                    variant="tertiary"
+                                    className="ms-4"
+                                    actionData={{ userId: user.id }}
+                                    action={resendUserInvite}
+                                >
+                                    {t("links.resend_invite")}
+                                </ServerAction>
                             }
                         </ListCell>
                     </ListRow>
@@ -96,7 +104,7 @@ interface User {
     name: string,
     email: string,
     emailStatus: string,
-    roles: []
+    roles: string[]
     invite: null | {
         token: string
         expires: number
