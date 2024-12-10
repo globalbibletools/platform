@@ -1,13 +1,20 @@
+import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { AWSXRayIdGenerator } from '@opentelemetry/id-generator-aws-xray'
 import { AwsInstrumentation } from '@opentelemetry/instrumentation-aws-sdk'
+import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
 import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray'
 import { Resource } from '@opentelemetry/resources'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-node'
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions'
 
-console.log('Sending tracing to', process.env['OTEL_EXPORTER_OTLP_ENDPOINT'])
+console.log('Starting tracing')
+
+// Uncomment to view what would be sent to otel collector
+// diag.setLogger(new DiagConsoleLogger(), {
+//     logLevel: DiagLogLevel.ALL
+// })
 
 const resource = new Resource({
     [ATTR_SERVICE_NAME]: 'platform-server',
@@ -21,10 +28,11 @@ const sdk = new NodeSDK({
     resource,
     idGenerator: new AWSXRayIdGenerator(),
     instrumentations: [
-        new AwsInstrumentation({ suppressInternalInstrumentation: true })
+        new AwsInstrumentation({ suppressInternalInstrumentation: true }),
+        new HttpInstrumentation()
     ],
     spanProcessor,
-    traceExporter
+    traceExporter,
 })
 
 sdk.start()

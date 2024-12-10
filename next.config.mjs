@@ -31,7 +31,8 @@ const nextConfig = {
     },
     output: "standalone",
     experimental: {
-        instrumentationHook: true
+        instrumentationHook: true,
+        serverComponentsExternalPackages: ['@opentelemetry/sdk-node']
     }
 };
 
