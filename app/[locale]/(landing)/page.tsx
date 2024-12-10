@@ -89,7 +89,7 @@ export default async function LandingPage() {
                             href="https://docs.google.com/document/d/1PfgkStvqrCJutpcQzq73zN_fZkfl17zs3MdQIhT3xg4/"
                             target="_blank"
                             rel="noopener noreferrer"
-                        >Prefer to Read? <Icon icon="external-link"/></a>
+                        >Prefer to Read? <Icon icon="external-link" /></a>
                     </div>
                     <div
                         className="grid grid-rows-[auto_1fr_1fr_auto_1fr_1fr_1fr] md:grid-rows-[auto_1fr_1fr_1fr] grid-cols-1 md:grid-cols-2 grid-flow-col gap-8 lg:gap-x-16"
@@ -239,19 +239,12 @@ interface LanguageProgressStats {
 }
 
 async function fetchLanguageProgressStats() {
-    return await trace.getTracer('test').startActiveSpan('fetchLanguageProgressStats', async (span) => {
-        try {
-            const result = await query<LanguageProgressStats>(
-                `
-                SELECT l.code, l.name, COALESCE(s."otProgress", 0) AS "otProgress", COALESCE(s."ntProgress", 0) AS "ntProgress" FROM "Language" AS l
-                LEFT JOIN "LanguageProgress" AS s ON l.code = s.code
-                ORDER BY (s."otProgress" + s."ntProgress") DESC
-                `,
-                []
-            )
-            return result.rows
-        } finally {
-            span.end()
-        }
-    })
+    const result = await query<LanguageProgressStats>(
+        `SELECT l.code, l.name, COALESCE(s."otProgress", 0) AS "otProgress", COALESCE(s."ntProgress", 0) AS "ntProgress" FROM "Language" AS l
+        LEFT JOIN "LanguageProgress" AS s ON l.code = s.code
+        ORDER BY (s."otProgress" + s."ntProgress") DESC
+        `,
+        []
+    )
+    return result.rows
 }

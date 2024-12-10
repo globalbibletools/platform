@@ -3,6 +3,7 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { AWSXRayIdGenerator } from '@opentelemetry/id-generator-aws-xray'
 import { AwsInstrumentation } from '@opentelemetry/instrumentation-aws-sdk'
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http'
+import { PgInstrumentation } from '@opentelemetry/instrumentation-pg'
 import { AWSXRayPropagator } from '@opentelemetry/propagator-aws-xray'
 import { Resource } from '@opentelemetry/resources'
 import { NodeSDK } from '@opentelemetry/sdk-node'
@@ -29,7 +30,8 @@ const sdk = new NodeSDK({
     idGenerator: new AWSXRayIdGenerator(),
     instrumentations: [
         new AwsInstrumentation({ suppressInternalInstrumentation: true }),
-        new HttpInstrumentation()
+        new HttpInstrumentation(),
+        new PgInstrumentation()
     ],
     spanProcessor,
     traceExporter,
