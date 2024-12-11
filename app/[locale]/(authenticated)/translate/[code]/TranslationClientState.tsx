@@ -11,9 +11,11 @@ interface Phrase {
 interface TranslationClientStateContextValue {
     selectedWords: string[],
     focusedPhrase?: Phrase
+    backtranslations?: { translation: string, phraseId: number }[]
     selectWord(wordId?: string): void
     clearSelectedWords(): void
     focusPhrase(phrase?: Phrase): void
+    setBacktranslations(list: { translation: string, phraseId: number }[]): void
 }
 
 const TranslationClientStateContext = createContext<TranslationClientStateContextValue | null>(null)
@@ -23,9 +25,12 @@ export function TranslationClientStateProvider({ children }: { children: ReactNo
 
     const [focusedPhrase, focusPhrase] = useState<Phrase>()
     const [selectedWords, setSelectedWords] = useState<string[]>([])
+    const [backtranslations, setBacktranslations] = useState<undefined | { translation: string, phraseId: number }[]>()
+
     useEffect(() => {
         setSelectedWords([])
         focusPhrase(undefined)
+        setBacktranslations(undefined)
     }, [verseId])
 
     const selectWord = useCallback((wordId: string) => {
@@ -42,7 +47,7 @@ export function TranslationClientStateProvider({ children }: { children: ReactNo
         setSelectedWords([]);
     }, [])
 
-    return <TranslationClientStateContext.Provider value={{ selectedWords, focusedPhrase, selectWord, clearSelectedWords, focusPhrase }}>
+    return <TranslationClientStateContext.Provider value={{ selectedWords, focusedPhrase, backtranslations, selectWord, clearSelectedWords, focusPhrase, setBacktranslations }}>
         {children}
     </TranslationClientStateContext.Provider>
 }

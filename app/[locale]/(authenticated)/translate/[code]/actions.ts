@@ -8,6 +8,9 @@ import { parseReference } from '@/app/verse-utils';
 import { query, transaction } from '@/shared/db';
 import { verifySession } from '@/app/session';
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { FormState } from '@/app/components/Form';
+import { translateClient } from '@/app/google-translate';
+import languageMap from "@/data/locale-mapping.json"
 
 const requestSchema = z.object({
     language: z.string(),
@@ -334,4 +337,57 @@ export async function unlinkPhrase(formData: FormData): Promise<void> {
 
     const locale = await getLocale()
     revalidatePath(`/${locale}/translate/${request.data.code}/${pathQuery.rows[0].verseId}`)
+}
+
+const sanityCheckSchema = z.object({
+    code: z.string(),
+    verseId: z.string()
+})
+
+type SanityCheckResult =
+| { state: 'idle' }
+| { state: 'error', error?: string }
+| { state: 'success', data: { translation: string, phraseId: number }[] }
+
+export async function sanityCheck(_prev: SanityCheckResult, formData: FormData): Promise<SanityCheckResult> {
+    const session = await verifySession()
+    if (!session?.user.roles.includes('ADMIN')) {
+        notFound()
+    }
+
+    const request = sanityCheckSchema.safeParse(parseForm(formData));
+    if (!request.success) {
+        return { state: 'error' }
+    }
+
+    const glossesQuery = await query<{ phraseId: number, gloss: string | null }>(
+        `SELECT
+            ph.id as "phraseId",
+            g.gloss
+        FROM "Gloss" g
+        JOIN "Phrase" ph ON ph.id = g."phraseId"
+        WHERE ph."deletedAt" IS NULL
+            AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+            AND EXISTS (
+                SELECT FROM "PhraseWord" phw
+                JOIN "Word" w ON w.id = phw."wordId"
+                WHERE phw."phraseId" = ph.id
+                    AND w."verseId" = $2
+            )
+        `,
+        [request.data.code, request.data.verseId]
+    )
+    const glosses = glossesQuery.rows
+
+    const translations = await backtranslate(request.data.code, glosses.filter((g): g is { gloss: string, phraseId: number } => !!g.gloss))
+
+    return { state: 'success', data: translations }
+}
+
+async function backtranslate(code: string, glosses: { gloss: string, phraseId: number }[]): Promise<{ translation: string, phraseId: number }[]> {
+    const languageCode = languageMap[code as keyof typeof languageMap];
+    if (!languageCode || languageCode === 'en' || !translateClient || glosses.length === 0) return []
+    
+    const translations = await translateClient.translate(glosses.map(g => g.gloss), 'en', languageCode)
+    return translations.map((t, i) => ({ phraseId: glosses[i].phraseId, translation: t }))
 }

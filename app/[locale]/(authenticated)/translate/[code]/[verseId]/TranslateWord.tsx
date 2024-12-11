@@ -16,6 +16,7 @@ import { useParams } from "next/navigation";
 export interface TranslateWordProps {
     word: { id: string, text: string, referenceGloss?: string, suggestions: string[], machineSuggestion?: string }
     phrase: { id: number, wordIds: string[], gloss?: { text: string, state: string }, translatorNote?: { authorName: string, timestamp: string, content: string }, footnote?: { authorName: string, timestamp: string, content: string } }
+    backtranslation?: string
     language: {
         font: string
         textDirection: string
@@ -30,13 +31,15 @@ export interface TranslateWordProps {
     onOpenNotes?(): void
 }
 
-export default function TranslateWord({ word, phrase, isHebrew, language, phraseFocused, wordSelected, onSelect, onFocus, onShowDetail, onOpenNotes }: TranslateWordProps) {
+export default function TranslateWord({ word, phrase, isHebrew, language, phraseFocused, wordSelected, backtranslation, onSelect, onFocus, onShowDetail, onOpenNotes }: TranslateWordProps) {
     const t = useTranslations("TranslateWord")
     const { mutate } = useSWRConfig()
 
     const root = useRef<HTMLLIElement>(null)
     const ancientWord = useRef<HTMLSpanElement>(null)
     const refGloss = useRef<HTMLSpanElement>(null)
+    const targetGloss = useRef<HTMLSpanElement>(null)
+    const backtranslatedGloss = useRef<HTMLSpanElement>(null)
     const input = useRef<HTMLInputElement>(null)
 
     const editable = language.roles.includes('TRANSLATOR')
@@ -102,10 +105,13 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                 // The first 24 pixels accommodates the checkbox and link icon for phrases.
                 // The extra 36 pixels accommodates the sticky note icon
                 24 + (hasNote ? 36 : 0) + (ancientWord.current?.clientWidth ?? 0),
-                refGloss.current?.clientWidth ?? 0,
                 // The extra 24 pixels accommodates the google icon
                 // The extra 48 pixels accommodates the approval button
-                glossWidth + (hasMachineSuggestion ? 24 : 0) + 44
+                glossWidth + (editable ? (hasMachineSuggestion ? 24 : 0) + 44 : 0),
+
+                refGloss.current?.clientWidth ?? 0,
+                targetGloss.current?.clientWidth ?? 0,
+                backtranslatedGloss.current?.clientWidth ?? 0,
             )
         );
     }, [hasNote, glossWidth, hasMachineSuggestion, isMultiWord]);
@@ -189,10 +195,21 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
             dir="ltr"
         >
             <span className="inline-block" ref={refGloss}>
-                {editable ? word.referenceGloss : phrase?.gloss?.text}
+                {word.referenceGloss}
             </span>
         </div>
-        {editable && (
+        {!editable
+            ?
+                <div
+                    className={`h-8 ${isHebrew ? 'text-right pr-3' : 'text-left pl-3'
+                        }`}
+                    dir={language.textDirection}
+                >
+                    <span className="inline-block" ref={targetGloss}>
+                        {phrase.gloss?.text}
+                    </span>
+                </div>
+            : (
             <>
                 {
                     phrase.wordIds.indexOf(word.id) === 0 &&
@@ -376,5 +393,16 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                 </div>
             </>
         )}
+        {!!backtranslation && 
+            <div
+                className={`h-8 italic ${isHebrew ? 'text-right pr-3' : 'text-left pl-3'
+                    }`}
+                dir="ltr"
+            >
+                <span className="inline-block" ref={backtranslatedGloss}>
+                    {backtranslation}
+                </span>
+            </div>
+        }
     </li>
 }

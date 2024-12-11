@@ -57,7 +57,7 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
 
     const sidebarRef = useRef<TranslationSidebarRef>(null)
 
-    const { selectedWords, focusedPhrase, selectWord, focusPhrase } = useTranslationClientState();
+    const { selectedWords, focusedPhrase, backtranslations, selectWord, focusPhrase } = useTranslationClientState();
 
     useEffect(() => {
         const input = document.activeElement
@@ -116,6 +116,7 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
                         wordSelected={selectedWords.includes(word.id)}
                         phrase={phrase}
                         phraseFocused={phrase === focusedPhrase}
+                        backtranslation={backtranslations?.find(t => t.phraseId === phrase.id)?.translation}
                         language={language}
                         isHebrew={isHebrew}
                         onFocus={() => {
