@@ -31,6 +31,7 @@ export default async function InterlinearLayout({ children, params }: Props) {
                 <TranslationToolbar
                     languages={languages}
                     currentLanguage={currentLanguage}
+                    userRoles={session.user.roles}
                 />
             </NextIntlClientProvider>
             {children}

@@ -8,21 +8,24 @@ import TextInput from "@/app/components/TextInput";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { approveAll, changeInterlinearLocation, linkWords, redirectToUnapproved, unlinkPhrase } from "./actions";
+import { approveAll, changeInterlinearLocation, linkWords, redirectToUnapproved, sanityCheck, unlinkPhrase } from "./actions";
 import { bookFirstVerseId, bookLastVerseId, decrementVerseId, incrementVerseId } from "@/app/verse-utils";
 import { useTranslationClientState } from "./TranslationClientState";
 import TranslationProgressBar from "./TranslationProgressBar";
 import { useSWRConfig } from "swr";
 import { useFlash } from "@/app/flash";
+import ServerAction from "@/app/components/ServerAction";
 
 export interface TranslationToolbarProps {
     languages: { name: string; code: string }[];
     currentLanguage?: { roles: string [] };
+    userRoles: string[]
 }
 
 export default function TranslationToolbar({
     languages,
-    currentLanguage
+    currentLanguage,
+    userRoles
 }: TranslationToolbarProps) {
     const t = useTranslations("TranslationToolbar");
     const { verseId, code, locale } = useParams<{ locale: string, code: string, verseId: string }>()
@@ -31,9 +34,10 @@ export default function TranslationToolbar({
     const flash = useFlash()
 
     const isTranslator = !!currentLanguage?.roles.includes('TRANSLATOR');
-    const isAdmin = !!currentLanguage?.roles.includes('ADMIN');
+    const isLanguageAdmin = !!currentLanguage?.roles.includes('ADMIN');
+    const isPlatformAdmin = userRoles.includes('ADMIN')
 
-    const { selectedWords, focusedPhrase, clearSelectedWords } = useTranslationClientState()
+    const { selectedWords, focusedPhrase, clearSelectedWords, setBacktranslations } = useTranslationClientState()
     const canLinkWords = selectedWords.length > 1;
     const canUnlinkWords = (focusedPhrase?.wordIds.length ?? 0) > 1;
 
@@ -112,6 +116,21 @@ export default function TranslationToolbar({
             })
         }
     }, [code, focusedPhrase, verseId, locale, mutate])
+
+    const [runningSanityCheck, setRunningSanityCheck] = useState(false)
+    const onSanityCheck = useCallback(async () => {
+        const form = new FormData()
+        form.set('code', code)
+        form.set('verseId', verseId)
+        setRunningSanityCheck(true)
+        const result = await sanityCheck({ state: 'idle' }, form)
+        if (result.state === 'error' && result.error) {
+            flash.error(result.error)
+        } else if (result.state === 'success' && result.data) {
+            setBacktranslations(result.data)
+        }
+        setRunningSanityCheck(false)
+    }, [code, verseId])
 
     useEffect(() => {
         if (!verseId) return
@@ -198,7 +217,7 @@ export default function TranslationToolbar({
                             className="w-40"
                             autoComplete="off"
                         />
-                        {isAdmin && (
+                        {isLanguageAdmin && (
                             <Button className="ms-2" variant="tertiary" href={`/admin/languages/${code}/settings`}>
                                 <Icon icon="sliders" className="me-1" />
                                 {t('manage_language')}
@@ -206,36 +225,49 @@ export default function TranslationToolbar({
                         )}
                     </div>
                 </div>
-                {isTranslator && (
                     <div className="pt-6 flex items-center">
-                        <Button
-                            variant="tertiary"
-                            disabled={!verseId}
-                            onClick={approveAllGlosses}
-                        >
-                            <Icon icon="check" className="me-1" />
-                            {t('approve_all')}
-                        </Button>
-                        <span className="mx-1 dark:text-gray-300" aria-hidden="true">
-                            |
-                        </span>
-                        {!canUnlinkWords || canLinkWords ? (
+                        {isTranslator && (<>
                             <Button
                                 variant="tertiary"
-                                disabled={!canLinkWords || !verseId}
-                                onClick={onLinkWords}
+                                disabled={!verseId}
+                                onClick={approveAllGlosses}
                             >
-                                <Icon icon="link" className="me-1" />
-                                {t('link_words')}
+                                <Icon icon="check" className="me-1" />
+                                {t('approve_all')}
                             </Button>
-                        ) : (
-                            <Button variant="tertiary" disabled={!verseId} onClick={onUnlinkWords}>
-                                <Icon icon="unlink" className="me-1" />
-                                {t('unlink_words')}
-                            </Button>
-                        )}
+                            <span className="mx-1 dark:text-gray-300" aria-hidden="true">
+                                |
+                            </span>
+                            {!canUnlinkWords || canLinkWords ? (
+                                <Button
+                                    variant="tertiary"
+                                    disabled={!canLinkWords || !verseId}
+                                    onClick={onLinkWords}
+                                >
+                                    <Icon icon="link" className="me-1" />
+                                    {t('link_words')}
+                                </Button>
+                            ) : (
+                                <Button variant="tertiary" disabled={!verseId} onClick={onUnlinkWords}>
+                                    <Icon icon="unlink" className="me-1" />
+                                    {t('unlink_words')}
+                                </Button>
+                            )}
+                        </>)}
+                        {
+                            isPlatformAdmin && <>
+                                {isTranslator &&
+                                    <span className="mx-1 dark:text-gray-300" aria-hidden="true">
+                                        |
+                                    </span>
+                                }
+                                <Button variant="tertiary" disabled={!verseId} onClick={onSanityCheck}>
+                                    <Icon icon={runningSanityCheck ? "arrows-rotate" : "clipboard-check"} className="me-1" />
+                                    {t('sanity_check')}
+                                </Button>
+                            </>
+                        }
                     </div>
-                )}
             </div>
             { verseId && <TranslationProgressBar /> }
         </div>

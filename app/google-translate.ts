@@ -26,11 +26,13 @@ const client = key && new TranslationServiceClient({
 export const translateClient = client && {
   async translate(
     strings: string[],
-    targetLanguage: string
+    targetLanguage: string,
+    sourceLanguage?: string
   ): Promise<string[]> {
     const [response] = await client.translateText({
       contents: strings,
       targetLanguageCode: targetLanguage,
+      sourceLanguageCode: sourceLanguage,
       parent: `projects/${key.project_id}`,
     });
 
