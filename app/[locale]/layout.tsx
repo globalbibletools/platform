@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { config } from '@fortawesome/fontawesome-svg-core'
 import { NextIntlClientProvider, useMessages } from "next-intl";
 import { getTranslations } from "next-intl/server";
-import { GoogleAnalytics } from '@next/third-parties/google'
 import '@fortawesome/fontawesome-svg-core/styles.css'
 import "../globals.css";
 import { headFontClass } from "../fonts";
 import languages from "../../languages.json";
 import { FlashProvider } from "../flash";
+import GoogleAnalytics from "./GoogleAnalytics";
  
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("RootLayout")
@@ -49,7 +49,7 @@ export default function RootLayout({
             </FlashProvider>
         </NextIntlClientProvider>
         {process.env.NODE_ENV === 'production' && (
-            <GoogleAnalytics gaId="G-0SEF50D4GK" debugMode={true} />
+            <GoogleAnalytics />
         )}
       </body>
     </html>
