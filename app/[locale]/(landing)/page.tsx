@@ -1,7 +1,6 @@
 import { query } from "@/shared/db"
 import ProgressChart from "./ProgressChart"
 import { Icon } from "@/app/components/Icon"
-import { trace } from '@opentelemetry/api'
 
 export default async function LandingPage() {
     const stats = await fetchLanguageProgressStats()
@@ -10,10 +9,10 @@ export default async function LandingPage() {
         <nav
             className="bg-white flex items-center h-20 border-b border-gray-200 relative flex-shrink-0 px-4 md:px-8"
         >
-            <a href="#hero" className="flex items-center mr-2 sm:mr-8 lg:mr-12">
+            <a href="#hero" className="flex items-center mr-2 md:mr-4 lg:mr-12">
                 <img
                     src="/bet-scroll.png"
-                    className="w-8 h-8 sm:w-10 sm:h-10 md:w-14 md:h-14"
+                    className="w-8 h-8 sm:w-10 sm:h-10 lg:w-14 lg:h-14"
                 />
                 <h1 className="font-bold ms-2 text-base sm:text-lg lg:text-2xl">
                     Global Bible Tools
@@ -21,22 +20,28 @@ export default async function LandingPage() {
             </a>
             <div className="flex-grow md:flex-grow-0"></div>
             <a
-                className="h-full text-center hidden md:block pt-[30px] font-bold mx-3"
+                className="h-full text-center hidden min-[800px]:block pt-[30px] font-bold mx-3"
                 href="#vision"
             >
                 Vision
             </a>
             <a
-                className="h-full text-center hidden md:block pt-[30px] font-bold mx-3"
+                className="h-full text-center hidden min-[800px]:block pt-[30px] font-bold mx-3"
                 href="#contribute"
             >
                 Contribute
             </a>
             <a
-                className="h-full text-center hidden md:block pt-[30px] font-bold mx-3"
+                className="h-full text-center hidden min-[800px]:block pt-[30px] font-bold mx-3"
                 href="#progress"
             >
                 Progress
+            </a>
+            <a
+                className="h-full text-center hidden min-[800px]:block pt-[30px] font-bold mx-3"
+                href="#about"
+            >
+                About
             </a>
             <div className="md:flex-grow"></div>
             <a
@@ -214,7 +219,7 @@ export default async function LandingPage() {
             </section>
             <section
                 id="progress"
-                className="bg-brown-100 -mt-10 pt-20 md:pt-24 pb-16 md:pb-24 lg:pb-32 px-6 md:px-8"
+                className="bg-brown-100 -mt-10 pt-20 md:pt-24 pb-40 px-6 md:px-8"
                 style={{ clipPath: 'polygon(0 40px, 100% 0, 100% 100%, 0 100%)' }}
             >
                 <div className="w-full max-w-[1000px] mx-auto">
@@ -225,6 +230,77 @@ export default async function LandingPage() {
                         <h3 className="text-lg text-center font-bold mb-4">Reader&apos;s Bible Translation</h3>
                         <ProgressChart languageStats={stats} />
                     </div>
+                </div>
+            </section>
+            <section
+                id="about"
+                className="bg-blue-800 -mt-10 pt-20 md:pt-24 pb-8 md:pb-12 lg:pb-16 px-6 md:px-8"
+                style={{ clipPath: 'polygon(0 0, 100% 40px, 100% 100%, 0 100%)' }}
+            >
+                <div className="w-full max-w-[1000px] mx-auto">
+                    <h2 className="text-3xl md:text-5xl font-bold mb-8 text-white">About</h2>
+                    <p className="mb-4 text-white">
+                        Andrew and Bethany Case are the founders of Betheden Ministries, which is the non-profit behind Global Bible Tools. Our purpose is to help see the whole Bible in every language, and the global Church equipped for growth and maturity. In the western world we have an “embarrassment of riches.” We have thousands of biblical resources one click away, and in the language we understand best. Meanwhile, there are millions of people in other countries who don’t even have a Bible in their mother tongue. We believe that knowledge of the biblical languages is one of the most fundamental needs of every church around the world. It is the foundation of theology, sound interpretation, and healthy churches. So our goal is to empower the global Church with the biblical languages, as well as train and serve the Bible translation effort. 
+                    </p>
+                    <div className="text-white flex flex-wrap gap-8 justify-center mb-8">
+                        <a
+                            className="font-bold underline"
+                            href="https://freehebrew.online/statement-of-faith/"
+                        >
+                            Statement of Faith <Icon icon="external-link" />
+                        </a>
+                        <a
+                            className="font-bold underline"
+                            href="https://hismagnificence.com/betheden-ministries-constitution/"
+                        >
+                            Constitution <Icon icon="external-link" />
+                        </a>
+                    </div>
+                    <h3
+                        className="text-center text-xl font-bold border-b-4 border-white pb-2 mx-4 text-white mb-8"
+                    >
+                        Core Values
+                    </h3>
+                    <ul
+                        className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
+                    >
+                        <li
+                            className="w-full rounded-[16px] bg-white p-6 shadow sm:text-center"
+                        >
+                            <h4 className="text-lg font-bold mb-3">Pursuit of Joy</h4>
+                            <p>All of life should be lived, not out of fear, but as a pursuit of joy in God.</p>
+                        </li>
+                        <li
+                            className="w-full rounded-[16px] bg-white p-6 shadow sm:text-center"
+                        >
+                            <h4 className="text-lg font-bold mb-3">Partnership</h4>
+                            <p>Because Scripture teaches that we are part of a larger Body, we seek to work with others through strategic, genuine relationships.</p>
+                        </li>
+                        <li
+                            className="w-full rounded-[16px] bg-white p-6 shadow sm:text-center"
+                        >
+                            <h4 className="text-lg font-bold mb-3">Eagerness to Learn</h4>
+                            <p>We want to innovate with excellence, which requires continuous curiosity and study.</p>
+                        </li>
+                        <li
+                            className="w-full rounded-[16px] bg-white p-6 shadow sm:text-center"
+                        >
+                            <h4 className="text-lg font-bold mb-3">Humility</h4>
+                            <p>Our hope is to serve the global Church, which requires the humility to put them first, listen to their needs, understand them well, and provide them with the best we can offer by God’s grace.</p>
+                        </li>
+                        <li
+                            className="w-full rounded-[16px] bg-white p-6 shadow sm:text-center"
+                        >
+                            <h4 className="text-lg font-bold mb-3">Freely Giving</h4>
+                            <p>Because we have received everything from God as a gift, we are committed to making all of our content free and open-access to everyone, and encouraging others to do the same.</p>
+                        </li>
+                        <li
+                            className="w-full rounded-[16px] bg-white p-6 shadow sm:text-center"
+                        >
+                            <h4 className="text-lg font-bold mb-3">Empowering the Under-Resourced</h4>
+                            <p>Because many non-Western Christians still suffer the lack of quality biblical resources, we endeavor to prioritize giving them access to these resources.</p>
+                        </li>
+                    </ul>
                 </div>
             </section>
         </main>

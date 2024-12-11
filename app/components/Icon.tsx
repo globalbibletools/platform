@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 export const Icon = FontAwesomeIcon;
 
 library.add(
+  FaBrands.faGithub,
   FaBrands.faGoogle,
   FaSolid.faPause,
   FaSolid.faPlay,
