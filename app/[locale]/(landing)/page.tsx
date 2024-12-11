@@ -1,10 +1,14 @@
 import { query } from "@/shared/db"
 import ProgressChart from "./ProgressChart"
 import { Icon } from "@/app/components/Icon"
-import { trace } from '@opentelemetry/api'
+import otel from '@opentelemetry/api'
 
 export default async function LandingPage() {
     const stats = await fetchLanguageProgressStats()
+
+    const span = otel.trace.getActiveSpan()
+    const spanContext = span?.spanContext()
+    console.log('TRACE', spanContext?.traceId, spanContext?.spanId)
 
     return <div className="flex flex-col h-screen text-gray-800">
         <nav
