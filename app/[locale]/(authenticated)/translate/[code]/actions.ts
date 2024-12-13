@@ -141,18 +141,22 @@ export async function approveAll(formData: FormData): Promise<void> {
 
         const updatedGlosses = await query<{ phraseId: number; gloss: string, state: string }>(
             `
-            INSERT INTO "Gloss"("phraseId", "gloss", "state")
-            SELECT ph.id, data.gloss, 'APPROVED'
+            INSERT INTO "Gloss"("phraseId", "gloss", "state", updated_at, updated_by, source)
+            SELECT ph.id, data.gloss, 'APPROVED', NOW(), $3, 'USER'
             FROM UNNEST($1::integer[], $2::text[]) data (phrase_id, gloss)
             JOIN "Phrase" AS ph ON ph.id = data.phrase_id
             WHERE ph."deletedAt" IS NULL
             ON CONFLICT ("phraseId")
                 DO UPDATE SET
-                    "gloss" = COALESCE(EXCLUDED."gloss", "Gloss"."gloss"),
-                    "state" = 'APPROVED'
+                    gloss = COALESCE(EXCLUDED."gloss", "Gloss"."gloss"),
+                    state = EXCLUDED.state,
+                    updated_at = EXCLUDED.updated_at,
+                    updated_by = EXCLUDED.updated_by, 
+                    source = EXCLUDED.source
+                    WHERE EXCLUDED.state <> "Gloss".state OR EXCLUDED.gloss <> "Gloss".gloss
             RETURNING *
             `,
-            [request.data.phrases.map(ph => ph.id), request.data.phrases.map(ph => ph.gloss)]
+            [request.data.phrases.map(ph => ph.id), request.data.phrases.map(ph => ph.gloss), session.user.id]
         )
 
         const events = updatedGlosses.rows.map(g => {

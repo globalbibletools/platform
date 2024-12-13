@@ -3,10 +3,28 @@ CREATE TABLE gloss_history (
     phrase_id INT NOT NULL REFERENCES "Phrase" (id),
     gloss TEXT,
     state "GlossState",
-    source "GlossSource" NOT NULL,
+    source "GlossSource",
     updated_at TIMESTAMP NOT NULL,
     updated_by UUID
 );
+
+CREATE OR REPLACE FUNCTION gloss_audit()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    INSERT INTO gloss_history AS c (phrase_id, gloss, state, source, updated_at, updated_by)
+    VALUES (OLD."phraseId", OLD.gloss, OLD.state, OLD.source, OLD.updated_at, OLD.updated_by);
+
+    RETURN NULL;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER gloss_audit
+AFTER UPDATE OR DELETE
+ON "Gloss"
+FOR EACH ROW 
+EXECUTE FUNCTION gloss_audit();
 
 INSERT INTO gloss_history (phrase_id, gloss, state, source, updated_at, updated_by)
 SELECT "phraseId", gloss, state, source, timestamp, "userId" FROM "GlossEvent"

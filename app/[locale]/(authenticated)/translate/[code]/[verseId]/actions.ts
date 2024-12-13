@@ -46,13 +46,17 @@ export async function updateGloss(formData: FormData): Promise<any> {
         const oldGloss = oldGlossQuery.rows[0]
 
         const result = await query(
-            `INSERT INTO "Gloss" ("phraseId", state, gloss)
-            VALUES ($1, $2, $3)
+            `INSERT INTO "Gloss" ("phraseId", state, gloss, updated_at, updated_by, source)
+            VALUES ($1, $2, $3, NOW(), $4, 'USER')
             ON CONFLICT ("phraseId") DO UPDATE SET
                 state = COALESCE(EXCLUDED.state, "Gloss".state),
-                gloss = COALESCE(EXCLUDED.gloss, "Gloss".gloss)
+                gloss = COALESCE(EXCLUDED.gloss, "Gloss".gloss),
+                updated_at = EXCLUDED.updated_at,
+                updated_by = EXCLUDED.updated_by, 
+                source = EXCLUDED.source
+                WHERE EXCLUDED.state <> "Gloss".state OR EXCLUDED.gloss <> "Gloss".gloss
             `,
-            [request.data.phraseId, request.data.state, request.data.gloss]
+            [request.data.phraseId, request.data.state, request.data.gloss, session.user.id]
         )
         if (result.rowCount === 0) {
             notFound()
