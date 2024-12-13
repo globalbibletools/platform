@@ -59,7 +59,7 @@ export async function updateGloss(formData: FormData): Promise<any> {
             [request.data.phraseId, request.data.state, request.data.gloss, session.user.id]
         )
         if (result.rowCount === 0) {
-            notFound()
+            return
         }
 
         await query(
