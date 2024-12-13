@@ -24,9 +24,6 @@ FROM (
 WHERE upd.id = g."phraseId"
     AND g.updated_at is NULL;
 
-ALTER TABLE "Gloss"
-    ALTER COLUMN updated_at DROP NOT NULL;
-
 CREATE TABLE gloss_history (
     id SERIAL PRIMARY KEY,
     phrase_id INT NOT NULL REFERENCES "Phrase" (id),
