@@ -1,3 +1,20 @@
+-- TODO: an option to get events for glosses that changed after the initial save
+WITH event_count AS (
+    SELECT
+        "phraseId" AS phrase_id,
+        COUNT(*) AS count
+    FROM "GlossEvent"
+    GROUP BY "phraseId"
+    HAVING COUNT(*) > 1
+)
+SELECT gloss.*, event.* FROM (
+    SELECT DISTINCT ON (event_count.phrase_id) event.* FROM event_count
+    JOIN "GlossEvent" event ON event."phraseId" = event_count.phrase_id
+    ORDER BY event_count.phrase_id, event.id DESC
+) event
+JOIN "Gloss" gloss ON gloss."phraseId" = event."phraseId"
+    WHERE gloss.state <> event.state OR gloss.gloss <> event.gloss;
+
 INSERT INTO gloss_history (phrase_id, gloss, state, source, updated_at, updated_by)
 SELECT "phraseId", gloss, state, source, timestamp, "userId" FROM "GlossEvent"
 WHERE state IS NOT NULL OR gloss IS NOT NULL;
