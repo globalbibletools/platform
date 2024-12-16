@@ -182,6 +182,56 @@ $$;
 
 
 --
+-- Name: generate_gloss_statistics_for_week(timestamp without time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.generate_gloss_statistics_for_week(d timestamp without time zone) RETURNS void
+    LANGUAGE sql
+    AS $_$
+    INSERT INTO weekly_gloss_statistics (week, language_id, book_id, user_id, approved_count, unapproved_count)
+    SELECT
+        (DATE_BIN('7 days', DATE_TRUNC('day', $1), TIMESTAMP '2024-12-15')),
+        log.language_id, log.book_id, log.updated_by,
+        COUNT(*) FILTER (WHERE log.state = 'APPROVED'),
+        COUNT(*) FILTER (WHERE log.state = 'UNAPPROVED')
+    FROM (
+        SELECT
+            DISTINCT ON (log.phrase_id, phrase_word."wordId", verse."bookId")
+            log.updated_by,
+            log.state,
+            phrase."languageId" AS language_id,
+            verse."bookId" AS book_id
+        FROM (
+            (
+                SELECT
+                    "phraseId" AS phrase_id,
+                    updated_by, updated_at, gloss, state
+                FROM "Gloss" gloss
+            ) UNION ALL (
+                SELECT
+                    phrase_id, updated_by, updated_at, gloss, state
+                FROM gloss_history
+            )
+        ) log
+        JOIN "Phrase" phrase ON phrase.id = log.phrase_id
+        JOIN "PhraseWord" phrase_word ON phrase_word."phraseId" = phrase.id
+        JOIN "Word" word ON word.id = "phrase_word"."wordId"
+        JOIN "Verse" verse ON verse.id = word."verseId"
+        WHERE log.updated_at < (DATE_BIN('7 days', DATE_TRUNC('day', $1), TIMESTAMP '2024-12-15'))
+            AND (phrase."deletedAt" IS NULL
+                OR phrase."deletedAt" < (DATE_BIN('7 days', DATE_TRUNC('day', $1), TIMESTAMP '2024-12-15')))
+        ORDER BY log.phrase_id, phrase_word."wordId", verse."bookId", log.updated_at DESC
+    ) log
+    GROUP BY log.language_id, log.book_id, log.updated_by
+    ORDER BY log.language_id, log.book_id, log.updated_by
+    ON CONFLICT (language_id, book_id, user_id, week)
+    DO UPDATE SET
+        approved_count = EXCLUDED.approved_count,
+        unapproved_count = EXCLUDED.unapproved_count;
+$_$;
+
+
+--
 -- Name: generate_ulid(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -190,6 +240,22 @@ CREATE FUNCTION public.generate_ulid() RETURNS uuid
     AS $$
         SELECT (lpad(to_hex(floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint), 12, '0') || encode(gen_random_bytes(10), 'hex'))::uuid;
     $$;
+
+
+--
+-- Name: gloss_audit(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.gloss_audit() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    INSERT INTO gloss_history AS c (phrase_id, gloss, state, source, updated_at, updated_by)
+    VALUES (OLD."phraseId", OLD.gloss, OLD.state, OLD.source, OLD.updated_at, OLD.updated_by);
+
+    RETURN NULL;
+END;
+$$;
 
 
 --
@@ -253,7 +319,10 @@ CREATE TABLE public."Footnote" (
 CREATE TABLE public."Gloss" (
     gloss text,
     state public."GlossState" DEFAULT 'UNAPPROVED'::public."GlossState" NOT NULL,
-    "phraseId" integer NOT NULL
+    "phraseId" integer NOT NULL,
+    source public."GlossSource",
+    updated_at timestamp without time zone,
+    updated_by uuid
 );
 
 
@@ -635,6 +704,76 @@ ALTER SEQUENCE public."VerseAudioTiming_id_seq" OWNED BY public."VerseAudioTimin
 
 
 --
+-- Name: gloss_history; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.gloss_history (
+    id integer NOT NULL,
+    phrase_id integer NOT NULL,
+    gloss text,
+    state public."GlossState",
+    source public."GlossSource",
+    updated_at timestamp without time zone NOT NULL,
+    updated_by uuid
+);
+
+
+--
+-- Name: gloss_history_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.gloss_history_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: gloss_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.gloss_history_id_seq OWNED BY public.gloss_history.id;
+
+
+--
+-- Name: weekly_gloss_statistics; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.weekly_gloss_statistics (
+    id integer NOT NULL,
+    week timestamp without time zone NOT NULL,
+    language_id uuid NOT NULL,
+    book_id integer NOT NULL,
+    user_id uuid,
+    approved_count integer NOT NULL,
+    unapproved_count integer NOT NULL
+);
+
+
+--
+-- Name: weekly_gloss_statistics_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.weekly_gloss_statistics_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: weekly_gloss_statistics_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.weekly_gloss_statistics_id_seq OWNED BY public.weekly_gloss_statistics.id;
+
+
+--
 -- Name: GlossEvent id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -660,6 +799,20 @@ ALTER TABLE ONLY public."Phrase" ALTER COLUMN id SET DEFAULT nextval('public."Ph
 --
 
 ALTER TABLE ONLY public."VerseAudioTiming" ALTER COLUMN id SET DEFAULT nextval('public."VerseAudioTiming_id_seq"'::regclass);
+
+
+--
+-- Name: gloss_history id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gloss_history ALTER COLUMN id SET DEFAULT nextval('public.gloss_history_id_seq'::regclass);
+
+
+--
+-- Name: weekly_gloss_statistics id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.weekly_gloss_statistics ALTER COLUMN id SET DEFAULT nextval('public.weekly_gloss_statistics_id_seq'::regclass);
 
 
 --
@@ -879,6 +1032,30 @@ ALTER TABLE ONLY public."Word"
 
 
 --
+-- Name: gloss_history gloss_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gloss_history
+    ADD CONSTRAINT gloss_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: weekly_gloss_statistics weekly_gloss_statistics_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.weekly_gloss_statistics
+    ADD CONSTRAINT weekly_gloss_statistics_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: weekly_gloss_statistics weekly_gloss_statistics_week_language_id_book_id_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.weekly_gloss_statistics
+    ADD CONSTRAINT weekly_gloss_statistics_week_language_id_book_id_user_id_key UNIQUE (week, language_id, book_id, user_id);
+
+
+--
 -- Name: Book_name_key; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1012,6 +1189,13 @@ CREATE TRIGGER decrement_suggestion AFTER UPDATE OF "deletedAt" ON public."Phras
 
 
 --
+-- Name: Gloss gloss_audit; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER gloss_audit AFTER DELETE OR UPDATE ON public."Gloss" FOR EACH ROW EXECUTE FUNCTION public.gloss_audit();
+
+
+--
 -- Name: Gloss increment_suggestion; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -1056,6 +1240,14 @@ ALTER TABLE ONLY public."GlossEvent"
 
 ALTER TABLE ONLY public."Gloss"
     ADD CONSTRAINT "Gloss_phraseId_fkey" FOREIGN KEY ("phraseId") REFERENCES public."Phrase"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: Gloss Gloss_updated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."Gloss"
+    ADD CONSTRAINT "Gloss_updated_by_fkey" FOREIGN KEY (updated_by) REFERENCES public."User"(id);
 
 
 --
@@ -1272,6 +1464,38 @@ ALTER TABLE ONLY public."Word"
 
 ALTER TABLE ONLY public."Word"
     ADD CONSTRAINT "Word_verseId_fkey" FOREIGN KEY ("verseId") REFERENCES public."Verse"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: gloss_history gloss_history_phrase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gloss_history
+    ADD CONSTRAINT gloss_history_phrase_id_fkey FOREIGN KEY (phrase_id) REFERENCES public."Phrase"(id);
+
+
+--
+-- Name: weekly_gloss_statistics weekly_gloss_statistics_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.weekly_gloss_statistics
+    ADD CONSTRAINT weekly_gloss_statistics_book_id_fkey FOREIGN KEY (book_id) REFERENCES public."Book"(id);
+
+
+--
+-- Name: weekly_gloss_statistics weekly_gloss_statistics_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.weekly_gloss_statistics
+    ADD CONSTRAINT weekly_gloss_statistics_language_id_fkey FOREIGN KEY (language_id) REFERENCES public."Language"(id);
+
+
+--
+-- Name: weekly_gloss_statistics weekly_gloss_statistics_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.weekly_gloss_statistics
+    ADD CONSTRAINT weekly_gloss_statistics_user_id_fkey FOREIGN KEY (user_id) REFERENCES public."User"(id);
 
 
 --
