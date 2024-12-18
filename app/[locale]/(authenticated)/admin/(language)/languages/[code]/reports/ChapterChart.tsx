@@ -42,6 +42,7 @@ export default function ChapterChart({ data }: ChapterChartProps) {
         options: {
           maintainAspectRatio: false,
           indexAxis: 'y',
+          animation: false,
           interaction: {
             mode: 'index',
           },

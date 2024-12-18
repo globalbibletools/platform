@@ -19,7 +19,41 @@ export async function generateMetadata(_: any, parent: ResolvingMetadata): Promi
 }
 
 export default async function LanguageReportsPage({ params }: Props) {
-    const data = await query<{ name: string, wordCount: number, approvedCount: number }>(
+    const t = await getTranslations('LanguageReportsPage')
+
+  const [
+    currentProgressData,
+    { contributors, books, data: progressData }
+  ] = await Promise.all([
+      fetchCurrentProgress(params.code),
+      fetchLanguageProgressData(params.code)
+  ])
+
+  return (
+    <div className="absolute w-full h-full px-8 py-6 overflow-y-auto">
+      <ViewTitle className="mb-4">
+        {t('title')}
+      </ViewTitle>
+        <section className="w-full mb-12">
+          <h2 className="font-bold mb-2">Reader's Bible Progress</h2>
+          <ProgressChart contributors={contributors} books={books} data={progressData} />
+        </section>
+        <section className="w-full h-[1200px] mb-6">
+          <h2 className="font-bold">Words Approved by Book</h2>
+          <ChapterChart data={currentProgressData} />
+        </section>
+    </div>
+  );
+}
+
+interface BookTotalProgress {
+    name: string,
+    wordCount: number,
+    approvedCount: number
+}
+
+async function fetchCurrentProgress(code: string): Promise<BookTotalProgress[]> {
+    const request = await query<BookTotalProgress>(
         `SELECT b.name, COUNT(*) AS "wordCount", COUNT(*) FILTER (WHERE ph."wordId" IS NOT NULL) AS "approvedCount" FROM "Book" AS b
         JOIN "Verse" AS v ON v."bookId" = b.id
         JOIN "Word" AS w ON w."verseId" = v.id
@@ -34,27 +68,9 @@ export default async function LanguageReportsPage({ params }: Props) {
         ) AS ph ON ph."wordId" = w.id
         GROUP BY b.id
         ORDER BY b.id`,
-        [params.code]
+        [code]
     )
-    const t = await getTranslations('LanguageReportsPage')
-
-  const { contributors, books, data: progressData } = await fetchLanguageProgressData(params.code)
-
-  return (
-    <div className="absolute w-full h-full px-8 py-6 overflow-y-auto">
-      <ViewTitle className="mb-4">
-        {t('title')}
-      </ViewTitle>
-        <section className="w-full mb-12">
-          <h2 className="font-bold mb-2">Reader's Bible Progress</h2>
-          <ProgressChart contributors={contributors} books={books} data={progressData} />
-        </section>
-        <section className="w-full h-[1200px] mb-6">
-              <h2 className="font-bold">Words Approved by Book</h2>
-              <ChapterChart data={data.rows} />
-        </section>
-    </div>
-  );
+    return request.rows
 }
 
 interface UserContribution {
