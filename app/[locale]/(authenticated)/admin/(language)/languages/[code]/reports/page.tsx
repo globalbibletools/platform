@@ -38,7 +38,7 @@ export default async function LanguageReportsPage({ params }: Props) {
     )
     const t = await getTranslations('LanguageReportsPage')
 
-  const { contributors, data: progressData } = await fetchLanguageProgressData(params.code)
+  const { contributors, books, data: progressData } = await fetchLanguageProgressData(params.code)
 
   return (
     <div className="absolute w-full h-full px-8 py-6 overflow-y-auto">
@@ -47,7 +47,7 @@ export default async function LanguageReportsPage({ params }: Props) {
       </ViewTitle>
         <section className="w-full mb-12">
           <h2 className="font-bold">Reader's Bible Progress</h2>
-          <ProgressChart contributors={contributors} data={progressData} />
+          <ProgressChart contributors={contributors} books={books} data={progressData} />
         </section>
         <section className="w-full h-[1200px] mb-6">
               <h2 className="font-bold">Words Approved by Book</h2>
@@ -78,14 +78,30 @@ interface Contributor {
     name: string
 }
 
+interface Book {
+    id: number
+    name: string
+    wordCount: number
+}
+
 interface ProgressData {
     contributors: Contributor[]
+    books: Book[]
     data: WeeklyProgress[]
 }
 
 async function fetchLanguageProgressData(code: string): Promise<ProgressData> {
     const request = await query<ProgressData>(
         `SELECT
+            (
+                SELECT JSON_AGG(book) FROM (
+                    SELECT JSON_BUILD_OBJECT('id', book.id, 'name', book.name, 'wordCount', COUNT(*)) AS book FROM "Book" book
+                    JOIN "Verse" verse ON verse."bookId" = book.id
+                    JOIN "Word" word ON word."verseId" = verse.id
+                    GROUP BY book.id
+                    ORDER BY book.id
+                ) book
+            ) AS books,
             (
                 SELECT JSON_AGG(JSON_BUILD_OBJECT('id', id, 'name', name))
                 FROM (

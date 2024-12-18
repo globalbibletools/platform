@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Chart } from 'chart.js/auto';
 import { format } from 'date-fns'
 import Checkbox from "@/app/components/Checkbox";
+import ComboboxInput from "@/app/components/ComboboxInput";
+import MultiselectInput from "@/app/components/MultiselectInput";
 
 interface Contributor {
     id: string
@@ -26,70 +28,162 @@ interface WeeklyProgress {
     books: BookProgress[]
 }
 
+interface Book {
+    id: number
+    name: string
+    wordCount: number
+}
+
 export interface ProgressChartProps {
     contributors: Contributor[]
+    books: Book[]
     data: WeeklyProgress[]
 }
 
-export default function ProgressChart({ data, contributors }: ProgressChartProps) {
-  const [isDarkMode, setDarkMode] = useState(false);
-  useEffect(() => {
-    const mediaMatch = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaMatch.addEventListener('change', (event) => {
-      setDarkMode(event.matches);
-    });
-    setDarkMode(mediaMatch.matches);
-  }, []);
+export default function ProgressChart({ data, books, contributors }: ProgressChartProps) {
+    const [isDarkMode, setDarkMode] = useState(false);
+    useEffect(() => {
+        const mediaMatch = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaMatch.addEventListener('change', (event) => {
+            setDarkMode(event.matches);
+        });
+        setDarkMode(mediaMatch.matches);
+    }, []);
 
-  const [stackByContributor, setStacked] = useState(false)
+    const [stackByContributor, setStacked] = useState(false)
+    const [filterType, setFilterType] = useState<string>('none')
+    const [filter, setFilter] = useState<string[] | null>(null)
+    useEffect(() => {
+        if (filterType === 'none') {
+            setFilter(null)
+        } else {
+            setFilter([])
+        }
+    },[filterType])
 
-  const chartRoot = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    if (chartRoot.current && data) {
-      const chart = new Chart(chartRoot.current, {
-          type: 'line',
-          data: {
-              labels: data.map(week => format(new Date(week.week), 'MMM dd, yyyy')),
-              datasets: stackByContributor
-                ? [
-                    {
-                        label: 'Unknown',
-                        data: data.map(week => week.books.reduce((sum, book) => sum + (book.users.find(u => u.userId === null)?.approvedCount ?? 0), 0)),
-                        fill: true,
+    const chartRoot = useRef<HTMLCanvasElement>(null);
+    useEffect(() => {
+        if (chartRoot.current && data) {
+            const chart = new Chart(chartRoot.current, {
+                type: 'line',
+                data: {
+                    labels: data.map(week => format(new Date(week.week), 'MMM dd, yyyy')),
+                    datasets: stackByContributor
+                        ? [
+                            {
+                                label: 'Unknown',
+                                data: data.map(week => week.books.reduce(
+                                    (sum, book) => {
+                                        if (filter) {
+                                            if (filter.includes('ot') && book.bookId < 40) {
+                                                return sum + (book.users.find(u => u.userId === null)?.approvedCount ?? 0)
+                                            } else if (filter.includes('nt') && book.bookId >= 40) {
+                                                return sum + (book.users.find(u => u.userId === null)?.approvedCount ?? 0)
+                                            } else if (filter.includes(book.bookId.toString())) {
+                                                return sum + (book.users.find(u => u.userId === null)?.approvedCount ?? 0)
+                                            } else {
+                                                return sum
+                                            }
+                                        } else {
+                                            return sum + (book.users.find(u => u.userId === null)?.approvedCount ?? 0)
+                                        }
+                                    },
+                                    0
+                                )),
+                                fill: true,
+                            },
+                            ...contributors.map(contributor => ({
+                                label: contributor.name,
+                                data: data.map(week => week.books.reduce(
+                                    (sum, book) => {
+                                        if (filter) {
+                                            if (filter.includes('ot') && book.bookId < 40) {
+                                                return sum + (book.users.find(u => u.userId === contributor.id)?.approvedCount ?? 0)
+                                            } else if (filter.includes('nt') && book.bookId >= 40) {
+                                                return sum + (book.users.find(u => u.userId === contributor.id)?.approvedCount ?? 0)
+                                            } else if (filter.includes(book.bookId.toString())) {
+                                                return sum + (book.users.find(u => u.userId === contributor.id)?.approvedCount ?? 0)
+                                            } else {
+                                                return sum
+                                            }
+                                        } else {
+                                            return sum + (book.users.find(u => u.userId === contributor.id)?.approvedCount ?? 0)
+                                        }
+                                    },
+                                    0
+                                )),
+                                fill: true,
+                            }))
+                        ]
+                        : [
+                            {
+                                label: 'Approved Glosses',
+                                data: data.map(week => week.books.reduce(
+                                    (sum, book) => {
+                                        if (filter) {
+                                            if (filter.includes('ot') && book.bookId < 40) {
+                                                return sum + book.users.reduce((sum, user) => sum + user.approvedCount, 0)
+                                            } else if (filter.includes('nt') && book.bookId >= 40) {
+                                                return sum + book.users.reduce((sum, user) => sum + user.approvedCount, 0)
+                                            } else if (filter.includes(book.bookId.toString())) {
+                                                return sum + book.users.reduce((sum, user) => sum + user.approvedCount, 0)
+                                            } else {
+                                                return sum
+                                            }
+                                        } else {
+                                            return sum + book.users.reduce((sum, user) => sum + user.approvedCount, 0)
+                                        }
+                                    },
+                                    0
+                                )),
+                                borderColor: isDarkMode ? '#59A8A2' : '#066F74',
+                                fill: true,
+                            }
+                        ]
+                },
+                options: {
+                    animation: false,
+                    interaction: {
+                        mode: 'index',
                     },
-                    ...contributors.map(contributor => ({
-                        label: contributor.name,
-                        data: data.map(week => week.books.reduce((sum, book) => sum + (book.users.find(u => u.userId === contributor.id)?.approvedCount ?? 0), 0)),
-                        fill: true,
-                    }))
-                ]
-                : [
-                      {
-                          label: 'Approved Glosses',
-                          data: data.map(week => week.books.reduce((sum, book) => sum + book.users.reduce((sum, user) => sum + user.approvedCount, 0), 0)),
-                          borderColor: isDarkMode ? '#59A8A2' : '#066F74',
-                          fill: true,
-                      }
-                  ]
-          },
-          options: {
-              interaction: {
-                mode: 'index',
-              },
-              scales: {
-                  y: {
-                      stacked: true,
-                      min: 0
-                  }
-              }
-          }
-      });
-      return () => chart.destroy();
-    }
-  }, [data, isDarkMode, stackByContributor]);
+                    scales: {
+                        y: {
+                            stacked: true,
+                            min: 0
+                        }
+                    }
+                }
+            });
+            return () => chart.destroy();
+        }
+    }, [data, isDarkMode, stackByContributor, filter]);
 
     return <div>
         <div>
+            <ComboboxInput 
+                className="w-48"
+                items={[
+                    { label: 'No filter', value: 'none' },
+                    { label: 'Filter By Testament', value: 'testament' },
+                    { label: 'Filter By Book', value: 'book' },
+                ]}
+                value={filterType}
+                onChange={setFilterType}
+            />
+            { filterType !== 'none' &&
+            <MultiselectInput
+                className="w-48"
+                items={filterType === 'testament'
+                    ? [
+                        { label: 'Old Testament', value: 'ot' },
+                        { label: 'New Testament', value: 'nt' }
+                    ]
+                    : books.map(book => ({ label: book.name, value: book.id.toString() }))
+                }
+                value={filter ?? []}
+                onChange={setFilter}
+            />
+            }
             <Checkbox checked={stackByContributor} onChange={e => setStacked(e.target.checked)}>Stack by Contributor</Checkbox>
         </div>
         <canvas ref={chartRoot} />
