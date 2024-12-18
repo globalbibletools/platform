@@ -56,8 +56,10 @@ export default function ProgressChart({ data, books, contributors }: ProgressCha
     useEffect(() => {
         if (filterType === 'none') {
             setFilter(null)
+        } else if (filterType === 'testament') {
+            setFilter(['ot'])
         } else {
-            setFilter([])
+            setFilter(['1'])
         }
     },[filterType])
 
@@ -74,18 +76,16 @@ export default function ProgressChart({ data, books, contributors }: ProgressCha
                                 label: 'Unknown',
                                 data: data.map(week => week.books.reduce(
                                     (sum, book) => {
-                                        if (filter) {
-                                            if (filter.includes('ot') && book.bookId < 40) {
-                                                return sum + (book.users.find(u => u.userId === null)?.approvedCount ?? 0)
-                                            } else if (filter.includes('nt') && book.bookId >= 40) {
-                                                return sum + (book.users.find(u => u.userId === null)?.approvedCount ?? 0)
-                                            } else if (filter.includes(book.bookId.toString())) {
-                                                return sum + (book.users.find(u => u.userId === null)?.approvedCount ?? 0)
-                                            } else {
-                                                return sum
-                                            }
-                                        } else {
+                                        if (!filter) {
                                             return sum + (book.users.find(u => u.userId === null)?.approvedCount ?? 0)
+                                        } else if (filter.includes('ot') && book.bookId < 40) {
+                                            return sum + (book.users.find(u => u.userId === null)?.approvedCount ?? 0)
+                                        } else if (filter.includes('nt') && book.bookId >= 40) {
+                                            return sum + (book.users.find(u => u.userId === null)?.approvedCount ?? 0)
+                                        } else if (filter.includes(book.bookId.toString())) {
+                                            return sum + (book.users.find(u => u.userId === null)?.approvedCount ?? 0)
+                                        } else {
+                                            return sum
                                         }
                                     },
                                     0
@@ -96,18 +96,16 @@ export default function ProgressChart({ data, books, contributors }: ProgressCha
                                 label: contributor.name,
                                 data: data.map(week => week.books.reduce(
                                     (sum, book) => {
-                                        if (filter) {
-                                            if (filter.includes('ot') && book.bookId < 40) {
-                                                return sum + (book.users.find(u => u.userId === contributor.id)?.approvedCount ?? 0)
-                                            } else if (filter.includes('nt') && book.bookId >= 40) {
-                                                return sum + (book.users.find(u => u.userId === contributor.id)?.approvedCount ?? 0)
-                                            } else if (filter.includes(book.bookId.toString())) {
-                                                return sum + (book.users.find(u => u.userId === contributor.id)?.approvedCount ?? 0)
-                                            } else {
-                                                return sum
-                                            }
-                                        } else {
+                                        if (!filter) {
                                             return sum + (book.users.find(u => u.userId === contributor.id)?.approvedCount ?? 0)
+                                        } else if (filter.includes('ot') && book.bookId < 40) {
+                                            return sum + (book.users.find(u => u.userId === contributor.id)?.approvedCount ?? 0)
+                                        } else if (filter.includes('nt') && book.bookId >= 40) {
+                                            return sum + (book.users.find(u => u.userId === contributor.id)?.approvedCount ?? 0)
+                                        } else if (filter.includes(book.bookId.toString())) {
+                                            return sum + (book.users.find(u => u.userId === contributor.id)?.approvedCount ?? 0)
+                                        } else {
+                                            return sum
                                         }
                                     },
                                     0
@@ -120,18 +118,16 @@ export default function ProgressChart({ data, books, contributors }: ProgressCha
                                 label: 'Approved Glosses',
                                 data: data.map(week => week.books.reduce(
                                     (sum, book) => {
-                                        if (filter) {
-                                            if (filter.includes('ot') && book.bookId < 40) {
-                                                return sum + book.users.reduce((sum, user) => sum + user.approvedCount, 0)
-                                            } else if (filter.includes('nt') && book.bookId >= 40) {
-                                                return sum + book.users.reduce((sum, user) => sum + user.approvedCount, 0)
-                                            } else if (filter.includes(book.bookId.toString())) {
-                                                return sum + book.users.reduce((sum, user) => sum + user.approvedCount, 0)
-                                            } else {
-                                                return sum
-                                            }
-                                        } else {
+                                        if (!filter) {
                                             return sum + book.users.reduce((sum, user) => sum + user.approvedCount, 0)
+                                        } else if (filter.includes('ot') && book.bookId < 40) {
+                                            return sum + book.users.reduce((sum, user) => sum + user.approvedCount, 0)
+                                        } else if (filter.includes('nt') && book.bookId >= 40) {
+                                            return sum + book.users.reduce((sum, user) => sum + user.approvedCount, 0)
+                                        } else if (filter.includes(book.bookId.toString())) {
+                                            return sum + book.users.reduce((sum, user) => sum + user.approvedCount, 0)
+                                        } else {
+                                            return sum
                                         }
                                     },
                                     0
@@ -149,7 +145,23 @@ export default function ProgressChart({ data, books, contributors }: ProgressCha
                     scales: {
                         y: {
                             stacked: true,
-                            min: 0
+                            min: 0,
+                            max: books.reduce(
+                                (sum, book) => {
+                                    if (!filter) {
+                                        return sum + book.wordCount
+                                    } else if (filter.includes('ot') && book.id < 40) {
+                                        return sum + book.wordCount
+                                    } else if (filter.includes('nt') && book.id >= 40) {
+                                        return sum + book.wordCount
+                                    } else if (filter.includes(book.id.toString())) {
+                                        return sum + book.wordCount
+                                    } else {
+                                        return sum
+                                    }
+                                },
+                                0
+                            )
                         }
                     }
                 }
