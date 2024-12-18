@@ -6,6 +6,8 @@ import { format } from 'date-fns'
 import Checkbox from "@/app/components/Checkbox";
 import ComboboxInput from "@/app/components/ComboboxInput";
 import MultiselectInput from "@/app/components/MultiselectInput";
+import { La_Belle_Aurore } from "next/font/google";
+import FormLabel from "@/app/components/FormLabel";
 
 interface Contributor {
     id: string
@@ -61,7 +63,7 @@ export default function ProgressChart({ data, books, contributors }: ProgressCha
         } else {
             setFilter(['1'])
         }
-    },[filterType])
+    }, [filterType])
 
     const chartRoot = useRef<HTMLCanvasElement>(null);
     useEffect(() => {
@@ -171,32 +173,38 @@ export default function ProgressChart({ data, books, contributors }: ProgressCha
     }, [data, isDarkMode, stackByContributor, filter]);
 
     return <div>
-        <div>
-            <ComboboxInput 
-                className="w-48"
-                items={[
-                    { label: 'No filter', value: 'none' },
-                    { label: 'Filter By Testament', value: 'testament' },
-                    { label: 'Filter By Book', value: 'book' },
-                ]}
-                value={filterType}
-                onChange={setFilterType}
-            />
-            { filterType !== 'none' &&
-            <MultiselectInput
-                className="w-48"
-                items={filterType === 'testament'
-                    ? [
-                        { label: 'Old Testament', value: 'ot' },
-                        { label: 'New Testament', value: 'nt' }
-                    ]
-                    : books.map(book => ({ label: book.name, value: book.id.toString() }))
-                }
-                value={filter ?? []}
-                onChange={setFilter}
-            />
+        <div className="flex gap-4">
+            <div>
+                <FormLabel>Filter By</FormLabel>
+                <ComboboxInput
+                    className="w-48"
+                    items={[
+                        { label: 'No filter', value: 'none' },
+                        { label: 'Filter By Testament', value: 'testament' },
+                        { label: 'Filter By Book', value: 'book' },
+                    ]}
+                    value={filterType}
+                    onChange={setFilterType}
+                />
+            </div>
+            {filterType !== 'none' &&
+                <div>
+                    <FormLabel>{filterType === 'testament' ? 'Testament' : 'Book'}</FormLabel>
+                    <MultiselectInput
+                        className="w-48"
+                        items={filterType === 'testament'
+                            ? [
+                                { label: 'Old Testament', value: 'ot' },
+                                { label: 'New Testament', value: 'nt' }
+                            ]
+                            : books.map(book => ({ label: book.name, value: book.id.toString() }))
+                        }
+                        value={filter ?? []}
+                        onChange={setFilter}
+                    />
+                </div>
             }
-            <Checkbox checked={stackByContributor} onChange={e => setStacked(e.target.checked)}>Stack by Contributor</Checkbox>
+            <Checkbox className="mt-[30px]" checked={stackByContributor} onChange={e => setStacked(e.target.checked)}>Stack by Contributor</Checkbox>
         </div>
         <canvas ref={chartRoot} />
     </div>
