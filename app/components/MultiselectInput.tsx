@@ -55,7 +55,7 @@ const MultiselectInput = forwardRef<HTMLInputElement, MultiselectInputProps>(
         >
           <div
             className={`
-            border rounded shadow-inner flex
+            border rounded shadow-inner flex h-9
             has-[:focus-visible]:outline outline-2
             bg-white dark:bg-gray-800
             ${
@@ -66,7 +66,7 @@ const MultiselectInput = forwardRef<HTMLInputElement, MultiselectInputProps>(
           `}
           >
             <Combobox.Input
-              className="w-full py-2 px-3 h-9 flex-grow focus:outline-none bg-transparent rounded"
+              className="w-full py-2 px-3 h-full flex-grow focus:outline-none bg-transparent rounded"
               readOnly
               ref={ref}
               onBlur={onBlur}
