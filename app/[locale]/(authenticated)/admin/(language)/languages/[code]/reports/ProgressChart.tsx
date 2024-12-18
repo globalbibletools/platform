@@ -170,7 +170,7 @@ export default function ProgressChart({ data, books, contributors }: ProgressCha
             });
             return () => chart.destroy();
         }
-    }, [data, isDarkMode, stackByContributor, filter]);
+    }, [data, isDarkMode, stackByContributor, filter, books, contributors]);
 
     return <div>
         <div className="flex gap-4">

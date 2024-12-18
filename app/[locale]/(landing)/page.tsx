@@ -195,7 +195,7 @@ export default async function LandingPage() {
                         >
                             <h4 className="text-lg font-bold mb-3">Reader&apos;s Bible</h4>
                             <p>
-                                If you can help translate glosses for the Reader's Hebrew or Greek Bible, please <a
+                                If you can help translate glosses for the Reader&apos;s Hebrew or Greek Bible, please <a
                                     className="font-bold text-blue-800 underline"
                                     href="https://docs.google.com/forms/d/e/1FAIpQLSer70LItS-738tlwL3bDuku1qRpoWTmQBNfFd9b3NbPIH3G9w/viewform"
                                 >fill out this form</a>.

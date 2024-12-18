@@ -35,7 +35,7 @@ export default async function LanguageReportsPage({ params }: Props) {
         {t('title')}
       </ViewTitle>
         <section className="w-full mb-12">
-          <h2 className="font-bold mb-2">Reader's Bible Progress</h2>
+          <h2 className="font-bold mb-2">Reader&apos;s Bible Progress</h2>
           <ProgressChart contributors={contributors} books={books} data={progressData} />
         </section>
         <section className="w-full h-[1200px] mb-6">
