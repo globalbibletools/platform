@@ -12,7 +12,10 @@ const nextConfig = {
                 externals: ["@node-rs/argon2", "@node-rs/bcrypt"],
                 entry() {
                     return config.entry().then((entry) => {
-                        return Object.assign({}, entry, { 'import-worker': path.resolve(process.cwd(), 'workers/import.ts') })
+                        return Object.assign({}, entry, {
+                            'import-worker': path.resolve(process.cwd(), 'workers/import.ts'),
+                            'github-export-worker': path.resolve(process.cwd(), 'workers/github-export.ts')
+                        })
                     })
                 }
             });
