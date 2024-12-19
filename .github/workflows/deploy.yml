@@ -60,7 +60,7 @@ jobs:
             type=sha
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
 
-      - name: Build and push
+      - name: Build and push import worker
         uses: docker/build-push-action@v6
         with:
           target: import-worker
@@ -69,6 +69,28 @@ jobs:
           provenance: false
           tags: ${{ steps.meta-import-worker.outputs.tags }}
           labels: ${{ steps.meta-import-worker.outputs.labels }}
+          secrets: |
+            "database-url=${{ secrets.DATABASE_URL }}"  
+
+      - name: Docker meta
+        id: meta-github-export-worker
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ steps.login-ecr.outputs.registry }}/globalbibletools-github-export-worker
+          tags: |
+            type=sha
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+
+      - name: Build and push GitHub export worker
+        uses: docker/build-push-action@v6
+        with:
+          target: github-export-worker
+          push: true
+          platforms: linux/amd64
+          provenance: false
+          tags: ${{ steps.meta-github-export-worker.outputs.tags }}
+          labels: ${{ steps.meta-github-export-worker.outputs.labels }}
           secrets: |
             "database-url=${{ secrets.DATABASE_URL }}"  
 

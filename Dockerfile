@@ -74,3 +74,10 @@ RUN npm i pg@8.12.0
 COPY --from=builder /app/.next/server/import-worker.js ${LAMBDA_TASK_ROOT}
 COPY --from=builder /app/.next/server/webpack-runtime.js ${LAMBDA_TASK_ROOT}
 CMD ["import-worker.handler"]
+
+# Run the github export worker in production
+FROM public.ecr.aws/lambda/nodejs:18 AS import-worker
+RUN npm i pg@8.12.0 @aws-sdk/client-sqs@3.678.0 aws-lambda@1.0.7
+COPY --from=builder /app/.next/server/github-export-worker.js ${LAMBDA_TASK_ROOT}
+COPY --from=builder /app/.next/server/webpack-runtime.js ${LAMBDA_TASK_ROOT}
+CMD ["github-export-worker.handler"]
