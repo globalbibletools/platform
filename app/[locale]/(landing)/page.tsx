@@ -1,6 +1,7 @@
 import { query } from "@/shared/db"
 import ProgressChart from "./ProgressChart"
 import { Icon } from "@/app/components/Icon"
+import ReadersBibleButton from "./ReadersBibleButton"
 
 export default async function LandingPage() {
     const stats = await fetchLanguageProgressStats()
@@ -44,12 +45,7 @@ export default async function LandingPage() {
                 About
             </a>
             <div className="md:flex-grow"></div>
-            <a
-                href="/read"
-                className="rounded-lg bg-blue-800 text-white font-bold shadow-md px-4 flex items-center justify-center h-8 md:mt-[4px] ms-1"
-            >
-                Reader&apos;s Bible
-            </a>
+            <ReadersBibleButton />
         </nav>
         <main className="flex-grow overflow-auto">
             <section id="hero" className="relative">
