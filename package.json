@@ -13,6 +13,7 @@
     "@google-cloud/translate": "8.5.0",
     "@gracious.tech/fetch-client": "0.8.9",
     "@next/env": "14.2.12",
+    "@octokit/rest": "21.0.2",
     "@opentelemetry/api-logs": "0.56.0",
     "@opentelemetry/exporter-trace-otlp-http": "0.56.0",
     "@opentelemetry/id-generator-aws-xray": "1.2.2",
