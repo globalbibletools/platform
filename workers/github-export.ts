@@ -1,5 +1,5 @@
 import { SQSEvent, EventBridgeEvent } from 'aws-lambda'
-import { query } from '../shared/db'
+import { query, queryCursor } from '../shared/db'
 import { SendMessageBatchCommand, SQSClient } from '@aws-sdk/client-sqs'
 import { Octokit } from '@octokit/rest'
 
@@ -10,6 +10,7 @@ const client = new Octokit({
 })
 
 export async function handler(event: SQSEvent | ScheduledEvent) {
+    console.log(JSON.stringify(event))
     if ('Records' in event) {
         const message = JSON.parse(event.Records[0].body) as { code: string }
         await exportLanguage(message.code)
@@ -25,19 +26,15 @@ async function queueLanguages() {
         return
     }
 
-    const sqsClient = new SQSClient({
-        credentials: {
-            accessKeyId: process.env.ACCESS_KEY_ID ?? '',
-            secretAccessKey: process.env.SECRET_ACCESS_KEY ?? '',
-        },
-    });
+    const sqsClient = new SQSClient();
     await sqsClient.send(
         new SendMessageBatchCommand({
             QueueUrl: process.env.GITHUB_EXPORT_QUEUE_URL,
             Entries: languages.map(language => ({
+                MessageGroupId: 'github-export',
                 Id: language.code,
                 MessageBody: JSON.stringify({
-                    languageId: language.code
+                    code: language.code
                 }),
             }))
         })
@@ -50,11 +47,15 @@ ${languages.map(language => language.code).join('\n')}`)
 
 async function exportLanguage(code: string) {
     console.log(`Starting export of language ${code}`)
-    console.log('Gathering data')
-    const books = await fetchLanguageData(code)
 
-    console.log('Creating git tree')
-    const treeItems = await Promise.all(books.slice(0, 1).map(book => createBlobForBook(code, book)))
+    console.log('Creating blob for each book')
+    const treeItems = []
+    for await (const book of fetchLanguageData(code)) {
+        const treeItem = await createBlobForBook(code, book)
+        treeItems.push(treeItem)
+    }
+
+    console.log('Creating tree')
     const treeSha = await createTree(treeItems)
 
     console.log('Creating commit')
@@ -67,10 +68,10 @@ async function fetchUpdatedLanguages() {
     const result = await query<{ code: string }>(
         `SELECT DISTINCT lang.code FROM "Gloss" gloss
         JOIN "Phrase" ph ON ph.id = gloss."phraseId"
-        JOIN "Language" lang ON lang.id = ph."lanuageId"
+        JOIN "Language" lang ON lang.id = ph."languageId"
         WHERE gloss.updated_at >= NOW() - INTERVAL '8 days'
             OR ph."deletedAt" >= NOW() - INTERVAL '8 days'
-        ORDER BY ph."languageId"
+        ORDER BY lang.code
         `,
         []
     )
@@ -98,8 +99,8 @@ interface Book {
     chapters: Chapter[]
 }
 
-async function fetchLanguageData(languageId: string) {
-    const result = await query<Book>(
+function fetchLanguageData(languageId: string) {
+    return queryCursor<Book>(
         `SELECT
             book.id,
             book.name,
@@ -145,7 +146,6 @@ async function fetchLanguageData(languageId: string) {
         `,
         [languageId]
     )
-    return result.rows
 }
 
 const GH_OWNER = 'globalbibletools'
@@ -213,5 +213,3 @@ async function createCommit(code: string, treeSha: string) {
         sha: commitResult.data.sha
     })
 }
-
-exportLanguage('spa')

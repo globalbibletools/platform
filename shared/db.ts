@@ -1,4 +1,5 @@
 import pg, { QueryResult, QueryResultRow } from 'pg'
+import Cursor from 'pg-cursor'
 const { Pool } = pg
 
 const connectionString = process.env.DATABASE_URL;
@@ -8,18 +9,27 @@ if (!connectionString) {
  
 const pool = new Pool({ connectionString, max: 20 })
 
-async function _query<T extends QueryResultRow>(client: pg.Pool | pg.PoolClient, text: string, params: any): Promise<QueryResult<T>> {
-  const start = performance.now()
-  const result = await client.query<T>(text, params)
-  const duration = performance.now() - start
-  if (process.env.LOG_DB_QUERIES === 'true') {
-      console.log(`QUERY ${duration.toFixed(0)}ms ${text.replaceAll(/\s+/g, ' ').slice(0, 100)}`)
-  }
-  return result
+export async function query<T extends QueryResultRow>(text: string, params: any): Promise<QueryResult<T>> {
+  return pool.query(text, params)
 }
 
-export async function query<T extends QueryResultRow>(text: string, params: any): Promise<QueryResult<T>> {
-  return _query(pool, text, params)
+export async function *queryCursor<T extends QueryResultRow>(text: string, params: any, batchSize = 1): AsyncGenerator<T> {
+    const client = await pool.connect()
+    try {
+        const cursor = client.query(new Cursor<T>(text, params))
+
+        let size = 0
+        do {
+            const rows = await cursor.read(batchSize)
+            size = rows.length
+
+            for (const row of rows) {
+                yield row
+            }
+        } while (size > 0)
+    } finally {
+        client.release()
+    }
 }
 
 export async function transaction<T>(tx: (q: typeof query) => Promise<T>): Promise<T> {
@@ -27,7 +37,7 @@ export async function transaction<T>(tx: (q: typeof query) => Promise<T>): Promi
 
     try {
         await client.query('BEGIN')
-        const result = await tx((text: string, params: any) => _query(client, text, params))
+        const result = await tx((text: string, params: any) => client.query(text, params))
         await client.query('COMMIT')
         return result
     } catch (error) {
