@@ -328,7 +328,7 @@ CREATE TABLE public."Gloss" (
     state public."GlossState" DEFAULT 'UNAPPROVED'::public."GlossState" NOT NULL,
     "phraseId" integer NOT NULL,
     source public."GlossSource",
-    updated_at timestamp without time zone,
+    updated_at timestamp without time zone NOT NULL,
     updated_by uuid
 );
 

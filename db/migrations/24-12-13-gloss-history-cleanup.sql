@@ -1,7 +1,7 @@
 BEGIN;
 
 ALTER TABLE "Gloss"
-    ALTER COLUMN updated_at DROP NOT NULL;
+    ALTER COLUMN updated_at SET NOT NULL;
 
 DROP TABLE "GlossEvent";
 
