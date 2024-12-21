@@ -7,8 +7,7 @@ import { notFound, redirect } from 'next/navigation';
 import { parseReference } from '@/app/verse-utils';
 import { query, transaction } from '@/shared/db';
 import { verifySession } from '@/app/session';
-import { revalidatePath, revalidateTag } from 'next/cache';
-import { FormState } from '@/app/components/Form';
+import { revalidatePath } from 'next/cache';
 import { translateClient } from '@/app/google-translate';
 import languageMap from "@/data/locale-mapping.json"
 
@@ -127,61 +126,24 @@ export async function approveAll(formData: FormData): Promise<void> {
         notFound()
     }
 
-    await transaction(async query => {
-        const prevGlosses = await query<{ id: number, gloss: string, state: string }>(
-            `
-            SELECT ph.id, g.gloss, g.state FROM "Phrase" AS ph
-            JOIN "Gloss" AS g ON g."phraseId" = ph.id
-            WHERE ph.id = ANY($2::int[])
-                AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
-                AND ph."deletedAt" IS NULL
-            `,
-            [request.data.code, request.data.phrases.map(ph => ph.id)]
-        )
-
-        const updatedGlosses = await query<{ phraseId: number; gloss: string, state: string }>(
-            `
-            INSERT INTO "Gloss"("phraseId", "gloss", "state", updated_at, updated_by, source)
-            SELECT ph.id, data.gloss, 'APPROVED', NOW(), $3, 'USER'
-            FROM UNNEST($1::integer[], $2::text[]) data (phrase_id, gloss)
-            JOIN "Phrase" AS ph ON ph.id = data.phrase_id
-            WHERE ph."deletedAt" IS NULL
-            ON CONFLICT ("phraseId")
-                DO UPDATE SET
-                    gloss = COALESCE(EXCLUDED."gloss", "Gloss"."gloss"),
-                    state = EXCLUDED.state,
-                    updated_at = EXCLUDED.updated_at,
-                    updated_by = EXCLUDED.updated_by, 
-                    source = EXCLUDED.source
-                    WHERE EXCLUDED.state <> "Gloss".state OR EXCLUDED.gloss <> "Gloss".gloss
-            RETURNING *
-            `,
-            [request.data.phrases.map(ph => ph.id), request.data.phrases.map(ph => ph.gloss), session.user.id]
-        )
-
-        const events = updatedGlosses.rows.map(g => {
-            const oldGloss = prevGlosses.rows.find(g2 => g2.id === g.phraseId)
-            return {
-                id: g.phraseId,
-                gloss: g.gloss !== oldGloss?.gloss ? g.gloss : undefined,
-                state: oldGloss?.state !== 'APPROVED' ? 'APPROVED' : undefined
-            }
-        }).filter(event => event.gloss || event.state)
-
-        await query(
-            `
-            INSERT INTO "GlossEvent" ("phraseId", "userId", "gloss", "state", "source")
-            SELECT data.phrase_id, $1, data.gloss, data.state, 'USER'
-            FROM UNNEST($2::integer[], $3::text[], $4::"GlossState"[]) data (phrase_id, gloss, state)
-            `,
-            [
-                session.user.id,
-                events.map(e => e.id),
-                events.map(e => e.gloss),
-                events.map(e => e.state)
-            ]
-        )
-    })
+    await query<{ phraseId: number; gloss: string, state: string }>(
+        `
+        INSERT INTO "Gloss"("phraseId", "gloss", "state", updated_at, updated_by, source)
+        SELECT ph.id, data.gloss, 'APPROVED', NOW(), $3, 'USER'
+        FROM UNNEST($1::integer[], $2::text[]) data (phrase_id, gloss)
+        JOIN "Phrase" AS ph ON ph.id = data.phrase_id
+        WHERE ph."deletedAt" IS NULL
+        ON CONFLICT ("phraseId")
+            DO UPDATE SET
+                gloss = COALESCE(EXCLUDED."gloss", "Gloss"."gloss"),
+                state = EXCLUDED.state,
+                updated_at = EXCLUDED.updated_at,
+                updated_by = EXCLUDED.updated_by, 
+                source = EXCLUDED.source
+                WHERE EXCLUDED.state <> "Gloss".state OR EXCLUDED.gloss <> "Gloss".gloss
+        `,
+        [request.data.phrases.map(ph => ph.id), request.data.phrases.map(ph => ph.gloss), session.user.id]
+    )
 
     const pathQuery = await query<{ verseId: string }>(
         `
