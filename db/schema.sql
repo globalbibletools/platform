@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 14.13 (Debian 14.13-1.pgdg120+1)
--- Dumped by pg_dump version 14.13 (Debian 14.13-1.pgdg120+1)
+-- Dumped by pg_dump version 16.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -28,6 +28,13 @@ CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog;
 --
 
 COMMENT ON EXTENSION pg_cron IS 'Job scheduler for PostgreSQL';
+
+
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
 
 
 --
@@ -324,41 +331,6 @@ CREATE TABLE public."Gloss" (
     updated_at timestamp without time zone,
     updated_by uuid
 );
-
-
---
--- Name: GlossEvent; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."GlossEvent" (
-    "timestamp" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "userId" uuid,
-    gloss text,
-    state public."GlossState",
-    source public."GlossSource" NOT NULL,
-    id integer NOT NULL,
-    "phraseId" integer NOT NULL
-);
-
-
---
--- Name: GlossEvent_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public."GlossEvent_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: GlossEvent_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public."GlossEvent_id_seq" OWNED BY public."GlossEvent".id;
 
 
 --
@@ -774,13 +746,6 @@ ALTER SEQUENCE public.weekly_gloss_statistics_id_seq OWNED BY public.weekly_glos
 
 
 --
--- Name: GlossEvent id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."GlossEvent" ALTER COLUMN id SET DEFAULT nextval('public."GlossEvent_id_seq"'::regclass);
-
-
---
 -- Name: LemmaFormSuggestionCount id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -829,14 +794,6 @@ ALTER TABLE ONLY public."Book"
 
 ALTER TABLE ONLY public."Footnote"
     ADD CONSTRAINT "Footnote_pkey" PRIMARY KEY ("phraseId");
-
-
---
--- Name: GlossEvent GlossEvent_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."GlossEvent"
-    ADD CONSTRAINT "GlossEvent_pkey" PRIMARY KEY (id);
 
 
 --
@@ -1219,22 +1176,6 @@ ALTER TABLE ONLY public."Footnote"
 
 
 --
--- Name: GlossEvent GlossEvent_phraseId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."GlossEvent"
-    ADD CONSTRAINT "GlossEvent_phraseId_fkey" FOREIGN KEY ("phraseId") REFERENCES public."Phrase"(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: GlossEvent GlossEvent_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."GlossEvent"
-    ADD CONSTRAINT "GlossEvent_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
 -- Name: Gloss Gloss_phraseId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1496,6 +1437,14 @@ ALTER TABLE ONLY public.weekly_gloss_statistics
 
 ALTER TABLE ONLY public.weekly_gloss_statistics
     ADD CONSTRAINT weekly_gloss_statistics_user_id_fkey FOREIGN KEY (user_id) REFERENCES public."User"(id);
+
+
+--
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: -
+--
+
+REVOKE USAGE ON SCHEMA public FROM PUBLIC;
+GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
 --
