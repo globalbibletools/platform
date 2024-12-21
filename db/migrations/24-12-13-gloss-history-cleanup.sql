@@ -1,0 +1,9 @@
+BEGIN;
+
+ALTER TABLE "Gloss"
+    ALTER COLUMN updated_at DROP NOT NULL;
+
+DROP TABLE "GlossEvent";
+
+COMMIT;
+

@@ -100,16 +100,9 @@ export async function handler(event: SQSEvent) {
                         $2::uuid
                     FROM phw
                     RETURNING id
-                ),
-                gloss AS (
-                    INSERT INTO "Gloss" ("phraseId", "gloss", "state", updated_at, updated_by, source)
-                    SELECT phrase.id, data.gloss, 'APPROVED', NOW(), $2::uuid, 'IMPORT'
-                    FROM phrase
-                    JOIN phw ON phw."phraseId" = phrase.id
-                    JOIN data ON data.word_id = phw."wordId"
                 )
-                INSERT INTO "GlossEvent" ("phraseId", "userId", "gloss", "state", "source")
-                SELECT phrase.id, $2::uuid, data.gloss, 'APPROVED', 'IMPORT'
+                INSERT INTO "Gloss" ("phraseId", "gloss", "state", updated_at, updated_by, source)
+                SELECT phrase.id, data.gloss, 'APPROVED', NOW(), $2::uuid, 'IMPORT'
                 FROM phrase
                 JOIN phw ON phw."phraseId" = phrase.id
                 JOIN data ON data.word_id = phw."wordId"
