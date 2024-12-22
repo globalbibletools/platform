@@ -70,9 +70,9 @@ export async function fetchCurrentLanguage(code: string, userId?: string): Promi
         SELECT
             code, name, font, text_direction AS "textDirection", translation_ids AS "translationIds",
             (
-                SELECT COALESCE(JSON_AGG(r."role"), '[]') FROM "LanguageMemberRole" AS r
-                WHERE r."languageId" = l.id
-                    AND r."userId" = $2
+                SELECT COALESCE(JSON_AGG(r."role"), '[]') FROM language_member_role AS r
+                WHERE r.language_id = l.id
+                    AND r.user_id = $2
             ) AS roles
         FROM language AS l
         WHERE code = $1

@@ -133,11 +133,11 @@ async function fetchUsers(code: string) {
             invitation.json AS invite
         FROM (
             SELECT 
-                r."userId" AS id,
+                r.user_id AS id,
                 COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL AND r.role != 'VIEWER'), '[]') AS roles
-            FROM "LanguageMemberRole" AS r
-            WHERE r."languageId" = (SELECT id FROM language WHERE code = $1)
-            GROUP BY r."userId"
+            FROM language_member_role AS r
+            WHERE r.language_id = (SELECT id FROM language WHERE code = $1)
+            GROUP BY r.user_id
         ) AS m
         JOIN "User" AS u ON m.id = u.id
         LEFT JOIN LATERAL (

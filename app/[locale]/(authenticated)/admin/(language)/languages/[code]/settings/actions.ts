@@ -52,7 +52,7 @@ export async function updateLanguageSettings(_prevState: FormState, formData: Fo
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-            FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
+            FROM language_member_role AS r WHERE r.language_id = l.id AND r.user_id = $2)
         FROM language AS l WHERE l.code = $1`,
         [request.data.code, session.user.id]
     )

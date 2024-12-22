@@ -50,7 +50,7 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-            FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
+            FROM language_member_role AS r WHERE r.language_id = l.id AND r.user_id = $2)
         FROM language AS l WHERE l.code = $1`,
         [request.data.code, session.user.id]
     )
@@ -75,7 +75,7 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
                 INSERT INTO "UserInvitation" ("userId", token, expires)
                 SELECT id, $2, $3 FROM new_user
             )
-            INSERT INTO "LanguageMemberRole" ("languageId", "userId", "role")
+            INSERT INTO language_member_role (language_id, user_id, role)
             SELECT l.id, new_user.id, UNNEST($5::"LanguageRole"[]) FROM new_user
             JOIN language AS l ON l.code = $4
             `,
@@ -91,7 +91,7 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
         });
     } else {
         await query(
-            `INSERT INTO "LanguageMemberRole" ("languageId", "userId", "role")
+            `INSERT INTO language_member_role (language_id, user_id, role)
             SELECT l.id, $2, UNNEST($3::"LanguageRole"[]) FROM language AS l
             WHERE l.code = $1
             ON CONFLICT DO NOTHING

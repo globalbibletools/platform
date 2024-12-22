@@ -34,6 +34,13 @@ ALTER TABLE language_import_job RENAME CONSTRAINT "LanguageImportJob_languageId_
 ALTER TABLE language_import_job RENAME CONSTRAINT "LanguageImportJob_userId_fkey" TO language_import_job_user_id_fkey;
 ALTER INDEX "LanguageImportJob_pkey" RENAME TO language_import_job_pkey;
 
+ALTER TABLE "LanguageMemberRole" RENAME TO language_member_role;
+ALTER TABLE language_member_role RENAME COLUMN "userId" TO user_id;
+ALTER TABLE language_member_role RENAME COLUMN "languageId" TO language_id;
+ALTER TABLE language_member_role RENAME CONSTRAINT "LanguageMemberRole_languageId_fkey" TO language_member_role_language_id_fkey;
+ALTER TABLE language_member_role RENAME CONSTRAINT "LanguageMemberRole_userId_fkey" TO language_member_role_user_id_fkey;
+ALTER INDEX "LanguageMemberRole_pkey" RENAME TO language_member_role_pkey;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$

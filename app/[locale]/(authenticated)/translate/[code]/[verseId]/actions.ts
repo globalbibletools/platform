@@ -28,9 +28,9 @@ export async function updateGloss(formData: FormData): Promise<any> {
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT "languageId" FROM "Phrase" WHERE id = $1) 
-            AND r."userId" = $2`,
+        FROM language_member_role AS r
+        WHERE r.language_id = (SELECT "languageId" FROM "Phrase" WHERE id = $1) 
+            AND r.user_id = $2`,
         [request.data.phraseId, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -87,9 +87,9 @@ export async function updateTranslatorNote(formData: FormData): Promise<any> {
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT "languageId" FROM "Phrase" WHERE id = $1) 
-            AND r."userId" = $2`,
+        FROM language_member_role AS r
+        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
+            AND r.user_id = $2`,
         [request.data.phraseId, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -146,9 +146,9 @@ export async function updateFootnote(formData: FormData): Promise<any> {
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT "languageId" FROM "Phrase" WHERE id = $1) 
-            AND r."userId" = $2`,
+        FROM language_member_role AS r
+        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
+            AND r.user_id = $2`,
         [request.data.phraseId, session.user.id]
     )
     const language = languageQuery.rows[0]

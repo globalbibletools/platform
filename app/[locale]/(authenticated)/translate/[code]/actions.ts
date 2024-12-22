@@ -116,9 +116,9 @@ export async function approveAll(formData: FormData): Promise<void> {
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT id FROM language WHERE code = $1) 
-            AND r."userId" = $2`,
+        FROM language_member_role AS r
+        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
+            AND r.user_id = $2`,
         [request.data.code, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -179,9 +179,9 @@ export async function linkWords(formData: FormData): Promise<void> {
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT id FROM language WHERE code = $1) 
-            AND r."userId" = $2`,
+        FROM language_member_role AS r
+        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
+            AND r.user_id = $2`,
         [request.data.code, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -268,9 +268,9 @@ export async function unlinkPhrase(formData: FormData): Promise<void> {
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT id FROM language WHERE code = $1) 
-            AND r."userId" = $2`,
+        FROM language_member_role AS r
+        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
+            AND r.user_id = $2`,
         [request.data.code, session.user.id]
     )
     const language = languageQuery.rows[0]

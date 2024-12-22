@@ -77,11 +77,11 @@ export async function resendUserInvite(_prevState: FormState, formData: FormData
         SELECT
             COUNT(*) > 0 AS "isLanguageAdmin"
         FROM (
-            SELECT DISTINCT("languageId") AS id FROM "LanguageMemberRole" AS role
-            WHERE role."userId" = $1
+            SELECT DISTINCT(language_id) AS id FROM language_member_role
+            WHERE user_id = $1
         ) AS lang
-        JOIN "LanguageMemberRole" AS role ON role."languageId" = lang.id
-        WHERE role."userId" = $2
+        JOIN language_member_role AS role ON role.language_id = lang.id
+        WHERE role.user_id = $2
             AND role.role = 'ADMIN'
         `,
         [request.data.userId, session.user.id]
