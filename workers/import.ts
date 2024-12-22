@@ -8,8 +8,11 @@ export async function handler(event: SQSEvent) {
     const { languageCode, importLanguage } = JSON.parse(event.Records[0].body)
     const jobQuery = await query<{ languageId: string, userId: string }>(
         `
-        SELECT j."languageId", j."userId" FROM "LanguageImportJob" AS j
-        JOIN language AS l ON l.id = j."languageId"
+        SELECT
+            j.language_id AS "languageId",
+            j.user_id AS "userId"
+        FROM language_import_job AS j
+        JOIN language AS l ON l.id = j.language_id
         WHERE l.code = $1
         `,
         [languageCode]
@@ -118,11 +121,11 @@ export async function handler(event: SQSEvent) {
 
     await query(
         `
-        UPDATE "LanguageImportJob"
+        UPDATE language_import_job
         SET
-            "endDate" = NOW(),
-            "succeeded" = TRUE
-        WHERE "languageId" = $1
+            end_date = NOW(),
+            succeeded = TRUE
+        WHERE language_id = $1
         `,
         [job.languageId]
     )
