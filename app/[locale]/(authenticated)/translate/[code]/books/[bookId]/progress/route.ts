@@ -49,7 +49,7 @@ async function fetchBookProgress(bookId: number, languageCode: string): Promise<
                     AND v."bookId" = b.id
                     AND g.state = 'APPROVED'
             ) AS "approvedCount"
-        FROM "Book" AS b
+        FROM book AS b
         WHERE b.id = $1
         `,
         [bookId, languageCode]

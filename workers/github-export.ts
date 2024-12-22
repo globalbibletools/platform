@@ -108,7 +108,7 @@ function fetchLanguageData(languageId: string) {
                 'id', book_chapters.chapter,
                 'verses', book_chapters.verses
             ) ORDER BY book_chapters.chapter) AS chapters
-        FROM "Book" book
+        FROM book
         JOIN (
             SELECT
                 verse."bookId",
