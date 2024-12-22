@@ -60,7 +60,7 @@ async function fetchCurrentProgress(code: string): Promise<BookTotalProgress[]> 
         LEFT JOIN (
           SELECT phw."wordId" FROM "PhraseWord" AS phw
           JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
-          JOIN "Gloss" AS g ON g."phraseId" = ph.id
+          JOIN gloss AS g ON g.phrase_id = ph.id
           JOIN "Language" AS l ON l.id = ph."languageId"
           WHERE l.code = $1
             AND ph."deletedAt" IS NULL

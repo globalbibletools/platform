@@ -86,7 +86,7 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
                 AND ph."deletedAt" IS NULL
                 AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $3)
             ) AS ph ON true
-            LEFT JOIN "Gloss" AS g ON g."phraseId" = ph.id AND g.state = 'APPROVED'
+            LEFT JOIN gloss AS g ON g.phrase_id = ph.id AND g.state = 'APPROVED'
             LEFT JOIN footnote AS fn ON fn.phrase_id = ph.id
             JOIN "LemmaForm" AS lf ON lf.id = w."formId"
             LEFT JOIN LATERAL (

@@ -12,4 +12,72 @@ ALTER TABLE footnote RENAME CONSTRAINT "Footnote_phraseId_fkey" TO footnote_phra
 ALTER INDEX "Footnote_pkey" RENAME TO footnote_pkey;
 ALTER INDEX "Footnote_phraseId_idx" RENAME TO footnote_phraseId_idx;
 
+ALTER TABLE "Gloss" RENAME TO gloss;
+ALTER TABLE gloss RENAME COLUMN "phraseId" TO phrase_id;
+ALTER TABLE gloss RENAME CONSTRAINT "Gloss_phraseId_fkey" TO gloss_phrase_id_fkey;
+ALTER TABLE gloss RENAME CONSTRAINT "Gloss_updated_by_fkey" TO gloss_updated_by_fkey;
+ALTER INDEX "Gloss_pkey" RENAME TO gloss_pkey;
+ALTER INDEX "Gloss_phraseId_idx" RENAME TO gloss_phrase_id_idx;
+
+CREATE OR REPLACE FUNCTION gloss_audit()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    INSERT INTO gloss_history AS c (phrase_id, gloss, state, source, updated_at, updated_by)
+    VALUES (OLD.phrase_id, OLD.gloss, OLD.state, OLD.source, OLD.updated_at, OLD.updated_by);
+
+    RETURN NULL;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE OR REPLACE FUNCTION increment_suggestion()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.state = 'APPROVED' AND (OLD IS NULL OR NEW.gloss <> OLD.gloss OR OLD.state <> 'APPROVED') THEN
+        INSERT INTO "LemmaFormSuggestionCount" AS c ("languageId", "formId", "gloss", "count")
+        SELECT
+            ph."languageId",
+            w."formId",
+            NEW.gloss,
+            1
+        FROM "Word" AS w
+        JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
+        JOIN "Phrase" AS ph ON  phw."phraseId" = ph.id
+        WHERE ph.id = NEW.phrase_id
+        ON CONFLICT ("languageId", "formId", gloss) DO UPDATE
+            SET count = c.count + 1;
+    END IF;
+
+    RETURN NULL;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE OR REPLACE FUNCTION increment_suggestion()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.state = 'APPROVED' AND (OLD IS NULL OR NEW.gloss <> OLD.gloss OR OLD.state <> 'APPROVED') THEN
+        INSERT INTO "LemmaFormSuggestionCount" AS c ("languageId", "formId", "gloss", "count")
+        SELECT
+            ph."languageId",
+            w."formId",
+            NEW.gloss,
+            1
+        FROM "Word" AS w
+        JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
+        JOIN "Phrase" AS ph ON  phw."phraseId" = ph.id
+        WHERE ph.id = NEW.phrase_id
+        ON CONFLICT ("languageId", "formId", gloss) DO UPDATE
+            SET count = c.count + 1;
+    END IF;
+
+    RETURN NULL;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+
 COMMIT;

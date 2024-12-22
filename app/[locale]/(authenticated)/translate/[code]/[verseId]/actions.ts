@@ -39,15 +39,15 @@ export async function updateGloss(formData: FormData): Promise<any> {
     }
 
     await query(
-        `INSERT INTO "Gloss" ("phraseId", state, gloss, updated_at, updated_by, source)
+        `INSERT INTO gloss (phrase_id, state, gloss, updated_at, updated_by, source)
         VALUES ($1, $2, $3, NOW(), $4, 'USER')
-        ON CONFLICT ("phraseId") DO UPDATE SET
-            state = COALESCE(EXCLUDED.state, "Gloss".state),
-            gloss = COALESCE(EXCLUDED.gloss, "Gloss".gloss),
+        ON CONFLICT (phrase_id) DO UPDATE SET
+            state = COALESCE(EXCLUDED.state, gloss.state),
+            gloss = COALESCE(EXCLUDED.gloss, gloss.gloss),
             updated_at = EXCLUDED.updated_at,
             updated_by = EXCLUDED.updated_by, 
             source = EXCLUDED.source
-            WHERE EXCLUDED.state <> "Gloss".state OR EXCLUDED.gloss <> "Gloss".gloss
+            WHERE EXCLUDED.state <> gloss.state OR EXCLUDED.gloss <> gloss.gloss
         `,
         [request.data.phraseId, request.data.state, request.data.gloss, session.user.id]
     )

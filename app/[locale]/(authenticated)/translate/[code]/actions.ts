@@ -54,13 +54,13 @@ export async function redirectToUnapproved(formData: FormData): Promise<void | s
         LEFT JOIN LATERAL (
           SELECT g.state AS state FROM "PhraseWord" AS phw
           JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
-          LEFT JOIN "Gloss" AS g ON g."phraseId" = ph.id
+          LEFT JOIN gloss AS g ON g.phrase_id = ph.id
           WHERE phw."wordId" = w.id
 			      AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
 			      AND ph."deletedAt" IS NULL
         ) AS g ON true
         WHERE w."verseId" > $2
-          AND (g."state" = 'UNAPPROVED' OR g."state" IS NULL)
+          AND (g.state = 'UNAPPROVED' OR g.state IS NULL)
         ORDER BY w."id"
         LIMIT 1
         `,
@@ -75,12 +75,12 @@ export async function redirectToUnapproved(formData: FormData): Promise<void | s
             LEFT JOIN LATERAL (
               SELECT g.state AS state FROM "PhraseWord" AS phw
               JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
-              LEFT JOIN "Gloss" AS g ON g."phraseId" = ph.id
+              LEFT JOIN gloss AS g ON g.phrase_id = ph.id
               WHERE phw."wordId" = w.id
                       AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
                       AND ph."deletedAt" IS NULL
             ) AS g ON true
-            WHERE (g."state" = 'UNAPPROVED' OR g."state" IS NULL)
+            WHERE (g.state = 'UNAPPROVED' OR g.state IS NULL)
             ORDER BY w."id"
             LIMIT 1
             `,
@@ -128,19 +128,19 @@ export async function approveAll(formData: FormData): Promise<void> {
 
     await query<{ phraseId: number; gloss: string, state: string }>(
         `
-        INSERT INTO "Gloss"("phraseId", "gloss", "state", updated_at, updated_by, source)
+        INSERT INTO gloss (phrase_id, gloss, state, updated_at, updated_by, source)
         SELECT ph.id, data.gloss, 'APPROVED', NOW(), $3, 'USER'
         FROM UNNEST($1::integer[], $2::text[]) data (phrase_id, gloss)
         JOIN "Phrase" AS ph ON ph.id = data.phrase_id
         WHERE ph."deletedAt" IS NULL
-        ON CONFLICT ("phraseId")
+        ON CONFLICT (phrase_id)
             DO UPDATE SET
-                gloss = COALESCE(EXCLUDED."gloss", "Gloss"."gloss"),
+                gloss = COALESCE(EXCLUDED.gloss, gloss.gloss),
                 state = EXCLUDED.state,
                 updated_at = EXCLUDED.updated_at,
                 updated_by = EXCLUDED.updated_by, 
                 source = EXCLUDED.source
-                WHERE EXCLUDED.state <> "Gloss".state OR EXCLUDED.gloss <> "Gloss".gloss
+                WHERE EXCLUDED.state <> gloss.state OR EXCLUDED.gloss <> gloss.gloss
         `,
         [request.data.phrases.map(ph => ph.id), request.data.phrases.map(ph => ph.gloss), session.user.id]
     )
@@ -330,8 +330,8 @@ export async function sanityCheck(_prev: SanityCheckResult, formData: FormData):
         `SELECT
             ph.id as "phraseId",
             g.gloss
-        FROM "Gloss" g
-        JOIN "Phrase" ph ON ph.id = g."phraseId"
+        FROM gloss g
+        JOIN "Phrase" ph ON ph.id = g.phrase_id
         WHERE ph."deletedAt" IS NULL
             AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
             AND EXISTS (

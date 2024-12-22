@@ -109,7 +109,7 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
 			ph.id,
 			ph.word_ids AS "wordIds",
 			CASE
-				WHEN g."phraseId" IS NOT NULL
+				WHEN g.phrase_id IS NOT NULL
 				THEN JSON_BUILD_OBJECT(
 				  'text', g.gloss,
 				  'state', g.state
@@ -133,7 +133,7 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
 			GROUP BY ph.id
 		) AS ph
 		
-		LEFT JOIN "Gloss" AS g ON g."phraseId" = ph.id
+		LEFT JOIN gloss AS g ON g.phrase_id = ph.id
 		LEFT JOIN (
 			SELECT
 				n.phrase_id,
@@ -242,7 +242,7 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
                 LEFT JOIN LATERAL (
                     SELECT g.gloss FROM "PhraseWord" AS phw
                     JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
-                    JOIN "Gloss" AS g ON g."phraseId" = ph.id
+                    JOIN gloss AS g ON g.phrase_id = ph.id
                     WHERE phw."wordId" = w.id
                         AND ph."languageId" = (SELECT id FROM "Language" WHERE code = 'eng')
                         AND ph."deletedAt" IS NULL
@@ -308,7 +308,7 @@ async function saveMachineTranslations(code: string, referenceGlosses: string[],
             INSERT INTO "MachineGloss" ("wordId", "gloss", "languageId")
             SELECT phw."wordId", data.machine_gloss, (SELECT id FROM "Language" WHERE code = $1)
             FROM "PhraseWord" AS phw
-            JOIN "Gloss" AS g ON g."phraseId" = phw."phraseId"
+            JOIN gloss AS g ON g.phrase_id = phw."phraseId"
             JOIN "Phrase" AS ph ON phw."phraseId" = ph.id
             JOIN UNNEST($2::text[], $3::text[]) data (ref_gloss, machine_gloss)
                 ON LOWER(g.gloss) = data.ref_gloss
