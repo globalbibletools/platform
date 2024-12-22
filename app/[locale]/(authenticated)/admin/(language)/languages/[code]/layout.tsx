@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: LanguageLayoutProps, parent: 
   const { title } = await parent
 
   const languageQuery = await query<{ name: string }>(
-    `SELECT name FROM "Language" WHERE code = $1`,
+    `SELECT name FROM language WHERE code = $1`,
     [params.code]
   )
 
@@ -40,7 +40,7 @@ export default async function LanguageLayout({ children, params }: LanguageLayou
         `SELECT l.name,
             (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
             FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
-        FROM "Language" AS l WHERE l.code = $1`,
+        FROM language AS l WHERE l.code = $1`,
         [params.code, session.user.id]
     )
     const language = languageQuery.rows[0]

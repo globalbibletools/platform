@@ -84,7 +84,7 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
               ) AS wds ON true
               WHERE phw."wordId" = w.id
                 AND ph."deletedAt" IS NULL
-                AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $3)
+                AND ph."languageId" = (SELECT id FROM language WHERE code = $3)
             ) AS ph ON true
             LEFT JOIN gloss AS g ON g.phrase_id = ph.id AND g.state = 'APPROVED'
             LEFT JOIN footnote AS fn ON fn.phrase_id = ph.id
@@ -124,8 +124,8 @@ async function fetchCurrentLanguage(code: string): Promise<CurrentLanguage | und
     const result = await query<CurrentLanguage>(
         `
         SELECT
-            code, name, font, "textDirection"
-        FROM "Language" AS l
+            code, name, font, text_direction AS "textDirection"
+        FROM language AS l
         WHERE code = $1
         `,
         [code]

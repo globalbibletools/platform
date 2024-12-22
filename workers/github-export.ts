@@ -68,7 +68,7 @@ async function fetchUpdatedLanguages() {
     const result = await query<{ code: string }>(
         `SELECT DISTINCT lang.code FROM gloss
         JOIN "Phrase" ph ON ph.id = gloss.phrase_id
-        JOIN "Language" lang ON lang.id = ph."languageId"
+        JOIN language lang ON lang.id = ph."languageId"
         WHERE gloss.updated_at >= NOW() - INTERVAL '8 days'
             OR ph."deletedAt" >= NOW() - INTERVAL '8 days'
         ORDER BY lang.code
@@ -132,7 +132,7 @@ function fetchLanguageData(languageId: string) {
                         AND EXISTS (
                             SELECT FROM "PhraseWord" phrase_word 
                             JOIN "Phrase" phrase ON phrase_word."phraseId" = phrase.id
-                            WHERE phrase."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+                            WHERE phrase."languageId" = (SELECT id FROM language WHERE code = $1)
                                 AND phrase."deletedAt" IS NULL
                                 AND phrase_word."wordId" = word.id
                                 AND gloss.phrase_id = phrase.id

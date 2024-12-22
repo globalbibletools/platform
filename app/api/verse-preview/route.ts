@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     const languageQuery = await query<{ bibleTranslationIds: string[] }>(
         `
-        SELECT COALESCE("bibleTranslationIds", '{}') AS "bibleTranslationIds" FROM "Language" WHERE code = $1
+        SELECT COALESCE("translation_ids", '{}') AS "bibleTranslationIds" FROM language WHERE code = $1
         `,
         [request.data.code]
     )

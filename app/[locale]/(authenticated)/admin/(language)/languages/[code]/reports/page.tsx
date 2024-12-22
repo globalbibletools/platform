@@ -61,7 +61,7 @@ async function fetchCurrentProgress(code: string): Promise<BookTotalProgress[]> 
           SELECT phw."wordId" FROM "PhraseWord" AS phw
           JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
           JOIN gloss AS g ON g.phrase_id = ph.id
-          JOIN "Language" AS l ON l.id = ph."languageId"
+          JOIN language AS l ON l.id = ph."languageId"
           WHERE l.code = $1
             AND ph."deletedAt" IS NULL
             AND g.state = 'APPROVED'
@@ -123,7 +123,7 @@ async function fetchLanguageProgressData(code: string): Promise<ProgressData> {
                 FROM (
                     SELECT DISTINCT ON (u.id) u.id, u.name FROM weekly_gloss_statistics s
                     JOIN "User" u ON u.id = s.user_id
-                    WHERE s.language_id = (SELECT id FROM "Language" WHERE code = $1)
+                    WHERE s.language_id = (SELECT id FROM language WHERE code = $1)
                     ORDER BY u.id ASC
                 ) u
             ) AS contributors,
@@ -137,7 +137,7 @@ async function fetchLanguageProgressData(code: string): Promise<ProgressData> {
                             week, book_id,
                             JSON_AGG(JSON_BUILD_OBJECT('userId', user_id, 'approvedCount', approved_count, 'unapprovedCount', unapproved_count)) AS users
                         FROM weekly_gloss_statistics
-                        WHERE language_id = (SELECT id FROM "Language" WHERE code = $1)
+                        WHERE language_id = (SELECT id FROM language WHERE code = $1)
                         GROUP BY week, book_id
                     ) book_week
                     GROUP BY week

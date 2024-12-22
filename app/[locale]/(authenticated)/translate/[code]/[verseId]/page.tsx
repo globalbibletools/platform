@@ -92,14 +92,14 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
               LEFT JOIN (
                 SELECT * FROM "PhraseWord" AS phw
                 JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
-                WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+                WHERE ph."languageId" = (SELECT id FROM language WHERE code = $1)
                   AND ph."deletedAt" IS NULL
               ) ph ON ph."wordId" = w.id
               WHERE w."verseId" = $2 AND ph.id IS NULL
               RETURNING "phraseId", "wordId"
             )
             INSERT INTO "Phrase" (id, "languageId", "createdAt", "createdBy")
-            SELECT phw."phraseId", (SELECT id FROM "Language" WHERE code = $1), now(), $3::uuid FROM phw
+            SELECT phw."phraseId", (SELECT id FROM language WHERE code = $1), now(), $3::uuid FROM phw
         `,
         [languageCode, verseId, userId]
     )
@@ -121,7 +121,7 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
 		FROM (
 			SELECT ph.id, ARRAY_AGG(phw."wordId" ORDER BY phw."wordId") AS word_ids FROM "Phrase" AS ph
 			JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
-			WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $2)
+			WHERE ph."languageId" = (SELECT id FROM language WHERE code = $2)
 				AND ph."deletedAt" IS NULL
 				AND EXISTS (
 					SELECT FROM "Word" AS w
@@ -175,7 +175,7 @@ async function fetchMachineSuggestions(verseId: string, languageCode: string): P
         FROM "Word" AS w
         JOIN "MachineGloss" AS mg ON mg."wordId" = w.id
         WHERE w."verseId" = $1
-			AND mg."languageId" = (SELECT id FROM "Language" WHERE code = $2)
+			AND mg."languageId" = (SELECT id FROM language WHERE code = $2)
         `,
         [verseId, languageCode]
     )
@@ -198,7 +198,7 @@ async function fetchSuggestions(verseId: string, languageCode: string): Promise<
             SELECT DISTINCT "formId" AS id FROM "Word"
             WHERE "verseId" = $1
         ) AS form ON form.id = sc."formId"
-        WHERE sc."languageId" = (SELECT id FROM "Language" WHERE code = $2)
+        WHERE sc."languageId" = (SELECT id FROM language WHERE code = $2)
             AND sc.count > 0
         GROUP BY sc."formId"
         `,
@@ -244,7 +244,7 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
                     JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
                     JOIN gloss AS g ON g.phrase_id = ph.id
                     WHERE phw."wordId" = w.id
-                        AND ph."languageId" = (SELECT id FROM "Language" WHERE code = 'eng')
+                        AND ph."languageId" = (SELECT id FROM language WHERE code = 'eng')
                         AND ph."deletedAt" IS NULL
                 ) AS ph ON true
 
@@ -306,14 +306,14 @@ async function saveMachineTranslations(code: string, referenceGlosses: string[],
         await query(
             `
             INSERT INTO "MachineGloss" ("wordId", "gloss", "languageId")
-            SELECT phw."wordId", data.machine_gloss, (SELECT id FROM "Language" WHERE code = $1)
+            SELECT phw."wordId", data.machine_gloss, (SELECT id FROM language WHERE code = $1)
             FROM "PhraseWord" AS phw
             JOIN gloss AS g ON g.phrase_id = phw."phraseId"
             JOIN "Phrase" AS ph ON phw."phraseId" = ph.id
             JOIN UNNEST($2::text[], $3::text[]) data (ref_gloss, machine_gloss)
                 ON LOWER(g.gloss) = data.ref_gloss
             WHERE ph."deletedAt" IS NULL
-                AND ph."languageId" = (SELECT id FROM "Language" WHERE code = 'eng')
+                AND ph."languageId" = (SELECT id FROM language WHERE code = 'eng')
             ON CONFLICT ON CONSTRAINT "MachineGloss_pkey"
             DO UPDATE SET gloss = EXCLUDED."gloss"
             `,

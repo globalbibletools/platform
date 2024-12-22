@@ -136,7 +136,7 @@ async function fetchUsers(code: string) {
                 r."userId" AS id,
                 COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL AND r.role != 'VIEWER'), '[]') AS roles
             FROM "LanguageMemberRole" AS r
-            WHERE r."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+            WHERE r."languageId" = (SELECT id FROM language WHERE code = $1)
             GROUP BY r."userId"
         ) AS m
         JOIN "User" AS u ON m.id = u.id

@@ -56,7 +56,7 @@ export async function redirectToUnapproved(formData: FormData): Promise<void | s
           JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
           LEFT JOIN gloss AS g ON g.phrase_id = ph.id
           WHERE phw."wordId" = w.id
-			      AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+			      AND ph."languageId" = (SELECT id FROM language WHERE code = $1)
 			      AND ph."deletedAt" IS NULL
         ) AS g ON true
         WHERE w."verseId" > $2
@@ -77,7 +77,7 @@ export async function redirectToUnapproved(formData: FormData): Promise<void | s
               JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
               LEFT JOIN gloss AS g ON g.phrase_id = ph.id
               WHERE phw."wordId" = w.id
-                      AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+                      AND ph."languageId" = (SELECT id FROM language WHERE code = $1)
                       AND ph."deletedAt" IS NULL
             ) AS g ON true
             WHERE (g.state = 'UNAPPROVED' OR g.state IS NULL)
@@ -117,7 +117,7 @@ export async function approveAll(formData: FormData): Promise<void> {
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
         FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT id FROM "Language" WHERE code = $1) 
+        WHERE r."languageId" = (SELECT id FROM language WHERE code = $1) 
             AND r."userId" = $2`,
         [request.data.code, session.user.id]
     )
@@ -180,7 +180,7 @@ export async function linkWords(formData: FormData): Promise<void> {
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
         FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT id FROM "Language" WHERE code = $1) 
+        WHERE r."languageId" = (SELECT id FROM language WHERE code = $1) 
             AND r."userId" = $2`,
         [request.data.code, session.user.id]
     )
@@ -198,7 +198,7 @@ export async function linkWords(formData: FormData): Promise<void> {
                 SELECT COUNT(*) AS count FROM "PhraseWord" AS phw
                 WHERE phw."phraseId" = ph.id
             ) AS words ON true
-            WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+            WHERE ph."languageId" = (SELECT id FROM language WHERE code = $1)
                 AND ph."deletedAt" IS NULL
                 AND phw."wordId" = ANY($2::text[])
                 AND words.count > 1
@@ -218,7 +218,7 @@ export async function linkWords(formData: FormData): Promise<void> {
             WHERE phw."phraseId" = ph.id
                 AND phw."wordId" = ANY($2::text[])
                 AND ph."deletedAt" IS NULL
-                AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+                AND ph."languageId" = (SELECT id FROM language WHERE code = $1)
             `,
             [request.data.code, request.data.wordIds, session.user.id]
         )
@@ -227,7 +227,7 @@ export async function linkWords(formData: FormData): Promise<void> {
             `
                 WITH phrase AS (
                     INSERT INTO "Phrase" ("languageId", "createdBy", "createdAt")
-                    VALUES ((SELECT id FROM "Language" WHERE code = $1), $3, NOW())
+                    VALUES ((SELECT id FROM language WHERE code = $1), $3, NOW())
                     RETURNING id
                 )
                 INSERT INTO "PhraseWord" ("phraseId", "wordId")
@@ -269,7 +269,7 @@ export async function unlinkPhrase(formData: FormData): Promise<void> {
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
         FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT id FROM "Language" WHERE code = $1) 
+        WHERE r."languageId" = (SELECT id FROM language WHERE code = $1) 
             AND r."userId" = $2`,
         [request.data.code, session.user.id]
     )
@@ -284,7 +284,7 @@ export async function unlinkPhrase(formData: FormData): Promise<void> {
             SET
                 "deletedAt" = NOW(),
                 "deletedBy" = $3
-        WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+        WHERE ph."languageId" = (SELECT id FROM language WHERE code = $1)
             AND ph.id = $2
         `,
         [request.data.code, request.data.phraseId, session.user.id]
@@ -333,7 +333,7 @@ export async function sanityCheck(_prev: SanityCheckResult, formData: FormData):
         FROM gloss g
         JOIN "Phrase" ph ON ph.id = g.phrase_id
         WHERE ph."deletedAt" IS NULL
-            AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+            AND ph."languageId" = (SELECT id FROM language WHERE code = $1)
             AND EXISTS (
                 SELECT FROM "PhraseWord" phw
                 JOIN "Word" w ON w.id = phw."wordId"

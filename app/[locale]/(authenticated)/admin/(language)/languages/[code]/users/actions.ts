@@ -35,7 +35,7 @@ export async function changeUserLanguageRole(_prevState: FormState, formData: Fo
         `SELECT 
             (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
             FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
-        FROM "Language" AS l WHERE l.code = $1`,
+        FROM language AS l WHERE l.code = $1`,
         [request.data.code, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -47,7 +47,7 @@ export async function changeUserLanguageRole(_prevState: FormState, formData: Fo
     await transaction(async query => {
         await query(
             `DELETE FROM "LanguageMemberRole" AS r
-            WHERE r."languageId" = (SELECT id FROM "Language" WHERE code = $1) AND r."userId" = $2 AND r.role != 'VIEWER' AND r.role != ALL($3::"LanguageRole"[])`,
+            WHERE r."languageId" = (SELECT id FROM language WHERE code = $1) AND r."userId" = $2 AND r.role != 'VIEWER' AND r.role != ALL($3::"LanguageRole"[])`,
             [request.data.code, request.data.userId, request.data.roles]
         )
 
@@ -55,7 +55,7 @@ export async function changeUserLanguageRole(_prevState: FormState, formData: Fo
             await query(`
                 INSERT INTO "LanguageMemberRole" ("languageId", "userId", "role")
                 SELECT l.id, $2, UNNEST($3::"LanguageRole"[])
-                FROM "Language" AS l
+                FROM language AS l
                 WHERE l.code = $1
                 ON CONFLICT DO NOTHING`,
                 [request.data.code, request.data.userId, request.data.roles]
@@ -94,7 +94,7 @@ export async function removeLanguageUser(_prevState: FormState, formData: FormDa
         `SELECT 
             (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
             FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
-        FROM "Language" AS l WHERE l.code = $1`,
+        FROM language AS l WHERE l.code = $1`,
         [request.data.code, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -104,7 +104,7 @@ export async function removeLanguageUser(_prevState: FormState, formData: FormDa
     }
 
     await query(
-        `DELETE FROM "LanguageMemberRole" WHERE "languageId" = (SELECT id FROM "Language" WHERE code = $1) AND "userId" = $2`,
+        `DELETE FROM "LanguageMemberRole" WHERE "languageId" = (SELECT id FROM language WHERE code = $1) AND "userId" = $2`,
         [request.data.code, request.data.userId]
     )
 

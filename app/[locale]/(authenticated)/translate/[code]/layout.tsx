@@ -48,7 +48,7 @@ interface Language {
 // TODO: cache this, it will only change when languages are added or reconfigured
 async function fetchLanguages(): Promise<Language[]> {
     const result = await query<Language>(
-        `SELECT code, name FROM "Language" ORDER BY name`,
+        `SELECT code, name FROM language ORDER BY name`,
         []
     )
     return result.rows
@@ -68,13 +68,13 @@ export async function fetchCurrentLanguage(code: string, userId?: string): Promi
     const result = await query<CurrentLanguage>(
         `
         SELECT
-            code, name, font, "textDirection", "bibleTranslationIds" AS "translationIds",
+            code, name, font, text_direction AS "textDirection", translation_ids AS "translationIds",
             (
                 SELECT COALESCE(JSON_AGG(r."role"), '[]') FROM "LanguageMemberRole" AS r
                 WHERE r."languageId" = l.id
                     AND r."userId" = $2
             ) AS roles
-        FROM "Language" AS l
+        FROM language AS l
         WHERE code = $1
         `,
         [code, userId]

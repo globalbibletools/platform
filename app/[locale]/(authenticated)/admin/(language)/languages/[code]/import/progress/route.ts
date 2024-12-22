@@ -13,7 +13,7 @@ async function fetchImportJob(code: string): Promise<{ succeeded: boolean } | un
     const jobQuery = await query<{ succeeded: boolean }>(
         `
         SELECT succeeded FROM "LanguageImportJob" AS j
-        JOIN "Language" AS l ON l.id = j."languageId"
+        JOIN language AS l ON l.id = j."languageId"
         WHERE l.code = $1
         `,
         [code]

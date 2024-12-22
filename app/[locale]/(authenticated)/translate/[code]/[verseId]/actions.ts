@@ -54,7 +54,7 @@ export async function updateGloss(formData: FormData): Promise<any> {
 
     const pathQuery = await query<{ code: string, verseId: string }>(
         `SELECT l.code, w."verseId" FROM "Phrase" AS ph
-        JOIN "Language" AS l ON l.id = ph."languageId"
+        JOIN language AS l ON l.id = ph."languageId"
         JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
         JOIN "Word" AS w ON w.id = phw."wordId"
         WHERE ph.id = $1
@@ -113,7 +113,7 @@ export async function updateTranslatorNote(formData: FormData): Promise<any> {
 
     const pathQuery = await query<{ code: string, verseId: string }>(
         `SELECT l.code, w."verseId" FROM "Phrase" AS ph
-        JOIN "Language" AS l ON l.id = ph."languageId"
+        JOIN language AS l ON l.id = ph."languageId"
         JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
         JOIN "Word" AS w ON w.id = phw."wordId"
         WHERE ph.id = $1
@@ -172,7 +172,7 @@ export async function updateFootnote(formData: FormData): Promise<any> {
 
     const pathQuery = await query<{ code: string, verseId: string }>(
         `SELECT l.code, w."verseId" FROM "Phrase" AS ph
-        JOIN "Language" AS l ON l.id = ph."languageId"
+        JOIN language AS l ON l.id = ph."languageId"
         JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
         JOIN "Word" AS w ON w.id = phw."wordId"
         WHERE ph.id = $1

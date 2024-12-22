@@ -9,7 +9,7 @@ export async function handler(event: SQSEvent) {
     const jobQuery = await query<{ languageId: string, userId: string }>(
         `
         SELECT j."languageId", j."userId" FROM "LanguageImportJob" AS j
-        JOIN "Language" AS l ON l.id = j."languageId"
+        JOIN language AS l ON l.id = j."languageId"
         WHERE l.code = $1
         `,
         [languageCode]

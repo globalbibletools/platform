@@ -43,7 +43,7 @@ export async function importLanguage(_state: FormState, formData: FormData): Pro
             l.id,
             (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
             FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
-        FROM "Language" AS l WHERE l.code = $1`,
+        FROM language AS l WHERE l.code = $1`,
         [request.data.code, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -113,7 +113,7 @@ export async function resetImport(formData: FormData): Promise<void> {
             l.id,
             (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
             FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
-        FROM "Language" AS l WHERE l.code = $1`,
+        FROM language AS l WHERE l.code = $1`,
         [request.data.code, session.user.id]
     )
     const language = languageQuery.rows[0]

@@ -30,7 +30,7 @@ export default async function AdminLanguagesPage({ params }: AdminLanguagePagePr
     const t = await getTranslations("AdminLanguagesPage")
     const languagesQuery = await query<{ code: string, name: string, otProgress: number, ntProgress: number }>(
         `
-        SELECT l.name, l.code, COALESCE(p."otProgress", 0) AS "otProgress", COALESCE(p."ntProgress", 0) AS "ntProgress" FROM "Language" AS l
+        SELECT l.name, l.code, COALESCE(p."otProgress", 0) AS "otProgress", COALESCE(p."ntProgress", 0) AS "ntProgress" FROM language AS l
         LEFT JOIN "LanguageProgress" AS p ON p.code = l.code
         `,
         []

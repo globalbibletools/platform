@@ -10,7 +10,7 @@ ALTER TABLE footnote RENAME COLUMN "authorId" TO author_id;
 ALTER TABLE footnote RENAME CONSTRAINT "Footnote_authorId_fkey" TO footnote_author_id_fkey;
 ALTER TABLE footnote RENAME CONSTRAINT "Footnote_phraseId_fkey" TO footnote_phrase_id_fkey;
 ALTER INDEX "Footnote_pkey" RENAME TO footnote_pkey;
-ALTER INDEX "Footnote_phraseId_idx" RENAME TO footnote_phraseId_idx;
+ALTER INDEX "Footnote_phraseId_idx" RENAME TO footnote_phrase_id_idx;
 
 ALTER TABLE "Gloss" RENAME TO gloss;
 ALTER TABLE gloss RENAME COLUMN "phraseId" TO phrase_id;
@@ -18,6 +18,12 @@ ALTER TABLE gloss RENAME CONSTRAINT "Gloss_phraseId_fkey" TO gloss_phrase_id_fke
 ALTER TABLE gloss RENAME CONSTRAINT "Gloss_updated_by_fkey" TO gloss_updated_by_fkey;
 ALTER INDEX "Gloss_pkey" RENAME TO gloss_pkey;
 ALTER INDEX "Gloss_phraseId_idx" RENAME TO gloss_phrase_id_idx;
+
+ALTER TABLE "Language" RENAME TO language;
+ALTER TABLE language RENAME COLUMN "bibleTranslationIds" TO translation_ids;
+ALTER TABLE language RENAME COLUMN "textDirection" TO text_direction;
+ALTER INDEX "Language_pkey" RENAME TO language_pkey;
+ALTER INDEX "Language_code_key" RENAME TO language_code_idx;
 
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS

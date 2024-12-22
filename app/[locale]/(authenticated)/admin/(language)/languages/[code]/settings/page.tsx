@@ -32,8 +32,8 @@ export async function generateMetadata(_: any, parent: ResolvingMetadata): Promi
 export default async function LanguageSettingsPage({ params }: LanguageSettingsPageProps) {
     const t = await getTranslations("LanguageSettingsPage")
     const languageQuery = await query<{ name: string, code: string, font: string, textDirection: string, bibleTranslationIds: string[] }>(
-        `SELECT name, code, font, "textDirection", "bibleTranslationIds"
-        FROM "Language"
+        `SELECT name, code, font, text_direction AS "textDirection", translation_ids AS "bibleTranslationIds"
+        FROM language
         WHERE code = $1`,
         [params.code]
     )
