@@ -157,10 +157,10 @@ export async function updateFootnote(formData: FormData): Promise<any> {
     }
 
     const result = await query<{ state: string, gloss: string }>(
-        `INSERT INTO "Footnote" ("phraseId", "authorId", timestamp, content)
+        `INSERT INTO footnote (phrase_id, author_id, timestamp, content)
         VALUES ($1, $2, $3, $4)
-        ON CONFLICT ("phraseId") DO UPDATE SET
-            "authorId" = EXCLUDED."authorId",
+        ON CONFLICT (phrase_id) DO UPDATE SET
+            author_id = EXCLUDED.author_id,
             timestamp = EXCLUDED.timestamp,
             content = EXCLUDED.content
         `,
