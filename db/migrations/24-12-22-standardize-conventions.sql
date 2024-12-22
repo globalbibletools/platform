@@ -41,6 +41,9 @@ ALTER TABLE language_member_role RENAME CONSTRAINT "LanguageMemberRole_languageI
 ALTER TABLE language_member_role RENAME CONSTRAINT "LanguageMemberRole_userId_fkey" TO language_member_role_user_id_fkey;
 ALTER INDEX "LanguageMemberRole_pkey" RENAME TO language_member_role_pkey;
 
+ALTER TABLE "Lemma" RENAME TO lemma;
+ALTER INDEX "Lemma_pkey" RENAME TO lemma_pkey;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$
