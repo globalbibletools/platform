@@ -92,6 +92,14 @@ ALTER TABLE reset_password_token RENAME COLUMN "userId" TO user_id;
 ALTER TABLE reset_password_token RENAME CONSTRAINT "ResetPasswordToken_userId_fkey" TO reset_password_token_user_id_fkey;
 ALTER INDEX "ResetPasswordToken_pkey" RENAME TO reset_password_token_pkey;
 
+ALTER TABLE "Session" RENAME TO session;
+ALTER TABLE session RENAME COLUMN "userId" TO user_id;
+ALTER TABLE session RENAME COLUMN "expiresAt" TO expires_at;
+ALTER TABLE session RENAME CONSTRAINT "Session_userId_fkey" TO session_user_id_fkey;
+ALTER INDEX "Session_pkey" RENAME TO session_pkey;
+ALTER INDEX "Session_id_key" RENAME TO session_id_key;
+ALTER INDEX "Session_userId_idx" RENAME TO session_user_id_idx;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$

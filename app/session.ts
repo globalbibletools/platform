@@ -20,7 +20,7 @@ export async function createSession(userId?: string) {
         userId
     }
     if (userId) {
-        await query(`INSERT INTO "Session" (id, "expiresAt", "userId") VALUES ($1, $2, $3)`, [session.id, session.expiresAt, session.userId])
+        await query(`INSERT INTO session (id, expires_at, user_id) VALUES ($1, $2, $3)`, [session.id, session.expiresAt, session.userId])
     }
 
     cookies().set('session', session.id, {
@@ -68,14 +68,14 @@ const fetchSession = cache(async (sessionId: string): Promise<Session | undefine
     const result = await query<Session>(
         `
             SELECT
-                "Session".id, "expiresAt",
+                session.id, expires_at,
                 JSON_BUILD_OBJECT(
                     'id', "User".id, 'email', email, 'name', name,
                     'roles', (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') FROM "UserSystemRole" AS r WHERE r."userId" = "User".id)
                 ) AS user
-            FROM "Session"
-            JOIN "User" ON "User".id = "Session"."userId"
-            WHERE "Session".id = $1
+            FROM session
+            JOIN "User" ON "User".id = session.user_id
+            WHERE session.id = $1
             `,
         [sessionId]
     )
