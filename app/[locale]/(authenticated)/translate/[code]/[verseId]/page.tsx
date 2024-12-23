@@ -232,7 +232,7 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
                         'id', w.id, 
                         'text', w.text,
                         'referenceGloss', ph.gloss,
-                        'lemma', lf."lemmaId",
+                        'lemma', lf.lemma_id,
                         'formId', lf.id,
                         'grammar', lf.grammar,
                         'resource', lemma_resource.resource
@@ -248,7 +248,7 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
                         AND ph."deletedAt" IS NULL
                 ) AS ph ON true
 
-                JOIN "LemmaForm" AS lf ON lf.id = w."formId"
+                JOIN lemma_form AS lf ON lf.id = w."formId"
                 LEFT JOIN LATERAL (
                     SELECT
                         CASE
@@ -260,7 +260,7 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
                             ELSE NULL
                         END AS resource
                     FROM "LemmaResource" AS lr
-                    WHERE lr."lemmaId" = lf."lemmaId"
+                    WHERE lr."lemmaId" = lf.lemma_id
                     LIMIT 1
                 ) AS lemma_resource ON true
      

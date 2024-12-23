@@ -44,6 +44,12 @@ ALTER INDEX "LanguageMemberRole_pkey" RENAME TO language_member_role_pkey;
 ALTER TABLE "Lemma" RENAME TO lemma;
 ALTER INDEX "Lemma_pkey" RENAME TO lemma_pkey;
 
+ALTER TABLE "LemmaForm" RENAME TO lemma_form;
+ALTER TABLE lemma_form RENAME COLUMN "lemmaId" TO lemma_id;
+ALTER TABLE lemma_form RENAME CONSTRAINT "LemmaForm_lemmaId_fkey" TO lemma_form_lemma_id_fkey;
+ALTER INDEX "LemmaForm_pkey" RENAME TO lemma_form_pkey;
+ALTER INDEX "LemmaForm_lemmaId_idx" RENAME TO lemma_form_lemma_id_idx;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$
