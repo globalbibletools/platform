@@ -50,6 +50,14 @@ ALTER TABLE lemma_form RENAME CONSTRAINT "LemmaForm_lemmaId_fkey" TO lemma_form_
 ALTER INDEX "LemmaForm_pkey" RENAME TO lemma_form_pkey;
 ALTER INDEX "LemmaForm_lemmaId_idx" RENAME TO lemma_form_lemma_id_idx;
 
+ALTER TABLE "LemmaFormSuggestionCount" RENAME TO lemma_form_suggestion;
+ALTER TABLE lemma_form_suggestion RENAME COLUMN "languageId" TO language_id;
+ALTER TABLE lemma_form_suggestion RENAME COLUMN "formId" TO form_id;
+ALTER TABLE lemma_form_suggestion RENAME CONSTRAINT "LemmaFormSuggestionCount_formId_fkey" TO lemma_form_suggestion_form_id_fkey;
+ALTER TABLE lemma_form_suggestion RENAME CONSTRAINT "LemmaFormSuggestionCount_languageId_fkey" TO lemma_form_suggestion_language_id_fkey;
+ALTER INDEX "LemmaFormSuggestionCount_pkey" RENAME TO lemma_form_suggestion_pkey;
+ALTER INDEX "LemmaFormSuggestionCount_languageId_formId_gloss_key" RENAME TO lemma_form_suggestion_language_id_form_id_gloss_key;
+
 ALTER TABLE "LemmaResource" RENAME TO lemma_resource;
 ALTER TABLE lemma_resource RENAME COLUMN "lemmaId" TO lemma_id;
 ALTER TABLE lemma_resource RENAME COLUMN "resourceCode" TO resource_code;
@@ -171,17 +179,17 @@ RETURNS TRIGGER AS
 $$
 BEGIN
     IF NEW.state = 'APPROVED' AND (OLD IS NULL OR NEW.gloss <> OLD.gloss OR OLD.state <> 'APPROVED') THEN
-        INSERT INTO "LemmaFormSuggestionCount" AS c ("languageId", "formId", "gloss", "count")
+        INSERT INTO lemma_form_suggestion_count AS c (language_id, form_id, gloss, count)
         SELECT
             ph.language_id,
-            w."formId",
+            w.form_id,
             NEW.gloss,
             1
-        FROM "Word" AS w
+        FROM word AS w
         JOIN phrase_word AS phw ON phw.word_id = w.id
         JOIN phrase AS ph ON  phw.phrase_id = ph.id
         WHERE ph.id = NEW.phrase_id
-        ON CONFLICT ("languageId", "formId", gloss) DO UPDATE
+        ON CONFLICT (language_id, form_id, gloss) DO UPDATE
             SET count = c.count + 1;
     END IF;
 
@@ -195,13 +203,13 @@ RETURNS TRIGGER AS
 $$
 BEGIN
     IF OLD.state = 'APPROVED' AND (NEW.gloss <> OLD.gloss OR NEW.state <> 'APPROVED') THEN
-        UPDATE "LemmaFormSuggestionCount" AS c
+        UPDATE lemma_form_suggestion AS c
         SET
             count = c.count - 1 
         WHERE c.gloss = OLD.gloss
-            AND c."languageId" = (SELECT language_id FROM phrase WHERE id = OLD.phrase_id)
-            AND c."formId" IN (
-                SELECT w."formId" FROM "Word" AS w
+            AND c.language_id = (SELECT language_id FROM phrase WHERE id = OLD.phrase_id)
+            AND c.form_id IN (
+                SELECT w.form_id FROM word AS w
                 JOIN phrase_word AS phw ON phw.word_id = w.id
                 JOIN phrase AS ph ON  phw.phrase_id = ph.id
                 WHERE ph.id = OLD.phrase_id
@@ -229,13 +237,13 @@ BEGIN
             RETURN NULL;
         END IF;
 
-        UPDATE "LemmaFormSuggestionCount" AS c
+        UPDATE lemma_form_suggestion AS c
         SET
             count = c.count - 1 
         WHERE c.gloss = t_gloss
-            AND c."languageId" = NEW.language_id
-            AND c."formId" IN (
-                SELECT w."formId" FROM "Word" AS w
+            AND c.language_id = NEW.language_id
+            AND c.form_id IN (
+                SELECT w.form_id FROM word AS w
                 JOIN phrase_word AS phw ON phw.word_id = w.id
                 WHERE phw.phrase_id = NEW.id
             );

@@ -191,16 +191,16 @@ async function fetchSuggestions(verseId: string, languageCode: string): Promise<
     const result = await query<FormSuggestion>(
         `
         SELECT 
-            sc."formId",
+            sc.form_id AS "formId",
             ARRAY_AGG(sc.gloss ORDER BY sc.count DESC) AS suggestions
-        FROM "LemmaFormSuggestionCount" AS sc
+        FROM lemma_form_suggestion AS sc
         JOIN (
             SELECT DISTINCT form_id AS id FROM word
             WHERE verse_id = $1
-        ) AS form ON form.id = sc."formId"
-        WHERE sc."languageId" = (SELECT id FROM language WHERE code = $2)
+        ) AS form ON form.id = sc.form_id
+        WHERE sc.language_id = (SELECT id FROM language WHERE code = $2)
             AND sc.count > 0
-        GROUP BY sc."formId"
+        GROUP BY sc.form_id
         `,
         [verseId, languageCode]
     )
