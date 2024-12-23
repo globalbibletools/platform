@@ -31,7 +31,7 @@ export default async function LoginPage({ params, searchParams }: Props) {
         notFound()
     }
 
-    const inviteQuery = await query<{ email: string }>(`SELECT email FROM "UserInvitation" AS i JOIN "User" AS u ON u.id = i."userId" WHERE i.token = $1`, [searchParams.token])
+    const inviteQuery = await query<{ email: string }>(`SELECT email FROM user_invitation AS i JOIN users AS u ON u.id = i.user_id WHERE i.token = $1`, [searchParams.token])
     const invite = inviteQuery.rows[0]
     if (!invite) {
         notFound()

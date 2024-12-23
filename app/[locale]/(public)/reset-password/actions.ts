@@ -51,10 +51,10 @@ export async function resetPassword(_prevState: FormState, formData: FormData): 
     const hashedPassword = await scrypt.hash(request.data.password)
     const result = await query<{ id: string }>(
         `
-            UPDATE "User" AS u SET
-               "hashedPassword" = $2
-            FROM "ResetPasswordToken" AS t
-            WHERE u.id = t."userId"
+            UPDATE users AS u SET
+               hashed_password = $2
+            FROM reset_password_token AS t
+            WHERE u.id = t.user_id
                 AND t.token = $1
                 AND t.expires > (EXTRACT(EPOCH FROM CURRENT_TIMESTAMP)::bigint * 1000::bigint)
             RETURNING id
@@ -69,7 +69,7 @@ export async function resetPassword(_prevState: FormState, formData: FormData): 
 
     await Promise.all([
         query(
-            `DELETE FROM "ResetPasswordToken" WHERE token = $1`,
+            `DELETE FROM reset_password_token WHERE token = $1`,
             [request.data.token]
         ),
         mailer.sendEmail({

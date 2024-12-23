@@ -50,8 +50,8 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-            FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
-        FROM "Language" AS l WHERE l.code = $1`,
+            FROM language_member_role AS r WHERE r.language_id = l.id AND r.user_id = $2)
+        FROM language AS l WHERE l.code = $1`,
         [request.data.code, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -60,7 +60,7 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
         notFound()
     }
 
-    const existsQuery = await query(`SELECT id FROM "User" WHERE email = $1`, [request.data.email])
+    const existsQuery = await query(`SELECT id FROM users WHERE email = $1`, [request.data.email])
     const existingUser = existsQuery.rows[0]
 
     const roles = [...request.data.roles, 'VIEWER']
@@ -69,15 +69,15 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
         const token = randomBytes(12).toString('hex')
         await query(
             `WITH new_user AS (
-                INSERT INTO "User" (email) VALUES ($1) RETURNING id
+                INSERT INTO users (email) VALUES ($1) RETURNING id
             ),
             invite AS (
-                INSERT INTO "UserInvitation" ("userId", token, expires)
+                INSERT INTO user_invitation (user_id, token, expires)
                 SELECT id, $2, $3 FROM new_user
             )
-            INSERT INTO "LanguageMemberRole" ("languageId", "userId", "role")
-            SELECT l.id, new_user.id, UNNEST($5::"LanguageRole"[]) FROM new_user
-            JOIN "Language" AS l ON l.code = $4
+            INSERT INTO language_member_role (language_id, user_id, role)
+            SELECT l.id, new_user.id, UNNEST($5::language_role[]) FROM new_user
+            JOIN language AS l ON l.code = $4
             `,
             [request.data.email, token, Date.now() + INVITE_EXPIRES, request.data.code, roles]
         )
@@ -91,8 +91,8 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
         });
     } else {
         await query(
-            `INSERT INTO "LanguageMemberRole" ("languageId", "userId", "role")
-            SELECT l.id, $2, UNNEST($3::"LanguageRole"[]) FROM "Language" AS l
+            `INSERT INTO language_member_role (language_id, user_id, role)
+            SELECT l.id, $2, UNNEST($3::language_role[]) FROM language AS l
             WHERE l.code = $1
             ON CONFLICT DO NOTHING
             `,

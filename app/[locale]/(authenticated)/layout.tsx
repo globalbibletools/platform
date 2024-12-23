@@ -144,8 +144,8 @@ export default async function AuthenticatedLayout({ children, params }: { childr
 async function fetchCanTranslate(userId: string): Promise<boolean> {
     const result = await query(
         `
-        SELECT FROM "LanguageMemberRole"
-        WHERE "userId" = $1
+        SELECT FROM language_member_role
+        WHERE user_id = $1
         LIMIT 1
         `,
         [userId]

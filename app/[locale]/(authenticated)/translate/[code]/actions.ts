@@ -49,19 +49,19 @@ export async function redirectToUnapproved(formData: FormData): Promise<void | s
 
     let result = await query<{ nextUnapprovedVerseId: string }>(
         `
-        SELECT w."verseId" as "nextUnapprovedVerseId"
-        FROM "Word" AS w
+        SELECT w.verse_id as "nextUnapprovedVerseId"
+        FROM word AS w
         LEFT JOIN LATERAL (
-          SELECT g.state AS state FROM "PhraseWord" AS phw
-          JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
-          LEFT JOIN "Gloss" AS g ON g."phraseId" = ph.id
-          WHERE phw."wordId" = w.id
-			      AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
-			      AND ph."deletedAt" IS NULL
+          SELECT g.state AS state FROM phrase_word AS phw
+          JOIN phrase AS ph ON ph.id = phw.phrase_id
+          LEFT JOIN gloss AS g ON g.phrase_id = ph.id
+          WHERE phw.word_id = w.id
+			      AND ph.language_id = (SELECT id FROM language WHERE code = $1)
+			      AND ph.deleted_at IS NULL
         ) AS g ON true
-        WHERE w."verseId" > $2
-          AND (g."state" = 'UNAPPROVED' OR g."state" IS NULL)
-        ORDER BY w."id"
+        WHERE w.verse_id > $2
+          AND (g.state = 'UNAPPROVED' OR g.state IS NULL)
+        ORDER BY w.id
         LIMIT 1
         `,
         [request.data.code, request.data.verseId]
@@ -70,18 +70,18 @@ export async function redirectToUnapproved(formData: FormData): Promise<void | s
     if (result.rows.length === 0) {
         result = await query<{ nextUnapprovedVerseId: string }>(
             `
-            SELECT w."verseId" as "nextUnapprovedVerseId"
-            FROM "Word" AS w
+            SELECT w.verse_id as "nextUnapprovedVerseId"
+            FROM word AS w
             LEFT JOIN LATERAL (
-              SELECT g.state AS state FROM "PhraseWord" AS phw
-              JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
-              LEFT JOIN "Gloss" AS g ON g."phraseId" = ph.id
-              WHERE phw."wordId" = w.id
-                      AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
-                      AND ph."deletedAt" IS NULL
+              SELECT g.state AS state FROM phrase_word AS phw
+              JOIN phrase AS ph ON ph.id = phw.phrase_id
+              LEFT JOIN gloss AS g ON g.phrase_id = ph.id
+              WHERE phw.word_id = w.id
+                      AND ph.language_id = (SELECT id FROM language WHERE code = $1)
+                      AND ph.deleted_at IS NULL
             ) AS g ON true
-            WHERE (g."state" = 'UNAPPROVED' OR g."state" IS NULL)
-            ORDER BY w."id"
+            WHERE (g.state = 'UNAPPROVED' OR g.state IS NULL)
+            ORDER BY w.id
             LIMIT 1
             `,
             [request.data.code]
@@ -116,9 +116,9 @@ export async function approveAll(formData: FormData): Promise<void> {
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT id FROM "Language" WHERE code = $1) 
-            AND r."userId" = $2`,
+        FROM language_member_role AS r
+        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
+            AND r.user_id = $2`,
         [request.data.code, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -128,28 +128,28 @@ export async function approveAll(formData: FormData): Promise<void> {
 
     await query<{ phraseId: number; gloss: string, state: string }>(
         `
-        INSERT INTO "Gloss"("phraseId", "gloss", "state", updated_at, updated_by, source)
+        INSERT INTO gloss (phrase_id, gloss, state, updated_at, updated_by, source)
         SELECT ph.id, data.gloss, 'APPROVED', NOW(), $3, 'USER'
         FROM UNNEST($1::integer[], $2::text[]) data (phrase_id, gloss)
-        JOIN "Phrase" AS ph ON ph.id = data.phrase_id
-        WHERE ph."deletedAt" IS NULL
-        ON CONFLICT ("phraseId")
+        JOIN phrase AS ph ON ph.id = data.phrase_id
+        WHERE ph.deleted_at IS NULL
+        ON CONFLICT (phrase_id)
             DO UPDATE SET
-                gloss = COALESCE(EXCLUDED."gloss", "Gloss"."gloss"),
+                gloss = COALESCE(EXCLUDED.gloss, gloss.gloss),
                 state = EXCLUDED.state,
                 updated_at = EXCLUDED.updated_at,
                 updated_by = EXCLUDED.updated_by, 
                 source = EXCLUDED.source
-                WHERE EXCLUDED.state <> "Gloss".state OR EXCLUDED.gloss <> "Gloss".gloss
+                WHERE EXCLUDED.state <> gloss.state OR EXCLUDED.gloss <> gloss.gloss
         `,
         [request.data.phrases.map(ph => ph.id), request.data.phrases.map(ph => ph.gloss), session.user.id]
     )
 
     const pathQuery = await query<{ verseId: string }>(
         `
-        SELECT w."verseId" FROM "Phrase" AS ph
-        JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
-        JOIN "Word" AS w ON w.id = phw."wordId"
+        SELECT w.verse_id FROM phrase AS ph
+        JOIN phrase_word AS phw ON phw.phrase_id = ph.id
+        JOIN word AS w ON w.id = phw.word_id
         WHERE ph.id = $1
         LIMIT 1
         `,
@@ -179,9 +179,9 @@ export async function linkWords(formData: FormData): Promise<void> {
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT id FROM "Language" WHERE code = $1) 
-            AND r."userId" = $2`,
+        FROM language_member_role AS r
+        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
+            AND r.user_id = $2`,
         [request.data.code, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -192,15 +192,15 @@ export async function linkWords(formData: FormData): Promise<void> {
     await transaction(async query => {
         const phrasesQuery = await query(
             `
-            SELECT FROM "Phrase" AS ph
-            JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
+            SELECT FROM phrase AS ph
+            JOIN phrase_word AS phw ON phw.phrase_id = ph.id
             JOIN LATERAL (
-                SELECT COUNT(*) AS count FROM "PhraseWord" AS phw
-                WHERE phw."phraseId" = ph.id
+                SELECT COUNT(*) AS count FROM phrase_word AS phw
+                WHERE phw.phrase_id = ph.id
             ) AS words ON true
-            WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
-                AND ph."deletedAt" IS NULL
-                AND phw."wordId" = ANY($2::text[])
+            WHERE ph.language_id = (SELECT id FROM language WHERE code = $1)
+                AND ph.deleted_at IS NULL
+                AND phw.word_id = ANY($2::text[])
                 AND words.count > 1
             `,
             [request.data.code, request.data.wordIds]
@@ -211,14 +211,14 @@ export async function linkWords(formData: FormData): Promise<void> {
 
         await query(
             `
-            UPDATE "Phrase" AS ph
-                SET "deletedAt" = NOW(),
-                    "deletedBy" = $3
-            FROM "PhraseWord" AS phw
-            WHERE phw."phraseId" = ph.id
-                AND phw."wordId" = ANY($2::text[])
-                AND ph."deletedAt" IS NULL
-                AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+            UPDATE phrase AS ph
+                SET deleted_at = NOW(),
+                    deleted_by = $3
+            FROM phrase_word AS phw
+            WHERE phw.phrase_id = ph.id
+                AND phw.word_id = ANY($2::text[])
+                AND ph.deleted_at IS NULL
+                AND ph.language_id = (SELECT id FROM language WHERE code = $1)
             `,
             [request.data.code, request.data.wordIds, session.user.id]
         )
@@ -226,11 +226,11 @@ export async function linkWords(formData: FormData): Promise<void> {
         await query(
             `
                 WITH phrase AS (
-                    INSERT INTO "Phrase" ("languageId", "createdBy", "createdAt")
-                    VALUES ((SELECT id FROM "Language" WHERE code = $1), $3, NOW())
+                    INSERT INTO phrase (language_id, created_by, created_at)
+                    VALUES ((SELECT id FROM language WHERE code = $1), $3, NOW())
                     RETURNING id
                 )
-                INSERT INTO "PhraseWord" ("phraseId", "wordId")
+                INSERT INTO phrase_word (phrase_id, word_id)
                 SELECT phrase.id, UNNEST($2::text[]) FROM phrase
             `,
             [request.data.code, request.data.wordIds, session.user.id]
@@ -239,7 +239,7 @@ export async function linkWords(formData: FormData): Promise<void> {
 
     const pathQuery = await query<{ verseId: string }>(
         `
-        SELECT w."verseId" FROM "Word" AS w
+        SELECT w.verse_id FROM word AS w
         WHERE w.id = $1
         `,
         [request.data.wordIds[0]]
@@ -268,9 +268,9 @@ export async function unlinkPhrase(formData: FormData): Promise<void> {
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT id FROM "Language" WHERE code = $1) 
-            AND r."userId" = $2`,
+        FROM language_member_role AS r
+        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
+            AND r.user_id = $2`,
         [request.data.code, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -280,11 +280,11 @@ export async function unlinkPhrase(formData: FormData): Promise<void> {
 
     await query(
         `
-        UPDATE "Phrase" AS ph
+        UPDATE phrase AS ph
             SET
-                "deletedAt" = NOW(),
-                "deletedBy" = $3
-        WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+                deleted_at = NOW(),
+                deleted_by = $3
+        WHERE ph.language_id = (SELECT id FROM language WHERE code = $1)
             AND ph.id = $2
         `,
         [request.data.code, request.data.phraseId, session.user.id]
@@ -292,9 +292,9 @@ export async function unlinkPhrase(formData: FormData): Promise<void> {
 
     const pathQuery = await query<{ verseId: string }>(
         `
-        SELECT w."verseId" FROM "Phrase" AS ph
-        JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
-        JOIN "Word" AS w ON w.id = phw."wordId"
+        SELECT w.verse_id FROM phrase AS ph
+        JOIN phrase_word AS phw ON phw.phrase_id = ph.id
+        JOIN word AS w ON w.id = phw.word_id
         WHERE ph.id = $1
         LIMIT 1
         `,
@@ -330,15 +330,15 @@ export async function sanityCheck(_prev: SanityCheckResult, formData: FormData):
         `SELECT
             ph.id as "phraseId",
             g.gloss
-        FROM "Gloss" g
-        JOIN "Phrase" ph ON ph.id = g."phraseId"
-        WHERE ph."deletedAt" IS NULL
-            AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
+        FROM gloss g
+        JOIN phrase ph ON ph.id = g.phrase_id
+        WHERE ph.deleted_at IS NULL
+            AND ph.language_id = (SELECT id FROM language WHERE code = $1)
             AND EXISTS (
-                SELECT FROM "PhraseWord" phw
-                JOIN "Word" w ON w.id = phw."wordId"
-                WHERE phw."phraseId" = ph.id
-                    AND w."verseId" = $2
+                SELECT FROM phrase_word phw
+                JOIN word w ON w.id = phw.word_id
+                WHERE phw.phrase_id = ph.id
+                    AND w.verse_id = $2
             )
         `,
         [request.data.code, request.data.verseId]

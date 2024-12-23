@@ -3,7 +3,7 @@
 --
 
 -- Dumped from database version 14.13 (Debian 14.13-1.pgdg120+1)
--- Dumped by pg_dump version 16.3
+-- Dumped by pg_dump version 14.13 (Debian 14.13-1.pgdg120+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -31,13 +31,6 @@ COMMENT ON EXTENSION pg_cron IS 'Job scheduler for PostgreSQL';
 
 
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
--- *not* creating schema, since initdb creates it
-
-
---
 -- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -55,7 +48,7 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 -- Name: EmailStatus; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public."EmailStatus" AS ENUM (
+CREATE TYPE public.email_status AS ENUM (
     'UNVERIFIED',
     'VERIFIED',
     'BOUNCED',
@@ -67,7 +60,7 @@ CREATE TYPE public."EmailStatus" AS ENUM (
 -- Name: GlossSource; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public."GlossSource" AS ENUM (
+CREATE TYPE public.gloss_source AS ENUM (
     'USER',
     'IMPORT'
 );
@@ -77,7 +70,7 @@ CREATE TYPE public."GlossSource" AS ENUM (
 -- Name: GlossState; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public."GlossState" AS ENUM (
+CREATE TYPE public.gloss_state AS ENUM (
     'APPROVED',
     'UNAPPROVED'
 );
@@ -87,7 +80,7 @@ CREATE TYPE public."GlossState" AS ENUM (
 -- Name: LanguageRole; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public."LanguageRole" AS ENUM (
+CREATE TYPE public.language_role AS ENUM (
     'ADMIN',
     'TRANSLATOR',
     'VIEWER'
@@ -98,7 +91,7 @@ CREATE TYPE public."LanguageRole" AS ENUM (
 -- Name: ResourceCode; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public."ResourceCode" AS ENUM (
+CREATE TYPE public.resource_code AS ENUM (
     'BDB',
     'LSJ',
     'STRONGS'
@@ -109,7 +102,7 @@ CREATE TYPE public."ResourceCode" AS ENUM (
 -- Name: SystemRole; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public."SystemRole" AS ENUM (
+CREATE TYPE public.system_role AS ENUM (
     'ADMIN'
 );
 
@@ -118,7 +111,7 @@ CREATE TYPE public."SystemRole" AS ENUM (
 -- Name: TextDirection; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public."TextDirection" AS ENUM (
+CREATE TYPE public.text_direction AS ENUM (
     'ltr',
     'rtl'
 );
@@ -133,16 +126,16 @@ CREATE FUNCTION public.decrement_suggestion() RETURNS trigger
     AS $$
 BEGIN
     IF OLD.state = 'APPROVED' AND (NEW.gloss <> OLD.gloss OR NEW.state <> 'APPROVED') THEN
-        UPDATE "LemmaFormSuggestionCount" AS c
+        UPDATE lemma_form_suggestion AS c
         SET
             count = c.count - 1 
         WHERE c.gloss = OLD.gloss
-            AND c."languageId" = (SELECT "languageId" FROM "Phrase" WHERE id = OLD."phraseId")
-            AND c."formId" IN (
-                SELECT w."formId" FROM "Word" AS w
-                JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
-                JOIN "Phrase" AS ph ON  phw."phraseId" = ph.id
-                WHERE ph.id = OLD."phraseId"
+            AND c.language_id = (SELECT language_id FROM phrase WHERE id = OLD.phrase_id)
+            AND c.form_id IN (
+                SELECT w.form_id FROM word AS w
+                JOIN phrase_word AS phw ON phw.word_id = w.id
+                JOIN phrase AS ph ON  phw.phrase_id = ph.id
+                WHERE ph.id = OLD.phrase_id
             );
     END IF;
 
@@ -161,25 +154,25 @@ CREATE FUNCTION public.decrement_suggestion_after_phrase_delete() RETURNS trigge
 DECLARE
     t_gloss TEXT;
 BEGIN
-    IF NEW."deletedAt" IS NOT NULL THEN
+    IF NEW.deleted_at IS NOT NULL THEN
         -- Ignore phrases with unapproved glosses.
-        SELECT "Gloss".gloss INTO t_gloss
-        FROM "Gloss"
-        WHERE "phraseId" = NEW.id
+        SELECT gloss.gloss INTO t_gloss
+        FROM gloss
+        WHERE phrase_id = NEW.id
             AND state = 'APPROVED';
         IF NOT FOUND THEN
             RETURN NULL;
         END IF;
 
-        UPDATE "LemmaFormSuggestionCount" AS c
+        UPDATE lemma_form_suggestion AS c
         SET
             count = c.count - 1 
         WHERE c.gloss = t_gloss
-            AND c."languageId" = NEW."languageId"
-            AND c."formId" IN (
-                SELECT w."formId" FROM "Word" AS w
-                JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
-                WHERE phw."phraseId" = NEW.id
+            AND c.language_id = NEW.language_id
+            AND c.form_id IN (
+                SELECT w.form_id FROM word AS w
+                JOIN phrase_word AS phw ON phw.word_id = w.id
+                WHERE phw.phrase_id = NEW.id
             );
     END IF;
 
@@ -203,31 +196,28 @@ CREATE FUNCTION public.generate_gloss_statistics_for_week(d timestamp without ti
         COUNT(*) FILTER (WHERE log.state = 'UNAPPROVED')
     FROM (
         SELECT
-            DISTINCT ON (log.phrase_id, phrase_word."wordId", verse."bookId")
+            DISTINCT ON (log.phrase_id, phrase_word.word_id, verse.book_id)
             log.updated_by,
             log.state,
-            phrase."languageId" AS language_id,
-            verse."bookId" AS book_id
+            phrase.language_id,
+            verse.book_id
         FROM (
             (
-                SELECT
-                    "phraseId" AS phrase_id,
-                    updated_by, updated_at, gloss, state
-                FROM "Gloss" gloss
+                SELECT phrase_id, updated_by, updated_at, gloss, state
+                FROM gloss
             ) UNION ALL (
-                SELECT
-                    phrase_id, updated_by, updated_at, gloss, state
+                SELECT phrase_id, updated_by, updated_at, gloss, state
                 FROM gloss_history
             )
         ) log
-        JOIN "Phrase" phrase ON phrase.id = log.phrase_id
-        JOIN "PhraseWord" phrase_word ON phrase_word."phraseId" = phrase.id
-        JOIN "Word" word ON word.id = "phrase_word"."wordId"
-        JOIN "Verse" verse ON verse.id = word."verseId"
+        JOIN phrase ON phrase.id = log.phrase_id
+        JOIN phrase_word ON phrase_word.phrase_id = phrase.id
+        JOIN word ON word.id = phrase_word.word_id
+        JOIN verse ON verse.id = word.verse_id
         WHERE log.updated_at < (DATE_BIN('7 days', DATE_TRUNC('day', $1), TIMESTAMP '2024-12-15'))
-            AND (phrase."deletedAt" IS NULL
-                OR phrase."deletedAt" < (DATE_BIN('7 days', DATE_TRUNC('day', $1), TIMESTAMP '2024-12-15')))
-        ORDER BY log.phrase_id, phrase_word."wordId", verse."bookId", log.updated_at DESC
+            AND (phrase.deleted_at IS NULL
+                OR phrase.deleted_at < (DATE_BIN('7 days', DATE_TRUNC('day', $1), TIMESTAMP '2024-12-15')))
+        ORDER BY log.phrase_id, phrase_word.word_id, verse.book_id, log.updated_at DESC
     ) log
     GROUP BY log.language_id, log.book_id, log.updated_by
     ORDER BY log.language_id, log.book_id, log.updated_by
@@ -258,7 +248,7 @@ CREATE FUNCTION public.gloss_audit() RETURNS trigger
     AS $$
 BEGIN
     INSERT INTO gloss_history AS c (phrase_id, gloss, state, source, updated_at, updated_by)
-    VALUES (OLD."phraseId", OLD.gloss, OLD.state, OLD.source, OLD.updated_at, OLD.updated_by);
+    VALUES (OLD.phrase_id, OLD.gloss, OLD.state, OLD.source, OLD.updated_at, OLD.updated_by);
 
     RETURN NULL;
 END;
@@ -274,17 +264,17 @@ CREATE FUNCTION public.increment_suggestion() RETURNS trigger
     AS $$
 BEGIN
     IF NEW.state = 'APPROVED' AND (OLD IS NULL OR NEW.gloss <> OLD.gloss OR OLD.state <> 'APPROVED') THEN
-        INSERT INTO "LemmaFormSuggestionCount" AS c ("languageId", "formId", "gloss", "count")
+        INSERT INTO lemma_form_suggestion AS c (language_id, form_id, gloss, count)
         SELECT
-            ph."languageId",
-            w."formId",
+            ph.language_id,
+            w.form_id,
             NEW.gloss,
             1
-        FROM "Word" AS w
-        JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
-        JOIN "Phrase" AS ph ON  phw."phraseId" = ph.id
-        WHERE ph.id = NEW."phraseId"
-        ON CONFLICT ("languageId", "formId", gloss) DO UPDATE
+        FROM word AS w
+        JOIN phrase_word AS phw ON phw.word_id = w.id
+        JOIN phrase AS ph ON  phw.phrase_id = ph.id
+        WHERE ph.id = NEW.phrase_id
+        ON CONFLICT (language_id, form_id, gloss) DO UPDATE
             SET count = c.count + 1;
     END IF;
 
@@ -298,381 +288,39 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: Book; Type: TABLE; Schema: public; Owner: -
+-- Name: book; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public."Book" (
+CREATE TABLE public.book (
     id integer NOT NULL,
     name text NOT NULL
 );
 
 
 --
--- Name: Footnote; Type: TABLE; Schema: public; Owner: -
+-- Name: footnote; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public."Footnote" (
-    "authorId" uuid NOT NULL,
+CREATE TABLE public.footnote (
+    author_id uuid NOT NULL,
     "timestamp" timestamp(3) without time zone NOT NULL,
     content text NOT NULL,
-    "phraseId" integer NOT NULL
+    phrase_id integer NOT NULL
 );
 
 
 --
--- Name: Gloss; Type: TABLE; Schema: public; Owner: -
+-- Name: gloss; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public."Gloss" (
+CREATE TABLE public.gloss (
     gloss text,
-    state public."GlossState" DEFAULT 'UNAPPROVED'::public."GlossState" NOT NULL,
-    "phraseId" integer NOT NULL,
-    source public."GlossSource",
+    state public.gloss_state DEFAULT 'UNAPPROVED'::public.gloss_state NOT NULL,
+    phrase_id integer NOT NULL,
+    source public.gloss_source,
     updated_at timestamp without time zone NOT NULL,
     updated_by uuid
 );
-
-
---
--- Name: Language; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."Language" (
-    id uuid DEFAULT public.generate_ulid() NOT NULL,
-    code text NOT NULL,
-    name text NOT NULL,
-    font text DEFAULT 'Noto Sans'::text NOT NULL,
-    "bibleTranslationIds" text[],
-    "textDirection" public."TextDirection" DEFAULT 'ltr'::public."TextDirection" NOT NULL
-);
-
-
---
--- Name: LanguageImportJob; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."LanguageImportJob" (
-    "languageId" uuid NOT NULL,
-    "startDate" timestamp(3) without time zone NOT NULL,
-    "endDate" timestamp(3) without time zone,
-    succeeded boolean,
-    "userId" uuid
-);
-
-
---
--- Name: LanguageMemberRole; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."LanguageMemberRole" (
-    "userId" uuid NOT NULL,
-    "languageId" uuid NOT NULL,
-    role public."LanguageRole" NOT NULL
-);
-
-
---
--- Name: Phrase; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."Phrase" (
-    id integer NOT NULL,
-    "languageId" uuid NOT NULL,
-    "createdAt" timestamp(3) without time zone NOT NULL,
-    "createdBy" uuid,
-    "deletedAt" timestamp(3) without time zone,
-    "deletedBy" uuid
-);
-
-
---
--- Name: PhraseWord; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."PhraseWord" (
-    "phraseId" integer NOT NULL,
-    "wordId" text NOT NULL
-);
-
-
---
--- Name: Verse; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."Verse" (
-    id text NOT NULL,
-    number integer NOT NULL,
-    "bookId" integer NOT NULL,
-    chapter integer NOT NULL
-);
-
-
---
--- Name: Word; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."Word" (
-    id text NOT NULL,
-    text text NOT NULL,
-    "verseId" text NOT NULL,
-    "formId" text NOT NULL
-);
-
-
---
--- Name: LanguageProgress; Type: MATERIALIZED VIEW; Schema: public; Owner: -
---
-
-CREATE MATERIALIZED VIEW public."LanguageProgress" AS
- WITH data AS (
-         SELECT ph."languageId" AS id,
-            (v."bookId" >= 40) AS is_nt,
-            count(*) AS count
-           FROM ((((public."Phrase" ph
-             JOIN public."PhraseWord" phw ON ((phw."phraseId" = ph.id)))
-             JOIN public."Word" w ON ((w.id = phw."wordId")))
-             JOIN public."Verse" v ON ((v.id = w."verseId")))
-             JOIN public."Gloss" g ON ((g."phraseId" = ph.id)))
-          WHERE (ph."deletedAt" IS NULL)
-          GROUP BY ph."languageId", (v."bookId" >= 40)
-        ), ot_total AS (
-         SELECT count(*) AS total
-           FROM (public."Word" w
-             JOIN public."Verse" v ON ((v.id = w."verseId")))
-          WHERE (v."bookId" < 40)
-        ), nt_total AS (
-         SELECT count(*) AS total
-           FROM (public."Word" w
-             JOIN public."Verse" v ON ((v.id = w."verseId")))
-          WHERE (v."bookId" >= 40)
-        )
- SELECT l.code,
-    ((COALESCE(nt_data.count, (0)::bigint))::double precision / ( SELECT (nt_total.total)::double precision AS total
-           FROM nt_total)) AS "ntProgress",
-    ((COALESCE(ot_data.count, (0)::bigint))::double precision / ( SELECT (ot_total.total)::double precision AS total
-           FROM ot_total)) AS "otProgress"
-   FROM ((public."Language" l
-     LEFT JOIN data nt_data ON (((nt_data.id = l.id) AND (nt_data.is_nt = true))))
-     LEFT JOIN data ot_data ON (((ot_data.id = l.id) AND (ot_data.is_nt = false))))
-  WITH NO DATA;
-
-
---
--- Name: Lemma; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."Lemma" (
-    id text NOT NULL
-);
-
-
---
--- Name: LemmaForm; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."LemmaForm" (
-    id text NOT NULL,
-    grammar text NOT NULL,
-    "lemmaId" text NOT NULL
-);
-
-
---
--- Name: LemmaFormSuggestionCount; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."LemmaFormSuggestionCount" (
-    id integer NOT NULL,
-    "languageId" uuid NOT NULL,
-    "formId" text NOT NULL,
-    gloss text NOT NULL,
-    count integer NOT NULL
-);
-
-
---
--- Name: LemmaFormSuggestionCount_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public."LemmaFormSuggestionCount_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: LemmaFormSuggestionCount_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public."LemmaFormSuggestionCount_id_seq" OWNED BY public."LemmaFormSuggestionCount".id;
-
-
---
--- Name: LemmaResource; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."LemmaResource" (
-    "lemmaId" text NOT NULL,
-    "resourceCode" public."ResourceCode" NOT NULL,
-    content text NOT NULL
-);
-
-
---
--- Name: MachineGloss; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."MachineGloss" (
-    "wordId" text NOT NULL,
-    "languageId" uuid NOT NULL,
-    gloss text
-);
-
-
---
--- Name: Phrase_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public."Phrase_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: Phrase_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public."Phrase_id_seq" OWNED BY public."Phrase".id;
-
-
---
--- Name: Recording; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."Recording" (
-    id text NOT NULL,
-    name text NOT NULL
-);
-
-
---
--- Name: ResetPasswordToken; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."ResetPasswordToken" (
-    "userId" uuid NOT NULL,
-    token text NOT NULL,
-    expires bigint NOT NULL
-);
-
-
---
--- Name: Session; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."Session" (
-    id text NOT NULL,
-    "userId" uuid NOT NULL,
-    "expiresAt" timestamp(3) without time zone NOT NULL
-);
-
-
---
--- Name: TranslatorNote; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."TranslatorNote" (
-    "authorId" uuid NOT NULL,
-    "timestamp" timestamp(3) without time zone NOT NULL,
-    content text NOT NULL,
-    "phraseId" integer NOT NULL
-);
-
-
---
--- Name: User; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."User" (
-    id uuid DEFAULT public.generate_ulid() NOT NULL,
-    name text,
-    "emailStatus" public."EmailStatus" DEFAULT 'UNVERIFIED'::public."EmailStatus" NOT NULL,
-    email text NOT NULL,
-    "hashedPassword" text
-);
-
-
---
--- Name: UserEmailVerification; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."UserEmailVerification" (
-    "userId" uuid NOT NULL,
-    email text NOT NULL,
-    token text NOT NULL,
-    expires bigint NOT NULL
-);
-
-
---
--- Name: UserInvitation; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."UserInvitation" (
-    "userId" uuid NOT NULL,
-    token text NOT NULL,
-    expires bigint NOT NULL
-);
-
-
---
--- Name: UserSystemRole; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."UserSystemRole" (
-    "userId" uuid NOT NULL,
-    role public."SystemRole" NOT NULL
-);
-
-
---
--- Name: VerseAudioTiming; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."VerseAudioTiming" (
-    id integer NOT NULL,
-    "verseId" text NOT NULL,
-    "recordingId" text NOT NULL,
-    start double precision,
-    "end" double precision
-);
-
-
---
--- Name: VerseAudioTiming_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public."VerseAudioTiming_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: VerseAudioTiming_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public."VerseAudioTiming_id_seq" OWNED BY public."VerseAudioTiming".id;
 
 
 --
@@ -683,8 +331,8 @@ CREATE TABLE public.gloss_history (
     id integer NOT NULL,
     phrase_id integer NOT NULL,
     gloss text,
-    state public."GlossState",
-    source public."GlossSource",
+    state public.gloss_state,
+    source public.gloss_source,
     updated_at timestamp without time zone NOT NULL,
     updated_by uuid
 );
@@ -708,6 +356,348 @@ CREATE SEQUENCE public.gloss_history_id_seq
 --
 
 ALTER SEQUENCE public.gloss_history_id_seq OWNED BY public.gloss_history.id;
+
+
+--
+-- Name: language; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.language (
+    id uuid DEFAULT public.generate_ulid() NOT NULL,
+    code text NOT NULL,
+    name text NOT NULL,
+    font text DEFAULT 'Noto Sans'::text NOT NULL,
+    translation_ids text[],
+    text_direction public.text_direction DEFAULT 'ltr'::public.text_direction NOT NULL
+);
+
+
+--
+-- Name: language_import_job; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.language_import_job (
+    language_id uuid NOT NULL,
+    start_date timestamp(3) without time zone NOT NULL,
+    end_date timestamp(3) without time zone,
+    succeeded boolean,
+    user_id uuid
+);
+
+
+--
+-- Name: language_member_role; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.language_member_role (
+    user_id uuid NOT NULL,
+    language_id uuid NOT NULL,
+    role public.language_role NOT NULL
+);
+
+
+--
+-- Name: phrase; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.phrase (
+    id integer NOT NULL,
+    language_id uuid NOT NULL,
+    created_at timestamp(3) without time zone NOT NULL,
+    created_by uuid,
+    deleted_at timestamp(3) without time zone,
+    deleted_by uuid
+);
+
+
+--
+-- Name: phrase_word; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.phrase_word (
+    phrase_id integer NOT NULL,
+    word_id text NOT NULL
+);
+
+
+--
+-- Name: verse; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.verse (
+    id text NOT NULL,
+    number integer NOT NULL,
+    book_id integer NOT NULL,
+    chapter integer NOT NULL
+);
+
+
+--
+-- Name: word; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.word (
+    id text NOT NULL,
+    text text NOT NULL,
+    verse_id text NOT NULL,
+    form_id text NOT NULL
+);
+
+
+--
+-- Name: language_progress; Type: MATERIALIZED VIEW; Schema: public; Owner: -
+--
+
+CREATE MATERIALIZED VIEW public.language_progress AS
+ WITH data AS (
+         SELECT ph.language_id AS id,
+            (v.book_id >= 40) AS is_nt,
+            count(*) AS count
+           FROM ((((public.phrase ph
+             JOIN public.phrase_word phw ON ((phw.phrase_id = ph.id)))
+             JOIN public.word w ON ((w.id = phw.word_id)))
+             JOIN public.verse v ON ((v.id = w.verse_id)))
+             JOIN public.gloss g ON ((g.phrase_id = ph.id)))
+          WHERE (ph.deleted_at IS NULL)
+          GROUP BY ph.language_id, (v.book_id >= 40)
+        ), ot_total AS (
+         SELECT count(*) AS total
+           FROM (public.word w
+             JOIN public.verse v ON ((v.id = w.verse_id)))
+          WHERE (v.book_id < 40)
+        ), nt_total AS (
+         SELECT count(*) AS total
+           FROM (public.word w
+             JOIN public.verse v ON ((v.id = w.verse_id)))
+          WHERE (v.book_id >= 40)
+        )
+ SELECT l.code,
+    ((COALESCE(nt_data.count, (0)::bigint))::double precision / ( SELECT (nt_total.total)::double precision AS total
+           FROM nt_total)) AS nt_progress,
+    ((COALESCE(ot_data.count, (0)::bigint))::double precision / ( SELECT (ot_total.total)::double precision AS total
+           FROM ot_total)) AS ot_progress
+   FROM ((public.language l
+     LEFT JOIN data nt_data ON (((nt_data.id = l.id) AND (nt_data.is_nt = true))))
+     LEFT JOIN data ot_data ON (((ot_data.id = l.id) AND (ot_data.is_nt = false))))
+  WITH NO DATA;
+
+
+--
+-- Name: lemma; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lemma (
+    id text NOT NULL
+);
+
+
+--
+-- Name: lemma_form; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lemma_form (
+    id text NOT NULL,
+    grammar text NOT NULL,
+    lemma_id text NOT NULL
+);
+
+
+--
+-- Name: lemma_form_suggestion; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lemma_form_suggestion (
+    id integer NOT NULL,
+    language_id uuid NOT NULL,
+    form_id text NOT NULL,
+    gloss text NOT NULL,
+    count integer NOT NULL
+);
+
+
+--
+-- Name: lemma_form_suggestion_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.lemma_form_suggestion_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: lemma_form_suggestion_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.lemma_form_suggestion_id_seq OWNED BY public.lemma_form_suggestion.id;
+
+
+--
+-- Name: lemma_resource; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lemma_resource (
+    lemma_id text NOT NULL,
+    resource_code public.resource_code NOT NULL,
+    content text NOT NULL
+);
+
+
+--
+-- Name: machine_gloss; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.machine_gloss (
+    word_id text NOT NULL,
+    language_id uuid NOT NULL,
+    gloss text
+);
+
+
+--
+-- Name: phrase_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.phrase_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: phrase_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.phrase_id_seq OWNED BY public.phrase.id;
+
+
+--
+-- Name: recording; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.recording (
+    id text NOT NULL,
+    name text NOT NULL
+);
+
+
+--
+-- Name: reset_password_token; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.reset_password_token (
+    user_id uuid NOT NULL,
+    token text NOT NULL,
+    expires bigint NOT NULL
+);
+
+
+--
+-- Name: session; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.session (
+    id text NOT NULL,
+    user_id uuid NOT NULL,
+    expires_at timestamp(3) without time zone NOT NULL
+);
+
+
+--
+-- Name: translator_note; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.translator_note (
+    author_id uuid NOT NULL,
+    "timestamp" timestamp(3) without time zone NOT NULL,
+    content text NOT NULL,
+    phrase_id integer NOT NULL
+);
+
+
+--
+-- Name: user_email_verification; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_email_verification (
+    user_id uuid NOT NULL,
+    email text NOT NULL,
+    token text NOT NULL,
+    expires bigint NOT NULL
+);
+
+
+--
+-- Name: user_invitation; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_invitation (
+    user_id uuid NOT NULL,
+    token text NOT NULL,
+    expires bigint NOT NULL
+);
+
+
+--
+-- Name: user_system_role; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_system_role (
+    user_id uuid NOT NULL,
+    role public.system_role NOT NULL
+);
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.users (
+    id uuid DEFAULT public.generate_ulid() NOT NULL,
+    name text,
+    email_status public.email_status DEFAULT 'UNVERIFIED'::public.email_status NOT NULL,
+    email text NOT NULL,
+    hashed_password text
+);
+
+
+--
+-- Name: verse_audio_timing; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.verse_audio_timing (
+    id integer NOT NULL,
+    verse_id text NOT NULL,
+    recording_id text NOT NULL,
+    start double precision,
+    "end" double precision
+);
+
+
+--
+-- Name: verse_audio_timing_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.verse_audio_timing_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: verse_audio_timing_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.verse_audio_timing_id_seq OWNED BY public.verse_audio_timing.id;
 
 
 --
@@ -746,31 +736,31 @@ ALTER SEQUENCE public.weekly_gloss_statistics_id_seq OWNED BY public.weekly_glos
 
 
 --
--- Name: LemmaFormSuggestionCount id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LemmaFormSuggestionCount" ALTER COLUMN id SET DEFAULT nextval('public."LemmaFormSuggestionCount_id_seq"'::regclass);
-
-
---
--- Name: Phrase id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Phrase" ALTER COLUMN id SET DEFAULT nextval('public."Phrase_id_seq"'::regclass);
-
-
---
--- Name: VerseAudioTiming id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."VerseAudioTiming" ALTER COLUMN id SET DEFAULT nextval('public."VerseAudioTiming_id_seq"'::regclass);
-
-
---
 -- Name: gloss_history id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.gloss_history ALTER COLUMN id SET DEFAULT nextval('public.gloss_history_id_seq'::regclass);
+
+
+--
+-- Name: lemma_form_suggestion id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lemma_form_suggestion ALTER COLUMN id SET DEFAULT nextval('public.lemma_form_suggestion_id_seq'::regclass);
+
+
+--
+-- Name: phrase id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.phrase ALTER COLUMN id SET DEFAULT nextval('public.phrase_id_seq'::regclass);
+
+
+--
+-- Name: verse_audio_timing id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse_audio_timing ALTER COLUMN id SET DEFAULT nextval('public.verse_audio_timing_id_seq'::regclass);
 
 
 --
@@ -781,211 +771,19 @@ ALTER TABLE ONLY public.weekly_gloss_statistics ALTER COLUMN id SET DEFAULT next
 
 
 --
--- Name: Book Book_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: book book_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public."Book"
-    ADD CONSTRAINT "Book_pkey" PRIMARY KEY (id);
-
-
---
--- Name: Footnote Footnote_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Footnote"
-    ADD CONSTRAINT "Footnote_pkey" PRIMARY KEY ("phraseId");
+ALTER TABLE ONLY public.book
+    ADD CONSTRAINT book_pkey PRIMARY KEY (id);
 
 
 --
--- Name: Gloss Gloss_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: footnote footnote_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public."Gloss"
-    ADD CONSTRAINT "Gloss_pkey" PRIMARY KEY ("phraseId");
-
-
---
--- Name: LanguageImportJob LanguageImportJob_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LanguageImportJob"
-    ADD CONSTRAINT "LanguageImportJob_pkey" PRIMARY KEY ("languageId");
-
-
---
--- Name: LanguageMemberRole LanguageMemberRole_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LanguageMemberRole"
-    ADD CONSTRAINT "LanguageMemberRole_pkey" PRIMARY KEY ("languageId", "userId", role);
-
-
---
--- Name: Language Language_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Language"
-    ADD CONSTRAINT "Language_pkey" PRIMARY KEY (id);
-
-
---
--- Name: LemmaFormSuggestionCount LemmaFormSuggestionCount_languageId_formId_gloss_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LemmaFormSuggestionCount"
-    ADD CONSTRAINT "LemmaFormSuggestionCount_languageId_formId_gloss_key" UNIQUE ("languageId", "formId", gloss);
-
-
---
--- Name: LemmaFormSuggestionCount LemmaFormSuggestionCount_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LemmaFormSuggestionCount"
-    ADD CONSTRAINT "LemmaFormSuggestionCount_pkey" PRIMARY KEY (id);
-
-
---
--- Name: LemmaForm LemmaForm_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LemmaForm"
-    ADD CONSTRAINT "LemmaForm_pkey" PRIMARY KEY (id);
-
-
---
--- Name: LemmaResource LemmaResource_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LemmaResource"
-    ADD CONSTRAINT "LemmaResource_pkey" PRIMARY KEY ("lemmaId", "resourceCode");
-
-
---
--- Name: Lemma Lemma_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Lemma"
-    ADD CONSTRAINT "Lemma_pkey" PRIMARY KEY (id);
-
-
---
--- Name: MachineGloss MachineGloss_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."MachineGloss"
-    ADD CONSTRAINT "MachineGloss_pkey" PRIMARY KEY ("wordId", "languageId");
-
-
---
--- Name: PhraseWord PhraseWord_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."PhraseWord"
-    ADD CONSTRAINT "PhraseWord_pkey" PRIMARY KEY ("phraseId", "wordId");
-
-
---
--- Name: Phrase Phrase_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Phrase"
-    ADD CONSTRAINT "Phrase_pkey" PRIMARY KEY (id);
-
-
---
--- Name: Recording Recording_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Recording"
-    ADD CONSTRAINT "Recording_pkey" PRIMARY KEY (id);
-
-
---
--- Name: ResetPasswordToken ResetPasswordToken_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."ResetPasswordToken"
-    ADD CONSTRAINT "ResetPasswordToken_pkey" PRIMARY KEY (token);
-
-
---
--- Name: Session Session_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Session"
-    ADD CONSTRAINT "Session_pkey" PRIMARY KEY (id);
-
-
---
--- Name: TranslatorNote TranslatorNote_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."TranslatorNote"
-    ADD CONSTRAINT "TranslatorNote_pkey" PRIMARY KEY ("phraseId");
-
-
---
--- Name: UserEmailVerification UserEmailVerification_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."UserEmailVerification"
-    ADD CONSTRAINT "UserEmailVerification_pkey" PRIMARY KEY (token);
-
-
---
--- Name: UserInvitation UserInvitation_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."UserInvitation"
-    ADD CONSTRAINT "UserInvitation_pkey" PRIMARY KEY (token);
-
-
---
--- Name: UserSystemRole UserSystemRole_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."UserSystemRole"
-    ADD CONSTRAINT "UserSystemRole_pkey" PRIMARY KEY ("userId", role);
-
-
---
--- Name: User User_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."User"
-    ADD CONSTRAINT "User_pkey" PRIMARY KEY (id);
-
-
---
--- Name: VerseAudioTiming VerseAudioTiming_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."VerseAudioTiming"
-    ADD CONSTRAINT "VerseAudioTiming_pkey" PRIMARY KEY (id);
-
-
---
--- Name: VerseAudioTiming VerseAudioTiming_verseId_recordingId_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."VerseAudioTiming"
-    ADD CONSTRAINT "VerseAudioTiming_verseId_recordingId_key" UNIQUE ("verseId", "recordingId");
-
-
---
--- Name: Verse Verse_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Verse"
-    ADD CONSTRAINT "Verse_pkey" PRIMARY KEY (id);
-
-
---
--- Name: Word Word_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Word"
-    ADD CONSTRAINT "Word_pkey" PRIMARY KEY (id);
+ALTER TABLE ONLY public.footnote
+    ADD CONSTRAINT footnote_pkey PRIMARY KEY (phrase_id);
 
 
 --
@@ -994,6 +792,190 @@ ALTER TABLE ONLY public."Word"
 
 ALTER TABLE ONLY public.gloss_history
     ADD CONSTRAINT gloss_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: gloss gloss_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gloss
+    ADD CONSTRAINT gloss_pkey PRIMARY KEY (phrase_id);
+
+
+--
+-- Name: language_import_job language_import_job_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.language_import_job
+    ADD CONSTRAINT language_import_job_pkey PRIMARY KEY (language_id);
+
+
+--
+-- Name: language_member_role language_member_role_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.language_member_role
+    ADD CONSTRAINT language_member_role_pkey PRIMARY KEY (language_id, user_id, role);
+
+
+--
+-- Name: language language_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.language
+    ADD CONSTRAINT language_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lemma_form lemma_form_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lemma_form
+    ADD CONSTRAINT lemma_form_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lemma_form_suggestion lemma_form_suggestion_language_id_form_id_gloss_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lemma_form_suggestion
+    ADD CONSTRAINT lemma_form_suggestion_language_id_form_id_gloss_key UNIQUE (language_id, form_id, gloss);
+
+
+--
+-- Name: lemma_form_suggestion lemma_form_suggestion_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lemma_form_suggestion
+    ADD CONSTRAINT lemma_form_suggestion_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lemma lemma_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lemma
+    ADD CONSTRAINT lemma_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lemma_resource lemma_resource_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lemma_resource
+    ADD CONSTRAINT lemma_resource_pkey PRIMARY KEY (lemma_id, resource_code);
+
+
+--
+-- Name: machine_gloss machine_gloss_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss
+    ADD CONSTRAINT machine_gloss_pkey PRIMARY KEY (word_id, language_id);
+
+
+--
+-- Name: phrase phrase_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.phrase
+    ADD CONSTRAINT phrase_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: phrase_word phrase_word_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.phrase_word
+    ADD CONSTRAINT phrase_word_pkey PRIMARY KEY (phrase_id, word_id);
+
+
+--
+-- Name: recording recording_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.recording
+    ADD CONSTRAINT recording_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: reset_password_token reset_password_token_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reset_password_token
+    ADD CONSTRAINT reset_password_token_pkey PRIMARY KEY (token);
+
+
+--
+-- Name: session session_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.session
+    ADD CONSTRAINT session_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: translator_note translator_note_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translator_note
+    ADD CONSTRAINT translator_note_pkey PRIMARY KEY (phrase_id);
+
+
+--
+-- Name: user_email_verification user_email_verification_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_email_verification
+    ADD CONSTRAINT user_email_verification_pkey PRIMARY KEY (token);
+
+
+--
+-- Name: user_invitation user_invitation_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_invitation
+    ADD CONSTRAINT user_invitation_pkey PRIMARY KEY (token);
+
+
+--
+-- Name: user_system_role user_system_role_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_system_role
+    ADD CONSTRAINT user_system_role_pkey PRIMARY KEY (user_id, role);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: verse_audio_timing verse_audio_timing_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse_audio_timing
+    ADD CONSTRAINT verse_audio_timing_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: verse_audio_timing verse_audio_timing_verse_id_recording_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse_audio_timing
+    ADD CONSTRAINT verse_audio_timing_verse_id_recording_id_key UNIQUE (verse_id, recording_id);
+
+
+--
+-- Name: verse verse_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse
+    ADD CONSTRAINT verse_pkey PRIMARY KEY (id);
 
 
 --
@@ -1013,398 +995,174 @@ ALTER TABLE ONLY public.weekly_gloss_statistics
 
 
 --
--- Name: Book_name_key; Type: INDEX; Schema: public; Owner: -
+-- Name: word word_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX "Book_name_key" ON public."Book" USING btree (name);
+ALTER TABLE ONLY public.word
+    ADD CONSTRAINT word_pkey PRIMARY KEY (id);
 
 
 --
--- Name: Footnote_phraseId_idx; Type: INDEX; Schema: public; Owner: -
+-- Name: book_name_key; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "Footnote_phraseId_idx" ON public."Footnote" USING btree ("phraseId");
+CREATE UNIQUE INDEX book_name_key ON public.book USING btree (name);
 
 
 --
--- Name: Gloss_phraseId_idx; Type: INDEX; Schema: public; Owner: -
+-- Name: footnote_phrase_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "Gloss_phraseId_idx" ON public."Gloss" USING btree ("phraseId");
+CREATE INDEX footnote_phrase_id_idx ON public.footnote USING btree (phrase_id);
 
 
 --
--- Name: Language_code_key; Type: INDEX; Schema: public; Owner: -
+-- Name: gloss_phrase_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX "Language_code_key" ON public."Language" USING btree (code);
+CREATE INDEX gloss_phrase_id_idx ON public.gloss USING btree (phrase_id);
 
 
 --
--- Name: LemmaForm_lemmaId_idx; Type: INDEX; Schema: public; Owner: -
+-- Name: language_code_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "LemmaForm_lemmaId_idx" ON public."LemmaForm" USING btree ("lemmaId");
+CREATE UNIQUE INDEX language_code_idx ON public.language USING btree (code);
 
 
 --
--- Name: LemmaResource_lemmaId_idx; Type: INDEX; Schema: public; Owner: -
+-- Name: lemma_form_lemma_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "LemmaResource_lemmaId_idx" ON public."LemmaResource" USING btree ("lemmaId");
+CREATE INDEX lemma_form_lemma_id_idx ON public.lemma_form USING btree (lemma_id);
 
 
 --
--- Name: PhraseWord_wordId_phraseId_idx; Type: INDEX; Schema: public; Owner: -
+-- Name: lemma_resource_lemma_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "PhraseWord_wordId_phraseId_idx" ON public."PhraseWord" USING btree ("wordId", "phraseId");
+CREATE INDEX lemma_resource_lemma_id_idx ON public.lemma_resource USING btree (lemma_id);
 
 
 --
--- Name: Phrase_languageId_deletedAt_idx; Type: INDEX; Schema: public; Owner: -
+-- Name: phrase_language_id_deleted_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "Phrase_languageId_deletedAt_idx" ON public."Phrase" USING btree ("languageId", "deletedAt") WHERE ("deletedAt" IS NULL);
+CREATE INDEX phrase_language_id_deleted_at_idx ON public.phrase USING btree (language_id, deleted_at) WHERE (deleted_at IS NULL);
 
 
 --
--- Name: Session_id_key; Type: INDEX; Schema: public; Owner: -
+-- Name: phrase_word_word_id_phrase_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX "Session_id_key" ON public."Session" USING btree (id);
+CREATE INDEX phrase_word_word_id_phrase_id_idx ON public.phrase_word USING btree (word_id, phrase_id);
 
 
 --
--- Name: Session_userId_idx; Type: INDEX; Schema: public; Owner: -
+-- Name: session_id_key; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "Session_userId_idx" ON public."Session" USING btree ("userId");
+CREATE UNIQUE INDEX session_id_key ON public.session USING btree (id);
 
 
 --
--- Name: TranslatorNote_phraseId_idx; Type: INDEX; Schema: public; Owner: -
+-- Name: session_user_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "TranslatorNote_phraseId_idx" ON public."TranslatorNote" USING btree ("phraseId");
+CREATE INDEX session_user_id_idx ON public.session USING btree (user_id);
 
 
 --
--- Name: UserEmailVerification_token_key; Type: INDEX; Schema: public; Owner: -
+-- Name: translator_note_phrase_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX "UserEmailVerification_token_key" ON public."UserEmailVerification" USING btree (token);
+CREATE INDEX translator_note_phrase_id_idx ON public.translator_note USING btree (phrase_id);
 
 
 --
--- Name: UserInvitation_userId_key; Type: INDEX; Schema: public; Owner: -
+-- Name: user_email_key; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX "UserInvitation_userId_key" ON public."UserInvitation" USING btree ("userId");
+CREATE UNIQUE INDEX user_email_key ON public.users USING btree (email);
 
 
 --
--- Name: User_email_key; Type: INDEX; Schema: public; Owner: -
+-- Name: user_email_verification_token_key; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX "User_email_key" ON public."User" USING btree (email);
+CREATE UNIQUE INDEX user_email_verification_token_key ON public.user_email_verification USING btree (token);
 
 
 --
--- Name: Verse_bookId_chapter_number_key; Type: INDEX; Schema: public; Owner: -
+-- Name: user_invitation_user_id_pkey; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX "Verse_bookId_chapter_number_key" ON public."Verse" USING btree ("bookId", chapter, number);
+CREATE UNIQUE INDEX user_invitation_user_id_pkey ON public.user_invitation USING btree (user_id);
 
 
 --
--- Name: Word_formId_idx; Type: INDEX; Schema: public; Owner: -
+-- Name: verse_book_id_chapter_number_key; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "Word_formId_idx" ON public."Word" USING btree ("formId");
+CREATE UNIQUE INDEX verse_book_id_chapter_number_key ON public.verse USING btree (book_id, chapter, number);
 
 
 --
--- Name: Word_verseId_idx; Type: INDEX; Schema: public; Owner: -
+-- Name: word_form_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "Word_verseId_idx" ON public."Word" USING btree ("verseId");
+CREATE INDEX word_form_id_idx ON public.word USING btree (form_id);
 
 
 --
--- Name: Gloss decrement_suggestion; Type: TRIGGER; Schema: public; Owner: -
+-- Name: word_verse_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE TRIGGER decrement_suggestion AFTER DELETE OR UPDATE OF gloss, state ON public."Gloss" FOR EACH ROW EXECUTE FUNCTION public.decrement_suggestion();
+CREATE INDEX word_verse_id_idx ON public.word USING btree (verse_id);
 
 
 --
--- Name: Phrase decrement_suggestion; Type: TRIGGER; Schema: public; Owner: -
+-- Name: gloss decrement_suggestion; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER decrement_suggestion AFTER UPDATE OF "deletedAt" ON public."Phrase" FOR EACH ROW EXECUTE FUNCTION public.decrement_suggestion_after_phrase_delete();
+CREATE TRIGGER decrement_suggestion AFTER DELETE OR UPDATE OF gloss, state ON public.gloss FOR EACH ROW EXECUTE FUNCTION public.decrement_suggestion();
 
 
 --
--- Name: Gloss gloss_audit; Type: TRIGGER; Schema: public; Owner: -
+-- Name: phrase decrement_suggestion; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER gloss_audit AFTER DELETE OR UPDATE ON public."Gloss" FOR EACH ROW EXECUTE FUNCTION public.gloss_audit();
+CREATE TRIGGER decrement_suggestion AFTER UPDATE OF deleted_at ON public.phrase FOR EACH ROW EXECUTE FUNCTION public.decrement_suggestion_after_phrase_delete();
 
 
 --
--- Name: Gloss increment_suggestion; Type: TRIGGER; Schema: public; Owner: -
+-- Name: gloss gloss_audit; Type: TRIGGER; Schema: public; Owner: -
 --
 
-CREATE TRIGGER increment_suggestion AFTER INSERT OR UPDATE OF gloss, state ON public."Gloss" FOR EACH ROW EXECUTE FUNCTION public.increment_suggestion();
+CREATE TRIGGER gloss_audit AFTER DELETE OR UPDATE ON public.gloss FOR EACH ROW EXECUTE FUNCTION public.gloss_audit();
 
 
 --
--- Name: Footnote Footnote_authorId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gloss increment_suggestion; Type: TRIGGER; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public."Footnote"
-    ADD CONSTRAINT "Footnote_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+CREATE TRIGGER increment_suggestion AFTER INSERT OR UPDATE OF gloss, state ON public.gloss FOR EACH ROW EXECUTE FUNCTION public.increment_suggestion();
 
 
 --
--- Name: Footnote Footnote_phraseId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: footnote footnote_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public."Footnote"
-    ADD CONSTRAINT "Footnote_phraseId_fkey" FOREIGN KEY ("phraseId") REFERENCES public."Phrase"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+ALTER TABLE ONLY public.footnote
+    ADD CONSTRAINT footnote_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 
 --
--- Name: Gloss Gloss_phraseId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: footnote footnote_phrase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public."Gloss"
-    ADD CONSTRAINT "Gloss_phraseId_fkey" FOREIGN KEY ("phraseId") REFERENCES public."Phrase"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: Gloss Gloss_updated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Gloss"
-    ADD CONSTRAINT "Gloss_updated_by_fkey" FOREIGN KEY (updated_by) REFERENCES public."User"(id);
-
-
---
--- Name: LanguageImportJob LanguageImportJob_languageId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LanguageImportJob"
-    ADD CONSTRAINT "LanguageImportJob_languageId_fkey" FOREIGN KEY ("languageId") REFERENCES public."Language"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: LanguageImportJob LanguageImportJob_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LanguageImportJob"
-    ADD CONSTRAINT "LanguageImportJob_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
--- Name: LanguageMemberRole LanguageMemberRole_languageId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LanguageMemberRole"
-    ADD CONSTRAINT "LanguageMemberRole_languageId_fkey" FOREIGN KEY ("languageId") REFERENCES public."Language"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: LanguageMemberRole LanguageMemberRole_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LanguageMemberRole"
-    ADD CONSTRAINT "LanguageMemberRole_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: LemmaFormSuggestionCount LemmaFormSuggestionCount_formId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LemmaFormSuggestionCount"
-    ADD CONSTRAINT "LemmaFormSuggestionCount_formId_fkey" FOREIGN KEY ("formId") REFERENCES public."LemmaForm"(id);
-
-
---
--- Name: LemmaFormSuggestionCount LemmaFormSuggestionCount_languageId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LemmaFormSuggestionCount"
-    ADD CONSTRAINT "LemmaFormSuggestionCount_languageId_fkey" FOREIGN KEY ("languageId") REFERENCES public."Language"(id);
-
-
---
--- Name: LemmaForm LemmaForm_lemmaId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LemmaForm"
-    ADD CONSTRAINT "LemmaForm_lemmaId_fkey" FOREIGN KEY ("lemmaId") REFERENCES public."Lemma"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: LemmaResource LemmaResource_lemmaId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."LemmaResource"
-    ADD CONSTRAINT "LemmaResource_lemmaId_fkey" FOREIGN KEY ("lemmaId") REFERENCES public."Lemma"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: MachineGloss MachineGloss_languageId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."MachineGloss"
-    ADD CONSTRAINT "MachineGloss_languageId_fkey" FOREIGN KEY ("languageId") REFERENCES public."Language"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: MachineGloss MachineGloss_wordId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."MachineGloss"
-    ADD CONSTRAINT "MachineGloss_wordId_fkey" FOREIGN KEY ("wordId") REFERENCES public."Word"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: PhraseWord PhraseWord_phraseId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."PhraseWord"
-    ADD CONSTRAINT "PhraseWord_phraseId_fkey" FOREIGN KEY ("phraseId") REFERENCES public."Phrase"(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: PhraseWord PhraseWord_wordId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."PhraseWord"
-    ADD CONSTRAINT "PhraseWord_wordId_fkey" FOREIGN KEY ("wordId") REFERENCES public."Word"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: Phrase Phrase_createdBy_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Phrase"
-    ADD CONSTRAINT "Phrase_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
--- Name: Phrase Phrase_deletedBy_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Phrase"
-    ADD CONSTRAINT "Phrase_deletedBy_fkey" FOREIGN KEY ("deletedBy") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
--- Name: Phrase Phrase_languageId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Phrase"
-    ADD CONSTRAINT "Phrase_languageId_fkey" FOREIGN KEY ("languageId") REFERENCES public."Language"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: ResetPasswordToken ResetPasswordToken_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."ResetPasswordToken"
-    ADD CONSTRAINT "ResetPasswordToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: Session Session_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Session"
-    ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: TranslatorNote TranslatorNote_authorId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."TranslatorNote"
-    ADD CONSTRAINT "TranslatorNote_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: TranslatorNote TranslatorNote_phraseId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."TranslatorNote"
-    ADD CONSTRAINT "TranslatorNote_phraseId_fkey" FOREIGN KEY ("phraseId") REFERENCES public."Phrase"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: UserEmailVerification UserEmailVerification_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."UserEmailVerification"
-    ADD CONSTRAINT "UserEmailVerification_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: UserInvitation UserInvitation_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."UserInvitation"
-    ADD CONSTRAINT "UserInvitation_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: UserSystemRole UserSystemRole_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."UserSystemRole"
-    ADD CONSTRAINT "UserSystemRole_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: VerseAudioTiming VerseAudioTiming_recordingId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."VerseAudioTiming"
-    ADD CONSTRAINT "VerseAudioTiming_recordingId_fkey" FOREIGN KEY ("recordingId") REFERENCES public."Recording"(id);
-
-
---
--- Name: VerseAudioTiming VerseAudioTiming_verseId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."VerseAudioTiming"
-    ADD CONSTRAINT "VerseAudioTiming_verseId_fkey" FOREIGN KEY ("verseId") REFERENCES public."Verse"(id);
-
-
---
--- Name: Verse Verse_bookId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Verse"
-    ADD CONSTRAINT "Verse_bookId_fkey" FOREIGN KEY ("bookId") REFERENCES public."Book"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: Word Word_formId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Word"
-    ADD CONSTRAINT "Word_formId_fkey" FOREIGN KEY ("formId") REFERENCES public."LemmaForm"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: Word Word_verseId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Word"
-    ADD CONSTRAINT "Word_verseId_fkey" FOREIGN KEY ("verseId") REFERENCES public."Verse"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+ALTER TABLE ONLY public.footnote
+    ADD CONSTRAINT footnote_phrase_id_fkey FOREIGN KEY (phrase_id) REFERENCES public.phrase(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 
 --
@@ -1412,7 +1170,223 @@ ALTER TABLE ONLY public."Word"
 --
 
 ALTER TABLE ONLY public.gloss_history
-    ADD CONSTRAINT gloss_history_phrase_id_fkey FOREIGN KEY (phrase_id) REFERENCES public."Phrase"(id);
+    ADD CONSTRAINT gloss_history_phrase_id_fkey FOREIGN KEY (phrase_id) REFERENCES public.phrase(id);
+
+
+--
+-- Name: gloss gloss_phrase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gloss
+    ADD CONSTRAINT gloss_phrase_id_fkey FOREIGN KEY (phrase_id) REFERENCES public.phrase(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: gloss gloss_updated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gloss
+    ADD CONSTRAINT gloss_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id);
+
+
+--
+-- Name: language_import_job language_import_job_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.language_import_job
+    ADD CONSTRAINT language_import_job_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: language_import_job language_import_job_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.language_import_job
+    ADD CONSTRAINT language_import_job_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: language_member_role language_member_role_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.language_member_role
+    ADD CONSTRAINT language_member_role_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: language_member_role language_member_role_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.language_member_role
+    ADD CONSTRAINT language_member_role_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: lemma_form lemma_form_lemma_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lemma_form
+    ADD CONSTRAINT lemma_form_lemma_id_fkey FOREIGN KEY (lemma_id) REFERENCES public.lemma(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: lemma_form_suggestion lemma_form_suggestion_form_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lemma_form_suggestion
+    ADD CONSTRAINT lemma_form_suggestion_form_id_fkey FOREIGN KEY (form_id) REFERENCES public.lemma_form(id);
+
+
+--
+-- Name: lemma_form_suggestion lemma_form_suggestion_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lemma_form_suggestion
+    ADD CONSTRAINT lemma_form_suggestion_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id);
+
+
+--
+-- Name: lemma_resource lemma_resource_lemma_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lemma_resource
+    ADD CONSTRAINT lemma_resource_lemma_id_fkey FOREIGN KEY (lemma_id) REFERENCES public.lemma(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: machine_gloss machine_gloss_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss
+    ADD CONSTRAINT machine_gloss_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: machine_gloss machine_gloss_word_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss
+    ADD CONSTRAINT machine_gloss_word_id_fkey FOREIGN KEY (word_id) REFERENCES public.word(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: phrase phrase_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.phrase
+    ADD CONSTRAINT phrase_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: phrase phrase_deleted_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.phrase
+    ADD CONSTRAINT phrase_deleted_by_fkey FOREIGN KEY (deleted_by) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: phrase phrase_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.phrase
+    ADD CONSTRAINT phrase_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: phrase_word phrase_word_phrase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.phrase_word
+    ADD CONSTRAINT phrase_word_phrase_id_fkey FOREIGN KEY (phrase_id) REFERENCES public.phrase(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: phrase_word phrase_word_word_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.phrase_word
+    ADD CONSTRAINT phrase_word_word_id_fkey FOREIGN KEY (word_id) REFERENCES public.word(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: reset_password_token reset_password_token_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reset_password_token
+    ADD CONSTRAINT reset_password_token_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: session session_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.session
+    ADD CONSTRAINT session_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: translator_note translator_note_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translator_note
+    ADD CONSTRAINT translator_note_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: translator_note translator_note_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translator_note
+    ADD CONSTRAINT translator_note_phase_id_fkey FOREIGN KEY (phrase_id) REFERENCES public.phrase(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: user_email_verification user_email_verification_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_email_verification
+    ADD CONSTRAINT user_email_verification_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: user_invitation user_invitation_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_invitation
+    ADD CONSTRAINT user_invitation_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: user_system_role user_system_role_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_system_role
+    ADD CONSTRAINT user_system_role_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: verse_audio_timing verse_audio_timing_recording_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse_audio_timing
+    ADD CONSTRAINT verse_audio_timing_recording_id_fkey FOREIGN KEY (recording_id) REFERENCES public.recording(id);
+
+
+--
+-- Name: verse_audio_timing verse_audio_timing_verse_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse_audio_timing
+    ADD CONSTRAINT verse_audio_timing_verse_id_fkey FOREIGN KEY (verse_id) REFERENCES public.verse(id);
+
+
+--
+-- Name: verse verse_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse
+    ADD CONSTRAINT verse_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.book(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 
 --
@@ -1420,7 +1394,7 @@ ALTER TABLE ONLY public.gloss_history
 --
 
 ALTER TABLE ONLY public.weekly_gloss_statistics
-    ADD CONSTRAINT weekly_gloss_statistics_book_id_fkey FOREIGN KEY (book_id) REFERENCES public."Book"(id);
+    ADD CONSTRAINT weekly_gloss_statistics_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.book(id);
 
 
 --
@@ -1428,7 +1402,7 @@ ALTER TABLE ONLY public.weekly_gloss_statistics
 --
 
 ALTER TABLE ONLY public.weekly_gloss_statistics
-    ADD CONSTRAINT weekly_gloss_statistics_language_id_fkey FOREIGN KEY (language_id) REFERENCES public."Language"(id);
+    ADD CONSTRAINT weekly_gloss_statistics_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id);
 
 
 --
@@ -1436,15 +1410,23 @@ ALTER TABLE ONLY public.weekly_gloss_statistics
 --
 
 ALTER TABLE ONLY public.weekly_gloss_statistics
-    ADD CONSTRAINT weekly_gloss_statistics_user_id_fkey FOREIGN KEY (user_id) REFERENCES public."User"(id);
+    ADD CONSTRAINT weekly_gloss_statistics_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
--- Name: SCHEMA public; Type: ACL; Schema: -; Owner: -
+-- Name: word word_form_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-REVOKE USAGE ON SCHEMA public FROM PUBLIC;
-GRANT ALL ON SCHEMA public TO PUBLIC;
+ALTER TABLE ONLY public.word
+    ADD CONSTRAINT word_form_id_fkey FOREIGN KEY (form_id) REFERENCES public.lemma_form(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: word word_verse_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.word
+    ADD CONSTRAINT word_verse_id_fkey FOREIGN KEY (verse_id) REFERENCES public.verse(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 
 --

@@ -42,8 +42,8 @@ export async function importLanguage(_state: FormState, formData: FormData): Pro
         `SELECT 
             l.id,
             (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-            FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
-        FROM "Language" AS l WHERE l.code = $1`,
+            FROM language_member_role AS r WHERE r.language_id = l.id AND r.user_id = $2)
+        FROM language AS l WHERE l.code = $1`,
         [request.data.code, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -53,13 +53,13 @@ export async function importLanguage(_state: FormState, formData: FormData): Pro
 
     const result = await query(
         `
-        INSERT INTO "LanguageImportJob" AS job ("languageId", "startDate", "userId")
+        INSERT INTO language_import_job AS job (language_id, start_date, user_id)
         VALUES ($1, NOW(), $2)
-        ON CONFLICT ("languageId") DO UPDATE SET
-            "startDate" = NOW(),
-            "endDate" = NULL,
+        ON CONFLICT (language_id) DO UPDATE SET
+            start_date = NOW(),
+            end_date = NULL,
             succeeded = NULL,
-            "userId" = $2
+            user_id = $2
         WHERE job.succeeded IS NOT NULL
         `,
         [language.id, session.user.id]
@@ -112,8 +112,8 @@ export async function resetImport(formData: FormData): Promise<void> {
         `SELECT 
             l.id,
             (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-            FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
-        FROM "Language" AS l WHERE l.code = $1`,
+            FROM language_member_role AS r WHERE r.language_id = l.id AND r.user_id = $2)
+        FROM language AS l WHERE l.code = $1`,
         [request.data.code, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -123,8 +123,8 @@ export async function resetImport(formData: FormData): Promise<void> {
 
     await query(
         `
-        DELETE FROM "LanguageImportJob"
-        WHERE "languageId" = $1
+        DELETE FROM language_import_job
+        WHERE language_id = $1
         `,
         [language.id]
     )

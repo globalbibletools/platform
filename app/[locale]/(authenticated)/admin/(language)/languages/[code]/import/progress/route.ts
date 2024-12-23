@@ -12,8 +12,8 @@ export async function GET(_request: NextRequest, { params }: { params: { code: s
 async function fetchImportJob(code: string): Promise<{ succeeded: boolean } | undefined> {
     const jobQuery = await query<{ succeeded: boolean }>(
         `
-        SELECT succeeded FROM "LanguageImportJob" AS j
-        JOIN "Language" AS l ON l.id = j."languageId"
+        SELECT succeeded FROM language_import_job AS j
+        JOIN language AS l ON l.id = j.language_id
         WHERE l.code = $1
         `,
         [code]

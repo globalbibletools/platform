@@ -38,7 +38,7 @@ async function saveVerseTimings(version, bookId, timings) {
 
     const result = await client.query(
         `
-        INSERT INTO "VerseAudioTiming" ("verseId", "recordingId", "start", "end")
+        INSERT INTO verse_audio_timing (verse_id, recording_id, start, end)
         SELECT UNNEST($2::text[]), $1, UNNEST($3::FLOAT[]), UNNEST($4::FLOAT[])
         `,
         [version, data.map(d => d.verseId), data.map(d => d.start), data.map(d => d.end)]

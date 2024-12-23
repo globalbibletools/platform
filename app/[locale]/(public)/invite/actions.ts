@@ -62,11 +62,11 @@ export async function acceptInvite(prevState: FormState, formData: FormData): Pr
 
     const userId = await transaction(async query => {
         const updatedUserQuery = await query<{ id: string }> (
-            `UPDATE "User" AS u
+            `UPDATE users AS u
                 SET name = $2,
-                    "hashedPassword" = $3,
-                    "emailStatus" = 'VERIFIED'
-            WHERE u.id = (SELECT "userId" FROM "UserInvitation" WHERE token = $1)
+                    hashed_password = $3,
+                    email_status = 'VERIFIED'
+            WHERE u.id = (SELECT user_id FROM user_invitation WHERE token = $1)
             RETURNING id
             `,
             [request.data.token, `${request.data.first_name} ${request.data.last_name}`, await scrypt.hash(request.data.password)]
@@ -78,7 +78,7 @@ export async function acceptInvite(prevState: FormState, formData: FormData): Pr
         }
 
         await query(
-            `DELETE FROM "UserInvitation" WHERE "userId" = $1`,
+            `DELETE FROM user_invitation WHERE user_id = $1`,
             [userId]
         )
 

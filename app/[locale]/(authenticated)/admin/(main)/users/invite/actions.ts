@@ -46,7 +46,7 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
         }
     }
 
-    const existsQuery = await query(`SELECT FROM "User" WHERE email = $1`, [request.data.email])
+    const existsQuery = await query(`SELECT FROM users WHERE email = $1`, [request.data.email])
     if (existsQuery.rows.length > 0) {
         return {
             state: 'error',
@@ -57,9 +57,9 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
     const token = randomBytes(12).toString('hex')
     await query(
         `WITH new_user AS (
-            INSERT INTO "User" (email) VALUES ($1) RETURNING id
+            INSERT INTO users (email) VALUES ($1) RETURNING id
         )
-        INSERT INTO "UserInvitation" ("userId", token, expires)
+        INSERT INTO user_invitation (user_id, token, expires)
         SELECT id, $2, $3 FROM new_user
         `,
         [request.data.email, token, Date.now() + INVITE_EXPIRES]

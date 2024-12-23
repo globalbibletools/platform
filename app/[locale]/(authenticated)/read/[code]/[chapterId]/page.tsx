@@ -59,7 +59,7 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
           v.id,
           v.number,
           words.words
-        FROM "Verse" AS v
+        FROM verse AS v
         JOIN LATERAL (
             SELECT
               json_agg(json_strip_nulls(json_build_object(
@@ -68,44 +68,44 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
                 'gloss', g.gloss,
                 'linkedWords', ph.linked_words,
                 'footnote', fn.content,
-                'lemma', lf."lemmaId",
-                'grammar', lf."grammar",
+                'lemma', lf.lemma_id,
+                'grammar', lf.grammar,
                 'resource', lemma_resource.resource
               )) ORDER BY w.id) AS words
-            FROM "Word" AS w
+            FROM word AS w
             LEFT JOIN LATERAL (
-              SELECT ph.id, wds.words AS linked_words FROM "PhraseWord" AS phw
-              JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
+              SELECT ph.id, wds.words AS linked_words FROM phrase_word AS phw
+              JOIN phrase AS ph ON ph.id = phw.phrase_id
               LEFT JOIN LATERAL (
-                SELECT array_agg(phw2."wordId") AS words FROM "PhraseWord" AS phw2
-                WHERE phw2."phraseId" = ph.id
-                  AND phw2."wordId" != phw."wordId"
-                GROUP BY phw2."phraseId"
+                SELECT array_agg(phw2.word_id) AS words FROM phrase_word AS phw2
+                WHERE phw2.phrase_id = ph.id
+                  AND phw2.word_id != phw.word_id
+                GROUP BY phw2.phrase_id
               ) AS wds ON true
-              WHERE phw."wordId" = w.id
-                AND ph."deletedAt" IS NULL
-                AND ph."languageId" = (SELECT id FROM "Language" WHERE code = $3)
+              WHERE phw.word_id = w.id
+                AND ph.deleted_at IS NULL
+                AND ph.language_id = (SELECT id FROM language WHERE code = $3)
             ) AS ph ON true
-            LEFT JOIN "Gloss" AS g ON g."phraseId" = ph.id AND g.state = 'APPROVED'
-            LEFT JOIN "Footnote" AS fn ON fn."phraseId" = ph.id
-            JOIN "LemmaForm" AS lf ON lf.id = w."formId"
+            LEFT JOIN gloss AS g ON g.phrase_id = ph.id AND g.state = 'APPROVED'
+            LEFT JOIN footnote AS fn ON fn.phrase_id = ph.id
+            JOIN lemma_form AS lf ON lf.id = w.form_id
             LEFT JOIN LATERAL (
                 SELECT
                     CASE
-                        WHEN lr."resourceCode" IS NOT NULL
+                        WHEN lr.resource_code IS NOT NULL
                         THEN JSON_BUILD_OBJECT(
-                          'name', lr."resourceCode",
+                          'name', lr.resource_code,
                           'entry', lr.content
                         )
                         ELSE NULL
                     END AS resource
-                FROM "LemmaResource" AS lr
-                WHERE lr."lemmaId" = lf."lemmaId"
+                FROM lemma_resource AS lr
+                WHERE lr.lemma_id = lf.lemma_id
                 LIMIT 1
             ) AS lemma_resource ON true
-            WHERE w."verseId" = v.id
+            WHERE w.verse_id = v.id
         ) AS words ON true
-        WHERE v."bookId" = $1 AND v.chapter = $2
+        WHERE v.book_id = $1 AND v.chapter = $2
         `,
         [bookId, chapterId, code]
     )
@@ -124,8 +124,8 @@ async function fetchCurrentLanguage(code: string): Promise<CurrentLanguage | und
     const result = await query<CurrentLanguage>(
         `
         SELECT
-            code, name, font, "textDirection"
-        FROM "Language" AS l
+            code, name, font, text_direction AS "textDirection"
+        FROM language AS l
         WHERE code = $1
         `,
         [code]

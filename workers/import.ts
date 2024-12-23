@@ -8,8 +8,11 @@ export async function handler(event: SQSEvent) {
     const { languageCode, importLanguage } = JSON.parse(event.Records[0].body)
     const jobQuery = await query<{ languageId: string, userId: string }>(
         `
-        SELECT j."languageId", j."userId" FROM "LanguageImportJob" AS j
-        JOIN "Language" AS l ON l.id = j."languageId"
+        SELECT
+            j.language_id AS "languageId",
+            j.user_id AS "userId"
+        FROM language_import_job AS j
+        JOIN language AS l ON l.id = j.language_id
         WHERE l.code = $1
         `,
         [languageCode]
@@ -23,11 +26,11 @@ export async function handler(event: SQSEvent) {
 
     await query(
         `
-        UPDATE "Phrase" SET
-            "deletedAt" = NOW(),
-            "deletedBy" = $2::uuid
-        WHERE "languageId" = $1::uuid
-            AND "deletedAt" IS NULL
+        UPDATE phrase SET
+            deleted_at = NOW(),
+            deleted_by = $2::uuid
+        WHERE language_id = $1::uuid
+            AND deleted_at IS NULL
         `,
         [job.languageId, job.userId]
     )
@@ -84,28 +87,28 @@ export async function handler(event: SQSEvent) {
                     SELECT UNNEST($3::text[]) AS word_id, UNNEST($4::text[]) AS gloss
                 ),
                 phw AS (
-                  INSERT INTO "PhraseWord" ("phraseId", "wordId")
+                  INSERT INTO phrase_word (phrase_id, word_id)
                   SELECT
-                    nextval(pg_get_serial_sequence('"Phrase"', 'id')),
+                    nextval(pg_get_serial_sequence('phrase', 'id')),
                     data.word_id
                   FROM data
-                  RETURNING "phraseId", "wordId"
+                  RETURNING phrase_id, word_id
                 ),
                 phrase AS (
-                    INSERT INTO "Phrase" (id, "languageId", "createdAt", "createdBy")
+                    INSERT INTO phrase (id, language_id, created_at, created_by)
                     SELECT
-                        phw."phraseId",
+                        phw.phrase_id,
                         $1::uuid,
                         now(),
                         $2::uuid
                     FROM phw
                     RETURNING id
                 )
-                INSERT INTO "Gloss" ("phraseId", "gloss", "state", updated_at, updated_by, source)
+                INSERT INTO gloss (phrase_id, gloss, state, updated_at, updated_by, source)
                 SELECT phrase.id, data.gloss, 'APPROVED', NOW(), $2::uuid, 'IMPORT'
                 FROM phrase
-                JOIN phw ON phw."phraseId" = phrase.id
-                JOIN data ON data.word_id = phw."wordId"
+                JOIN phw ON phw.phrase_id = phrase.id
+                JOIN data ON data.word_id = phw.word_id
                 `,
                 [job.languageId, job.userId, glossData.map(d => d.wordId), glossData.map(d => d.gloss)]
             )
@@ -118,11 +121,11 @@ export async function handler(event: SQSEvent) {
 
     await query(
         `
-        UPDATE "LanguageImportJob"
+        UPDATE language_import_job
         SET
-            "endDate" = NOW(),
-            "succeeded" = TRUE
-        WHERE "languageId" = $1
+            end_date = NOW(),
+            succeeded = TRUE
+        WHERE language_id = $1
         `,
         [job.languageId]
     )

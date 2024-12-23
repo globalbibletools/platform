@@ -35,14 +35,14 @@ export async function changeUserRole(_prevState: FormState, formData: FormData):
 
     await transaction(async query => {
         await query(
-            `DELETE FROM "UserSystemRole" AS r WHERE r."userId" = $1 AND r.role != ALL($2::"SystemRole"[])`,
+            `DELETE FROM user_system_role AS r WHERE r.user_id = $1 AND r.role != ALL($2::system_role[])`,
             [request.data.userId, request.data.roles]
         )
 
         if (request.data.roles && request.data.roles.length > 0) {
             await query(`
-                INSERT INTO "UserSystemRole" ("userId", "role")
-                SELECT $1, UNNEST($2::"SystemRole"[])
+                INSERT INTO user_system_role (user_id, role)
+                SELECT $1, UNNEST($2::system_role[])
                 ON CONFLICT DO NOTHING`,
                 [request.data.userId, request.data.roles]
             )
@@ -77,11 +77,11 @@ export async function resendUserInvite(_prevState: FormState, formData: FormData
         SELECT
             COUNT(*) > 0 AS "isLanguageAdmin"
         FROM (
-            SELECT DISTINCT("languageId") AS id FROM "LanguageMemberRole" AS role
-            WHERE role."userId" = $1
+            SELECT DISTINCT(language_id) AS id FROM language_member_role
+            WHERE user_id = $1
         ) AS lang
-        JOIN "LanguageMemberRole" AS role ON role."languageId" = lang.id
-        WHERE role."userId" = $2
+        JOIN language_member_role AS role ON role.language_id = lang.id
+        WHERE role.user_id = $2
             AND role.role = 'ADMIN'
         `,
         [request.data.userId, session.user.id]
@@ -95,8 +95,8 @@ export async function resendUserInvite(_prevState: FormState, formData: FormData
     const userQuery = await query<{ email: string, isActive: boolean }>(
         `SELECT
             u.email,
-            u."hashedPassword" IS NOT NULL AS "isActive"
-        FROM "User" AS u
+            u.hashed_password IS NOT NULL AS "isActive"
+        FROM users AS u
         WHERE u.id = $1`,
         [request.data.userId]
     )
@@ -112,7 +112,7 @@ export async function resendUserInvite(_prevState: FormState, formData: FormData
     
     const token = randomBytes(12).toString('hex')
     await query(
-        `INSERT INTO "UserInvitation" ("userId", token, expires)
+        `INSERT INTO user_invitation (user_id, token, expires)
         VALUES ($1, $2, $3)
         `,
         [request.data.userId, token, Date.now() + INVITE_EXPIRES]

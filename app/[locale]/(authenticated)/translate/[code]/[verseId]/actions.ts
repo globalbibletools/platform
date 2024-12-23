@@ -28,9 +28,9 @@ export async function updateGloss(formData: FormData): Promise<any> {
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT "languageId" FROM "Phrase" WHERE id = $1) 
-            AND r."userId" = $2`,
+        FROM language_member_role AS r
+        WHERE r.language_id = (SELECT language_id FROM phrase WHERE id = $1) 
+            AND r.user_id = $2`,
         [request.data.phraseId, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -39,24 +39,24 @@ export async function updateGloss(formData: FormData): Promise<any> {
     }
 
     await query(
-        `INSERT INTO "Gloss" ("phraseId", state, gloss, updated_at, updated_by, source)
+        `INSERT INTO gloss (phrase_id, state, gloss, updated_at, updated_by, source)
         VALUES ($1, $2, $3, NOW(), $4, 'USER')
-        ON CONFLICT ("phraseId") DO UPDATE SET
-            state = COALESCE(EXCLUDED.state, "Gloss".state),
-            gloss = COALESCE(EXCLUDED.gloss, "Gloss".gloss),
+        ON CONFLICT (phrase_id) DO UPDATE SET
+            state = COALESCE(EXCLUDED.state, gloss.state),
+            gloss = COALESCE(EXCLUDED.gloss, gloss.gloss),
             updated_at = EXCLUDED.updated_at,
             updated_by = EXCLUDED.updated_by, 
             source = EXCLUDED.source
-            WHERE EXCLUDED.state <> "Gloss".state OR EXCLUDED.gloss <> "Gloss".gloss
+            WHERE EXCLUDED.state <> gloss.state OR EXCLUDED.gloss <> gloss.gloss
         `,
         [request.data.phraseId, request.data.state, request.data.gloss, session.user.id]
     )
 
     const pathQuery = await query<{ code: string, verseId: string }>(
-        `SELECT l.code, w."verseId" FROM "Phrase" AS ph
-        JOIN "Language" AS l ON l.id = ph."languageId"
-        JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
-        JOIN "Word" AS w ON w.id = phw."wordId"
+        `SELECT l.code, w.verse_id FROM phrase AS ph
+        JOIN language AS l ON l.id = ph.language_id
+        JOIN phrase_word AS phw ON phw.phrase_id = ph.id
+        JOIN word AS w ON w.id = phw.word_id
         WHERE ph.id = $1
         LIMIT 1`,
         [request.data.phraseId]
@@ -87,9 +87,9 @@ export async function updateTranslatorNote(formData: FormData): Promise<any> {
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT "languageId" FROM "Phrase" WHERE id = $1) 
-            AND r."userId" = $2`,
+        FROM language_member_role AS r
+        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
+            AND r.user_id = $2`,
         [request.data.phraseId, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -98,10 +98,10 @@ export async function updateTranslatorNote(formData: FormData): Promise<any> {
     }
 
     const result = await query<{ state: string, gloss: string }>(
-        `INSERT INTO "TranslatorNote" ("phraseId", "authorId", timestamp, content)
+        `INSERT INTO translator_note (phrase_id, author_id, timestamp, content)
         VALUES ($1, $2, $3, $4)
-        ON CONFLICT ("phraseId") DO UPDATE SET
-            "authorId" = EXCLUDED."authorId",
+        ON CONFLICT (phrase_id) DO UPDATE SET
+            author_id = EXCLUDED.author_id,
             timestamp = EXCLUDED.timestamp,
             content = EXCLUDED.content
         `,
@@ -112,10 +112,10 @@ export async function updateTranslatorNote(formData: FormData): Promise<any> {
     }
 
     const pathQuery = await query<{ code: string, verseId: string }>(
-        `SELECT l.code, w."verseId" FROM "Phrase" AS ph
-        JOIN "Language" AS l ON l.id = ph."languageId"
-        JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
-        JOIN "Word" AS w ON w.id = phw."wordId"
+        `SELECT l.code, w.verse_id FROM phrase AS ph
+        JOIN language AS l ON l.id = ph.language_id
+        JOIN phrase_word AS phw ON phw.phrase_id = ph.id
+        JOIN word AS w ON w.id = phw.word_id
         WHERE ph.id = $1
         LIMIT 1`,
         [request.data.phraseId]
@@ -146,9 +146,9 @@ export async function updateFootnote(formData: FormData): Promise<any> {
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM "LanguageMemberRole" AS r
-        WHERE r."languageId" = (SELECT "languageId" FROM "Phrase" WHERE id = $1) 
-            AND r."userId" = $2`,
+        FROM language_member_role AS r
+        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
+            AND r.user_id = $2`,
         [request.data.phraseId, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -157,10 +157,10 @@ export async function updateFootnote(formData: FormData): Promise<any> {
     }
 
     const result = await query<{ state: string, gloss: string }>(
-        `INSERT INTO "Footnote" ("phraseId", "authorId", timestamp, content)
+        `INSERT INTO footnote (phrase_id, author_id, timestamp, content)
         VALUES ($1, $2, $3, $4)
-        ON CONFLICT ("phraseId") DO UPDATE SET
-            "authorId" = EXCLUDED."authorId",
+        ON CONFLICT (phrase_id) DO UPDATE SET
+            author_id = EXCLUDED.author_id,
             timestamp = EXCLUDED.timestamp,
             content = EXCLUDED.content
         `,
@@ -171,10 +171,10 @@ export async function updateFootnote(formData: FormData): Promise<any> {
     }
 
     const pathQuery = await query<{ code: string, verseId: string }>(
-        `SELECT l.code, w."verseId" FROM "Phrase" AS ph
-        JOIN "Language" AS l ON l.id = ph."languageId"
-        JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
-        JOIN "Word" AS w ON w.id = phw."wordId"
+        `SELECT l.code, w.verse_id FROM phrase AS ph
+        JOIN language AS l ON l.id = ph.language_id
+        JOIN phrase_word AS phw ON phw.phrase_id = ph.id
+        JOIN word AS w ON w.id = phw.word_id
         WHERE ph.id = $1
         LIMIT 1`,
         [request.data.phraseId]

@@ -43,7 +43,7 @@ interface Language {
 // TODO: cache this, it will only change when languages are added or reconfigured
 async function fetchLanguages(): Promise<Language[]> {
     const result = await query<Language>(
-        `SELECT code, name FROM "Language" ORDER BY name`,
+        `SELECT code, name FROM language ORDER BY name`,
         []
     )
     return result.rows
@@ -61,8 +61,8 @@ async function fetchCurrentLanguage(code: string): Promise<CurrentLanguage | und
     const result = await query<CurrentLanguage>(
         `
         SELECT
-            code, name, font, "textDirection"
-        FROM "Language" AS l
+            code, name, font, text_direction AS "textDirection"
+        FROM language AS l
         WHERE code = $1
         `,
         [code]

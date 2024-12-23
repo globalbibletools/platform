@@ -113,15 +113,15 @@ interface User {
 async function fetchUsers() {
     const usersQuery = await query<User>(
         `SELECT
-            id, name, email, "emailStatus",
+            id, name, email, email_status AS "emailStatus",
             roles.list AS roles,
             invitation.json AS invite
-        FROM "User" AS u
+        FROM users AS u
         JOIN LATERAL (
             SELECT
                 COALESCE(json_agg(r.role), '[]') AS list
-            FROM "UserSystemRole" AS r
-            WHERE r."userId" = u.id
+            FROM user_system_role AS r
+            WHERE r.user_id = u.id
         ) AS roles ON true
         LEFT JOIN LATERAL (
             SELECT
@@ -129,9 +129,9 @@ async function fetchUsers() {
 				  'token', i.token,
 				  'expires', i.expires
 				) as json
-            FROM "UserInvitation" AS i
-            WHERE i."userId" = u.id
-            ORDER BY i."expires" DESC
+            FROM user_invitation AS i
+            WHERE i.user_id = u.id
+            ORDER BY i.expires DESC
             LIMIT 1
         ) AS invitation ON true
         ORDER BY u.name`,

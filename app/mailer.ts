@@ -63,7 +63,7 @@ const mailer = {
     } else {
       const userRequest = await query<{ email: string, emailStatus: string }>(
         `
-        SELECT email, "emailStatus" FROM "User" WHERE id = $1
+        SELECT email, "emailStatus" FROM users WHERE id = $1
         `,
         [options.userId]
       )

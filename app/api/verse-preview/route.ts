@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     const languageQuery = await query<{ bibleTranslationIds: string[] }>(
         `
-        SELECT COALESCE("bibleTranslationIds", '{}') AS "bibleTranslationIds" FROM "Language" WHERE code = $1
+        SELECT COALESCE("translation_ids", '{}') AS "bibleTranslationIds" FROM language WHERE code = $1
         `,
         [request.data.code]
     )
@@ -39,11 +39,11 @@ export async function GET(req: NextRequest) {
     const verseQuery = await query<{ id: string, text: string }>(
         `
         SELECT
-            w."verseId" AS id,
-            STRING_AGG(w."text", ' ' ORDER BY w.id) AS text
-        FROM "Word" AS w
-        WHERE w."verseId" = ANY($1::text[])
-        GROUP BY w."verseId"
+            w.verse_id AS id,
+            STRING_AGG(w.text, ' ' ORDER BY w.id) AS text
+        FROM word AS w
+        WHERE w.verse_id = ANY($1::text[])
+        GROUP BY w.verse_id
         `,
         [request.data.verseIds]
     )

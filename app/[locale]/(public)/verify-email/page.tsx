@@ -34,7 +34,7 @@ export default async function EmailVerificationView({ searchParams }: Props) {
     email: string;
     expires: number;
   }>(
-    `SELECT "userId", "email", "expires" FROM "UserEmailVerification" WHERE "token" = $1`,
+    `SELECT user_id, email, expires FROM user_email_verification WHERE token = $1`,
     [searchParams.token]
   );
   const verification = verificationQuery.rows[0];
@@ -46,14 +46,14 @@ export default async function EmailVerificationView({ searchParams }: Props) {
   try {
     await transaction(async (q) => {
       await q(
-        `UPDATE "User" SET 
-                "email" = $1, 
-                "emailStatus" = 'VERIFIED' 
-            WHERE "User".id = $2
+        `UPDATE users SET 
+                email = $1, 
+                email_status = 'VERIFIED' 
+            WHERE users.id = $2
             `,
         [verification.email, verification.userId]
       );
-      await q(`DELETE FROM "UserEmailVerification" WHERE "token" = $1`, [
+      await q(`DELETE FROM user_email_verification WHERE token = $1`, [
         searchParams.token,
       ]);
     });

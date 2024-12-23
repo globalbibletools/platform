@@ -52,8 +52,8 @@ export async function updateLanguageSettings(_prevState: FormState, formData: Fo
     const languageQuery = await query<{ roles: string[] }>(
         `SELECT 
             (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-            FROM "LanguageMemberRole" AS r WHERE r."languageId" = l.id AND r."userId" = $2)
-        FROM "Language" AS l WHERE l.code = $1`,
+            FROM language_member_role AS r WHERE r.language_id = l.id AND r.user_id = $2)
+        FROM language AS l WHERE l.code = $1`,
         [request.data.code, session.user.id]
     )
     const language = languageQuery.rows[0]
@@ -63,11 +63,11 @@ export async function updateLanguageSettings(_prevState: FormState, formData: Fo
     }
 
     await query(
-        `UPDATE "Language"
+        `UPDATE language
             SET name = $2,
                 font = $3,
-                "textDirection" = $4,
-                "bibleTranslationIds" = $5::text[]
+                text_direction = $4,
+                translation_ids = $5::text[]
         WHERE code = $1`,
         [request.data.code, request.data.name, request.data.font, request.data.textDirection, request.data.bibleTranslationIds ?? []]
     )

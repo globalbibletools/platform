@@ -121,8 +121,8 @@ interface LanguageImportJob {
 async function fetchImportJob(code: string): Promise<LanguageImportJob | undefined> {
     const jobQuery = await query<LanguageImportJob>(
         `
-        SELECT "startDate", "endDate", succeeded FROM "LanguageImportJob" AS j
-        JOIN "Language" AS l ON l.id = j."languageId"
+        SELECT start_date AS "startDate", end_date AS "endDate", succeeded FROM language_import_job AS j
+        JOIN language AS l ON l.id = j.language_id
         WHERE l.code = $1
         `,
         [code]

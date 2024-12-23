@@ -58,8 +58,8 @@ export default async function updateProfile(
   if(parsedData.email && parsedData.email !== parsedData.prev_email){
     const token = randomBytes(12).toString('hex');
     await query(
-      `INSERT INTO "UserEmailVerification"
-          ("userId", "token", "email", "expires") 
+      `INSERT INTO user_email_verification
+          (user_id, token, email, expires) 
           VALUES ($1, $2, $3, $4)
       `, 
       [parsedData.user_id, token, parsedData.email, Date.now() + EMAIL_VERIFICATION_EXPIRES]
@@ -81,10 +81,10 @@ export default async function updateProfile(
       html: `Your password for Global Bible Tools has changed.`,
     });
     await query(
-      `UPDATE "User"
-                  SET "name" = $1, 
-                      "hashedPassword" = $2
-                WHERE "id" = $3`,
+        `UPDATE users
+        SET name = $1, 
+            hashed_password = $2
+        WHERE id = $3`,
       [
         parsedData.name,
         await scrypt.hash(parsedData.password),
@@ -93,9 +93,9 @@ export default async function updateProfile(
     );
   } else {
     await query(
-      `UPDATE "User"
-                SET "name" = $1
-              WHERE "id" = $2`,
+      `UPDATE users
+        SET name = $1
+      WHERE id = $2`,
       [parsedData.name, parsedData.user_id]
     );
   }

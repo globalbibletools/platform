@@ -84,22 +84,22 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
     await query(
         `
             WITH phw AS (
-              INSERT INTO "PhraseWord" ("phraseId", "wordId")
+              INSERT INTO phrase_word (phrase_id, word_id)
               SELECT
-                nextval(pg_get_serial_sequence('"Phrase"', 'id')),
+                nextval(pg_get_serial_sequence('phrase', 'id')),
                 w.id
-              FROM "Word" AS w
+              FROM word AS w
               LEFT JOIN (
-                SELECT * FROM "PhraseWord" AS phw
-                JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
-                WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $1)
-                  AND ph."deletedAt" IS NULL
-              ) ph ON ph."wordId" = w.id
-              WHERE w."verseId" = $2 AND ph.id IS NULL
-              RETURNING "phraseId", "wordId"
+                SELECT * FROM phrase_word AS phw
+                JOIN phrase AS ph ON ph.id = phw.phrase_id
+                WHERE ph.language_id = (SELECT id FROM language WHERE code = $1)
+                  AND ph.deleted_at IS NULL
+              ) ph ON ph.word_id = w.id
+              WHERE w.verse_id = $2 AND ph.id IS NULL
+              RETURNING phrase_id, word_id
             )
-            INSERT INTO "Phrase" (id, "languageId", "createdAt", "createdBy")
-            SELECT phw."phraseId", (SELECT id FROM "Language" WHERE code = $1), now(), $3::uuid FROM phw
+            INSERT INTO phrase (id, language_id, created_at, created_by)
+            SELECT phw.phrase_id, (SELECT id FROM language WHERE code = $1), now(), $3::uuid FROM phw
         `,
         [languageCode, verseId, userId]
     )
@@ -109,7 +109,7 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
 			ph.id,
 			ph.word_ids AS "wordIds",
 			CASE
-				WHEN g."phraseId" IS NOT NULL
+				WHEN g.phrase_id IS NOT NULL
 				THEN JSON_BUILD_OBJECT(
 				  'text', g.gloss,
 				  'state', g.state
@@ -119,43 +119,43 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
 			fn.note AS "footnote",
 			tn.note AS "translatorNote"
 		FROM (
-			SELECT ph.id, ARRAY_AGG(phw."wordId" ORDER BY phw."wordId") AS word_ids FROM "Phrase" AS ph
-			JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
-			WHERE ph."languageId" = (SELECT id FROM "Language" WHERE code = $2)
-				AND ph."deletedAt" IS NULL
+			SELECT ph.id, ARRAY_AGG(phw.word_id ORDER BY phw.word_id) AS word_ids FROM phrase AS ph
+			JOIN phrase_word AS phw ON phw.phrase_id = ph.id
+			WHERE ph.language_id = (SELECT id FROM language WHERE code = $2)
+				AND ph.deleted_at IS NULL
 				AND EXISTS (
-					SELECT FROM "Word" AS w
-					JOIN "PhraseWord" AS phw2 ON phw2."wordId" = w.id
-					WHERE w.id = phw."wordId"
-						AND w."verseId" = $1
-						AND phw2."phraseId" = ph.id
+					SELECT FROM word AS w
+					JOIN phrase_word AS phw2 ON phw2.word_id = w.id
+					WHERE w.id = phw.word_id
+						AND w.verse_id = $1
+						AND phw2.phrase_id = ph.id
 				)
 			GROUP BY ph.id
 		) AS ph
 		
-		LEFT JOIN "Gloss" AS g ON g."phraseId" = ph.id
+		LEFT JOIN gloss AS g ON g.phrase_id = ph.id
 		LEFT JOIN (
 			SELECT
-				n."phraseId",
+				n.phrase_id,
 				JSON_BUILD_OBJECT(
 				  'timestamp', n.timestamp,
 				  'content', n.content,
 				  'authorName', COALESCE(u.name, '')
 				) AS note
-			FROM "Footnote" AS n
-			JOIN "User" AS u ON u.id = n."authorId"
-		) AS fn ON fn."phraseId" = ph.id
+			FROM footnote AS n
+			JOIN users AS u ON u.id = n.author_id
+		) AS fn ON fn.phrase_id = ph.id
 		LEFT JOIN LATERAL (
 			SELECT
-				n."phraseId",
+				n.phrase_id,
 				JSON_BUILD_OBJECT(
 				  'timestamp', n.timestamp,
 				  'content', n.content,
 				  'authorName', COALESCE(u.name, '')
 				) AS note
-			FROM "TranslatorNote" AS n
-			JOIN "User" AS u ON u.id = n."authorId"
-		) AS tn ON tn."phraseId" = ph.id
+			FROM translator_note AS n
+			JOIN users AS u ON u.id = n.author_id
+		) AS tn ON tn.phrase_id = ph.id
 		ORDER BY ph.id
         `,
         [verseId, languageCode]
@@ -172,10 +172,10 @@ async function fetchMachineSuggestions(verseId: string, languageCode: string): P
     const result = await query<MachineSuggestion>(
         `
         SELECT w.id AS "wordId", mg.gloss AS suggestion
-        FROM "Word" AS w
-        JOIN "MachineGloss" AS mg ON mg."wordId" = w.id
-        WHERE w."verseId" = $1
-			AND mg."languageId" = (SELECT id FROM "Language" WHERE code = $2)
+        FROM word AS w
+        JOIN machine_gloss AS mg ON mg.word_id = w.id
+        WHERE w.verse_id = $1
+			AND mg.language_id = (SELECT id FROM language WHERE code = $2)
         `,
         [verseId, languageCode]
     )
@@ -191,16 +191,16 @@ async function fetchSuggestions(verseId: string, languageCode: string): Promise<
     const result = await query<FormSuggestion>(
         `
         SELECT 
-            sc."formId",
+            sc.form_id AS "formId",
             ARRAY_AGG(sc.gloss ORDER BY sc.count DESC) AS suggestions
-        FROM "LemmaFormSuggestionCount" AS sc
+        FROM lemma_form_suggestion AS sc
         JOIN (
-            SELECT DISTINCT "formId" AS id FROM "Word"
-            WHERE "verseId" = $1
-        ) AS form ON form.id = sc."formId"
-        WHERE sc."languageId" = (SELECT id FROM "Language" WHERE code = $2)
+            SELECT DISTINCT form_id AS id FROM word
+            WHERE verse_id = $1
+        ) AS form ON form.id = sc.form_id
+        WHERE sc.language_id = (SELECT id FROM language WHERE code = $2)
             AND sc.count > 0
-        GROUP BY sc."formId"
+        GROUP BY sc.form_id
         `,
         [verseId, languageCode]
     )
@@ -232,41 +232,41 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
                         'id', w.id, 
                         'text', w.text,
                         'referenceGloss', ph.gloss,
-                        'lemma', lf."lemmaId",
+                        'lemma', lf.lemma_id,
                         'formId', lf.id,
                         'grammar', lf.grammar,
                         'resource', lemma_resource.resource
                     ) ORDER BY w.id)
-                FROM "Word" AS w
+                FROM word AS w
 
                 LEFT JOIN LATERAL (
-                    SELECT g.gloss FROM "PhraseWord" AS phw
-                    JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
-                    JOIN "Gloss" AS g ON g."phraseId" = ph.id
-                    WHERE phw."wordId" = w.id
-                        AND ph."languageId" = (SELECT id FROM "Language" WHERE code = 'eng')
-                        AND ph."deletedAt" IS NULL
+                    SELECT g.gloss FROM phrase_word AS phw
+                    JOIN phrase AS ph ON ph.id = phw.phrase_id
+                    JOIN gloss AS g ON g.phrase_id = ph.id
+                    WHERE phw.word_id = w.id
+                        AND ph.language_id = (SELECT id FROM language WHERE code = 'eng')
+                        AND ph.deleted_at IS NULL
                 ) AS ph ON true
 
-                JOIN "LemmaForm" AS lf ON lf.id = w."formId"
+                JOIN lemma_form AS lf ON lf.id = w.form_id
                 LEFT JOIN LATERAL (
                     SELECT
                         CASE
-                            WHEN lr."resourceCode" IS NOT NULL
+                            WHEN lr.resource_code IS NOT NULL
                             THEN JSON_BUILD_OBJECT(
-                              'name', lr."resourceCode",
+                              'name', lr.resource_code,
                               'entry', lr.content
                             )
                             ELSE NULL
                         END AS resource
-                    FROM "LemmaResource" AS lr
-                    WHERE lr."lemmaId" = lf."lemmaId"
+                    FROM lemma_resource AS lr
+                    WHERE lr.lemma_id = lf.lemma_id
                     LIMIT 1
                 ) AS lemma_resource ON true
      
-                WHERE w."verseId" = v.id
+                WHERE w.verse_id = v.id
             ) AS words
-        FROM "Verse" AS v
+        FROM verse AS v
         WHERE v.id = $1
         `,
         [verseId]
@@ -305,17 +305,17 @@ async function saveMachineTranslations(code: string, referenceGlosses: string[],
     try {
         await query(
             `
-            INSERT INTO "MachineGloss" ("wordId", "gloss", "languageId")
-            SELECT phw."wordId", data.machine_gloss, (SELECT id FROM "Language" WHERE code = $1)
-            FROM "PhraseWord" AS phw
-            JOIN "Gloss" AS g ON g."phraseId" = phw."phraseId"
-            JOIN "Phrase" AS ph ON phw."phraseId" = ph.id
+            INSERT INTO machine_gloss (word_id, gloss, language_id)
+            SELECT phw.word_id, data.machine_gloss, (SELECT id FROM language WHERE code = $1)
+            FROM phrase_word AS phw
+            JOIN gloss AS g ON g.phrase_id = phw.phrase_id
+            JOIN phrase AS ph ON phw.phrase_id = ph.id
             JOIN UNNEST($2::text[], $3::text[]) data (ref_gloss, machine_gloss)
                 ON LOWER(g.gloss) = data.ref_gloss
-            WHERE ph."deletedAt" IS NULL
-                AND ph."languageId" = (SELECT id FROM "Language" WHERE code = 'eng')
-            ON CONFLICT ON CONSTRAINT "MachineGloss_pkey"
-            DO UPDATE SET gloss = EXCLUDED."gloss"
+            WHERE ph.deleted_at IS NULL
+                AND ph.language_id = (SELECT id FROM language WHERE code = 'eng')
+            ON CONFLICT ON CONSTRAINT machinge_gloss_pkey
+            DO UPDATE SET gloss = EXCLUDED.gloss
             `,
             [code, referenceGlosses, machineGlosses]
         )

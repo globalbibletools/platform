@@ -28,7 +28,7 @@ export default async function ProfileView() {
   if (!session) notFound();
 
   const result = await query<{ name?: string; email: string }>(
-    `SELECT name, email FROM "User" WHERE id = $1`,
+    `SELECT name, email FROM users WHERE id = $1`,
     [session.user.id]
   );
   const user = result?.rows[0];

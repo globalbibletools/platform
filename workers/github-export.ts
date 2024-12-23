@@ -66,11 +66,11 @@ async function exportLanguage(code: string) {
 
 async function fetchUpdatedLanguages() {
     const result = await query<{ code: string }>(
-        `SELECT DISTINCT lang.code FROM "Gloss" gloss
-        JOIN "Phrase" ph ON ph.id = gloss."phraseId"
-        JOIN "Language" lang ON lang.id = ph."languageId"
+        `SELECT DISTINCT lang.code FROM gloss
+        JOIN phrase ph ON ph.id = gloss.phrase_id
+        JOIN language lang ON lang.id = ph.language_id
         WHERE gloss.updated_at >= NOW() - INTERVAL '8 days'
-            OR ph."deletedAt" >= NOW() - INTERVAL '8 days'
+            OR ph.deleted_at >= NOW() - INTERVAL '8 days'
         ORDER BY lang.code
         `,
         []
@@ -108,40 +108,40 @@ function fetchLanguageData(languageId: string) {
                 'id', book_chapters.chapter,
                 'verses', book_chapters.verses
             ) ORDER BY book_chapters.chapter) AS chapters
-        FROM "Book" book
+        FROM book
         JOIN (
             SELECT
-                verse."bookId",
-                verse."chapter",
+                verse.book_id,
+                verse.chapter,
                 JSON_AGG(JSON_BUILD_OBJECT(
                     'id', verse.id,
                     'words', verse_words.words
                 ) ORDER BY verse.id) AS verses
-            FROM "Verse" verse
+            FROM verse
             JOIN (
                 SELECT
-                    word."verseId",
+                    word.verse_id
                     JSON_AGG(JSON_BUILD_OBJECT(
                         'id', word.id,
                         'gloss', gloss.gloss
                     ) ORDER BY word.id) AS words
-                FROM "Word" word
+                FROM word
                 LEFT JOIN LATERAL (
-                    SELECT gloss.gloss FROM "Gloss" gloss
+                    SELECT gloss.gloss FROM gloss
                     WHERE gloss.state = 'APPROVED'
                         AND EXISTS (
-                            SELECT FROM "PhraseWord" phrase_word 
-                            JOIN "Phrase" phrase ON phrase_word."phraseId" = phrase.id
-                            WHERE phrase."languageId" = (SELECT id FROM "Language" WHERE code = $1)
-                                AND phrase."deletedAt" IS NULL
-                                AND phrase_word."wordId" = word.id
-                                AND gloss."phraseId" = phrase.id
+                            SELECT FROM phrase_word 
+                            JOIN phrase ON phrase_word.phrase_id = phrase.id
+                            WHERE phrase.language_id = (SELECT id FROM language WHERE code = $1)
+                                AND phrase.deleted_at IS NULL
+                                AND phrase_word.word_id = word.id
+                                AND gloss.phrase_id = phrase.id
                         )
                 ) gloss ON true
-                GROUP BY word."verseId"
-            ) verse_words ON verse.id = verse_words."verseId"
-            GROUP BY verse."bookId", verse."chapter"
-        ) book_chapters ON book_chapters."bookId" = book.id
+                GROUP BY word.verse_id
+            ) verse_words ON verse.id = verse_words.verse_id
+            GROUP BY verse.book_id, verse.chapter
+        ) book_chapters ON book_chapters.book_id = book.id
         GROUP BY book.id
         `,
         [languageId]

@@ -59,14 +59,14 @@ export async function POST(req: Request) {
 
               const emails = message.bounce.bouncedRecipients.map(r => r.emailAddress.toLowerCase())
               console.log(`Email bounced: ${emails.join(', ')}`)
-              await query(`UPDATE "User" SET "emailStatus" = 'BOUNCED' WHERE email = ANY($1::text[])`, [emails])
+              await query(`UPDATE users SET email_status = 'BOUNCED' WHERE email = ANY($1::text[])`, [emails])
 
               break;
             }
             case 'Complaint': {
               const emails = message.complaint.complainedRecipients.map(r => r.emailAddress.toLowerCase())
               console.log(`Email complaint: ${emails.join(', ')}`);
-              await query(`UPDATE "User" SET "emailStatus" = 'COMPLAINED' WHERE email = ANY($1::text[])`, [emails])
+              await query(`UPDATE "User" SET email_status = 'COMPLAINED' WHERE email = ANY($1::text[])`, [emails])
 
               break;
             }

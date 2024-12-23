@@ -54,18 +54,18 @@ interface BookTotalProgress {
 
 async function fetchCurrentProgress(code: string): Promise<BookTotalProgress[]> {
     const request = await query<BookTotalProgress>(
-        `SELECT b.name, COUNT(*) AS "wordCount", COUNT(*) FILTER (WHERE ph."wordId" IS NOT NULL) AS "approvedCount" FROM "Book" AS b
-        JOIN "Verse" AS v ON v."bookId" = b.id
-        JOIN "Word" AS w ON w."verseId" = v.id
+        `SELECT b.name, COUNT(*) AS "wordCount", COUNT(*) FILTER (WHERE ph.word_id IS NOT NULL) AS "approvedCount" FROM book AS b
+        JOIN verse AS v ON v.book_id = b.id
+        JOIN word AS w ON w.verse_id = v.id
         LEFT JOIN (
-          SELECT phw."wordId" FROM "PhraseWord" AS phw
-          JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
-          JOIN "Gloss" AS g ON g."phraseId" = ph.id
-          JOIN "Language" AS l ON l.id = ph."languageId"
+          SELECT phw.word_id FROM phrase_word AS phw
+          JOIN phrase AS ph ON ph.id = phw.phrase_id
+          JOIN gloss AS g ON g.phrase_id = ph.id
+          JOIN language AS l ON l.id = ph.language_id
           WHERE l.code = $1
-            AND ph."deletedAt" IS NULL
+            AND ph.deleted_at IS NULL
             AND g.state = 'APPROVED'
-        ) AS ph ON ph."wordId" = w.id
+        ) AS ph ON ph.word_id = w.id
         GROUP BY b.id
         ORDER BY b.id`,
         [code]
@@ -111,9 +111,9 @@ async function fetchLanguageProgressData(code: string): Promise<ProgressData> {
         `SELECT
             (
                 SELECT JSON_AGG(book) FROM (
-                    SELECT JSON_BUILD_OBJECT('id', book.id, 'name', book.name, 'wordCount', COUNT(*)) AS book FROM "Book" book
-                    JOIN "Verse" verse ON verse."bookId" = book.id
-                    JOIN "Word" word ON word."verseId" = verse.id
+                    SELECT JSON_BUILD_OBJECT('id', book.id, 'name', book.name, 'wordCount', COUNT(*)) AS book FROM book
+                    JOIN verse ON verse.book_id = book.id
+                    JOIN word ON word.verse_id = verse.id
                     GROUP BY book.id
                     ORDER BY book.id
                 ) book
@@ -122,8 +122,8 @@ async function fetchLanguageProgressData(code: string): Promise<ProgressData> {
                 SELECT JSON_AGG(JSON_BUILD_OBJECT('id', id, 'name', name))
                 FROM (
                     SELECT DISTINCT ON (u.id) u.id, u.name FROM weekly_gloss_statistics s
-                    JOIN "User" u ON u.id = s.user_id
-                    WHERE s.language_id = (SELECT id FROM "Language" WHERE code = $1)
+                    JOIN users u ON u.id = s.user_id
+                    WHERE s.language_id = (SELECT id FROM language WHERE code = $1)
                     ORDER BY u.id ASC
                 ) u
             ) AS contributors,
@@ -137,7 +137,7 @@ async function fetchLanguageProgressData(code: string): Promise<ProgressData> {
                             week, book_id,
                             JSON_AGG(JSON_BUILD_OBJECT('userId', user_id, 'approvedCount', approved_count, 'unapprovedCount', unapproved_count)) AS users
                         FROM weekly_gloss_statistics
-                        WHERE language_id = (SELECT id FROM "Language" WHERE code = $1)
+                        WHERE language_id = (SELECT id FROM language WHERE code = $1)
                         GROUP BY week, book_id
                     ) book_week
                     GROUP BY week

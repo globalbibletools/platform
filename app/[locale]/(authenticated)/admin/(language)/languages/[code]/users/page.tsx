@@ -133,22 +133,22 @@ async function fetchUsers(code: string) {
             invitation.json AS invite
         FROM (
             SELECT 
-                r."userId" AS id,
+                r.user_id AS id,
                 COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL AND r.role != 'VIEWER'), '[]') AS roles
-            FROM "LanguageMemberRole" AS r
-            WHERE r."languageId" = (SELECT id FROM "Language" WHERE code = $1)
-            GROUP BY r."userId"
+            FROM language_member_role AS r
+            WHERE r.language_id = (SELECT id FROM language WHERE code = $1)
+            GROUP BY r.user_id
         ) AS m
-        JOIN "User" AS u ON m.id = u.id
+        JOIN users AS u ON m.id = u.id
         LEFT JOIN LATERAL (
             SELECT
 				JSON_BUILD_OBJECT(
 				  'token', i.token,
 				  'expires', i.expires
 				) as json
-            FROM "UserInvitation" AS i
-            WHERE i."userId" = u.id
-            ORDER BY i."expires" DESC
+            FROM user_invitation AS i
+            WHERE i.user_id = u.id
+            ORDER BY i.expires DESC
             LIMIT 1
         ) AS invitation ON true
         ORDER BY u.name`,

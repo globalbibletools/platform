@@ -42,7 +42,7 @@ export async function createLanguage(_prevState: FormState, formData: FormData):
         }
     }
 
-    const existsQuery = await query(`SELECT FROM "Language" WHERE code = $1`, [request.data.code])
+    const existsQuery = await query(`SELECT FROM language WHERE code = $1`, [request.data.code])
     if (existsQuery.rows.length > 0) {
         return {
             state: 'error',
@@ -50,7 +50,7 @@ export async function createLanguage(_prevState: FormState, formData: FormData):
         }
     }
 
-    await query(`INSERT INTO "Language" (code, name) VALUES ($1, $2)`, [request.data.code, request.data.name])
+    await query(`INSERT INTO language (code, name) VALUES ($1, $2)`, [request.data.code, request.data.name])
 
     redirect(`/${locale}/admin/languages/${request.data.code}/settings`)
 }
