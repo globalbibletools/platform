@@ -84,6 +84,9 @@ ALTER TABLE phrase_word RENAME CONSTRAINT "PhraseWord_wordId_fkey" TO phrase_wor
 ALTER INDEX "PhraseWord_pkey" RENAME TO phrase_word_pkey;
 ALTER INDEX "PhraseWord_wordId_phraseId_idx" RENAME TO phrase_word_word_id_phrase_id_idx;
 
+ALTER TABLE "Recording" RENAME TO recording;
+ALTER INDEX "Recording_pkey" RENAME TO recording_pkey;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$
