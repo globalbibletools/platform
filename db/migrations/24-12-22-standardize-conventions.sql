@@ -76,6 +76,14 @@ ALTER TABLE phrase RENAME CONSTRAINT "Phrase_languageId_fkey" TO phrase_language
 ALTER INDEX "Phrase_pkey" RENAME TO phrase_pkey;
 ALTER INDEX "Phrase_languageId_deletedAt_idx" RENAME TO phrase_language_id_deleted_at_idx;
 
+ALTER TABLE "PhraseWord" RENAME TO phrase_word;
+ALTER TABLE phrase_word RENAME COLUMN "phraseId" TO phrase_id;
+ALTER TABLE phrase_word RENAME COLUMN "wordId" TO word_id;
+ALTER TABLE phrase_word RENAME CONSTRAINT "PhraseWord_phraseId_fkey" TO phrase_word_phrase_id_fkey;
+ALTER TABLE phrase_word RENAME CONSTRAINT "PhraseWord_wordId_fkey" TO phrase_word_word_id_fkey;
+ALTER INDEX "PhraseWord_pkey" RENAME TO phrase_word_pkey;
+ALTER INDEX "PhraseWord_wordId_phraseId_idx" RENAME TO phrase_word_word_id_phrase_id_idx;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$
@@ -100,8 +108,8 @@ BEGIN
             NEW.gloss,
             1
         FROM "Word" AS w
-        JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
-        JOIN phrase AS ph ON  phw."phraseId" = ph.id
+        JOIN phrase_word AS phw ON phw.word_id = w.id
+        JOIN phrase AS ph ON  phw.phrase_id = ph.id
         WHERE ph.id = NEW.phrase_id
         ON CONFLICT ("languageId", "formId", gloss) DO UPDATE
             SET count = c.count + 1;
@@ -124,8 +132,8 @@ BEGIN
             AND c."languageId" = (SELECT language_id FROM phrase WHERE id = OLD.phrase_id)
             AND c."formId" IN (
                 SELECT w."formId" FROM "Word" AS w
-                JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
-                JOIN phrase AS ph ON  phw."phraseId" = ph.id
+                JOIN phrase_word AS phw ON phw.word_id = w.id
+                JOIN phrase AS ph ON  phw.phrase_id = ph.id
                 WHERE ph.id = OLD.phrase_id
             );
     END IF;
@@ -158,8 +166,8 @@ BEGIN
             AND c."languageId" = NEW.language_id
             AND c."formId" IN (
                 SELECT w."formId" FROM "Word" AS w
-                JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
-                WHERE phw."phraseId" = NEW.id
+                JOIN phrase_word AS phw ON phw.word_id = w.id
+                WHERE phw.phrase_id = NEW.id
             );
     END IF;
 

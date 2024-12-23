@@ -130,11 +130,11 @@ function fetchLanguageData(languageId: string) {
                     SELECT gloss.gloss FROM gloss
                     WHERE gloss.state = 'APPROVED'
                         AND EXISTS (
-                            SELECT FROM "PhraseWord" phrase_word 
-                            JOIN phrase ON phrase_word."phraseId" = phrase.id
+                            SELECT FROM phrase_word 
+                            JOIN phrase ON phrase_word.phrase_id = phrase.id
                             WHERE phrase.language_id = (SELECT id FROM language WHERE code = $1)
                                 AND phrase.deleted_at IS NULL
-                                AND phrase_word."wordId" = word.id
+                                AND phrase_word.word_id = word.id
                                 AND gloss.phrase_id = phrase.id
                         )
                 ) gloss ON true

@@ -87,17 +87,17 @@ export async function handler(event: SQSEvent) {
                     SELECT UNNEST($3::text[]) AS word_id, UNNEST($4::text[]) AS gloss
                 ),
                 phw AS (
-                  INSERT INTO "PhraseWord" ("phraseId", "wordId")
+                  INSERT INTO phrase_word (phrase_id, word_id)
                   SELECT
                     nextval(pg_get_serial_sequence('phrase', 'id')),
                     data.word_id
                   FROM data
-                  RETURNING "phraseId", "wordId"
+                  RETURNING phrase_id, word_id
                 ),
                 phrase AS (
                     INSERT INTO phrase (id, language_id, created_at, created_by)
                     SELECT
-                        phw."phraseId",
+                        phw.phrase_id,
                         $1::uuid,
                         now(),
                         $2::uuid
@@ -107,8 +107,8 @@ export async function handler(event: SQSEvent) {
                 INSERT INTO gloss (phrase_id, gloss, state, updated_at, updated_by, source)
                 SELECT phrase.id, data.gloss, 'APPROVED', NOW(), $2::uuid, 'IMPORT'
                 FROM phrase
-                JOIN phw ON phw."phraseId" = phrase.id
-                JOIN data ON data.word_id = phw."wordId"
+                JOIN phw ON phw.phrase_id = phrase.id
+                JOIN data ON data.word_id = phw.word_id
                 `,
                 [job.languageId, job.userId, glossData.map(d => d.wordId), glossData.map(d => d.gloss)]
             )

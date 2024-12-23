@@ -84,22 +84,22 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
     await query(
         `
             WITH phw AS (
-              INSERT INTO "PhraseWord" ("phraseId", "wordId")
+              INSERT INTO phrase_word (phrase_id, word_id)
               SELECT
                 nextval(pg_get_serial_sequence('phrase', 'id')),
                 w.id
               FROM "Word" AS w
               LEFT JOIN (
-                SELECT * FROM "PhraseWord" AS phw
-                JOIN phrase AS ph ON ph.id = phw."phraseId"
+                SELECT * FROM phrase_word AS phw
+                JOIN phrase AS ph ON ph.id = phw.phrase_id
                 WHERE ph.language_id = (SELECT id FROM language WHERE code = $1)
                   AND ph.deleted_at IS NULL
-              ) ph ON ph."wordId" = w.id
+              ) ph ON ph.word_id = w.id
               WHERE w."verseId" = $2 AND ph.id IS NULL
-              RETURNING "phraseId", "wordId"
+              RETURNING phrase_id, word_id
             )
             INSERT INTO phrase (id, language_id, created_at, created_by)
-            SELECT phw."phraseId", (SELECT id FROM language WHERE code = $1), now(), $3::uuid FROM phw
+            SELECT phw.phrase_id, (SELECT id FROM language WHERE code = $1), now(), $3::uuid FROM phw
         `,
         [languageCode, verseId, userId]
     )
@@ -119,16 +119,16 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
 			fn.note AS "footnote",
 			tn.note AS "translatorNote"
 		FROM (
-			SELECT ph.id, ARRAY_AGG(phw."wordId" ORDER BY phw."wordId") AS word_ids FROM phrase AS ph
-			JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
+			SELECT ph.id, ARRAY_AGG(phw.word_id ORDER BY phw.word_id) AS word_ids FROM phrase AS ph
+			JOIN phrase_word AS phw ON phw.phrase_id = ph.id
 			WHERE ph.language_id = (SELECT id FROM language WHERE code = $2)
 				AND ph.deleted_at IS NULL
 				AND EXISTS (
 					SELECT FROM "Word" AS w
-					JOIN "PhraseWord" AS phw2 ON phw2."wordId" = w.id
-					WHERE w.id = phw."wordId"
+					JOIN phrase_word AS phw2 ON phw2.word_id = w.id
+					WHERE w.id = phw.word_id
 						AND w."verseId" = $1
-						AND phw2."phraseId" = ph.id
+						AND phw2.phrase_id = ph.id
 				)
 			GROUP BY ph.id
 		) AS ph
@@ -240,10 +240,10 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
                 FROM "Word" AS w
 
                 LEFT JOIN LATERAL (
-                    SELECT g.gloss FROM "PhraseWord" AS phw
-                    JOIN phrase AS ph ON ph.id = phw."phraseId"
+                    SELECT g.gloss FROM phrase_word AS phw
+                    JOIN phrase AS ph ON ph.id = phw.phrase_id
                     JOIN gloss AS g ON g.phrase_id = ph.id
-                    WHERE phw."wordId" = w.id
+                    WHERE phw.word_id = w.id
                         AND ph.language_id = (SELECT id FROM language WHERE code = 'eng')
                         AND ph.deleted_at IS NULL
                 ) AS ph ON true
@@ -306,10 +306,10 @@ async function saveMachineTranslations(code: string, referenceGlosses: string[],
         await query(
             `
             INSERT INTO machine_gloss (word_id, gloss, language_id)
-            SELECT phw."wordId", data.machine_gloss, (SELECT id FROM language WHERE code = $1)
-            FROM "PhraseWord" AS phw
-            JOIN gloss AS g ON g.phrase_id = phw."phraseId"
-            JOIN phrase AS ph ON phw."phraseId" = ph.id
+            SELECT phw.word_id, data.machine_gloss, (SELECT id FROM language WHERE code = $1)
+            FROM phrase_word AS phw
+            JOIN gloss AS g ON g.phrase_id = phw.phrase_id
+            JOIN phrase AS ph ON phw.phrase_id = ph.id
             JOIN UNNEST($2::text[], $3::text[]) data (ref_gloss, machine_gloss)
                 ON LOWER(g.gloss) = data.ref_gloss
             WHERE ph.deleted_at IS NULL

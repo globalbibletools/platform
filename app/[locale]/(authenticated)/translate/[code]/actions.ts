@@ -52,16 +52,16 @@ export async function redirectToUnapproved(formData: FormData): Promise<void | s
         SELECT w."verseId" as "nextUnapprovedVerseId"
         FROM "Word" AS w
         LEFT JOIN LATERAL (
-          SELECT g.state AS state FROM "PhraseWord" AS phw
-          JOIN phrase AS ph ON ph.id = phw."phraseId"
+          SELECT g.state AS state FROM phrase_word AS phw
+          JOIN phrase AS ph ON ph.id = phw.phrase_id
           LEFT JOIN gloss AS g ON g.phrase_id = ph.id
-          WHERE phw."wordId" = w.id
+          WHERE phw.word_id = w.id
 			      AND ph.language_id = (SELECT id FROM language WHERE code = $1)
 			      AND ph.deleted_at IS NULL
         ) AS g ON true
         WHERE w."verseId" > $2
           AND (g.state = 'UNAPPROVED' OR g.state IS NULL)
-        ORDER BY w."id"
+        ORDER BY w.id
         LIMIT 1
         `,
         [request.data.code, request.data.verseId]
@@ -73,15 +73,15 @@ export async function redirectToUnapproved(formData: FormData): Promise<void | s
             SELECT w."verseId" as "nextUnapprovedVerseId"
             FROM "Word" AS w
             LEFT JOIN LATERAL (
-              SELECT g.state AS state FROM "PhraseWord" AS phw
-              JOIN phrase AS ph ON ph.id = phw."phraseId"
+              SELECT g.state AS state FROM phrase_word AS phw
+              JOIN phrase AS ph ON ph.id = phw.phrase_id
               LEFT JOIN gloss AS g ON g.phrase_id = ph.id
-              WHERE phw."wordId" = w.id
+              WHERE phw.word_id = w.id
                       AND ph.language_id = (SELECT id FROM language WHERE code = $1)
                       AND ph.deleted_at IS NULL
             ) AS g ON true
             WHERE (g.state = 'UNAPPROVED' OR g.state IS NULL)
-            ORDER BY w."id"
+            ORDER BY w.id
             LIMIT 1
             `,
             [request.data.code]
@@ -148,8 +148,8 @@ export async function approveAll(formData: FormData): Promise<void> {
     const pathQuery = await query<{ verseId: string }>(
         `
         SELECT w."verseId" FROM phrase AS ph
-        JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
-        JOIN "Word" AS w ON w.id = phw."wordId"
+        JOIN phrase_word AS phw ON phw.phrase_id = ph.id
+        JOIN "Word" AS w ON w.id = phw.word_id
         WHERE ph.id = $1
         LIMIT 1
         `,
@@ -193,14 +193,14 @@ export async function linkWords(formData: FormData): Promise<void> {
         const phrasesQuery = await query(
             `
             SELECT FROM phrase AS ph
-            JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
+            JOIN phrase_word AS phw ON phw.phrase_id = ph.id
             JOIN LATERAL (
-                SELECT COUNT(*) AS count FROM "PhraseWord" AS phw
-                WHERE phw."phraseId" = ph.id
+                SELECT COUNT(*) AS count FROM phrase_word AS phw
+                WHERE phw.phrase_id = ph.id
             ) AS words ON true
             WHERE ph.language_id = (SELECT id FROM language WHERE code = $1)
                 AND ph.deleted_at IS NULL
-                AND phw."wordId" = ANY($2::text[])
+                AND phw.word_id = ANY($2::text[])
                 AND words.count > 1
             `,
             [request.data.code, request.data.wordIds]
@@ -214,9 +214,9 @@ export async function linkWords(formData: FormData): Promise<void> {
             UPDATE phrase AS ph
                 SET deleted_at = NOW(),
                     deleted_by = $3
-            FROM "PhraseWord" AS phw
-            WHERE phw."phraseId" = ph.id
-                AND phw."wordId" = ANY($2::text[])
+            FROM phrase_word AS phw
+            WHERE phw.phrase_id = ph.id
+                AND phw.word_id = ANY($2::text[])
                 AND ph.deleted_at IS NULL
                 AND ph.language_id = (SELECT id FROM language WHERE code = $1)
             `,
@@ -230,7 +230,7 @@ export async function linkWords(formData: FormData): Promise<void> {
                     VALUES ((SELECT id FROM language WHERE code = $1), $3, NOW())
                     RETURNING id
                 )
-                INSERT INTO "PhraseWord" ("phraseId", "wordId")
+                INSERT INTO phrase_word (phrase_id, word_id)
                 SELECT phrase.id, UNNEST($2::text[]) FROM phrase
             `,
             [request.data.code, request.data.wordIds, session.user.id]
@@ -293,8 +293,8 @@ export async function unlinkPhrase(formData: FormData): Promise<void> {
     const pathQuery = await query<{ verseId: string }>(
         `
         SELECT w."verseId" FROM phrase AS ph
-        JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
-        JOIN "Word" AS w ON w.id = phw."wordId"
+        JOIN phrase_word AS phw ON phw.phrase_id = ph.id
+        JOIN "Word" AS w ON w.id = phw.word_id
         WHERE ph.id = $1
         LIMIT 1
         `,
@@ -335,9 +335,9 @@ export async function sanityCheck(_prev: SanityCheckResult, formData: FormData):
         WHERE ph.deleted_at IS NULL
             AND ph.language_id = (SELECT id FROM language WHERE code = $1)
             AND EXISTS (
-                SELECT FROM "PhraseWord" phw
-                JOIN "Word" w ON w.id = phw."wordId"
-                WHERE phw."phraseId" = ph.id
+                SELECT FROM phrase_word phw
+                JOIN "Word" w ON w.id = phw.word_id
+                WHERE phw.phrase_id = ph.id
                     AND w."verseId" = $2
             )
         `,

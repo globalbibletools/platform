@@ -55,8 +55,8 @@ export async function updateGloss(formData: FormData): Promise<any> {
     const pathQuery = await query<{ code: string, verseId: string }>(
         `SELECT l.code, w."verseId" FROM phrase AS ph
         JOIN language AS l ON l.id = ph.language_id
-        JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
-        JOIN "Word" AS w ON w.id = phw."wordId"
+        JOIN phrase_word AS phw ON phw.phrase_id = ph.id
+        JOIN "Word" AS w ON w.id = phw.word_id
         WHERE ph.id = $1
         LIMIT 1`,
         [request.data.phraseId]
@@ -114,8 +114,8 @@ export async function updateTranslatorNote(formData: FormData): Promise<any> {
     const pathQuery = await query<{ code: string, verseId: string }>(
         `SELECT l.code, w."verseId" FROM phrase AS ph
         JOIN language AS l ON l.id = ph.language_id
-        JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
-        JOIN "Word" AS w ON w.id = phw."wordId"
+        JOIN phrase_word AS phw ON phw.phrase_id = ph.id
+        JOIN "Word" AS w ON w.id = phw.word_id
         WHERE ph.id = $1
         LIMIT 1`,
         [request.data.phraseId]
@@ -173,8 +173,8 @@ export async function updateFootnote(formData: FormData): Promise<any> {
     const pathQuery = await query<{ code: string, verseId: string }>(
         `SELECT l.code, w."verseId" FROM phrase AS ph
         JOIN language AS l ON l.id = ph.language_id
-        JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
-        JOIN "Word" AS w ON w.id = phw."wordId"
+        JOIN phrase_word AS phw ON phw.phrase_id = ph.id
+        JOIN "Word" AS w ON w.id = phw.word_id
         WHERE ph.id = $1
         LIMIT 1`,
         [request.data.phraseId]

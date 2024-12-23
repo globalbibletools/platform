@@ -41,8 +41,8 @@ async function fetchBookProgress(bookId: number, languageCode: string): Promise<
             (
                 SELECT COUNT(*) FROM phrase AS ph
                 LEFT JOIN gloss AS g ON g.phrase_id = ph.id
-                JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
-                JOIN "Word" AS w ON w.id = phw."wordId"
+                JOIN phrase_word AS phw ON phw.phrase_id = ph.id
+                JOIN "Word" AS w ON w.id = phw.word_id
                 JOIN "Verse" AS v ON v.id = w."verseId"
                 WHERE ph.language_id = (SELECT id FROM language WHERE code = $2)
                     AND ph.deleted_at IS NULL

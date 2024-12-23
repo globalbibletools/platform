@@ -54,18 +54,18 @@ interface BookTotalProgress {
 
 async function fetchCurrentProgress(code: string): Promise<BookTotalProgress[]> {
     const request = await query<BookTotalProgress>(
-        `SELECT b.name, COUNT(*) AS "wordCount", COUNT(*) FILTER (WHERE ph."wordId" IS NOT NULL) AS "approvedCount" FROM book AS b
+        `SELECT b.name, COUNT(*) AS "wordCount", COUNT(*) FILTER (WHERE ph.word_id IS NOT NULL) AS "approvedCount" FROM book AS b
         JOIN "Verse" AS v ON v."bookId" = b.id
         JOIN "Word" AS w ON w."verseId" = v.id
         LEFT JOIN (
-          SELECT phw."wordId" FROM "PhraseWord" AS phw
-          JOIN phrase AS ph ON ph.id = phw."phraseId"
+          SELECT phw.word_id FROM phrase_word AS phw
+          JOIN phrase AS ph ON ph.id = phw.phrase_id
           JOIN gloss AS g ON g.phrase_id = ph.id
           JOIN language AS l ON l.id = ph.language_id
           WHERE l.code = $1
             AND ph.deleted_at IS NULL
             AND g.state = 'APPROVED'
-        ) AS ph ON ph."wordId" = w.id
+        ) AS ph ON ph.word_id = w.id
         GROUP BY b.id
         ORDER BY b.id`,
         [code]

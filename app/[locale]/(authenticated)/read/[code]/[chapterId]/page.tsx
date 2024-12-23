@@ -69,20 +69,20 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
                 'linkedWords', ph.linked_words,
                 'footnote', fn.content,
                 'lemma', lf.lemma_id,
-                'grammar', lf."grammar",
+                'grammar', lf.grammar,
                 'resource', lemma_resource.resource
               )) ORDER BY w.id) AS words
             FROM "Word" AS w
             LEFT JOIN LATERAL (
-              SELECT ph.id, wds.words AS linked_words FROM "PhraseWord" AS phw
-              JOIN phrase AS ph ON ph.id = phw."phraseId"
+              SELECT ph.id, wds.words AS linked_words FROM phrase_word AS phw
+              JOIN phrase AS ph ON ph.id = phw.phrase_id
               LEFT JOIN LATERAL (
-                SELECT array_agg(phw2."wordId") AS words FROM "PhraseWord" AS phw2
-                WHERE phw2."phraseId" = ph.id
-                  AND phw2."wordId" != phw."wordId"
-                GROUP BY phw2."phraseId"
+                SELECT array_agg(phw2.word_id) AS words FROM phrase_word AS phw2
+                WHERE phw2.phrase_id = ph.id
+                  AND phw2.word_id != phw.word_id
+                GROUP BY phw2.phrase_id
               ) AS wds ON true
-              WHERE phw."wordId" = w.id
+              WHERE phw.word_id = w.id
                 AND ph.deleted_at IS NULL
                 AND ph.language_id = (SELECT id FROM language WHERE code = $3)
             ) AS ph ON true
