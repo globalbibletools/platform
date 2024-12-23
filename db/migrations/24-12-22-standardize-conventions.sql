@@ -57,6 +57,7 @@ ALTER TABLE lemma_form_suggestion RENAME CONSTRAINT "LemmaFormSuggestionCount_fo
 ALTER TABLE lemma_form_suggestion RENAME CONSTRAINT "LemmaFormSuggestionCount_languageId_fkey" TO lemma_form_suggestion_language_id_fkey;
 ALTER INDEX "LemmaFormSuggestionCount_pkey" RENAME TO lemma_form_suggestion_pkey;
 ALTER INDEX "LemmaFormSuggestionCount_languageId_formId_gloss_key" RENAME TO lemma_form_suggestion_language_id_form_id_gloss_key;
+ALTER SEQUENCE "LemmaFormSuggestionCount_id_seq" RENAME TO lemma_form_suggestion_id_seq;
 
 ALTER TABLE "LemmaResource" RENAME TO lemma_resource;
 ALTER TABLE lemma_resource RENAME COLUMN "lemmaId" TO lemma_id;
@@ -83,6 +84,7 @@ ALTER TABLE phrase RENAME CONSTRAINT "Phrase_deletedBy_fkey" TO phrase_deleted_b
 ALTER TABLE phrase RENAME CONSTRAINT "Phrase_languageId_fkey" TO phrase_language_id_fkey;
 ALTER INDEX "Phrase_pkey" RENAME TO phrase_pkey;
 ALTER INDEX "Phrase_languageId_deletedAt_idx" RENAME TO phrase_language_id_deleted_at_idx;
+ALTER SEQUENCE "Phrase_id_seq" RENAME TO phrase_id_seq;
 
 ALTER TABLE "PhraseWord" RENAME TO phrase_word;
 ALTER TABLE phrase_word RENAME COLUMN "phraseId" TO phrase_id;
@@ -152,6 +154,7 @@ ALTER TABLE verse_audio_timing RENAME CONSTRAINT "VerseAudioTiming_recordingId_f
 ALTER TABLE verse_audio_timing RENAME CONSTRAINT "VerseAudioTiming_verseId_fkey" TO verse_audio_timing_verse_id_fkey;
 ALTER INDEX "VerseAudioTiming_pkey" RENAME TO verse_audio_timing_pkey;
 ALTER INDEX "VerseAudioTiming_verseId_recordingId_key" RENAME TO verse_audio_timing_verse_id_recording_id_key;
+ALTER SEQUENCE "VerseAudioTiming_id_seq" RENAME TO verse_audio_timing_id_seq;
 
 ALTER TABLE "Word" RENAME TO word;
 ALTER TABLE word RENAME COLUMN "verseId" TO verse_id;
@@ -161,6 +164,38 @@ ALTER TABLE word RENAME CONSTRAINT "Word_verseId_fkey" TO word_verse_id_fkey;
 ALTER INDEX "Word_pkey" RENAME TO word_pkey;
 ALTER INDEX "Word_formId_idx" RENAME TO word_form_id_idx;
 ALTER INDEX "Word_verseId_idx" RENAME TO word_verse_id_idx;
+
+DROP MATERIALIZED VIEW "LanguageProgress";
+CREATE MATERIALIZED VIEW language_progress AS (
+    WITH data AS (
+        SELECT ph.language_id AS id, v.book_id >= 40 AS is_nt, COUNT(*) AS count FROM phrase AS ph
+        JOIN phrase_word AS phw ON phw.phrase_id = ph.id
+        JOIN word AS w ON w.id = phw.word_id
+        JOIN verse AS v ON v.id = w.verse_id
+        JOIN gloss AS g ON g.phrase_id = ph.id
+        WHERE ph.deleted_at IS NULL
+        GROUP BY ph.language_id, v.book_id >= 40
+    ),
+    ot_total AS (
+        SELECT COUNT(*) AS total FROM word AS w
+        JOIN verse AS v ON v.id = w.verse_id
+        WHERE v.book_id < 40
+    ),
+    nt_total AS (
+        SELECT COUNT(*) AS total FROM word AS w
+        JOIN verse AS v ON v.id = w.verse_id
+        WHERE v.book_id >= 40
+    )
+    SELECT
+        l.code,
+        COALESCE(nt_data.count, 0)::float / (SELECT nt_total.total::float FROM nt_total) AS "nt_progress",
+        COALESCE(ot_data.count, 0)::float / (SELECT ot_total.total::float FROM ot_total) AS "ot_progress"
+    FROM language AS l
+    LEFT JOIN data AS nt_data
+        ON nt_data.id = l.id AND nt_data.is_nt = TRUE
+    LEFT JOIN data AS ot_data
+        ON ot_data.id = l.id AND ot_data.is_nt = FALSE
+);
 
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS

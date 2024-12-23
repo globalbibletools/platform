@@ -311,9 +311,9 @@ interface LanguageProgressStats {
 
 async function fetchLanguageProgressStats() {
     const result = await query<LanguageProgressStats>(
-        `SELECT l.code, l.name, COALESCE(s."otProgress", 0) AS "otProgress", COALESCE(s."ntProgress", 0) AS "ntProgress" FROM language AS l
-        LEFT JOIN "LanguageProgress" AS s ON l.code = s.code
-        ORDER BY (s."otProgress" + s."ntProgress") DESC
+        `SELECT l.code, l.name, COALESCE(s.ot_progress, 0) AS "otProgress", COALESCE(s.nt_progress, 0) AS "ntProgress" FROM language AS l
+        LEFT JOIN language_progress AS s ON l.code = s.code
+        ORDER BY (s.ot_progress + s.nt_progress) DESC
         `,
         []
     )
