@@ -46,10 +46,10 @@ export default async function EmailVerificationView({ searchParams }: Props) {
   try {
     await transaction(async (q) => {
       await q(
-        `UPDATE "User" SET 
-                "email" = $1, 
-                "emailStatus" = 'VERIFIED' 
-            WHERE "User".id = $2
+        `UPDATE users SET 
+                email = $1, 
+                email_status = 'VERIFIED' 
+            WHERE users.id = $2
             `,
         [verification.email, verification.userId]
       );

@@ -108,6 +108,12 @@ ALTER TABLE translator_note RENAME CONSTRAINT "TranslatorNote_phraseId_fkey" TO 
 ALTER INDEX "TranslatorNote_pkey" RENAME TO translator_note_pkey;
 ALTER INDEX "TranslatorNote_phraseId_idx" RENAME TO translator_note_phrase_id_idx;
 
+ALTER TABLE "User" RENAME TO users;
+ALTER TABLE users RENAME COLUMN "emailStatus" TO email_status;
+ALTER TABLE users RENAME COLUMN "hashedPassword" TO hashed_password;
+ALTER INDEX "User_pkey" RENAME TO users_pkey;
+ALTER INDEX "User_email_key" RENAME TO user_email_key;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$

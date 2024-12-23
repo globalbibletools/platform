@@ -95,8 +95,8 @@ export async function resendUserInvite(_prevState: FormState, formData: FormData
     const userQuery = await query<{ email: string, isActive: boolean }>(
         `SELECT
             u.email,
-            u."hashedPassword" IS NOT NULL AS "isActive"
-        FROM "User" AS u
+            u.hashed_password IS NOT NULL AS "isActive"
+        FROM users AS u
         WHERE u.id = $1`,
         [request.data.userId]
     )

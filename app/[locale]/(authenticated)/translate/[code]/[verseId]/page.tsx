@@ -143,7 +143,7 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
 				  'authorName', COALESCE(u.name, '')
 				) AS note
 			FROM footnote AS n
-			JOIN "User" AS u ON u.id = n.author_id
+			JOIN users AS u ON u.id = n.author_id
 		) AS fn ON fn.phrase_id = ph.id
 		LEFT JOIN LATERAL (
 			SELECT
@@ -154,7 +154,7 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
 				  'authorName', COALESCE(u.name, '')
 				) AS note
 			FROM translator_note AS n
-			JOIN "User" AS u ON u.id = n.author_id
+			JOIN users AS u ON u.id = n.author_id
 		) AS tn ON tn.phrase_id = ph.id
 		ORDER BY ph.id
         `,

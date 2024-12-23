@@ -60,7 +60,7 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
         notFound()
     }
 
-    const existsQuery = await query(`SELECT id FROM "User" WHERE email = $1`, [request.data.email])
+    const existsQuery = await query(`SELECT id FROM users WHERE email = $1`, [request.data.email])
     const existingUser = existsQuery.rows[0]
 
     const roles = [...request.data.roles, 'VIEWER']
@@ -69,7 +69,7 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
         const token = randomBytes(12).toString('hex')
         await query(
             `WITH new_user AS (
-                INSERT INTO "User" (email) VALUES ($1) RETURNING id
+                INSERT INTO users (email) VALUES ($1) RETURNING id
             ),
             invite AS (
                 INSERT INTO "UserInvitation" ("userId", token, expires)

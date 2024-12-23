@@ -139,7 +139,7 @@ async function fetchUsers(code: string) {
             WHERE r.language_id = (SELECT id FROM language WHERE code = $1)
             GROUP BY r.user_id
         ) AS m
-        JOIN "User" AS u ON m.id = u.id
+        JOIN users AS u ON m.id = u.id
         LEFT JOIN LATERAL (
             SELECT
 				JSON_BUILD_OBJECT(

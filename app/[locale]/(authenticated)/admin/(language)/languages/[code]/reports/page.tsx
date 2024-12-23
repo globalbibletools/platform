@@ -122,7 +122,7 @@ async function fetchLanguageProgressData(code: string): Promise<ProgressData> {
                 SELECT JSON_AGG(JSON_BUILD_OBJECT('id', id, 'name', name))
                 FROM (
                     SELECT DISTINCT ON (u.id) u.id, u.name FROM weekly_gloss_statistics s
-                    JOIN "User" u ON u.id = s.user_id
+                    JOIN users u ON u.id = s.user_id
                     WHERE s.language_id = (SELECT id FROM language WHERE code = $1)
                     ORDER BY u.id ASC
                 ) u

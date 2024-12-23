@@ -113,10 +113,10 @@ interface User {
 async function fetchUsers() {
     const usersQuery = await query<User>(
         `SELECT
-            id, name, email, "emailStatus",
+            id, name, email, email_status AS "emailStatus",
             roles.list AS roles,
             invitation.json AS invite
-        FROM "User" AS u
+        FROM users AS u
         JOIN LATERAL (
             SELECT
                 COALESCE(json_agg(r.role), '[]') AS list

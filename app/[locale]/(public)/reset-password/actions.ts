@@ -51,8 +51,8 @@ export async function resetPassword(_prevState: FormState, formData: FormData): 
     const hashedPassword = await scrypt.hash(request.data.password)
     const result = await query<{ id: string }>(
         `
-            UPDATE "User" AS u SET
-               "hashedPassword" = $2
+            UPDATE users AS u SET
+               hashed_password = $2
             FROM reset_password_token AS t
             WHERE u.id = t.user_id
                 AND t.token = $1

@@ -62,10 +62,10 @@ export async function acceptInvite(prevState: FormState, formData: FormData): Pr
 
     const userId = await transaction(async query => {
         const updatedUserQuery = await query<{ id: string }> (
-            `UPDATE "User" AS u
+            `UPDATE users AS u
                 SET name = $2,
-                    "hashedPassword" = $3,
-                    "emailStatus" = 'VERIFIED'
+                    hashed_password = $3,
+                    email_status = 'VERIFIED'
             WHERE u.id = (SELECT "userId" FROM "UserInvitation" WHERE token = $1)
             RETURNING id
             `,
