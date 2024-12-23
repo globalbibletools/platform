@@ -41,7 +41,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          target: server
+          file: apps/server/Dockerfile
+          target: runner
           push: true
           platforms: linux/amd64
           provenance: false
