@@ -196,31 +196,28 @@ CREATE FUNCTION public.generate_gloss_statistics_for_week(d timestamp without ti
         COUNT(*) FILTER (WHERE log.state = 'UNAPPROVED')
     FROM (
         SELECT
-            DISTINCT ON (log.phrase_id, phrase_word."wordId", verse."bookId")
+            DISTINCT ON (log.phrase_id, phrase_word.word_id, verse.book_id)
             log.updated_by,
             log.state,
-            phrase."languageId" AS language_id,
-            verse."bookId" AS book_id
+            phrase.language_id,
+            verse.book_id
         FROM (
             (
-                SELECT
-                    "phraseId" AS phrase_id,
-                    updated_by, updated_at, gloss, state
-                FROM "Gloss" gloss
+                SELECT phrase_id, updated_by, updated_at, gloss, state
+                FROM gloss
             ) UNION ALL (
-                SELECT
-                    phrase_id, updated_by, updated_at, gloss, state
+                SELECT phrase_id, updated_by, updated_at, gloss, state
                 FROM gloss_history
             )
         ) log
-        JOIN "Phrase" phrase ON phrase.id = log.phrase_id
-        JOIN "PhraseWord" phrase_word ON phrase_word."phraseId" = phrase.id
-        JOIN "Word" word ON word.id = "phrase_word"."wordId"
-        JOIN "Verse" verse ON verse.id = word."verseId"
+        JOIN phrase ON phrase.id = log.phrase_id
+        JOIN phrase_word ON phrase_word.phrase_id = phrase.id
+        JOIN word ON word.id = phrase_word.word_id
+        JOIN verse ON verse.id = word.verse_id
         WHERE log.updated_at < (DATE_BIN('7 days', DATE_TRUNC('day', $1), TIMESTAMP '2024-12-15'))
-            AND (phrase."deletedAt" IS NULL
-                OR phrase."deletedAt" < (DATE_BIN('7 days', DATE_TRUNC('day', $1), TIMESTAMP '2024-12-15')))
-        ORDER BY log.phrase_id, phrase_word."wordId", verse."bookId", log.updated_at DESC
+            AND (phrase.deleted_at IS NULL
+                OR phrase.deleted_at < (DATE_BIN('7 days', DATE_TRUNC('day', $1), TIMESTAMP '2024-12-15')))
+        ORDER BY log.phrase_id, phrase_word.word_id, verse.book_id, log.updated_at DESC
     ) log
     GROUP BY log.language_id, log.book_id, log.updated_by
     ORDER BY log.language_id, log.book_id, log.updated_by
@@ -318,9 +315,9 @@ CREATE TABLE public.footnote (
 
 CREATE TABLE public.gloss (
     gloss text,
-    state public."GlossState" DEFAULT 'UNAPPROVED'::public."GlossState" NOT NULL,
+    state public.gloss_state DEFAULT 'UNAPPROVED'::public.gloss_state NOT NULL,
     phrase_id integer NOT NULL,
-    source public."GlossSource",
+    source public.gloss_source,
     updated_at timestamp without time zone NOT NULL,
     updated_by uuid
 );
@@ -334,8 +331,8 @@ CREATE TABLE public.gloss_history (
     id integer NOT NULL,
     phrase_id integer NOT NULL,
     gloss text,
-    state public."GlossState",
-    source public."GlossSource",
+    state public.gloss_state,
+    source public.gloss_source,
     updated_at timestamp without time zone NOT NULL,
     updated_by uuid
 );
@@ -371,7 +368,7 @@ CREATE TABLE public.language (
     name text NOT NULL,
     font text DEFAULT 'Noto Sans'::text NOT NULL,
     translation_ids text[],
-    text_direction public."TextDirection" DEFAULT 'ltr'::public."TextDirection" NOT NULL
+    text_direction public.text_direction DEFAULT 'ltr'::public.text_direction NOT NULL
 );
 
 
@@ -395,7 +392,7 @@ CREATE TABLE public.language_import_job (
 CREATE TABLE public.language_member_role (
     user_id uuid NOT NULL,
     language_id uuid NOT NULL,
-    role public."LanguageRole" NOT NULL
+    role public.language_role NOT NULL
 );
 
 
@@ -544,7 +541,7 @@ ALTER SEQUENCE public.lemma_form_suggestion_id_seq OWNED BY public.lemma_form_su
 
 CREATE TABLE public.lemma_resource (
     lemma_id text NOT NULL,
-    resource_code public."ResourceCode" NOT NULL,
+    resource_code public.resource_code NOT NULL,
     content text NOT NULL
 );
 
@@ -653,7 +650,7 @@ CREATE TABLE public.user_invitation (
 
 CREATE TABLE public.user_system_role (
     user_id uuid NOT NULL,
-    role public."SystemRole" NOT NULL
+    role public.system_role NOT NULL
 );
 
 
@@ -664,7 +661,7 @@ CREATE TABLE public.user_system_role (
 CREATE TABLE public.users (
     id uuid DEFAULT public.generate_ulid() NOT NULL,
     name text,
-    email_status public."EmailStatus" DEFAULT 'UNVERIFIED'::public."EmailStatus" NOT NULL,
+    email_status public.email_status DEFAULT 'UNVERIFIED'::public.email_status NOT NULL,
     email text NOT NULL,
     hashed_password text
 );
