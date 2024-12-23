@@ -69,9 +69,10 @@ Restore the database schema:
 psql DATABASE_URL db/schema.sql
 ```
 
-Restore the database seed data:
+Restore the database seed data and rebuild materialized views:
 ```bash
 pg_restore -Fc --format=custom --dbname=DATABASE_URL db/data.dump
+psql --dbname=DATABASE_URL -f db/refresh_views.sql
 ```
 
 Export the latest database schema:
