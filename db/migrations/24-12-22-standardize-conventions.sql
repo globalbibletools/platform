@@ -100,6 +100,14 @@ ALTER INDEX "Session_pkey" RENAME TO session_pkey;
 ALTER INDEX "Session_id_key" RENAME TO session_id_key;
 ALTER INDEX "Session_userId_idx" RENAME TO session_user_id_idx;
 
+ALTER TABLE "TranslatorNote" RENAME TO translator_note;
+ALTER TABLE translator_note RENAME COLUMN "authorId" TO author_id;
+ALTER TABLE translator_note RENAME COLUMN "phraseId" TO phrase_id;
+ALTER TABLE translator_note RENAME CONSTRAINT "TranslatorNote_authorId_fkey" TO translator_note_author_id_fkey;
+ALTER TABLE translator_note RENAME CONSTRAINT "TranslatorNote_phraseId_fkey" TO translator_note_phase_id_fkey;
+ALTER INDEX "TranslatorNote_pkey" RENAME TO translator_note_pkey;
+ALTER INDEX "TranslatorNote_phraseId_idx" RENAME TO translator_note_phrase_id_idx;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$

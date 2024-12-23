@@ -147,15 +147,15 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
 		) AS fn ON fn.phrase_id = ph.id
 		LEFT JOIN LATERAL (
 			SELECT
-				n."phraseId",
+				n.phrase_id,
 				JSON_BUILD_OBJECT(
 				  'timestamp', n.timestamp,
 				  'content', n.content,
 				  'authorName', COALESCE(u.name, '')
 				) AS note
-			FROM "TranslatorNote" AS n
-			JOIN "User" AS u ON u.id = n."authorId"
-		) AS tn ON tn."phraseId" = ph.id
+			FROM translator_note AS n
+			JOIN "User" AS u ON u.id = n.author_id
+		) AS tn ON tn.phrase_id = ph.id
 		ORDER BY ph.id
         `,
         [verseId, languageCode]
