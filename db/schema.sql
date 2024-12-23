@@ -267,7 +267,7 @@ CREATE FUNCTION public.increment_suggestion() RETURNS trigger
     AS $$
 BEGIN
     IF NEW.state = 'APPROVED' AND (OLD IS NULL OR NEW.gloss <> OLD.gloss OR OLD.state <> 'APPROVED') THEN
-        INSERT INTO lemma_form_suggestion_count AS c (language_id, form_id, gloss, count)
+        INSERT INTO lemma_form_suggestion AS c (language_id, form_id, gloss, count)
         SELECT
             ph.language_id,
             w.form_id,
