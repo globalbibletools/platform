@@ -37,7 +37,7 @@ export async function forgotPassword(_prevState: FormState, formData: FormData):
     const token = randomBytes(12).toString('hex')
     const result = await query(
         `
-            INSERT INTO "ResetPasswordToken" ("userId", "token", "expires")
+            INSERT INTO reset_password_token (user_id, token, expires)
             SELECT id, $2, $3 FROM "User" WHERE email = $1
         `,
         [request.data.email.toLowerCase(), token, Date.now() + EXPIRATION]

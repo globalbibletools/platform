@@ -87,6 +87,11 @@ ALTER INDEX "PhraseWord_wordId_phraseId_idx" RENAME TO phrase_word_word_id_phras
 ALTER TABLE "Recording" RENAME TO recording;
 ALTER INDEX "Recording_pkey" RENAME TO recording_pkey;
 
+ALTER TABLE "ResetPasswordToken" RENAME TO reset_password_token;
+ALTER TABLE reset_password_token RENAME COLUMN "userId" TO user_id;
+ALTER TABLE reset_password_token RENAME CONSTRAINT "ResetPasswordToken_userId_fkey" TO reset_password_token_user_id_fkey;
+ALTER INDEX "ResetPasswordToken_pkey" RENAME TO reset_password_token_pkey;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$

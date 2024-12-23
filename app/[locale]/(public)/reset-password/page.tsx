@@ -42,7 +42,7 @@ export default async function ResetPasswordPage({
   }
 
   const tokenQuery = await query(
-    `SELECT FROM "ResetPasswordToken" WHERE token = $1
+    `SELECT FROM reset_password_token WHERE token = $1
             AND expires > (EXTRACT(EPOCH FROM CURRENT_TIMESTAMP)::bigint * 1000::bigint)
         `,
     [searchParams.token]
