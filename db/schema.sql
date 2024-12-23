@@ -48,7 +48,7 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 -- Name: EmailStatus; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public."EmailStatus" AS ENUM (
+CREATE TYPE public.email_status AS ENUM (
     'UNVERIFIED',
     'VERIFIED',
     'BOUNCED',
@@ -60,7 +60,7 @@ CREATE TYPE public."EmailStatus" AS ENUM (
 -- Name: GlossSource; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public."GlossSource" AS ENUM (
+CREATE TYPE public.gloss_source AS ENUM (
     'USER',
     'IMPORT'
 );
@@ -70,7 +70,7 @@ CREATE TYPE public."GlossSource" AS ENUM (
 -- Name: GlossState; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public."GlossState" AS ENUM (
+CREATE TYPE public.gloss_state AS ENUM (
     'APPROVED',
     'UNAPPROVED'
 );
@@ -80,7 +80,7 @@ CREATE TYPE public."GlossState" AS ENUM (
 -- Name: LanguageRole; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public."LanguageRole" AS ENUM (
+CREATE TYPE public.language_role AS ENUM (
     'ADMIN',
     'TRANSLATOR',
     'VIEWER'
@@ -91,7 +91,7 @@ CREATE TYPE public."LanguageRole" AS ENUM (
 -- Name: ResourceCode; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public."ResourceCode" AS ENUM (
+CREATE TYPE public.resource_code AS ENUM (
     'BDB',
     'LSJ',
     'STRONGS'
@@ -102,7 +102,7 @@ CREATE TYPE public."ResourceCode" AS ENUM (
 -- Name: SystemRole; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public."SystemRole" AS ENUM (
+CREATE TYPE public.system_role AS ENUM (
     'ADMIN'
 );
 
@@ -111,7 +111,7 @@ CREATE TYPE public."SystemRole" AS ENUM (
 -- Name: TextDirection; Type: TYPE; Schema: public; Owner: -
 --
 
-CREATE TYPE public."TextDirection" AS ENUM (
+CREATE TYPE public.text_direction AS ENUM (
     'ltr',
     'rtl'
 );
