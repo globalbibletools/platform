@@ -64,6 +64,18 @@ ALTER TABLE machine_gloss RENAME CONSTRAINT "MachineGloss_languageId_fkey" TO ma
 ALTER TABLE machine_gloss RENAME CONSTRAINT "MachineGloss_wordId_fkey" TO machine_gloss_word_id_fkey;
 ALTER INDEX "MachineGloss_pkey" RENAME TO machine_gloss_pkey;
 
+ALTER TABLE "Phrase" RENAME TO phrase;
+ALTER TABLE phrase RENAME COLUMN "languageId" TO language_id;
+ALTER TABLE phrase RENAME COLUMN "createdAt" TO created_at;
+ALTER TABLE phrase RENAME COLUMN "createdBy" TO created_by;
+ALTER TABLE phrase RENAME COLUMN "deletedAt" TO deleted_at;
+ALTER TABLE phrase RENAME COLUMN "deletedBy" TO deleted_by;
+ALTER TABLE phrase RENAME CONSTRAINT "Phrase_createdBy_fkey" TO phrase_created_by_fkey;
+ALTER TABLE phrase RENAME CONSTRAINT "Phrase_deletedBy_fkey" TO phrase_deleted_by_fkey;
+ALTER TABLE phrase RENAME CONSTRAINT "Phrase_languageId_fkey" TO phrase_language_id_fkey;
+ALTER INDEX "Phrase_pkey" RENAME TO phrase_pkey;
+ALTER INDEX "Phrase_languageId_deletedAt_idx" RENAME TO phrase_language_id_deleted_at_idx;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$
@@ -83,13 +95,13 @@ BEGIN
     IF NEW.state = 'APPROVED' AND (OLD IS NULL OR NEW.gloss <> OLD.gloss OR OLD.state <> 'APPROVED') THEN
         INSERT INTO "LemmaFormSuggestionCount" AS c ("languageId", "formId", "gloss", "count")
         SELECT
-            ph."languageId",
+            ph.language_id,
             w."formId",
             NEW.gloss,
             1
         FROM "Word" AS w
         JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
-        JOIN "Phrase" AS ph ON  phw."phraseId" = ph.id
+        JOIN phrase AS ph ON  phw."phraseId" = ph.id
         WHERE ph.id = NEW.phrase_id
         ON CONFLICT ("languageId", "formId", gloss) DO UPDATE
             SET count = c.count + 1;
@@ -100,23 +112,22 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
-CREATE OR REPLACE FUNCTION increment_suggestion()
+CREATE OR REPLACE FUNCTION decrement_suggestion()
 RETURNS TRIGGER AS
 $$
 BEGIN
-    IF NEW.state = 'APPROVED' AND (OLD IS NULL OR NEW.gloss <> OLD.gloss OR OLD.state <> 'APPROVED') THEN
-        INSERT INTO "LemmaFormSuggestionCount" AS c ("languageId", "formId", "gloss", "count")
-        SELECT
-            ph."languageId",
-            w."formId",
-            NEW.gloss,
-            1
-        FROM "Word" AS w
-        JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
-        JOIN "Phrase" AS ph ON  phw."phraseId" = ph.id
-        WHERE ph.id = NEW.phrase_id
-        ON CONFLICT ("languageId", "formId", gloss) DO UPDATE
-            SET count = c.count + 1;
+    IF OLD.state = 'APPROVED' AND (NEW.gloss <> OLD.gloss OR NEW.state <> 'APPROVED') THEN
+        UPDATE "LemmaFormSuggestionCount" AS c
+        SET
+            count = c.count - 1 
+        WHERE c.gloss = OLD.gloss
+            AND c."languageId" = (SELECT language_id FROM phrase WHERE id = OLD.phrase_id)
+            AND c."formId" IN (
+                SELECT w."formId" FROM "Word" AS w
+                JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
+                JOIN phrase AS ph ON  phw."phraseId" = ph.id
+                WHERE ph.id = OLD.phrase_id
+            );
     END IF;
 
     RETURN NULL;
@@ -124,5 +135,37 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
+CREATE OR REPLACE FUNCTION decrement_suggestion_after_phrase_delete()
+RETURNS TRIGGER AS
+$$
+DECLARE
+    t_gloss TEXT;
+BEGIN
+    IF NEW.deleted_at IS NOT NULL THEN
+        -- Ignore phrases with unapproved glosses.
+        SELECT gloss.gloss INTO t_gloss
+        FROM gloss
+        WHERE phrase_id = NEW.id
+            AND state = 'APPROVED';
+        IF NOT FOUND THEN
+            RETURN NULL;
+        END IF;
+
+        UPDATE "LemmaFormSuggestionCount" AS c
+        SET
+            count = c.count - 1 
+        WHERE c.gloss = t_gloss
+            AND c."languageId" = NEW.language_id
+            AND c."formId" IN (
+                SELECT w."formId" FROM "Word" AS w
+                JOIN "PhraseWord" AS phw ON phw."wordId" = w.id
+                WHERE phw."phraseId" = NEW.id
+            );
+    END IF;
+
+    RETURN NULL;
+END;
+$$
+LANGUAGE 'plpgsql';
 
 COMMIT;

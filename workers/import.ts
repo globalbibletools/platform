@@ -26,11 +26,11 @@ export async function handler(event: SQSEvent) {
 
     await query(
         `
-        UPDATE "Phrase" SET
-            "deletedAt" = NOW(),
-            "deletedBy" = $2::uuid
-        WHERE "languageId" = $1::uuid
-            AND "deletedAt" IS NULL
+        UPDATE phrase SET
+            deleted_at = NOW(),
+            deleted_by = $2::uuid
+        WHERE language_id = $1::uuid
+            AND deleted_at IS NULL
         `,
         [job.languageId, job.userId]
     )
@@ -89,13 +89,13 @@ export async function handler(event: SQSEvent) {
                 phw AS (
                   INSERT INTO "PhraseWord" ("phraseId", "wordId")
                   SELECT
-                    nextval(pg_get_serial_sequence('"Phrase"', 'id')),
+                    nextval(pg_get_serial_sequence('phrase', 'id')),
                     data.word_id
                   FROM data
                   RETURNING "phraseId", "wordId"
                 ),
                 phrase AS (
-                    INSERT INTO "Phrase" (id, "languageId", "createdAt", "createdBy")
+                    INSERT INTO phrase (id, language_id, created_at, created_by)
                     SELECT
                         phw."phraseId",
                         $1::uuid,

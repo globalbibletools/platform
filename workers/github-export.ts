@@ -67,10 +67,10 @@ async function exportLanguage(code: string) {
 async function fetchUpdatedLanguages() {
     const result = await query<{ code: string }>(
         `SELECT DISTINCT lang.code FROM gloss
-        JOIN "Phrase" ph ON ph.id = gloss.phrase_id
-        JOIN language lang ON lang.id = ph."languageId"
+        JOIN phrase ph ON ph.id = gloss.phrase_id
+        JOIN language lang ON lang.id = ph.language_id
         WHERE gloss.updated_at >= NOW() - INTERVAL '8 days'
-            OR ph."deletedAt" >= NOW() - INTERVAL '8 days'
+            OR ph.deleted_at >= NOW() - INTERVAL '8 days'
         ORDER BY lang.code
         `,
         []
@@ -131,9 +131,9 @@ function fetchLanguageData(languageId: string) {
                     WHERE gloss.state = 'APPROVED'
                         AND EXISTS (
                             SELECT FROM "PhraseWord" phrase_word 
-                            JOIN "Phrase" phrase ON phrase_word."phraseId" = phrase.id
-                            WHERE phrase."languageId" = (SELECT id FROM language WHERE code = $1)
-                                AND phrase."deletedAt" IS NULL
+                            JOIN phrase ON phrase_word."phraseId" = phrase.id
+                            WHERE phrase.language_id = (SELECT id FROM language WHERE code = $1)
+                                AND phrase.deleted_at IS NULL
                                 AND phrase_word."wordId" = word.id
                                 AND gloss.phrase_id = phrase.id
                         )

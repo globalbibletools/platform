@@ -39,13 +39,13 @@ async function fetchBookProgress(bookId: number, languageCode: string): Promise<
                 WHERE v."bookId" = b.id
             ) AS "wordCount",
             (
-                SELECT COUNT(*) FROM "Phrase" AS ph
+                SELECT COUNT(*) FROM phrase AS ph
                 LEFT JOIN gloss AS g ON g.phrase_id = ph.id
                 JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
                 JOIN "Word" AS w ON w.id = phw."wordId"
                 JOIN "Verse" AS v ON v.id = w."verseId"
-                WHERE ph."languageId" = (SELECT id FROM language WHERE code = $2)
-                    AND ph."deletedAt" IS NULL
+                WHERE ph.language_id = (SELECT id FROM language WHERE code = $2)
+                    AND ph.deleted_at IS NULL
                     AND v."bookId" = b.id
                     AND g.state = 'APPROVED'
             ) AS "approvedCount"

@@ -75,7 +75,7 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
             FROM "Word" AS w
             LEFT JOIN LATERAL (
               SELECT ph.id, wds.words AS linked_words FROM "PhraseWord" AS phw
-              JOIN "Phrase" AS ph ON ph.id = phw."phraseId"
+              JOIN phrase AS ph ON ph.id = phw."phraseId"
               LEFT JOIN LATERAL (
                 SELECT array_agg(phw2."wordId") AS words FROM "PhraseWord" AS phw2
                 WHERE phw2."phraseId" = ph.id
@@ -83,8 +83,8 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
                 GROUP BY phw2."phraseId"
               ) AS wds ON true
               WHERE phw."wordId" = w.id
-                AND ph."deletedAt" IS NULL
-                AND ph."languageId" = (SELECT id FROM language WHERE code = $3)
+                AND ph.deleted_at IS NULL
+                AND ph.language_id = (SELECT id FROM language WHERE code = $3)
             ) AS ph ON true
             LEFT JOIN gloss AS g ON g.phrase_id = ph.id AND g.state = 'APPROVED'
             LEFT JOIN footnote AS fn ON fn.phrase_id = ph.id

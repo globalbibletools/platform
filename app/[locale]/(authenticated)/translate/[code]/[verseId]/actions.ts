@@ -29,7 +29,7 @@ export async function updateGloss(formData: FormData): Promise<any> {
         `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
         FROM language_member_role AS r
-        WHERE r.language_id = (SELECT "languageId" FROM "Phrase" WHERE id = $1) 
+        WHERE r.language_id = (SELECT language_id FROM phrase WHERE id = $1) 
             AND r.user_id = $2`,
         [request.data.phraseId, session.user.id]
     )
@@ -53,8 +53,8 @@ export async function updateGloss(formData: FormData): Promise<any> {
     )
 
     const pathQuery = await query<{ code: string, verseId: string }>(
-        `SELECT l.code, w."verseId" FROM "Phrase" AS ph
-        JOIN language AS l ON l.id = ph."languageId"
+        `SELECT l.code, w."verseId" FROM phrase AS ph
+        JOIN language AS l ON l.id = ph.language_id
         JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
         JOIN "Word" AS w ON w.id = phw."wordId"
         WHERE ph.id = $1
@@ -112,8 +112,8 @@ export async function updateTranslatorNote(formData: FormData): Promise<any> {
     }
 
     const pathQuery = await query<{ code: string, verseId: string }>(
-        `SELECT l.code, w."verseId" FROM "Phrase" AS ph
-        JOIN language AS l ON l.id = ph."languageId"
+        `SELECT l.code, w."verseId" FROM phrase AS ph
+        JOIN language AS l ON l.id = ph.language_id
         JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
         JOIN "Word" AS w ON w.id = phw."wordId"
         WHERE ph.id = $1
@@ -171,8 +171,8 @@ export async function updateFootnote(formData: FormData): Promise<any> {
     }
 
     const pathQuery = await query<{ code: string, verseId: string }>(
-        `SELECT l.code, w."verseId" FROM "Phrase" AS ph
-        JOIN language AS l ON l.id = ph."languageId"
+        `SELECT l.code, w."verseId" FROM phrase AS ph
+        JOIN language AS l ON l.id = ph.language_id
         JOIN "PhraseWord" AS phw ON phw."phraseId" = ph.id
         JOIN "Word" AS w ON w.id = phw."wordId"
         WHERE ph.id = $1
