@@ -146,9 +146,9 @@ async function fetchUsers(code: string) {
 				  'token', i.token,
 				  'expires', i.expires
 				) as json
-            FROM "UserInvitation" AS i
-            WHERE i."userId" = u.id
-            ORDER BY i."expires" DESC
+            FROM user_invitation AS i
+            WHERE i.user_id = u.id
+            ORDER BY i.expires DESC
             LIMIT 1
         ) AS invitation ON true
         ORDER BY u.name`,

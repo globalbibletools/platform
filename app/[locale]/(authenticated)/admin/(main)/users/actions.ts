@@ -112,7 +112,7 @@ export async function resendUserInvite(_prevState: FormState, formData: FormData
     
     const token = randomBytes(12).toString('hex')
     await query(
-        `INSERT INTO "UserInvitation" ("userId", token, expires)
+        `INSERT INTO user_invitation (user_id, token, expires)
         VALUES ($1, $2, $3)
         `,
         [request.data.userId, token, Date.now() + INVITE_EXPIRES]

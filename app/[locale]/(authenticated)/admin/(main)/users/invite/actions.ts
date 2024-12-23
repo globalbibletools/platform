@@ -59,7 +59,7 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
         `WITH new_user AS (
             INSERT INTO users (email) VALUES ($1) RETURNING id
         )
-        INSERT INTO "UserInvitation" ("userId", token, expires)
+        INSERT INTO user_invitation (user_id, token, expires)
         SELECT id, $2, $3 FROM new_user
         `,
         [request.data.email, token, Date.now() + INVITE_EXPIRES]

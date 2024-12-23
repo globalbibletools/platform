@@ -120,6 +120,12 @@ ALTER TABLE user_email_verification RENAME CONSTRAINT "UserEmailVerification_use
 ALTER INDEX "UserEmailVerification_pkey" RENAME TO user_email_verification_pkey;
 ALTER INDEX "UserEmailVerification_token_key" RENAME TO user_email_verification_token_key;
 
+ALTER TABLE "UserInvitation" RENAME TO user_invitation;
+ALTER TABLE user_invitation RENAME COLUMN "userId" TO user_id;
+ALTER TABLE user_invitation RENAME CONSTRAINT "UserInvitation_userId_fkey" TO user_invitation_user_id_fkey;
+ALTER INDEX "UserInvitation_pkey" RENAME TO user_invitation_pkey;
+ALTER INDEX "UserInvitation_userId_key" RENAME TO user_invitation_user_id_pkey;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$
