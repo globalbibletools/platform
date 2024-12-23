@@ -47,14 +47,14 @@ export async function changeUserLanguageRole(_prevState: FormState, formData: Fo
     await transaction(async query => {
         await query(
             `DELETE FROM language_member_role AS r
-            WHERE r.language_id = (SELECT id FROM language WHERE code = $1) AND r.user_id = $2 AND r.role != 'VIEWER' AND r.role != ALL($3::"LanguageRole"[])`,
+            WHERE r.language_id = (SELECT id FROM language WHERE code = $1) AND r.user_id = $2 AND r.role != 'VIEWER' AND r.role != ALL($3::language_role[])`,
             [request.data.code, request.data.userId, request.data.roles]
         )
 
         if (request.data.roles && request.data.roles.length > 0) {
             await query(`
                 INSERT INTO language_member_role (language_id, user_id, role)
-                SELECT l.id, $2, UNNEST($3::"LanguageRole"[])
+                SELECT l.id, $2, UNNEST($3::language_role[])
                 FROM language AS l
                 WHERE l.code = $1
                 ON CONFLICT DO NOTHING`,

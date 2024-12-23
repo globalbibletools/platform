@@ -35,14 +35,14 @@ export async function changeUserRole(_prevState: FormState, formData: FormData):
 
     await transaction(async query => {
         await query(
-            `DELETE FROM user_system_role AS r WHERE r.user_id = $1 AND r.role != ALL($2::"SystemRole"[])`,
+            `DELETE FROM user_system_role AS r WHERE r.user_id = $1 AND r.role != ALL($2::system_role[])`,
             [request.data.userId, request.data.roles]
         )
 
         if (request.data.roles && request.data.roles.length > 0) {
             await query(`
                 INSERT INTO user_system_role (user_id, role)
-                SELECT $1, UNNEST($2::"SystemRole"[])
+                SELECT $1, UNNEST($2::system_role[])
                 ON CONFLICT DO NOTHING`,
                 [request.data.userId, request.data.roles]
             )

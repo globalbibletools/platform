@@ -1,5 +1,13 @@
 BEGIN;
 
+ALTER TYPE "EmailStatus" RENAME TO email_status;
+ALTER TYPE "GlossSource" RENAME TO gloss_source;
+ALTER TYPE "GlossState" RENAME TO gloss_state;
+ALTER TYPE "LanguageRole" RENAME TO language_role;
+ALTER TYPE "ResourceCode" RENAME TO resource_code;
+ALTER TYPE "SystemRole" RENAME TO system_role;
+ALTER TYPE "TextDirection" RENAME TO text_direction;
+
 ALTER TABLE "Book" RENAME TO book;
 ALTER INDEX "Book_pkey" RENAME TO book_pkey;
 ALTER INDEX "Book_name_key" RENAME TO book_name_key;

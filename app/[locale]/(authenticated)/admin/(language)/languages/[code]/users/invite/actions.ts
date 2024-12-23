@@ -76,7 +76,7 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
                 SELECT id, $2, $3 FROM new_user
             )
             INSERT INTO language_member_role (language_id, user_id, role)
-            SELECT l.id, new_user.id, UNNEST($5::"LanguageRole"[]) FROM new_user
+            SELECT l.id, new_user.id, UNNEST($5::language_role[]) FROM new_user
             JOIN language AS l ON l.code = $4
             `,
             [request.data.email, token, Date.now() + INVITE_EXPIRES, request.data.code, roles]
@@ -92,7 +92,7 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
     } else {
         await query(
             `INSERT INTO language_member_role (language_id, user_id, role)
-            SELECT l.id, $2, UNNEST($3::"LanguageRole"[]) FROM language AS l
+            SELECT l.id, $2, UNNEST($3::language_role[]) FROM language AS l
             WHERE l.code = $1
             ON CONFLICT DO NOTHING
             `,
