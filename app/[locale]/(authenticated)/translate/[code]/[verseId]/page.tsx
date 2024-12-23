@@ -266,7 +266,7 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
      
                 WHERE w."verseId" = v.id
             ) AS words
-        FROM "Verse" AS v
+        FROM verse AS v
         WHERE v.id = $1
         `,
         [verseId]

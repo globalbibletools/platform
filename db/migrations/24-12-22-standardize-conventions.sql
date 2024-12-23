@@ -131,6 +131,12 @@ ALTER TABLE user_system_role RENAME COLUMN "userId" TO user_id;
 ALTER TABLE user_system_role RENAME CONSTRAINT "UserSystemRole_userId_fkey" TO user_system_role_user_id_fkey;
 ALTER INDEX "UserSystemRole_pkey" RENAME TO user_system_role_pkey;
 
+ALTER TABLE "Verse" RENAME TO verse;
+ALTER TABLE verse RENAME COLUMN "bookId" TO book_id;
+ALTER TABLE verse RENAME CONSTRAINT "Verse_bookId_fkey" TO verse_book_id_fkey;
+ALTER INDEX "Verse_pkey" RENAME TO verse_pkey;
+ALTER INDEX "Verse_bookId_chapter_number_key" RENAME TO verse_book_id_chapter_number_key;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$

@@ -59,7 +59,7 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
           v.id,
           v.number,
           words.words
-        FROM "Verse" AS v
+        FROM verse AS v
         JOIN LATERAL (
             SELECT
               json_agg(json_strip_nulls(json_build_object(
@@ -105,7 +105,7 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
             ) AS lemma_resource ON true
             WHERE w."verseId" = v.id
         ) AS words ON true
-        WHERE v."bookId" = $1 AND v.chapter = $2
+        WHERE v.book_id = $1 AND v.chapter = $2
         `,
         [bookId, chapterId, code]
     )
