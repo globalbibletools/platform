@@ -72,7 +72,6 @@ ALTER TABLE lemma_resource RENAME COLUMN "lemmaId" TO lemma_id;
 ALTER TABLE lemma_resource RENAME COLUMN "resourceCode" TO resource_code;
 ALTER TABLE lemma_resource RENAME CONSTRAINT "LemmaResource_lemmaId_fkey" TO lemma_resource_lemma_id_fkey;
 ALTER INDEX "LemmaResource_pkey" RENAME TO lemma_resource_pkey;
-ALTER INDEX "LemmaResource_lemmaId_idx" RENAME TO lemma_resource_lemma_id_idx;
 
 ALTER TABLE "MachineGloss" RENAME TO machine_gloss;
 ALTER TABLE machine_gloss RENAME COLUMN "wordId" TO word_id;
@@ -142,7 +141,6 @@ ALTER TABLE "UserInvitation" RENAME TO user_invitation;
 ALTER TABLE user_invitation RENAME COLUMN "userId" TO user_id;
 ALTER TABLE user_invitation RENAME CONSTRAINT "UserInvitation_userId_fkey" TO user_invitation_user_id_fkey;
 ALTER INDEX "UserInvitation_pkey" RENAME TO user_invitation_pkey;
-ALTER INDEX "UserInvitation_userId_key" RENAME TO user_invitation_user_id_pkey;
 
 ALTER TABLE "UserSystemRole" RENAME TO user_system_role;
 ALTER TABLE user_system_role RENAME COLUMN "userId" TO user_id;
