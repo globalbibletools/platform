@@ -120,8 +120,8 @@ async function fetchUsers() {
         JOIN LATERAL (
             SELECT
                 COALESCE(json_agg(r.role), '[]') AS list
-            FROM "UserSystemRole" AS r
-            WHERE r."userId" = u.id
+            FROM user_system_role AS r
+            WHERE r.user_id = u.id
         ) AS roles ON true
         LEFT JOIN LATERAL (
             SELECT

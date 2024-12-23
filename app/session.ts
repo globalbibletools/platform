@@ -71,7 +71,7 @@ const fetchSession = cache(async (sessionId: string): Promise<Session | undefine
                 session.id, expires_at,
                 JSON_BUILD_OBJECT(
                     'id', users.id, 'email', email, 'name', name,
-                    'roles', (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') FROM "UserSystemRole" AS r WHERE r."userId" = users.id)
+                    'roles', (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') FROM user_system_role AS r WHERE r.user_id = users.id)
                 ) AS user
             FROM session
             JOIN users ON users.id = session.user_id

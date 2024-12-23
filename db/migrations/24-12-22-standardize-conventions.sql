@@ -126,6 +126,11 @@ ALTER TABLE user_invitation RENAME CONSTRAINT "UserInvitation_userId_fkey" TO us
 ALTER INDEX "UserInvitation_pkey" RENAME TO user_invitation_pkey;
 ALTER INDEX "UserInvitation_userId_key" RENAME TO user_invitation_user_id_pkey;
 
+ALTER TABLE "UserSystemRole" RENAME TO user_system_role;
+ALTER TABLE user_system_role RENAME COLUMN "userId" TO user_id;
+ALTER TABLE user_system_role RENAME CONSTRAINT "UserSystemRole_userId_fkey" TO user_system_role_user_id_fkey;
+ALTER INDEX "UserSystemRole_pkey" RENAME TO user_system_role_pkey;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$
