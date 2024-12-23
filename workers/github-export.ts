@@ -120,12 +120,12 @@ function fetchLanguageData(languageId: string) {
             FROM verse
             JOIN (
                 SELECT
-                    word."verseId",
+                    word.verse_id
                     JSON_AGG(JSON_BUILD_OBJECT(
                         'id', word.id,
                         'gloss', gloss.gloss
                     ) ORDER BY word.id) AS words
-                FROM "Word" word
+                FROM word
                 LEFT JOIN LATERAL (
                     SELECT gloss.gloss FROM gloss
                     WHERE gloss.state = 'APPROVED'
@@ -138,8 +138,8 @@ function fetchLanguageData(languageId: string) {
                                 AND gloss.phrase_id = phrase.id
                         )
                 ) gloss ON true
-                GROUP BY word."verseId"
-            ) verse_words ON verse.id = verse_words."verseId"
+                GROUP BY word.verse_id
+            ) verse_words ON verse.id = verse_words.verse_id
             GROUP BY verse.book_id, verse.chapter
         ) book_chapters ON book_chapters.book_id = book.id
         GROUP BY book.id

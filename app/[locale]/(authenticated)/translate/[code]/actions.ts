@@ -49,8 +49,8 @@ export async function redirectToUnapproved(formData: FormData): Promise<void | s
 
     let result = await query<{ nextUnapprovedVerseId: string }>(
         `
-        SELECT w."verseId" as "nextUnapprovedVerseId"
-        FROM "Word" AS w
+        SELECT w.verse_id as "nextUnapprovedVerseId"
+        FROM word AS w
         LEFT JOIN LATERAL (
           SELECT g.state AS state FROM phrase_word AS phw
           JOIN phrase AS ph ON ph.id = phw.phrase_id
@@ -59,7 +59,7 @@ export async function redirectToUnapproved(formData: FormData): Promise<void | s
 			      AND ph.language_id = (SELECT id FROM language WHERE code = $1)
 			      AND ph.deleted_at IS NULL
         ) AS g ON true
-        WHERE w."verseId" > $2
+        WHERE w.verse_id > $2
           AND (g.state = 'UNAPPROVED' OR g.state IS NULL)
         ORDER BY w.id
         LIMIT 1
@@ -70,8 +70,8 @@ export async function redirectToUnapproved(formData: FormData): Promise<void | s
     if (result.rows.length === 0) {
         result = await query<{ nextUnapprovedVerseId: string }>(
             `
-            SELECT w."verseId" as "nextUnapprovedVerseId"
-            FROM "Word" AS w
+            SELECT w.verse_id as "nextUnapprovedVerseId"
+            FROM word AS w
             LEFT JOIN LATERAL (
               SELECT g.state AS state FROM phrase_word AS phw
               JOIN phrase AS ph ON ph.id = phw.phrase_id
@@ -147,9 +147,9 @@ export async function approveAll(formData: FormData): Promise<void> {
 
     const pathQuery = await query<{ verseId: string }>(
         `
-        SELECT w."verseId" FROM phrase AS ph
+        SELECT w.verse_id FROM phrase AS ph
         JOIN phrase_word AS phw ON phw.phrase_id = ph.id
-        JOIN "Word" AS w ON w.id = phw.word_id
+        JOIN word AS w ON w.id = phw.word_id
         WHERE ph.id = $1
         LIMIT 1
         `,
@@ -239,7 +239,7 @@ export async function linkWords(formData: FormData): Promise<void> {
 
     const pathQuery = await query<{ verseId: string }>(
         `
-        SELECT w."verseId" FROM "Word" AS w
+        SELECT w.verse_id FROM word AS w
         WHERE w.id = $1
         `,
         [request.data.wordIds[0]]
@@ -292,9 +292,9 @@ export async function unlinkPhrase(formData: FormData): Promise<void> {
 
     const pathQuery = await query<{ verseId: string }>(
         `
-        SELECT w."verseId" FROM phrase AS ph
+        SELECT w.verse_id FROM phrase AS ph
         JOIN phrase_word AS phw ON phw.phrase_id = ph.id
-        JOIN "Word" AS w ON w.id = phw.word_id
+        JOIN word AS w ON w.id = phw.word_id
         WHERE ph.id = $1
         LIMIT 1
         `,
@@ -336,9 +336,9 @@ export async function sanityCheck(_prev: SanityCheckResult, formData: FormData):
             AND ph.language_id = (SELECT id FROM language WHERE code = $1)
             AND EXISTS (
                 SELECT FROM phrase_word phw
-                JOIN "Word" w ON w.id = phw.word_id
+                JOIN word w ON w.id = phw.word_id
                 WHERE phw.phrase_id = ph.id
-                    AND w."verseId" = $2
+                    AND w.verse_id = $2
             )
         `,
         [request.data.code, request.data.verseId]

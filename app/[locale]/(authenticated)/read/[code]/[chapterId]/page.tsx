@@ -72,7 +72,7 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
                 'grammar', lf.grammar,
                 'resource', lemma_resource.resource
               )) ORDER BY w.id) AS words
-            FROM "Word" AS w
+            FROM word AS w
             LEFT JOIN LATERAL (
               SELECT ph.id, wds.words AS linked_words FROM phrase_word AS phw
               JOIN phrase AS ph ON ph.id = phw.phrase_id
@@ -88,7 +88,7 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
             ) AS ph ON true
             LEFT JOIN gloss AS g ON g.phrase_id = ph.id AND g.state = 'APPROVED'
             LEFT JOIN footnote AS fn ON fn.phrase_id = ph.id
-            JOIN lemma_form AS lf ON lf.id = w."formId"
+            JOIN lemma_form AS lf ON lf.id = w.form_id
             LEFT JOIN LATERAL (
                 SELECT
                     CASE
@@ -103,7 +103,7 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
                 WHERE lr.lemma_id = lf.lemma_id
                 LIMIT 1
             ) AS lemma_resource ON true
-            WHERE w."verseId" = v.id
+            WHERE w.verse_id = v.id
         ) AS words ON true
         WHERE v.book_id = $1 AND v.chapter = $2
         `,

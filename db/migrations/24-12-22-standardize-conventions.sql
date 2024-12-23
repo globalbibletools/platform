@@ -145,6 +145,15 @@ ALTER TABLE verse_audio_timing RENAME CONSTRAINT "VerseAudioTiming_verseId_fkey"
 ALTER INDEX "VerseAudioTiming_pkey" RENAME TO verse_audio_timing_pkey;
 ALTER INDEX "VerseAudioTiming_verseId_recordingId_key" RENAME TO verse_audio_timing_verse_id_recording_id_key;
 
+ALTER TABLE "Word" RENAME TO word;
+ALTER TABLE word RENAME COLUMN "verseId" TO verse_id;
+ALTER TABLE word RENAME COLUMN "formId" TO form_id;
+ALTER TABLE word RENAME CONSTRAINT "Word_formId_fkey" TO word_form_id_fkey;
+ALTER TABLE word RENAME CONSTRAINT "Word_verseId_fkey" TO word_verse_id_fkey;
+ALTER INDEX "Word_pkey" RENAME TO word_pkey;
+ALTER INDEX "Word_formId_idx" RENAME TO word_form_id_idx;
+ALTER INDEX "Word_verseId_idx" RENAME TO word_verse_id_idx;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$

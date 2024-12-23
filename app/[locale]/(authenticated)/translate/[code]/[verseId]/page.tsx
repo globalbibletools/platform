@@ -88,14 +88,14 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
               SELECT
                 nextval(pg_get_serial_sequence('phrase', 'id')),
                 w.id
-              FROM "Word" AS w
+              FROM word AS w
               LEFT JOIN (
                 SELECT * FROM phrase_word AS phw
                 JOIN phrase AS ph ON ph.id = phw.phrase_id
                 WHERE ph.language_id = (SELECT id FROM language WHERE code = $1)
                   AND ph.deleted_at IS NULL
               ) ph ON ph.word_id = w.id
-              WHERE w."verseId" = $2 AND ph.id IS NULL
+              WHERE w.verse_id = $2 AND ph.id IS NULL
               RETURNING phrase_id, word_id
             )
             INSERT INTO phrase (id, language_id, created_at, created_by)
@@ -124,10 +124,10 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
 			WHERE ph.language_id = (SELECT id FROM language WHERE code = $2)
 				AND ph.deleted_at IS NULL
 				AND EXISTS (
-					SELECT FROM "Word" AS w
+					SELECT FROM word AS w
 					JOIN phrase_word AS phw2 ON phw2.word_id = w.id
 					WHERE w.id = phw.word_id
-						AND w."verseId" = $1
+						AND w.verse_id = $1
 						AND phw2.phrase_id = ph.id
 				)
 			GROUP BY ph.id
@@ -172,9 +172,9 @@ async function fetchMachineSuggestions(verseId: string, languageCode: string): P
     const result = await query<MachineSuggestion>(
         `
         SELECT w.id AS "wordId", mg.gloss AS suggestion
-        FROM "Word" AS w
+        FROM word AS w
         JOIN machine_gloss AS mg ON mg.word_id = w.id
-        WHERE w."verseId" = $1
+        WHERE w.verse_id = $1
 			AND mg.language_id = (SELECT id FROM language WHERE code = $2)
         `,
         [verseId, languageCode]
@@ -195,8 +195,8 @@ async function fetchSuggestions(verseId: string, languageCode: string): Promise<
             ARRAY_AGG(sc.gloss ORDER BY sc.count DESC) AS suggestions
         FROM "LemmaFormSuggestionCount" AS sc
         JOIN (
-            SELECT DISTINCT "formId" AS id FROM "Word"
-            WHERE "verseId" = $1
+            SELECT DISTINCT form_id AS id FROM word
+            WHERE verse_id = $1
         ) AS form ON form.id = sc."formId"
         WHERE sc."languageId" = (SELECT id FROM language WHERE code = $2)
             AND sc.count > 0
@@ -237,7 +237,7 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
                         'grammar', lf.grammar,
                         'resource', lemma_resource.resource
                     ) ORDER BY w.id)
-                FROM "Word" AS w
+                FROM word AS w
 
                 LEFT JOIN LATERAL (
                     SELECT g.gloss FROM phrase_word AS phw
@@ -248,7 +248,7 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
                         AND ph.deleted_at IS NULL
                 ) AS ph ON true
 
-                JOIN lemma_form AS lf ON lf.id = w."formId"
+                JOIN lemma_form AS lf ON lf.id = w.form_id
                 LEFT JOIN LATERAL (
                     SELECT
                         CASE
@@ -264,7 +264,7 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
                     LIMIT 1
                 ) AS lemma_resource ON true
      
-                WHERE w."verseId" = v.id
+                WHERE w.verse_id = v.id
             ) AS words
         FROM verse AS v
         WHERE v.id = $1
