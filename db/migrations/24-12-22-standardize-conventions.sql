@@ -57,6 +57,13 @@ ALTER TABLE lemma_resource RENAME CONSTRAINT "LemmaResource_lemmaId_fkey" TO lem
 ALTER INDEX "LemmaResource_pkey" RENAME TO lemma_resource_pkey;
 ALTER INDEX "LemmaResource_lemmaId_idx" RENAME TO lemma_resource_lemma_id_idx;
 
+ALTER TABLE "MachineGloss" RENAME TO machine_gloss;
+ALTER TABLE machine_gloss RENAME COLUMN "wordId" TO word_id;
+ALTER TABLE machine_gloss RENAME COLUMN "languageId" TO language_id;
+ALTER TABLE machine_gloss RENAME CONSTRAINT "MachineGloss_languageId_fkey" TO machine_gloss_language_id_fkey;
+ALTER TABLE machine_gloss RENAME CONSTRAINT "MachineGloss_wordId_fkey" TO machine_gloss_word_id_fkey;
+ALTER INDEX "MachineGloss_pkey" RENAME TO machine_gloss_pkey;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$
