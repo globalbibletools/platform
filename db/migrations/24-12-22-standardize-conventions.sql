@@ -137,6 +137,14 @@ ALTER TABLE verse RENAME CONSTRAINT "Verse_bookId_fkey" TO verse_book_id_fkey;
 ALTER INDEX "Verse_pkey" RENAME TO verse_pkey;
 ALTER INDEX "Verse_bookId_chapter_number_key" RENAME TO verse_book_id_chapter_number_key;
 
+ALTER TABLE "VerseAudioTiming" RENAME TO verse_audio_timing;
+ALTER TABLE verse_audio_timing RENAME COLUMN "verseId" TO verse_id;
+ALTER TABLE verse_audio_timing RENAME COLUMN "recordingId" TO recording_id;
+ALTER TABLE verse_audio_timing RENAME CONSTRAINT "VerseAudioTiming_recordingId_fkey" TO verse_audio_timing_recording_id_fkey;
+ALTER TABLE verse_audio_timing RENAME CONSTRAINT "VerseAudioTiming_verseId_fkey" TO verse_audio_timing_verse_id_fkey;
+ALTER INDEX "VerseAudioTiming_pkey" RENAME TO verse_audio_timing_pkey;
+ALTER INDEX "VerseAudioTiming_verseId_recordingId_key" RENAME TO verse_audio_timing_verse_id_recording_id_key;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$
