@@ -50,6 +50,13 @@ ALTER TABLE lemma_form RENAME CONSTRAINT "LemmaForm_lemmaId_fkey" TO lemma_form_
 ALTER INDEX "LemmaForm_pkey" RENAME TO lemma_form_pkey;
 ALTER INDEX "LemmaForm_lemmaId_idx" RENAME TO lemma_form_lemma_id_idx;
 
+ALTER TABLE "LemmaResource" RENAME TO lemma_resource;
+ALTER TABLE lemma_resource RENAME COLUMN "lemmaId" TO lemma_id;
+ALTER TABLE lemma_resource RENAME COLUMN "resourceCode" TO resource_code;
+ALTER TABLE lemma_resource RENAME CONSTRAINT "LemmaResource_lemmaId_fkey" TO lemma_resource_lemma_id_fkey;
+ALTER INDEX "LemmaResource_pkey" RENAME TO lemma_resource_pkey;
+ALTER INDEX "LemmaResource_lemmaId_idx" RENAME TO lemma_resource_lemma_id_idx;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$

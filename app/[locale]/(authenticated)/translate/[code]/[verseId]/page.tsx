@@ -252,15 +252,15 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
                 LEFT JOIN LATERAL (
                     SELECT
                         CASE
-                            WHEN lr."resourceCode" IS NOT NULL
+                            WHEN lr.resource_code IS NOT NULL
                             THEN JSON_BUILD_OBJECT(
-                              'name', lr."resourceCode",
+                              'name', lr.resource_code,
                               'entry', lr.content
                             )
                             ELSE NULL
                         END AS resource
-                    FROM "LemmaResource" AS lr
-                    WHERE lr."lemmaId" = lf.lemma_id
+                    FROM lemma_resource AS lr
+                    WHERE lr.lemma_id = lf.lemma_id
                     LIMIT 1
                 ) AS lemma_resource ON true
      
