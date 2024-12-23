@@ -114,6 +114,12 @@ ALTER TABLE users RENAME COLUMN "hashedPassword" TO hashed_password;
 ALTER INDEX "User_pkey" RENAME TO users_pkey;
 ALTER INDEX "User_email_key" RENAME TO user_email_key;
 
+ALTER TABLE "UserEmailVerification" RENAME TO user_email_verification;
+ALTER TABLE user_email_verification RENAME COLUMN "userId" TO user_id;
+ALTER TABLE user_email_verification RENAME CONSTRAINT "UserEmailVerification_userId_fkey" TO user_email_verification_user_id_fkey;
+ALTER INDEX "UserEmailVerification_pkey" RENAME TO user_email_verification_pkey;
+ALTER INDEX "UserEmailVerification_token_key" RENAME TO user_email_verification_token_key;
+
 CREATE OR REPLACE FUNCTION gloss_audit()
 RETURNS TRIGGER AS
 $$

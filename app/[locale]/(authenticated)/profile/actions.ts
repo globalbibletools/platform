@@ -58,8 +58,8 @@ export default async function updateProfile(
   if(parsedData.email && parsedData.email !== parsedData.prev_email){
     const token = randomBytes(12).toString('hex');
     await query(
-      `INSERT INTO "UserEmailVerification"
-          ("userId", "token", "email", "expires") 
+      `INSERT INTO user_email_verification
+          (user_id, token, email, expires) 
           VALUES ($1, $2, $3, $4)
       `, 
       [parsedData.user_id, token, parsedData.email, Date.now() + EMAIL_VERIFICATION_EXPIRES]
