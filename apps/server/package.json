@@ -51,6 +51,7 @@
     "@fortawesome/free-brands-svg-icons": "6.6.0",
     "@fortawesome/free-solid-svg-icons": "6.6.0",
     "@fortawesome/react-fontawesome": "0.2.2",
+    "@gbt/typescript-config": "*",
     "@headlessui/react": "1.7.19",
     "@headlessui/tailwindcss": "0.2.1",
     "@tiptap/react": "2.6.6",
@@ -70,6 +71,7 @@
     "lodash": "4.17.21",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "typescript": "^5",
     "webpack-merge": "6.0.1"
   }
 }

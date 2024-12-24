@@ -38,6 +38,7 @@ RUN apk update
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY . .
+RUN npm install
 ENV PORT=3000
 ENV NODE_ENV=development
 EXPOSE 3000
