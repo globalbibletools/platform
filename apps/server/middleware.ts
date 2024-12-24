@@ -1,5 +1,5 @@
 import createMiddleware from 'next-intl/middleware';
-import languages from './languages.json';
+import languages from './languages.json' assert { type: 'json' };
  
 export default createMiddleware({
   locales: Object.keys(languages),

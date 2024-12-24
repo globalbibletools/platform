@@ -64,14 +64,13 @@ jobs:
       - name: Build and push import worker
         uses: docker/build-push-action@v6
         with:
-          target: import-worker
+          file: apps/import-worker/Dockerfile
+          target: runner
           push: true
           platforms: linux/amd64
           provenance: false
           tags: ${{ steps.meta-import-worker.outputs.tags }}
           labels: ${{ steps.meta-import-worker.outputs.labels }}
-          secrets: |
-            "database-url=${{ secrets.DATABASE_URL }}"  
 
       - name: Docker meta
         id: meta-github-export-worker

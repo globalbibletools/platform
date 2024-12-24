@@ -1,7 +1,7 @@
 import { fontMap } from "@/app/fonts"
 import useSWR from "swr"
 import { parseVerseId } from "@/app/verse-utils"
-import bookKeys from "@gbt/data/book-keys"
+import bookKeys from "@gbt/data/book-keys.json"
 import { BibleClient } from "@gracious.tech/fetch-client"
 
 export interface TranslationReferenceProps {

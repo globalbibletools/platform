@@ -13,7 +13,6 @@ const nextConfig = {
                 entry() {
                     return config.entry().then((entry) => {
                         return Object.assign({}, entry, {
-                            'import-worker': path.resolve(process.cwd(), 'workers/import.ts'),
                             'github-export-worker': path.resolve(process.cwd(), 'workers/github-export.ts')
                         })
                     })

@@ -7,7 +7,7 @@ RUN apk update
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY . .
-RUN npx turbo prune server --docker
+RUN npx turbo prune @gbt/server --docker
  
 FROM base AS installer
 RUN apk update

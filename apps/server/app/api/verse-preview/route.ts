@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { BibleClient } from '@gracious.tech/fetch-client';
 import { query } from '@gbt/db/query';
 import { parseVerseId } from '@/app/verse-utils';
-import bookKeys from '@gbt/data/book-keys';
+import bookKeys from '@gbt/data/book-keys.json' assert { type: 'json' };
 
 const requestSchema = z.object({
     verseIds: z.array(z.string()),

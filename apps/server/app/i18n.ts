@@ -1,6 +1,6 @@
 import {notFound} from 'next/navigation';
 import {getRequestConfig} from 'next-intl/server';
-import languages from '../languages.json'
+import languages from '../languages.json' assert { type: 'json' };
 
 const locales = Object.keys(languages)
  

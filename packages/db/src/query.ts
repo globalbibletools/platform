@@ -1,4 +1,4 @@
-import { Pool, type QueryResult, type QueryResultRow } from 'pg'
+import pg, { type QueryResult, type QueryResultRow } from 'pg'
 import Cursor from 'pg-cursor'
 
 const connectionString = process.env.DATABASE_URL;
@@ -6,7 +6,7 @@ if (!connectionString) {
     throw new Error('DATABASE_URL env var missing');
 }
  
-const pool = new Pool({ connectionString, max: 20 })
+const pool = new pg.Pool({ connectionString, max: 20 })
 
 export async function query<T extends QueryResultRow>(text: string, params: any): Promise<QueryResult<T>> {
   return pool.query(text, params)

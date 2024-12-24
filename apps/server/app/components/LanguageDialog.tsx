@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import Button from './Button';
 import { Icon } from './Icon';
-import languages from '@/languages.json';
+import languages from '@/languages.json' assert { type: 'json' };
 import { useParams, useRouter, usePathname } from 'next/navigation'
 import ComboboxInput from './ComboboxInput';
 

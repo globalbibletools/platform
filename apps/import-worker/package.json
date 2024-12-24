@@ -1,0 +1,17 @@
+{
+    "name": "@gbt/import-worker",
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "check-types": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@gbt/data": "*",
+        "@gbt/db": "*",
+        "aws-lambda": "^1.0.7"
+    },
+    "devDependencies": {
+        "@types/aws-lambda": "^8.10.145",
+        "typescript": "^5"
+    }
+}

@@ -3,7 +3,7 @@
 import Button from "@/app/components/Button";
 import ComboboxInput from "@/app/components/ComboboxInput";
 import { Icon } from "@/app/components/Icon";
-import bookKeys from "@gbt/data/book-keys";
+import bookKeys from "@gbt/data/book-keys.json";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";

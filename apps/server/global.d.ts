@@ -1,4 +1,4 @@
-import en from './messages/en.json';
+import en from './messages/en.json' assert { type: 'json' };
  
 type Messages = typeof en;
  
