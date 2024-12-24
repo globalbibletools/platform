@@ -1,5 +1,5 @@
 {
-    "name": "server",
+    "name": "@gbt/server",
     "scripts": {
         "dev": "next dev",
         "build": "next build",
