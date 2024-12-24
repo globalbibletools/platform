@@ -1,5 +1,4 @@
 import createNextIntlPlugin from 'next-intl/plugin';
-import path from 'path';
 import { merge } from 'webpack-merge'
 
 const withNextIntl = createNextIntlPlugin('./app/i18n.ts');
@@ -9,14 +8,7 @@ const nextConfig = {
     webpack: (config, { isServer, nextRuntime }) => {
         if (isServer && nextRuntime === 'nodejs') {
             return merge(config, {
-                externals: ["@node-rs/argon2", "@node-rs/bcrypt"],
-                entry() {
-                    return config.entry().then((entry) => {
-                        return Object.assign({}, entry, {
-                            'github-export-worker': path.resolve(process.cwd(), 'workers/github-export.ts')
-                        })
-                    })
-                }
+                externals: ["@node-rs/argon2", "@node-rs/bcrypt"]
             });
         } else {
             return config;

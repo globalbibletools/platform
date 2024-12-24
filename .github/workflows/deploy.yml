@@ -85,12 +85,11 @@ jobs:
       - name: Build and push GitHub export worker
         uses: docker/build-push-action@v6
         with:
-          target: github-export-worker
+          file: apps/github-export-worker/Dockerfile
+          target: runner
           push: true
           platforms: linux/amd64
           provenance: false
           tags: ${{ steps.meta-github-export-worker.outputs.tags }}
           labels: ${{ steps.meta-github-export-worker.outputs.labels }}
-          secrets: |
-            "database-url=${{ secrets.DATABASE_URL }}"  
 
