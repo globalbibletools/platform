@@ -120,7 +120,7 @@ function fetchLanguageData(languageId: string) {
             FROM verse
             JOIN (
                 SELECT
-                    word.verse_id
+                    word.verse_id,
                     JSON_AGG(JSON_BUILD_OBJECT(
                         'id', word.id,
                         'gloss', gloss.gloss
