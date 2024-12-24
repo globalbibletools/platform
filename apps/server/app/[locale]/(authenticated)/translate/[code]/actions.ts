@@ -9,7 +9,7 @@ import { query, transaction } from '@gbt/db/query';
 import { verifySession } from '@/app/session';
 import { revalidatePath } from 'next/cache';
 import { translateClient } from '@/app/google-translate';
-import languageMap from "@/data/locale-mapping.json"
+import languageMap from "@gbt/data/locale-mapping"
 
 const requestSchema = z.object({
     language: z.string(),

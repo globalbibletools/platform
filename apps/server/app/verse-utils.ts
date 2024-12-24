@@ -1,4 +1,4 @@
-import { verseCounts } from "@/data/verse-counts";
+import verseCounts from "@gbt/data/verse-counts";
 import fuzzysort from "fuzzysort";
 
 export interface VerseInfo {

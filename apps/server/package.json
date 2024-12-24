@@ -10,6 +10,7 @@
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.678.0",
     "@gbt/db": "*",
+    "@gbt/data": "*",
     "@google-cloud/translate": "8.5.0",
     "@gracious.tech/fetch-client": "0.8.9",
     "@next/env": "14.2.12",

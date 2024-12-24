@@ -1,0 +1,14 @@
+{
+    "name": "@gbt/data",
+    "exports": {
+        "./verse-counts": {
+            "default": "./src/verse-counts.json"
+        },
+        "./book-keys": {
+            "default": "./src/book-keys.json"
+        },
+        "./locale-mapping": {
+            "default": "./src/locale-mapping.json"
+        }
+    }
+}

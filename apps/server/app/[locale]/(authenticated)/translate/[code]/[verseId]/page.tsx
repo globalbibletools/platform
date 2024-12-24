@@ -6,7 +6,7 @@ import { verifySession } from "@/app/session"
 import TranslateView from "./TranslationView"
 import { fetchCurrentLanguage } from "../layout"
 import { translateClient } from "@/app/google-translate"
-import languageMap from "@/data/locale-mapping.json"
+import languageMap from "@gbt/data/locale-mapping"
 
 interface Props {
     params: { code: string, verseId: string }

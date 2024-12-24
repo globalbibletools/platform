@@ -1,5 +1,5 @@
 import { query } from '@gbt/db/query';
-import { bookKeys } from '@/data/book-keys';
+import bookKeys from '@gbt/data/book-keys';
 import { SQSEvent } from 'aws-lambda'
 
 const IMPORT_SERVER = 'https://hebrewgreekbible.online';
