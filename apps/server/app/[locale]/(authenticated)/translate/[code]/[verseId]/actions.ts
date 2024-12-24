@@ -1,6 +1,6 @@
 "use server";
 
-import { query } from '@/shared/db';
+import { query } from '@gbt/db/query';
 import { parseForm } from '@/app/form-parser';
 import { verifySession } from '@/app/session';
 import { getLocale } from 'next-intl/server';

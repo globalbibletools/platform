@@ -1,6 +1,6 @@
 import ViewTitle from "@/app/components/ViewTitle";
 import { getTranslations } from "next-intl/server";
-import { query } from "@/shared/db";
+import { query } from "@gbt/db/query";
 import FormLabel from "@/app/components/FormLabel";
 import TextInput from "@/app/components/TextInput";
 import FieldError from "@/app/components/FieldError";

@@ -5,7 +5,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { parseForm } from '@/app/form-parser';
 import { notFound, redirect } from 'next/navigation';
 import { parseReference } from '@/app/verse-utils';
-import { query, transaction } from '@/shared/db';
+import { query, transaction } from '@gbt/db/query';
 import { verifySession } from '@/app/session';
 import { revalidatePath } from 'next/cache';
 import { translateClient } from '@/app/google-translate';

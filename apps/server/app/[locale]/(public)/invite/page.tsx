@@ -4,7 +4,7 @@ import FormLabel from "@/app/components/FormLabel";
 import TextInput from "@/app/components/TextInput";
 import FieldError from '@/app/components/FieldError';
 import { getTranslations } from 'next-intl/server';
-import { query } from '@/shared/db';
+import { query } from '@gbt/db/query';
 import { notFound } from 'next/navigation';
 import { Metadata, ResolvingMetadata } from "next";
 import { acceptInvite } from "./actions";

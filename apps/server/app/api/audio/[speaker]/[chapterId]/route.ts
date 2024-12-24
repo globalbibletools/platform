@@ -1,4 +1,4 @@
-import { query } from "@/shared/db";
+import { query } from "@gbt/db/query";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(_req: NextRequest, { params }: { params: { speaker: string, chapterId: string } }) {

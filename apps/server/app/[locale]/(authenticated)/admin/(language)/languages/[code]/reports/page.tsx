@@ -1,6 +1,6 @@
 import ViewTitle from "@/app/components/ViewTitle";
 import ChapterChart from "./ChapterChart";
-import { query } from "@/shared/db";
+import { query } from "@gbt/db/query";
 import { getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
 import ProgressChart from "./ProgressChart";

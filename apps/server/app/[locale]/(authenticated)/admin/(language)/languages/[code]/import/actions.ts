@@ -3,7 +3,7 @@
 import * as z from 'zod';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
-import { query } from '@/shared/db';
+import { query } from '@gbt/db/query';
 import { FormState } from '@/app/components/Form';
 import { parseForm } from '@/app/form-parser';
 import { verifySession } from '@/app/session';

@@ -6,7 +6,7 @@ import { Icon } from '@/app/components/Icon';
 import LanguageDialog from '@/app/components/LanguageDialog';
 import { HeaderDropdown, HeaderDropdownItem, HeaderLink, HeaderMenu, HeaderMenuButton, HeaderMenuItem, HeaderMenuItems } from './HeaderLink';
 import { verifySession } from '@/app/session';
-import { query } from '@/shared/db';
+import { query } from '@gbt/db/query';
 import { Menu } from '@headlessui/react';
 import NavLink from '@/app/components/NavLink';
 

@@ -1,5 +1,5 @@
 import { createTransport, SendMailOptions } from 'nodemailer';
-import { query } from '@/shared/db';
+import { query } from '@gbt/db/query';
 
 const transporter = process.env['EMAIL_SERVER']
   ? createTransport({

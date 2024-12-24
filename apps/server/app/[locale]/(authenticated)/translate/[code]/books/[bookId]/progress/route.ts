@@ -1,4 +1,4 @@
-import { query } from "@/shared/db";
+import { query } from "@gbt/db/query";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { NextRequest } from "next/server";

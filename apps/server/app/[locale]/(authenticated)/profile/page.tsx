@@ -9,7 +9,7 @@ import Button from "@/app/components/Button";
 import { notFound } from "next/navigation";
 import Form from "@/app/components/Form";
 import updateProfile from "./actions";
-import { query } from "@/shared/db";
+import { query } from "@gbt/db/query";
 
 export async function generateMetadata(
   _: any,

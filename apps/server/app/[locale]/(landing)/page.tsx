@@ -1,4 +1,4 @@
-import { query } from "@/shared/db"
+import { query } from "@gbt/db/query"
 import ProgressChart from "./ProgressChart"
 import { Icon } from "@/app/components/Icon"
 import ReadersBibleButton from "./ReadersBibleButton"

@@ -1,4 +1,4 @@
-import { query } from "@/shared/db"
+import { query } from "@gbt/db/query"
 import { getMessages } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { ReactNode } from "react"

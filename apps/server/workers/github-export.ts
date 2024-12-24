@@ -1,5 +1,5 @@
 import { SQSEvent, EventBridgeEvent } from 'aws-lambda'
-import { query, queryCursor } from '../shared/db'
+import { query, queryCursor } from '@gbt/db/query'
 import { SendMessageBatchCommand, SQSClient } from '@aws-sdk/client-sqs'
 import { Octokit } from '@octokit/rest'
 

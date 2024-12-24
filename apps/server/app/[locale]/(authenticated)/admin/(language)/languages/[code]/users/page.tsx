@@ -2,7 +2,7 @@ import Button from "@/app/components/Button";
 import { Icon } from "@/app/components/Icon";
 import { List, ListBody, ListCell, ListHeader, ListHeaderCell, ListRow } from "@/app/components/List";
 import ViewTitle from "@/app/components/ViewTitle";
-import { query } from "@/shared/db";
+import { query } from "@gbt/db/query";
 import { getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
 import MultiselectInput from "@/app/components/MultiselectInput";

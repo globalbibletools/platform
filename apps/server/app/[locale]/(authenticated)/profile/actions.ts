@@ -7,7 +7,7 @@ import { FormState } from "@/app/components/Form";
 import { revalidatePath } from "next/cache";
 import { parseForm } from "@/app/form-parser";
 import mailer from "@/app/mailer";
-import { query } from "@/shared/db";
+import { query } from "@gbt/db/query";
 import { randomBytes } from "crypto";
 
 const scrypt = new Scrypt();

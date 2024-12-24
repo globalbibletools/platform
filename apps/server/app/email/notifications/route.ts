@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import { query } from '@/shared/db';
+import { query } from '@gbt/db/query';
 
 const messageSchema = z.discriminatedUnion('notificationType', [
   z.object({

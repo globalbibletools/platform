@@ -2,7 +2,7 @@ import { Icon } from '@/app/components/Icon';
 import { ReactNode } from 'react';
 import { SidebarLink } from '@/app/components/NavLink';
 import { getTranslations } from 'next-intl/server';
-import { query } from '@/shared/db';
+import { query } from '@gbt/db/query';
 import { notFound } from 'next/navigation';
 import { verifySession } from '@/app/session';
 import { Metadata, ResolvingMetadata } from 'next';

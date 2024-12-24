@@ -1,7 +1,7 @@
 import * as z from 'zod';
 import { NextRequest, NextResponse } from "next/server";
 import { BibleClient } from '@gracious.tech/fetch-client';
-import { query } from '@/shared/db';
+import { query } from '@gbt/db/query';
 import { parseVerseId } from '@/app/verse-utils';
 import { bookKeys } from '@/data/book-keys';
 

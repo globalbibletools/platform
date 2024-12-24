@@ -1,7 +1,7 @@
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import ModalView from "@/app/components/ModalView";
 import mailer from "@/app/mailer";
-import { query, transaction } from "@/shared/db";
+import { query, transaction } from "@gbt/db/query";
 import { ResolvingMetadata, Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";

@@ -1,4 +1,4 @@
-import { query } from '@/shared/db';
+import { query } from '@gbt/db/query';
 import { bookKeys } from '@/data/book-keys';
 import { SQSEvent } from 'aws-lambda'
 

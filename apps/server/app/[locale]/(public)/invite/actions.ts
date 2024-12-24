@@ -5,7 +5,7 @@ import {getTranslations, getLocale} from 'next-intl/server';
 import { Scrypt } from "oslo/password";
 import { createSession } from '@/app/session';
 import { notFound, redirect } from 'next/navigation';
-import { transaction } from '@/shared/db';
+import { transaction } from '@gbt/db/query';
 import { parseForm } from '@/app/form-parser';
 import { FormState } from '@/app/components/Form';
 import homeRedirect from '@/app/home-redirect';

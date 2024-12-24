@@ -1,6 +1,6 @@
 "use server";
 
-import { query } from "@/shared/db";
+import { query } from "@gbt/db/query";
 import { randomBytes } from "crypto";
 import { cookies } from "next/headers";
 import { cache } from "react";
