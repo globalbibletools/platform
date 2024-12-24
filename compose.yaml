@@ -16,15 +16,15 @@ services:
         condition: service_healthy
   db:
     build:
-      dockerfile: apps/server/db/Dockerfile
+      dockerfile: packages/db/Dockerfile
     image: postgres
     restart: always
     shm_size: 128mb
     user: postgres
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./apps/server/db/docker-initdb.sh:/docker-entrypoint-initdb.d/docker-initdb.sh
-      - ./apps/server/db:/db
+      - ./packages/db/scripts/docker-initdb.sh:/docker-entrypoint-initdb.d/docker-initdb.sh
+      - ./packages/db:/db
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=asdfasdf

@@ -62,27 +62,27 @@ It will be set up for you when you start the docker image.
 
 ### Set up database
 
-If you are running these from the db container, you can use an absolute URL (`/db/data.dump`) because the db directory is mounted at the root of the container.
+When running database commands from the db container, use `/db/` instead of `packages/db/` because the db package is mounted at the root of the container.
 
 Restore the database schema:
 ```bash
-psql DATABASE_URL db/schema.sql
+psql DATABASE_URL packages/db/scripts/schema.sql
 ```
 
 Restore the database seed data and rebuild materialized views:
 ```bash
-pg_restore -Fc --format=custom --dbname=DATABASE_URL db/data.dump
-psql --dbname=DATABASE_URL -f db/refresh_views.sql
+pg_restore -Fc --format=custom --dbname=DATABASE_URL packages/db/scripts/data.dump
+psql --dbname=DATABASE_URL -f packages/db/scripts/refresh_views.sql
 ```
 
 Export the latest database schema:
 ```bash
-pg_dump --no-owner --schema-only DATABASE_URL > db/schema.sql
+pg_dump --no-owner --schema-only DATABASE_URL > packages/db/scripts/schema.sql
 ```
 
 Export the latest database seed data:
 ```bash
-pg_dump -Fc --data-only DATABASE_URL > db/data.dump
+pg_dump -Fc --data-only DATABASE_URL > packages/db/scripts/data.dump
 ```
 
 ### Migrations
@@ -91,5 +91,5 @@ Migrations are stored in `db/migrations` in order. The files are named with a ti
 We will run these manually in production as needed.
 
 ```bash
-psql DATABASE_URL -f db/migrations/{migration}.sql
+psql DATABASE_URL -f packages/db/migrations/{migration}.sql
 ```
