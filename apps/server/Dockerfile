@@ -28,10 +28,10 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-COPY --from=installer --chown=nextjs:nodejs /app/apps/server/.next/standalone ./
-COPY --from=installer --chown=nextjs:nodejs /app/apps/server/.next/static ./apps/web/.next/static
-COPY --from=installer --chown=nextjs:nodejs /app/apps/server/public ./apps/web/public
-CMD node server.js
+COPY --from=installer --chown=nextjs:nodejs /app/apps/server/.next/standalone .
+COPY --from=installer --chown=nextjs:nodejs /app/apps/server/.next/static apps/server/.next/static
+COPY --from=installer --chown=nextjs:nodejs /app/apps/server/public apps/server/public
+CMD node apps/server/server.js
 
 FROM base AS dev
 RUN apk update
