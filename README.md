@@ -31,6 +31,21 @@ We are excited to add new contributors! If you are interested,
 please review our [contributing guidelines](https://github.com/globalbibletools/platform/blob/main/.github/CONTRIBUTING.md) to get started.
 and fill out [this form](https://enormous-square-660.notion.site/1468e90207d68038b9e5f22949d40b87?pvs=105).
 
+## Repo layout
+
+This project is managed as a monorepo, to make it easy to track dependencies and review changes.
+
+```
+apps/
+  server/ - The primary nextjs server deployed to AWS AppRunner
+  import-worker/ - A worker for importing glosses deployed to AWS Lambda
+  github-export-worker/ - A worker for exporting data deployed to AWS Lambda
+packages/
+  db/ - Manages the db schema, and provides utilities for queries, transactions, and cursors.
+  data/ - A collection of json files for things like Bible data and locale information.
+  typescript-config/ - A set of base tsconfigs for different package types.
+```
+
 ## Docker
 
 Both the database and dev server can be run from a docker container using the command:
@@ -62,27 +77,27 @@ It will be set up for you when you start the docker image.
 
 ### Set up database
 
-If you are running these from the db container, you can use an absolute URL (`/db/data.dump`) because the db directory is mounted at the root of the container.
+When running database commands from the db container, use `/db/` instead of `packages/db/` because the db package is mounted at the root of the container.
 
 Restore the database schema:
 ```bash
-psql DATABASE_URL db/schema.sql
+psql DATABASE_URL packages/db/scripts/schema.sql
 ```
 
 Restore the database seed data and rebuild materialized views:
 ```bash
-pg_restore -Fc --format=custom --dbname=DATABASE_URL db/data.dump
-psql --dbname=DATABASE_URL -f db/refresh_views.sql
+pg_restore -Fc --format=custom --dbname=DATABASE_URL packages/db/scripts/data.dump
+psql --dbname=DATABASE_URL -f packages/db/scripts/refresh_views.sql
 ```
 
 Export the latest database schema:
 ```bash
-pg_dump --no-owner --schema-only DATABASE_URL > db/schema.sql
+pg_dump --no-owner --schema-only DATABASE_URL > packages/db/scripts/schema.sql
 ```
 
 Export the latest database seed data:
 ```bash
-pg_dump -Fc --data-only DATABASE_URL > db/data.dump
+pg_dump -Fc --data-only DATABASE_URL > packages/db/scripts/data.dump
 ```
 
 ### Migrations
@@ -91,5 +106,5 @@ Migrations are stored in `db/migrations` in order. The files are named with a ti
 We will run these manually in production as needed.
 
 ```bash
-psql DATABASE_URL -f db/migrations/{migration}.sql
+psql DATABASE_URL -f packages/db/migrations/{migration}.sql
 ```
