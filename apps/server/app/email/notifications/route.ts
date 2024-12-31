@@ -37,6 +37,7 @@ const bodySchema = z.discriminatedUnion('Type', [
 
 export async function POST(req: Request) {
     const rawbody = await req.json()
+    console.log('Email notification', rawbody)
     const bodyResult = bodySchema.safeParse(rawbody)
     if (!bodyResult.success) {
         return Response.json({ error: 'Failed to parse body' }, { status: 400 })
