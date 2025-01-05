@@ -314,7 +314,7 @@ async function saveMachineTranslations(code: string, referenceGlosses: string[],
                 ON LOWER(g.gloss) = data.ref_gloss
             WHERE ph.deleted_at IS NULL
                 AND ph.language_id = (SELECT id FROM language WHERE code = 'eng')
-            ON CONFLICT ON CONSTRAINT machinge_gloss_pkey
+            ON CONFLICT ON CONSTRAINT machine_gloss_pkey
             DO UPDATE SET gloss = EXCLUDED.gloss
             `,
             [code, referenceGlosses, machineGlosses]
