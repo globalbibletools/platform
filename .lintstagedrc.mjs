@@ -1,3 +1,3 @@
 export default {
-    "*.{ts,tsx}": () => ["npx turbo run check-types lint"]
+    "*.{ts,tsx}": () => ["npm run check-types", "npm run lint"]
 }

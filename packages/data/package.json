@@ -1,9 +1,0 @@
-{
-    "name": "@gbt/data",
-    "type": "module",
-    "exports": {
-        "./verse-counts.json": "./src/verse-counts.json",
-        "./book-keys.json": "./src/book-keys.json",
-        "./locale-mapping.json": "./src/locale-mapping.json"
-    }
-}

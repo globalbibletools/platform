@@ -3,7 +3,7 @@ services:
     build:
       context: .
       target: dev
-      dockerfile: apps/server/Dockerfile
+      dockerfile: Dockerfile
     restart: always
     environment:
       DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
@@ -16,15 +16,15 @@ services:
         condition: service_healthy
   db:
     build:
-      dockerfile: packages/db/Dockerfile
+      dockerfile: db/Dockerfile
     image: postgres
     restart: always
     shm_size: 128mb
     user: postgres
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./packages/db/scripts/docker-initdb.sh:/docker-entrypoint-initdb.d/docker-initdb.sh
-      - ./packages/db:/db
+      - ./db/scripts/docker-initdb.sh:/docker-entrypoint-initdb.d/docker-initdb.sh
+      - ./db:/db
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=asdfasdf
