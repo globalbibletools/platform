@@ -3,11 +3,11 @@
 import * as z from 'zod';
 import {getTranslations, getLocale} from 'next-intl/server';
 import { Scrypt } from "oslo/password";
-import { createSession } from '@/app/session';
+import { createSession } from '@/session';
 import { redirect } from 'next/navigation';
-import { query } from '@/app/db';
-import { FormState } from '@/app/components/Form';
-import homeRedirect from '@/app/home-redirect';
+import { query } from '@/db';
+import { FormState } from '@/components/Form';
+import homeRedirect from '@/home-redirect';
 
 const scrypt = new Scrypt()
 

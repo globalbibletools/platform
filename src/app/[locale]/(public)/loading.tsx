@@ -1,5 +1,5 @@
-import LoadingSpinner from "@/app/components/LoadingSpinner";
-import ModalView from "@/app/components/ModalView";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import ModalView from "@/components/ModalView";
 
 export default function ModalViewLoadingPage() {
     return <ModalView className="max-w-[480px] w-full">

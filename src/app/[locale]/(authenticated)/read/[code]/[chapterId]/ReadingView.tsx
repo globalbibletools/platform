@@ -1,6 +1,6 @@
 "use client";
 
-import { isOldTestament } from "@/app/verse-utils";
+import { isOldTestament } from "@/verse-utils";
 import { Fragment, MouseEvent, useEffect, useRef, useState } from "react";
 import { useFloating, autoUpdate } from '@floating-ui/react-dom';
 import { createPortal } from "react-dom";

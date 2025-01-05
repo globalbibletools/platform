@@ -1,8 +1,8 @@
 "use server";
 
-import { query } from '@/app/db';
-import { parseForm } from '@/app/form-parser';
-import { verifySession } from '@/app/session';
+import { query } from '@/db';
+import { parseForm } from '@/form-parser';
+import { verifySession } from '@/session';
 import { getLocale } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 import { notFound } from 'next/navigation';

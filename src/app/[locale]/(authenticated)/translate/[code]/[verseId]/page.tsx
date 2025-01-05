@@ -1,11 +1,11 @@
-import { query } from "@/app/db"
+import { query } from "@/db"
 import { notFound } from "next/navigation"
 import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
-import { verifySession } from "@/app/session"
+import { verifySession } from "@/session"
 import TranslateView from "./TranslationView"
 import { fetchCurrentLanguage } from "../layout"
-import { translateClient } from "@/app/google-translate"
+import { translateClient } from "@/google-translate"
 import languageMap from "@/data/locale-mapping.json"
 
 interface Props {

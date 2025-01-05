@@ -3,9 +3,9 @@
 import * as z from 'zod';
 import {getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { query } from '@/app/db';
-import { verifySession } from '@/app/session';
-import { FormState } from '@/app/components/Form';
+import { query } from '@/db';
+import { verifySession } from '@/session';
+import { FormState } from '@/components/Form';
 
 const requestSchema = z.object({
     code: z.string(),

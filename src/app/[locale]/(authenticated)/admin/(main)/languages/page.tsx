@@ -1,4 +1,4 @@
-import { Icon } from '@/app/components/Icon';
+import { Icon } from '@/components/Icon';
 import {
     List,
     ListBody,
@@ -6,11 +6,11 @@ import {
     ListHeader,
     ListHeaderCell,
     ListRow,
-} from '@/app/components/List';
-import ViewTitle from '@/app/components/ViewTitle';
-import Button from '@/app/components/Button';
+} from '@/components/List';
+import ViewTitle from '@/components/ViewTitle';
+import Button from '@/components/Button';
 import { getTranslations } from 'next-intl/server';
-import { query } from '@/app/db';
+import { query } from '@/db';
 import { Metadata, ResolvingMetadata } from 'next';
 
 interface AdminLanguagePageProps {

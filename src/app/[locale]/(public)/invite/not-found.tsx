@@ -1,5 +1,5 @@
-import Button from '@/app/components/Button'
-import ModalView from '@/app/components/ModalView'
+import Button from '@/components/Button'
+import ModalView from '@/components/ModalView'
 import { Metadata, ResolvingMetadata } from 'next'
 import { getLocale, getTranslations } from 'next-intl/server'
 

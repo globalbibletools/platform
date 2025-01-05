@@ -1,6 +1,6 @@
 "use client";
 
-import { useTextWidth } from "@/app/utils/text-width";
+import { useTextWidth } from "@/utils/text-width";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";

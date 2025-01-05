@@ -3,10 +3,10 @@ import { config } from '@fortawesome/fontawesome-svg-core'
 import { NextIntlClientProvider, useMessages } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import '@fortawesome/fontawesome-svg-core/styles.css'
-import "../globals.css";
-import { headFontClass } from "../fonts";
+import "@/globals.css";
+import { headFontClass } from "@/fonts";
 import languages from "../../languages.json";
-import { FlashProvider } from "../flash";
+import { FlashProvider } from "@/flash";
 import GoogleAnalytics from "./GoogleAnalytics";
  
 export async function generateMetadata(): Promise<Metadata> {

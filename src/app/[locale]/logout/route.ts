@@ -1,4 +1,4 @@
-import { clearSession } from '@/app/session'
+import { clearSession } from '@/session'
 import { getLocale } from 'next-intl/server'
 import { redirect } from 'next/navigation'
 

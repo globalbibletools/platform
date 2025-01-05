@@ -1,8 +1,8 @@
 "use client";
 
-import { Icon } from "@/app/components/Icon";
-import RichText from "@/app/components/RichText";
-import RichTextInput, { RichTextInputRef } from "@/app/components/RichTextInput";
+import { Icon } from "@/components/Icon";
+import RichText from "@/components/RichText";
+import RichTextInput, { RichTextInputRef } from "@/components/RichTextInput";
 import { Tab } from "@headlessui/react";
 import DOMPurify from "isomorphic-dompurify";
 import { throttle } from "lodash";
@@ -10,8 +10,8 @@ import { useTranslations } from "next-intl";
 import { forwardRef, Fragment, memo, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { updateFootnote, updateTranslatorNote } from "./actions";
-import { parseReferenceRange } from "@/app/verse-utils";
-import { VersesPreview } from "@/app/components/VersesPreview";
+import { parseReferenceRange } from "@/verse-utils";
+import { VersesPreview } from "@/components/VersesPreview";
 
 export interface Word {
     id: string

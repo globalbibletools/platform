@@ -1,6 +1,6 @@
 "use client";
 
-import { Icon } from '@/app/components/Icon'
+import { Icon } from '@/components/Icon'
 import { useFormStatus } from 'react-dom'
 
 export interface SavingIndicatorProps {

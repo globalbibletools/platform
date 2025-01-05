@@ -2,13 +2,13 @@
 
 import * as z from 'zod';
 import {getTranslations } from 'next-intl/server';
-import { query, transaction } from '@/app/db';
-import { parseForm } from '@/app/form-parser';
-import { verifySession } from '@/app/session';
+import { query, transaction } from '@/db';
+import { parseForm } from '@/form-parser';
+import { verifySession } from '@/session';
 import { notFound } from 'next/navigation';
-import { FormState } from '@/app/components/Form';
+import { FormState } from '@/components/Form';
 import { randomBytes } from 'crypto';
-import mailer from '@/app/mailer';
+import mailer from '@/mailer';
 
 const requestSchema = z.object({
     userId: z.string().min(1),

@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 import { Transition } from '@headlessui/react';
-import { Icon } from '@/app/components/Icon';
+import { Icon } from '@/components/Icon';
 import { useTranslations } from 'next-intl';
 
 // Flash messages have several states that help make their lifecycle easier to manage:

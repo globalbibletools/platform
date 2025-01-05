@@ -1,14 +1,14 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import DropdownMenu, { DropdownMenuItem } from '@/app/components/DropdownMenu';
-import { Icon } from '@/app/components/Icon';
-import LanguageDialog from '@/app/components/LanguageDialog';
+import DropdownMenu, { DropdownMenuItem } from '@/components/DropdownMenu';
+import { Icon } from '@/components/Icon';
+import LanguageDialog from '@/components/LanguageDialog';
 import { HeaderDropdown, HeaderDropdownItem, HeaderLink, HeaderMenu, HeaderMenuButton, HeaderMenuItem, HeaderMenuItems } from './HeaderLink';
-import { verifySession } from '@/app/session';
-import { query } from '@/app/db';
+import { verifySession } from '@/session';
+import { query } from '@/db';
 import { Menu } from '@headlessui/react';
-import NavLink from '@/app/components/NavLink';
+import NavLink from '@/components/NavLink';
 
 export default async function AuthenticatedLayout({ children, params }: { children: ReactNode, params: { locale: string } }) {
     const t = await getTranslations("AuthenticatedLayout")

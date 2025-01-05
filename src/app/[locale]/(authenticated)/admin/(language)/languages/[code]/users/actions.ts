@@ -2,12 +2,12 @@
 
 import * as z from 'zod';
 import {getLocale, getTranslations } from 'next-intl/server';
-import { query, transaction } from '@/app/db';
-import { parseForm } from '@/app/form-parser';
+import { query, transaction } from '@/db';
+import { parseForm } from '@/form-parser';
 import { revalidatePath } from 'next/cache';
-import { verifySession } from '@/app/session';
+import { verifySession } from '@/session';
 import { notFound } from 'next/navigation';
-import { FormState } from '@/app/components/Form';
+import { FormState } from '@/components/Form';
 
 const changeUserRequestSchema = z.object({
     code: z.string(),

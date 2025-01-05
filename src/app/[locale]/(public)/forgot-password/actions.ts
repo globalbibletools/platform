@@ -3,11 +3,11 @@
 import * as z from 'zod';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
-import { query } from '@/app/db';
-import { parseForm } from '@/app/form-parser';
+import { query } from '@/db';
+import { parseForm } from '@/form-parser';
 import { randomBytes } from 'crypto';
-import mailer from '@/app/mailer';
-import { FormState } from '@/app/components/Form';
+import mailer from '@/mailer';
+import { FormState } from '@/components/Form';
 
 const EXPIRATION = 60 * 60 * 1000 // 1 hr
 

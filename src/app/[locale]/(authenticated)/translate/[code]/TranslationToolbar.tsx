@@ -1,20 +1,20 @@
 "use client";
 
-import Button from "@/app/components/Button";
-import ComboboxInput from "@/app/components/ComboboxInput";
-import FormLabel from "@/app/components/FormLabel";
-import { Icon } from "@/app/components/Icon";
-import TextInput from "@/app/components/TextInput";
+import Button from "@/components/Button";
+import ComboboxInput from "@/components/ComboboxInput";
+import FormLabel from "@/components/FormLabel";
+import { Icon } from "@/components/Icon";
+import TextInput from "@/components/TextInput";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { approveAll, changeInterlinearLocation, linkWords, redirectToUnapproved, sanityCheck, unlinkPhrase } from "./actions";
-import { bookFirstVerseId, bookLastVerseId, decrementVerseId, incrementVerseId } from "@/app/verse-utils";
+import { bookFirstVerseId, bookLastVerseId, decrementVerseId, incrementVerseId } from "@/verse-utils";
 import { useTranslationClientState } from "./TranslationClientState";
 import TranslationProgressBar from "./TranslationProgressBar";
 import { useSWRConfig } from "swr";
-import { useFlash } from "@/app/flash";
-import ServerAction from "@/app/components/ServerAction";
+import { useFlash } from "@/flash";
+import ServerAction from "@/components/ServerAction";
 
 export interface TranslationToolbarProps {
     languages: { name: string; code: string }[];

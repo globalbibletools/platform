@@ -1,8 +1,8 @@
 "use client";
 
-import Button from "@/app/components/Button";
-import ComboboxInput from "@/app/components/ComboboxInput";
-import { Icon } from "@/app/components/Icon";
+import Button from "@/components/Button";
+import ComboboxInput from "@/components/ComboboxInput";
+import { Icon } from "@/components/Icon";
 import bookKeys from "@/data/book-keys.json";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";

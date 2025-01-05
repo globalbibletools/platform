@@ -1,8 +1,8 @@
 "use server";
 
 import * as z from 'zod'
-import { parseForm } from "@/app/form-parser";
-import { parseReference } from "@/app/verse-utils";
+import { parseForm } from "@/form-parser";
+import { parseReference } from "@/verse-utils";
 import { getLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 

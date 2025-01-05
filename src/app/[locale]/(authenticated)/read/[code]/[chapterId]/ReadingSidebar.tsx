@@ -1,15 +1,15 @@
 "use client";
 
-import { Icon } from "@/app/components/Icon";
-import RichText from "@/app/components/RichText";
+import { Icon } from "@/components/Icon";
+import RichText from "@/components/RichText";
 import { Tab } from "@headlessui/react";
 import DOMPurify from "isomorphic-dompurify";
 import { useTranslations } from "next-intl";
 import { forwardRef, Fragment, memo, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { parseReferenceRange } from "@/app/verse-utils";
-import { VersesPreview } from "@/app/components/VersesPreview";
-import { isRichTextEmpty } from "@/app/components/RichTextInput";
+import { parseReferenceRange } from "@/verse-utils";
+import { VersesPreview } from "@/components/VersesPreview";
+import { isRichTextEmpty } from "@/components/RichTextInput";
 
 export interface Word {
     id: string

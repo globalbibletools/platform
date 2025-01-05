@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { query } from "@/app/db";
+import { query } from "@/db";
 
 export async function GET(_request: NextRequest, { params }: { params: { code: string } }) {
     const job = await fetchImportJob(params.code)

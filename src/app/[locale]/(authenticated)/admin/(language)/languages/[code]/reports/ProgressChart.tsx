@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Chart } from 'chart.js/auto';
 import { format } from 'date-fns'
-import Checkbox from "@/app/components/Checkbox";
-import ComboboxInput from "@/app/components/ComboboxInput";
-import MultiselectInput from "@/app/components/MultiselectInput";
+import Checkbox from "@/components/Checkbox";
+import ComboboxInput from "@/components/ComboboxInput";
+import MultiselectInput from "@/components/MultiselectInput";
 import { La_Belle_Aurore } from "next/font/google";
-import FormLabel from "@/app/components/FormLabel";
+import FormLabel from "@/components/FormLabel";
 
 interface Contributor {
     id: string

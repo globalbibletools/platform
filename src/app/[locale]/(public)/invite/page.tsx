@@ -1,14 +1,14 @@
-import ModalView, { ModalViewTitle } from "@/app/components/ModalView";
-import Button from "@/app/components/Button";
-import FormLabel from "@/app/components/FormLabel";
-import TextInput from "@/app/components/TextInput";
-import FieldError from '@/app/components/FieldError';
+import ModalView, { ModalViewTitle } from "@/components/ModalView";
+import Button from "@/components/Button";
+import FormLabel from "@/components/FormLabel";
+import TextInput from "@/components/TextInput";
+import FieldError from '@/components/FieldError';
 import { getTranslations } from 'next-intl/server';
-import { query } from '@/app/db';
+import { query } from '@/db';
 import { notFound } from 'next/navigation';
 import { Metadata, ResolvingMetadata } from "next";
 import { acceptInvite } from "./actions";
-import Form from "@/app/components/Form";
+import Form from "@/components/Form";
 
 interface Props {
     params: { locale: string },

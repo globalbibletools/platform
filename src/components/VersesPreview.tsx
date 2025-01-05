@@ -1,8 +1,8 @@
-import { Icon } from '@/app/components/Icon';
-import { isOldTestament, parseVerseId } from '@/app/verse-utils';
-import LoadingSpinner from '@/app/components/LoadingSpinner';
+import { Icon } from '@/components/Icon';
+import { isOldTestament, parseVerseId } from '@/verse-utils';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { useTranslations } from 'next-intl';
-import { fontMap } from '@/app/fonts';
+import { fontMap } from '@/fonts';
 import useSWR from 'swr';
 
 type VersesPreviewProps = {

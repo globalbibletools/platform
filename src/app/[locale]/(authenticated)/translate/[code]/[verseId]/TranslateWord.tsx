@@ -1,15 +1,15 @@
 "use client";
 
-import AutocompleteInput from "@/app/components/AutocompleteInput";
-import Button from "@/app/components/Button";
-import Checkbox from "@/app/components/Checkbox";
-import { Icon } from "@/app/components/Icon";
-import { useTextWidth } from "@/app/utils/text-width";
+import AutocompleteInput from "@/components/AutocompleteInput";
+import Button from "@/components/Button";
+import Checkbox from "@/components/Checkbox";
+import { Icon } from "@/components/Icon";
+import { useTextWidth } from "@/utils/text-width";
 import { useTranslations } from "next-intl";
 import { MouseEvent, useLayoutEffect, useRef, useState } from "react";
 import { updateGloss } from "./actions";
-import { fontMap } from "@/app/fonts";
-import { isRichTextEmpty } from "@/app/components/RichTextInput";
+import { fontMap } from "@/fonts";
+import { isRichTextEmpty } from "@/components/RichTextInput";
 import { useSWRConfig } from "swr";
 import { useParams } from "next/navigation";
 

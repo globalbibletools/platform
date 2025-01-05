@@ -3,11 +3,11 @@
 import * as z from "zod";
 import { Scrypt } from "oslo/password";
 import { getLocale, getTranslations } from "next-intl/server";
-import { FormState } from "@/app/components/Form";
+import { FormState } from "@/components/Form";
 import { revalidatePath } from "next/cache";
-import { parseForm } from "@/app/form-parser";
-import mailer from "@/app/mailer";
-import { query } from "@/app/db";
+import { parseForm } from "@/form-parser";
+import mailer from "@/mailer";
+import { query } from "@/db";
 import { randomBytes } from "crypto";
 
 const scrypt = new Scrypt();

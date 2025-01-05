@@ -5,9 +5,9 @@ import TranslateWord from "./TranslateWord"
 import TranslationSidebar, { TranslationSidebarRef } from "./TranslationSidebar";
 import { useTranslationClientState } from "../TranslationClientState";
 import TranslationReference from "./TranslationReference";
-import Button from "@/app/components/Button";
-import { Icon } from "@/app/components/Icon";
-import { incrementVerseId } from "@/app/verse-utils";
+import Button from "@/components/Button";
+import { Icon } from "@/components/Icon";
+import { incrementVerseId } from "@/verse-utils";
 
 interface Word {
     id: string,

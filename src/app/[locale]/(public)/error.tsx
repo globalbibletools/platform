@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import Button from '@/app/components/Button'
-import ModalView, { ModalViewTitle } from '@/app/components/ModalView'
+import Button from '@/components/Button'
+import ModalView, { ModalViewTitle } from '@/components/ModalView'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 

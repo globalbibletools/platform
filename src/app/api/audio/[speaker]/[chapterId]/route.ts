@@ -1,4 +1,4 @@
-import { query } from "@/app/db";
+import { query } from "@/db";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(_req: NextRequest, { params }: { params: { speaker: string, chapterId: string } }) {

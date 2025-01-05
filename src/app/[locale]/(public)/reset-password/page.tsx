@@ -1,16 +1,16 @@
-import ModalView, { ModalViewTitle } from "@/app/components/ModalView";
-import Button from "@/app/components/Button";
-import FormLabel from "@/app/components/FormLabel";
-import TextInput from "@/app/components/TextInput";
-import FieldError from "@/app/components/FieldError";
-import { verifySession } from "@/app/session";
+import ModalView, { ModalViewTitle } from "@/components/ModalView";
+import Button from "@/components/Button";
+import FormLabel from "@/components/FormLabel";
+import TextInput from "@/components/TextInput";
+import FieldError from "@/components/FieldError";
+import { verifySession } from "@/session";
 import { notFound, redirect, RedirectType } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
-import { query } from "@/app/db";
+import { query } from "@/db";
 import { resetPassword } from "./actions";
-import Form from "@/app/components/Form";
-import homeRedirect from "@/app/home-redirect";
+import Form from "@/components/Form";
+import homeRedirect from "@/home-redirect";
 
 export async function generateMetadata(
   _: any,

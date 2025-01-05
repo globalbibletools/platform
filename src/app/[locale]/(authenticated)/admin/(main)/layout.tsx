@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
-import { SidebarLink } from "@/app/components/NavLink";
-import { Icon } from '@/app/components/Icon';
-import { verifySession } from '@/app/session';
+import { SidebarLink } from "@/components/NavLink";
+import { Icon } from '@/components/Icon';
+import { verifySession } from '@/session';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 

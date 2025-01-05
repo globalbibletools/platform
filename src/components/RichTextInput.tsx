@@ -1,6 +1,6 @@
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { Icon } from '@/app/components/Icon';
+import { Icon } from '@/components/Icon';
 import {
   ComponentProps,
   forwardRef,

@@ -3,10 +3,10 @@
 import * as z from 'zod';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
-import { query } from '@/app/db';
-import { FormState } from '@/app/components/Form';
-import { parseForm } from '@/app/form-parser';
-import { verifySession } from '@/app/session';
+import { query } from '@/db';
+import { FormState } from '@/components/Form';
+import { parseForm } from '@/form-parser';
+import { verifySession } from '@/session';
 import { notFound, redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 

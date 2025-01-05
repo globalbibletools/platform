@@ -3,13 +3,13 @@
 import * as z from 'zod';
 import { getTranslations } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
-import { query } from '@/app/db';
-import { parseForm } from '@/app/form-parser';
-import mailer from '@/app/mailer';
+import { query } from '@/db';
+import { parseForm } from '@/form-parser';
+import mailer from '@/mailer';
 import { Scrypt } from 'oslo/password';
-import { createSession } from '@/app/session';
-import { FormState } from '@/app/components/Form';
-import homeRedirect from '@/app/home-redirect';
+import { createSession } from '@/session';
+import { FormState } from '@/components/Form';
+import homeRedirect from '@/home-redirect';
 
 const scrypt = new Scrypt()
 

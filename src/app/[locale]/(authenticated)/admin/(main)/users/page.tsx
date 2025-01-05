@@ -1,14 +1,14 @@
-import Button from "@/app/components/Button";
-import { Icon } from "@/app/components/Icon";
-import { List, ListBody, ListCell, ListHeader, ListHeaderCell, ListRow } from "@/app/components/List";
-import ViewTitle from "@/app/components/ViewTitle";
-import { query } from "@/app/db";
+import Button from "@/components/Button";
+import { Icon } from "@/components/Icon";
+import { List, ListBody, ListCell, ListHeader, ListHeaderCell, ListRow } from "@/components/List";
+import ViewTitle from "@/components/ViewTitle";
+import { query } from "@/db";
 import { getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
 import { changeUserRole, resendUserInvite } from "./actions";
-import MultiselectInput from "@/app/components/MultiselectInput";
-import Form from "@/app/components/Form";
-import ServerAction from "@/app/components/ServerAction";
+import MultiselectInput from "@/components/MultiselectInput";
+import Form from "@/components/Form";
+import ServerAction from "@/components/ServerAction";
 
 export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
     const t = await getTranslations("AdminUsersPage")

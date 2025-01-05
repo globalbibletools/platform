@@ -1,14 +1,14 @@
-import Button from "@/app/components/Button";
-import { Icon } from "@/app/components/Icon";
-import { List, ListBody, ListCell, ListHeader, ListHeaderCell, ListRow } from "@/app/components/List";
-import ViewTitle from "@/app/components/ViewTitle";
-import { query } from "@/app/db";
+import Button from "@/components/Button";
+import { Icon } from "@/components/Icon";
+import { List, ListBody, ListCell, ListHeader, ListHeaderCell, ListRow } from "@/components/List";
+import ViewTitle from "@/components/ViewTitle";
+import { query } from "@/db";
 import { getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
-import MultiselectInput from "@/app/components/MultiselectInput";
-import Form from "@/app/components/Form";
+import MultiselectInput from "@/components/MultiselectInput";
+import Form from "@/components/Form";
 import { changeUserLanguageRole, removeLanguageUser } from "./actions";
-import ServerAction from "@/app/components/ServerAction";
+import ServerAction from "@/components/ServerAction";
 import { resendUserInvite } from "../../../../(main)/users/actions";
 
 interface LanguageUsersPageProps {

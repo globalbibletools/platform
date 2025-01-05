@@ -1,20 +1,20 @@
-import ViewTitle from "@/app/components/ViewTitle";
+import ViewTitle from "@/components/ViewTitle";
 import { getTranslations } from "next-intl/server";
-import { query } from "@/app/db";
-import FormLabel from "@/app/components/FormLabel";
-import TextInput from "@/app/components/TextInput";
-import FieldError from "@/app/components/FieldError";
-import Button from "@/app/components/Button";
-import { Icon } from "@/app/components/Icon";
-import ComboboxInput from "@/app/components/ComboboxInput";
-import { ButtonSelectorInput, ButtonSelectorOption } from "@/app/components/ButtonSelectorInput";
-import SortableMultiselectInput from "@/app/components/SortableMultiselectInput";
+import { query } from "@/db";
+import FormLabel from "@/components/FormLabel";
+import TextInput from "@/components/TextInput";
+import FieldError from "@/components/FieldError";
+import Button from "@/components/Button";
+import { Icon } from "@/components/Icon";
+import ComboboxInput from "@/components/ComboboxInput";
+import { ButtonSelectorInput, ButtonSelectorOption } from "@/components/ButtonSelectorInput";
+import SortableMultiselectInput from "@/components/SortableMultiselectInput";
 import { BibleClient } from "@gracious.tech/fetch-client";
 import SavingIndicator from "./SavingIndicator";
 import { Metadata, ResolvingMetadata } from "next";
-import { fontMap } from "@/app/fonts";
+import { fontMap } from "@/fonts";
 import { updateLanguageSettings } from "./actions";
-import Form from "@/app/components/Form";
+import Form from "@/components/Form";
 
 interface LanguageSettingsPageProps {
     params: { code: string }

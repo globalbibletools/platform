@@ -1,4 +1,4 @@
-import { query } from "@/app/db"
+import { query } from "@/db"
 import { getMessages } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { ReactNode } from "react"

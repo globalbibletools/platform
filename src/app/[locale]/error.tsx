@@ -1,7 +1,7 @@
 'use client'
  
 import { useEffect } from 'react'
-import Button from '@/app/components/Button'
+import Button from '@/components/Button'
 import { useTranslations } from 'next-intl'
  
 export default function Error({

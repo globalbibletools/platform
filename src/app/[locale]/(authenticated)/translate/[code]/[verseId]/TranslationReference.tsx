@@ -1,6 +1,6 @@
-import { fontMap } from "@/app/fonts"
+import { fontMap } from "@/fonts"
 import useSWR from "swr"
-import { parseVerseId } from "@/app/verse-utils"
+import { parseVerseId } from "@/verse-utils"
 import bookKeys from "@/data/book-keys.json"
 import { BibleClient } from "@gracious.tech/fetch-client"
 

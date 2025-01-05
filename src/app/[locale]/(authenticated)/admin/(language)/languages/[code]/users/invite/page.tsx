@@ -1,14 +1,14 @@
 import { useTranslations } from 'next-intl';
-import Button from "@/app/components/Button";
-import FormLabel from "@/app/components/FormLabel";
-import TextInput from "@/app/components/TextInput";
-import FieldError from '@/app/components/FieldError';
-import ViewTitle from '@/app/components/ViewTitle';
-import MultiselectInput from '@/app/components/MultiselectInput';
+import Button from "@/components/Button";
+import FormLabel from "@/components/FormLabel";
+import TextInput from "@/components/TextInput";
+import FieldError from '@/components/FieldError';
+import ViewTitle from '@/components/ViewTitle';
+import MultiselectInput from '@/components/MultiselectInput';
 import { Metadata, ResolvingMetadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { inviteUser } from './actions';
-import Form from '@/app/components/Form';
+import Form from '@/components/Form';
 
 interface InviteLanguageUserPageProps {
     params: { code: string }

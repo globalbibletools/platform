@@ -1,16 +1,16 @@
 "use client";
 
-import Button from "@/app/components/Button";
-import ComboboxInput from "@/app/components/ComboboxInput";
-import FormLabel from "@/app/components/FormLabel";
-import { Icon } from "@/app/components/Icon";
-import TextInput from "@/app/components/TextInput";
+import Button from "@/components/Button";
+import ComboboxInput from "@/components/ComboboxInput";
+import FormLabel from "@/components/FormLabel";
+import { Icon } from "@/components/Icon";
+import TextInput from "@/components/TextInput";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { bookFirstChapterId, bookLastChapterId, decrementChapterId, incrementChapterId } from "@/app/verse-utils";
+import { bookFirstChapterId, bookLastChapterId, decrementChapterId, incrementChapterId } from "@/verse-utils";
 import { useReadingClientState } from "./ReadingClientState";
-import SliderInput from "@/app/components/SliderInput";
+import SliderInput from "@/components/SliderInput";
 import { changeChapter } from "./actions";
 import AudioPlayer from "./AudioPlayer";
 

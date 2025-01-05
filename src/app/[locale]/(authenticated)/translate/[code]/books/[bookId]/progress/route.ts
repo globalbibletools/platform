@@ -1,4 +1,4 @@
-import { query } from "@/app/db";
+import { query } from "@/db";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { NextRequest } from "next/server";

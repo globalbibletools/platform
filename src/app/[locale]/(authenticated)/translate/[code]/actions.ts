@@ -2,13 +2,13 @@
 
 import * as z from 'zod';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { parseForm } from '@/app/form-parser';
+import { parseForm } from '@/form-parser';
 import { notFound, redirect } from 'next/navigation';
-import { parseReference } from '@/app/verse-utils';
-import { query, transaction } from '@/app/db';
-import { verifySession } from '@/app/session';
+import { parseReference } from '@/verse-utils';
+import { query, transaction } from '@/db';
+import { verifySession } from '@/session';
 import { revalidatePath } from 'next/cache';
-import { translateClient } from '@/app/google-translate';
+import { translateClient } from '@/google-translate';
 import languageMap from "@/data/locale-mapping.json"
 
 const requestSchema = z.object({

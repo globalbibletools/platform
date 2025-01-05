@@ -1,10 +1,10 @@
-import { Icon } from '@/app/components/Icon';
+import { Icon } from '@/components/Icon';
 import { ReactNode } from 'react';
-import { SidebarLink } from '@/app/components/NavLink';
+import { SidebarLink } from '@/components/NavLink';
 import { getTranslations } from 'next-intl/server';
-import { query } from '@/app/db';
+import { query } from '@/db';
 import { notFound } from 'next/navigation';
-import { verifySession } from '@/app/session';
+import { verifySession } from '@/session';
 import { Metadata, ResolvingMetadata } from 'next';
 
 interface LanguageLayoutProps {

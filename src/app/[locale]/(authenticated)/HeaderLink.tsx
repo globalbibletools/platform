@@ -1,10 +1,10 @@
 "use client";
 
 import { ReactNode, createContext, useContext, useState } from "react";
-import NavLink, { NavLinkProps } from "@/app/components/NavLink";
+import NavLink, { NavLinkProps } from "@/components/NavLink";
 import { Menu } from '@headlessui/react';
 import Link from "next/link";
-import { Icon } from "@/app/components/Icon";
+import { Icon } from "@/components/Icon";
 
 export interface HeaderLinkProps extends NavLinkProps {
     href: string

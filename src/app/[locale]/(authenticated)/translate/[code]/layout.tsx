@@ -1,11 +1,11 @@
-import { query } from "@/app/db"
+import { query } from "@/db"
 import { getLocale, getMessages } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { ReactNode } from "react"
 import TranslationToolbar from "./TranslationToolbar"
 import {  NextIntlClientProvider } from "next-intl"
 import { TranslationClientStateProvider } from "./TranslationClientState"
-import { verifySession } from "@/app/session"
+import { verifySession } from "@/session"
 
 interface Props {
     children: ReactNode

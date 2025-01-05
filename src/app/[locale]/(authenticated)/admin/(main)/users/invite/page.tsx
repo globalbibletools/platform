@@ -1,12 +1,12 @@
 import { useTranslations } from 'next-intl';
-import Button from "@/app/components/Button";
-import FormLabel from "@/app/components/FormLabel";
-import TextInput from "@/app/components/TextInput";
-import FieldError from '@/app/components/FieldError';
-import ViewTitle from '@/app/components/ViewTitle';
+import Button from "@/components/Button";
+import FormLabel from "@/components/FormLabel";
+import TextInput from "@/components/TextInput";
+import FieldError from '@/components/FieldError';
+import ViewTitle from '@/components/ViewTitle';
 import { getTranslations } from 'next-intl/server';
 import { Metadata, ResolvingMetadata } from 'next';
-import Form from '@/app/components/Form';
+import Form from '@/components/Form';
 import { inviteUser } from './actions';
 
 export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {

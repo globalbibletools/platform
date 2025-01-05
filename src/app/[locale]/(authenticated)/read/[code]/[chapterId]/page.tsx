@@ -1,7 +1,7 @@
 import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import ReadingView from "./ReadingView"
-import { query } from "@/app/db"
+import { query } from "@/db"
 import { notFound } from "next/navigation"
 
 export interface ReadingPageProps {

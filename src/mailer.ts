@@ -1,5 +1,5 @@
 import { createTransport, SendMailOptions } from 'nodemailer';
-import { query } from '@/app/db';
+import { query } from '@/db';
 
 const transporter = process.env['EMAIL_SERVER']
   ? createTransport({

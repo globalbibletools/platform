@@ -1,6 +1,6 @@
-import { query } from "@/app/db"
+import { query } from "@/db"
 import ProgressChart from "./ProgressChart"
-import { Icon } from "@/app/components/Icon"
+import { Icon } from "@/components/Icon"
 import ReadersBibleButton from "./ReadersBibleButton"
 
 export default async function LandingPage() {
