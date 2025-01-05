@@ -31,21 +31,6 @@ We are excited to add new contributors! If you are interested,
 please review our [contributing guidelines](https://github.com/globalbibletools/platform/blob/main/.github/CONTRIBUTING.md) to get started.
 and fill out [this form](https://enormous-square-660.notion.site/1468e90207d68038b9e5f22949d40b87?pvs=105).
 
-## Repo layout
-
-This project is managed as a monorepo, to make it easy to track dependencies and review changes.
-
-```
-apps/
-  server/ - The primary nextjs server deployed to AWS AppRunner
-  import-worker/ - A worker for importing glosses deployed to AWS Lambda
-  github-export-worker/ - A worker for exporting data deployed to AWS Lambda
-packages/
-  db/ - Manages the db schema, and provides utilities for queries, transactions, and cursors.
-  data/ - A collection of json files for things like Bible data and locale information.
-  typescript-config/ - A set of base tsconfigs for different package types.
-```
-
 ## Docker
 
 Both the database and dev server can be run from a docker container using the command:
