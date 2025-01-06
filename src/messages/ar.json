@@ -232,6 +232,11 @@
             "submit": "إضافة"
         }
     },
+    "Pagination": {
+        "next": "التالي",
+        "prev": "العودة",
+        "total": "من {total}"
+    },
     "ProfileView": {
         "form": {
             "confirm_password": "تأكيد كلمة المرور",

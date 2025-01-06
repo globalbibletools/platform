@@ -232,6 +232,11 @@
             "submit": "Add"
         }
     },
+    "Pagination": {
+        "next": "Next",
+        "prev": "Back",
+        "total": "of {total}"
+    },
     "ProfileView": {
         "form": {
             "confirm_password": "Confirm Password",
