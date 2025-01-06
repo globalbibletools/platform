@@ -20,7 +20,7 @@ export default function TranslationReference({ verseId, language }: TranslationR
 
     return <p
         className="mx-2 text-base"
-        dir={language.textDirection}
+        dir={data.direction}
         style={{
             fontFamily: fontMap[language.font]
         }}
@@ -49,11 +49,12 @@ function useTranslationQuery(verseId: string, translationIds: string[]) {
                 });
                 const translation = translations.find((t) => t.id === translationId);
                 if (translation) {
-                    const { name_local, name_english, name_abbrev } = translation;
+                    const { name_local, name_english, name_abbrev, direction } = translation;
                     return {
                         name: name_local ? name_local : name_english,
                         shortName: name_abbrev,
                         translation: verseTranslation,
+                        direction
                     };
                 }
             } catch (e) {
