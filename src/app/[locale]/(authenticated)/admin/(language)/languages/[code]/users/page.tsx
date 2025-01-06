@@ -28,7 +28,7 @@ export default async function LanguageUsersPage({ params }: LanguageUsersPagePro
     const t = await getTranslations('LanguageUsersPage')
     const users = await fetchUsers(params.code)
 
-    return (
+    return <div className="absolute w-full h-full overflow-auto">
         <div className="px-8 py-6 w-fit">
             <div className="flex items-baseline mb-4">
                 <ViewTitle>
@@ -110,8 +110,7 @@ export default async function LanguageUsersPage({ params }: LanguageUsersPagePro
                 </ListBody>
             </List>
         </div>
-    );
-
+    </div>
 }
 
 interface User {
