@@ -12,6 +12,7 @@ import { bookFirstChapterId, bookLastChapterId, decrementChapterId, incrementCha
 import SliderInput from "@/components/SliderInput";
 import { changeChapter } from "./actions";
 import AudioDialog from "./AudioDialog";
+import SettingsMenu from "./SettingsMenu";
 
 export interface TranslationToolbarProps {
     languages: { name: string; code: string }[];
@@ -107,25 +108,15 @@ export default function ReadingToolbar({
                         autoComplete="off"
                     />
                 </div>
-                <div className="me-16">
-                    <FormLabel htmlFor="text-size">{t("text_size")}</FormLabel>
-                    <div className="h-[34px] flex items-center">
-                    <SliderInput
-                        id="text-size"
-                        className="w-40"
-                        min={1}
-                        max={10}
-                        step={1}
-                        value={textSize}
-                        onChange={(e) => setTextSize(e.target.valueAsNumber)}
-                    />
-                    </div>
-                </div>
-                <div className="me-2 pt-5">
+                <div className="me-2 pt-5 flex gap-4">
                     <Button variant="link" onClick={() => setShowAudioPlayer(show => !show)}>
                         <Icon icon="circle-play" size="xl" />
                         <span className="sr-only">{t("audio")}</span>
                     </Button>
+                    <SettingsMenu 
+                        textSize={textSize}
+                        onTextSizeChange={setTextSize}
+                    />
                 </div>
             </div>
             <ReadingContext.Provider value={{ textSize, audioVerse }}>
