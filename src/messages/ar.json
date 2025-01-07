@@ -60,14 +60,15 @@
         "role": "{role, select, ADMIN {مدير} other {}}",
         "email_status": "{status, select, BOUNCED {مرتجع} COMPLAINED {مُشتكى} UNVERIFIED {غير موثق} other {}}"
     },
-    "AudioPlayer": {
+    "AudioDialog": {
         "play": "تشغيل",
         "pause": "إيقاف مؤقت",
         "prev": "الآية السابقة",
         "next": "الآية التالية",
         "restart": "إعادة تشغيل",
         "speed": "السرعة",
-        "speaker": "المتحدث"
+        "speaker": "المتحدث",
+        "close": "إغلاق"
     },
     "AuthenticatedLayout": {
         "app_name": "أدوات الكتاب المقدس العالمية",

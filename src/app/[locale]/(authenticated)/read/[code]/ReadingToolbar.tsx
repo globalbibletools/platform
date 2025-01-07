@@ -57,6 +57,8 @@ export default function ReadingToolbar({
         return () => window.removeEventListener('keydown', keydownCallback);
     }, [router, chapterId]);
 
+    const [showAudioPlayer, setShowAudioPlayer] = useState(false)
+
     return (
         <>
             <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-500 px-6 md:px-8 py-4">
@@ -119,18 +121,24 @@ export default function ReadingToolbar({
                     />
                     </div>
                 </div>
-                <div className="me-2">
-                    <FormLabel >{t("audio")}</FormLabel>
+                <div className="me-2 pt-5">
+                    <Button variant="link" onClick={() => setShowAudioPlayer(show => !show)}>
+                        <Icon icon="circle-play" size="xl" />
+                        <span className="sr-only">{t("audio")}</span>
+                    </Button>
                 </div>
             </div>
             <ReadingContext.Provider value={{ textSize, audioVerse }}>
                 {children}
             </ReadingContext.Provider>
-            <AudioDialog
-                className="bottom-12 w-[calc(100%-1rem)] mx-2 sm:w-72 sm:mx-auto"
-                chapterId={chapterId}
-                onVerseChange={setAudioVerse}
-            />
+            {showAudioPlayer &&
+                <AudioDialog
+                    className="bottom-12 w-[calc(100%-1rem)] mx-2 sm:w-72 sm:mx-auto"
+                    chapterId={chapterId}
+                    onVerseChange={setAudioVerse}
+                    onClose={() => setShowAudioPlayer(false)}
+                />
+            }
         </>
     );
 }

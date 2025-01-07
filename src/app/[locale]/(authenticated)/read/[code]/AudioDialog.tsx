@@ -14,17 +14,18 @@ interface VerseAudioTiming {
     start: number
 }
 
-export interface AudioPlayerProps {
+export interface AudioDialogProps {
     className?: string
     chapterId: string
     onVerseChange?(verseId: string | undefined): void
+    onClose?(): void
 }
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5]
 const PREV_THRESHOLD = 1.5 // The time threshold after which clicking previous verse, restarts the current verse.
 
-export default function AudioPlayer({ className = '', chapterId, onVerseChange }: AudioPlayerProps) {
-    const t = useTranslations('AudioPlayer')
+export default function AudioDialog({ className = '', chapterId, onClose, onVerseChange }: AudioDialogProps) {
+    const t = useTranslations('AudioDialog')
 
     const bookId = parseInt(chapterId.slice(0, 2)) || 1;
     const chapter = parseInt(chapterId.slice(2, 5)) || 1;
@@ -148,18 +149,22 @@ export default function AudioPlayer({ className = '', chapterId, onVerseChange }
         return () => window.removeEventListener('click', handler)
     }, [data])
 
-    const root = useRef<HTMLDialogElement>(null)
-    useEffect(() => {
-        root.current?.show()
-    }, [])
-
     return <dialog
-        ref={root}
+        open
         className={`
             ${className}
+            fixed
             border border-gray-400 shadow bg-white rounded flex flex-col items-center p-4 pt-8 gap-4
         `}
     >
+        <button
+            type="button"
+            className="absolute text-red-700 -end-1 -top-1 w-8 h-8 rounded-lg focus:outline-green-400"
+            onClick={onClose}
+        >
+            <Icon icon="close" />
+            <span className="sr-only">{t('close')}</span>
+        </button>
         <audio ref={audio} src={src} />
         <div className="flex gap-2">
             <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={prevVerse}>
