@@ -211,8 +211,8 @@ export default function AudioDialog({ className = '', chapterId, onClose, onVers
         open
         className={`
             ${className}
-            fixed
-            border border-gray-400 shadow-lg bg-white rounded flex flex-col items-center px-4 pt-8 pb-3 gap-4
+            fixed border border-gray-400 shadow-lg bg-white rounded flex flex-col items-center px-4 pt-8 pb-3 gap-4
+            dark:bg-gray-700 dark:border-gray-500 dark:shadow-none dark:text-gray-200
         `}
     >
         <button
@@ -299,9 +299,6 @@ interface ScrubBarProps {
     onChange?(progress: number): void
 }
 
-const BIG_STEP = 150 / 60
-const SMALL_STEP = 15 / 60
-
 function ScrubBar({ className = '', length, progress, label, onChange }: ScrubBarProps) {
     const percent = progress / length
 
@@ -348,7 +345,7 @@ function ScrubBar({ className = '', length, progress, label, onChange }: ScrubBa
     return <div
         ref={root}
         tabIndex={0}
-        className={`${className} group relative bg-gray-400 rounded-full h-2 pointer-cursor focus:outline-none`}
+        className={`${className} group relative bg-gray-400 rounded-full h-2 pointer-cursor focus:outline-none dark:bg-gray-500`}
         onPointerDown={onTouch}
         role="slider"
         aria-label={label}
@@ -365,7 +362,7 @@ function ScrubBar({ className = '', length, progress, label, onChange }: ScrubBa
             role="presentation"
         />
         <div
-            className="bg-blue-800 absolute h-4 w-4 -top-1 -ml-2 rounded-full pointer-cursor group-focus:outline outline-green-300 outline-2"
+            className="bg-blue-800 dark:bg-green-400 absolute h-4 w-4 -top-1 -ml-2 rounded-full pointer-cursor group-focus:outline outline-green-300 outline-2"
             style={{
                 [thumbKey]: `${percent * 100}%`
             }}
