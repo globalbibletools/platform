@@ -1,8 +1,9 @@
 "use client";
 
 import Button from "@/components/Button";
-import ComboboxInput from "@/components/ComboboxInput";
 import { Icon } from "@/components/Icon";
+import ListboxInput from "@/components/ListboxInput";
+import SliderInput from "@/components/SliderInput";
 import bookKeys from "@/data/book-keys.json";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
@@ -32,7 +33,7 @@ export default function AudioPlayer({ className = '', chapterId, onVerseChange }
     const [speaker, setSpeaker] = useState('HEB')
     const [speed, setSpeed] = useState(2)
 
-    const { data } = useSWR(['chapter-audio', speaker, chapterId], async ([,speaker, chapterId]) => {
+    const { data } = useSWR(['chapter-audio', speaker, chapterId], async ([, speaker, chapterId]) => {
         const response = await fetch(`/api/audio/${speaker}/${chapterId}`)
         return await response.json() as Promise<VerseAudioTiming[]>
     })
@@ -147,33 +148,53 @@ export default function AudioPlayer({ className = '', chapterId, onVerseChange }
         return () => window.removeEventListener('click', handler)
     }, [data])
 
-    return <div className={`${className} flex items-center`}>
+    const root = useRef<HTMLDialogElement>(null)
+    useEffect(() => {
+        root.current?.show()
+    }, [])
+
+    return <dialog
+        ref={root}
+        className={`
+            ${className}
+            border border-gray-400 shadow bg-white rounded flex flex-col items-center p-4 pt-8 gap-4
+        `}
+    >
         <audio ref={audio} src={src} />
-        <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={prevVerse}>
-            <Icon icon='caret-left' size="lg" />
-            <span className="sr-only">{t('prev')}</span>
-        </Button>
-        <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={reset}>
-            <Icon icon="arrow-rotate-left" />
-            <span className="sr-only">{t('restart')}</span>
-        </Button>
-        <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={() => setPlaying(playing => !playing)}>
-            <Icon icon={isPlaying ? 'pause' : 'play'} />
-            <span className="sr-only">{t(isPlaying ? 'pause' : 'play')}</span>
-        </Button>
-        <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={nextVerse}>
-            <Icon icon='caret-right' size="lg" />
-            <span className="sr-only">{t('next')}</span>
-        </Button>
-        <Button variant="tertiary" className="w-10 text-sm !justify-start !ps-1" disabled={!canPlay} onClick={toggleSpeed}>
-            <span className="sr-only">{t('speed')}</span>
-            {SPEEDS[speed]}x
-        </Button>
-        <ComboboxInput
-            className="ms-2 w-56"
-            items={[{ label: 'Abraham Schmueloff', value: 'HEB' }, { label: 'Rabbi Dan Beeri', value: 'RDB' }]}
-            value={speaker} onChange={setSpeaker}
-            aria-label={t('speaker')}
-        />
-    </div>
+        <div className="flex gap-2">
+            <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={prevVerse}>
+                <Icon icon='backward-step' size="lg" fixedWidth />
+                <span className="sr-only">{t('prev')}</span>
+            </Button>
+            <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={reset}>
+                <Icon icon="arrow-rotate-left" size="lg" fixedWidth />
+                <span className="sr-only">{t('restart')}</span>
+            </Button>
+            <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={() => setPlaying(playing => !playing)}>
+                <Icon icon={isPlaying ? 'pause' : 'play'} size="lg" fixedWidth />
+                <span className="sr-only">{t(isPlaying ? 'pause' : 'play')}</span>
+            </Button>
+            <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={nextVerse}>
+                <Icon icon='forward-step' size="lg" fixedWidth />
+                <span className="sr-only">{t('next')}</span>
+            </Button>
+        </div>
+        <div>
+        </div>
+        <div className="flex items-center justify-between w-full">
+            <Button variant="tertiary" disabled={!canPlay} onClick={toggleSpeed}>
+                <span className="sr-only">{t('speed')}</span>
+                {SPEEDS[speed]}x
+            </Button>
+            <ListboxInput
+                menuClassName="min-w-[120px]"
+                items={[{ label: 'Schmueloff', value: 'HEB' }, { label: 'Beeri', value: 'RDB' }]}
+                value={speaker}
+                onChange={setSpeaker}
+                aria-label={t('speaker')}
+                up
+                right
+            />
+        </div>
+    </dialog>
 }

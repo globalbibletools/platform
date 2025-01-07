@@ -11,7 +11,7 @@ import { createContext, ReactNode, useContext, useEffect, useState } from "react
 import { bookFirstChapterId, bookLastChapterId, decrementChapterId, incrementChapterId } from "@/verse-utils";
 import SliderInput from "@/components/SliderInput";
 import { changeChapter } from "./actions";
-import AudioPlayer from "./AudioPlayer";
+import AudioDialog from "./AudioDialog";
 
 export interface TranslationToolbarProps {
     languages: { name: string; code: string }[];
@@ -121,12 +121,16 @@ export default function ReadingToolbar({
                 </div>
                 <div className="me-2">
                     <FormLabel >{t("audio")}</FormLabel>
-                    <AudioPlayer className="h-[34px]" chapterId={chapterId} onVerseChange={setAudioVerse} />
                 </div>
             </div>
             <ReadingContext.Provider value={{ textSize, audioVerse }}>
                 {children}
             </ReadingContext.Provider>
+            <AudioDialog
+                className="bottom-12 w-[calc(100%-1rem)] mx-2 sm:w-72 sm:mx-auto"
+                chapterId={chapterId}
+                onVerseChange={setAudioVerse}
+            />
         </>
     );
 }

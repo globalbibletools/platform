@@ -53,6 +53,8 @@ library.add(
   FaSolid.faBars,
   FaSolid.faQuestionCircle,
   FaSolid.faFeather,
-  FaSolid.faBookOpen
+  FaSolid.faBookOpen,
+  FaSolid.faForwardStep,
+  FaSolid.faBackwardStep,
 );
 
