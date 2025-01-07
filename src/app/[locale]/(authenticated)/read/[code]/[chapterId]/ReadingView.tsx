@@ -5,7 +5,7 @@ import { Fragment, MouseEvent, useEffect, useRef, useState } from "react";
 import { useFloating, autoUpdate } from '@floating-ui/react-dom';
 import { createPortal } from "react-dom";
 import ReadingSidebar, { ReadingSidebarRef } from "./ReadingSidebar";
-import { useReadingClientState } from "../ReadingClientState";
+import { useReadingContext } from "../ReadingToolbar";
 
 interface VerseWord {
     id: string
@@ -69,7 +69,7 @@ export default function ReadingView({ chapterId, language, verses }: ReadingView
 
     const sidebarRef = useRef<ReadingSidebarRef>(null)
 
-    const { textSize, audioVerse } = useReadingClientState()
+    const { textSize, audioVerse } = useReadingContext()
 
     return <>
         <div className="flex flex-col flex-grow lg:justify-center w-full min-h-0 lg:flex-row">
