@@ -75,7 +75,7 @@ export default function ReadingView({ chapterId, language, verses }: ReadingView
         <div className="flex flex-col flex-grow lg:justify-center w-full min-h-0 lg:flex-row">
             <div
                 className={`
-                    max-h-full min-h-0 overflow-auto pt-8 pb-24 px-6
+                    max-h-full min-h-0 overflow-auto pb-24 px-4 lg:px-8
                     font-mixed max-w-[960px] leading-loose
                     ${textSizeMap[textSize]}
                     ${isOT ? 'text-right' : 'text-left'}
@@ -135,7 +135,7 @@ export default function ReadingView({ chapterId, language, verses }: ReadingView
                     ref={sidebarRef}
                     language={language}
                     word={sidebarWord}
-                    className="h-[320px] lg:h-auto lg:w-1/3 lg:min-w-[320px] lg:max-w-[480px] mt-8 mb-10 mx-6 lg:ms-0 lg:me-8"
+                    className="h-[320px] lg:h-auto lg:w-1/3 lg:min-w-[320px] lg:max-w-[480px] mt-8 lg:mt-2 mb-10 mx-6 lg:ms-0 lg:me-8"
                     onClose={() => setShowSidebar(false)}
                 />
             )}

@@ -445,7 +445,8 @@
         "title": "غير موجود"
     },
     "SettingsMenu": {
-        "text_size": "حجم النص"
+        "text_size": "حجم النص",
+        "language": "اللغة"
     },
     "TranslateWord": {
         "approve_tooltip": "الموافقة",

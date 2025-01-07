@@ -445,7 +445,8 @@
         "title": "Not Found"
     },
     "SettingsMenu": {
-        "text_size": "Text Size"
+        "text_size": "Text Size",
+        "language": "Language"
     },
     "TranslateWord": {
         "approve_tooltip": "Approve",
