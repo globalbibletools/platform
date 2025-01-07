@@ -60,14 +60,15 @@
         "role": "{role, select, ADMIN {Admin} other {}}",
         "email_status": "{status, select, BOUNCED {Bounced} COMPLAINED {Complained} UNVERIFIED {Unverified} other {}}"
     },
-    "AudioPlayer": {
+    "AudioDialog": {
         "play": "Play",
         "pause": "Pause",
         "prev": "Previous Verse",
         "next": "Next Verse",
         "restart": "Restart",
         "speed": "Speed",
-        "speaker": "Speaker"
+        "speaker": "Speaker",
+        "close": "Close"
     },
     "AuthenticatedLayout": {
         "app_name": "Global Bible Tools",

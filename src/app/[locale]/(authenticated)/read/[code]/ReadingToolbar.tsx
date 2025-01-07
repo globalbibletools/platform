@@ -7,24 +7,26 @@ import { Icon } from "@/components/Icon";
 import TextInput from "@/components/TextInput";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { bookFirstChapterId, bookLastChapterId, decrementChapterId, incrementChapterId } from "@/verse-utils";
-import { useReadingClientState } from "./ReadingClientState";
 import SliderInput from "@/components/SliderInput";
 import { changeChapter } from "./actions";
-import AudioPlayer from "./AudioPlayer";
+import AudioDialog from "./AudioDialog";
 
 export interface TranslationToolbarProps {
     languages: { name: string; code: string }[];
+    children: ReactNode
 }
 
 export default function ReadingToolbar({
-    languages
+    languages,
+    children
 }: TranslationToolbarProps) {
     const t = useTranslations("ReadingToolbar");
     const { chapterId, code } = useParams<{ locale: string, code: string, chapterId: string }>()
     const router = useRouter()
-    const { textSize, setAudioVerse, setTextSize } = useReadingClientState()
+    const [textSize, setTextSize] = useState(3)
+    const [audioVerse, setAudioVerse] = useState<string>()
 
     const bookId = parseInt(chapterId.slice(0, 2)) || 1
     const chapter = parseInt(chapterId.slice(2, 5)) || 1
@@ -55,8 +57,10 @@ export default function ReadingToolbar({
         return () => window.removeEventListener('keydown', keydownCallback);
     }, [router, chapterId]);
 
+    const [showAudioPlayer, setShowAudioPlayer] = useState(false)
+
     return (
-        <div>
+        <>
             <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-500 px-6 md:px-8 py-4">
                 <form action={changeChapter}>
                     <div className='me-16'>
@@ -117,12 +121,39 @@ export default function ReadingToolbar({
                     />
                     </div>
                 </div>
-                <div className="me-2">
-                    <FormLabel >{t("audio")}</FormLabel>
-                    <AudioPlayer className="h-[34px]" chapterId={chapterId} onVerseChange={setAudioVerse} />
+                <div className="me-2 pt-5">
+                    <Button variant="link" onClick={() => setShowAudioPlayer(show => !show)}>
+                        <Icon icon="circle-play" size="xl" />
+                        <span className="sr-only">{t("audio")}</span>
+                    </Button>
                 </div>
             </div>
-        </div>
+            <ReadingContext.Provider value={{ textSize, audioVerse }}>
+                {children}
+            </ReadingContext.Provider>
+            {showAudioPlayer &&
+                <AudioDialog
+                    className="bottom-12 w-[calc(100%-1rem)] mx-2 sm:w-80 sm:mx-auto"
+                    chapterId={chapterId}
+                    onVerseChange={setAudioVerse}
+                    onClose={() => setShowAudioPlayer(false)}
+                />
+            }
+        </>
     );
 }
 
+interface ReadingContextValue {
+    textSize: number
+    audioVerse?: string
+}
+
+const ReadingContext = createContext<ReadingContextValue | null>(null)
+
+export function useReadingContext() {
+    const context = useContext(ReadingContext)
+    if (!context) {
+        throw new Error('useReadingContext must be used inside of ReadingToolbar')
+    }
+    return context
+}
