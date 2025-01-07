@@ -3,11 +3,11 @@
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import ListboxInput from "@/components/ListboxInput";
-import SliderInput from "@/components/SliderInput";
 import bookKeys from "@/data/book-keys.json";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { PointerEvent, useCallback, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
+import throttle from '@/components/throttle'
 
 interface VerseAudioTiming {
     verseId: string
@@ -43,14 +43,15 @@ export default function AudioDialog({ className = '', chapterId, onClose, onVers
 
     const audio = useRef<HTMLAudioElement>(null)
 
-    function reset() {
+    const reset = useCallback(() => {
         const el = audio.current
         if (!el) return
 
         el.currentTime = data?.[0].start ?? 0
-    }
+        setProgress(0)
+    }, [])
 
-    function prevVerse() {
+    const prevVerse = useCallback((count = 1) => {
         const el = audio.current
         if (!el || !data) return
 
@@ -60,14 +61,14 @@ export default function AudioDialog({ className = '', chapterId, onClose, onVers
         )
         if (currentIndex < 0) return
 
-        if (el.currentTime - data[currentIndex].start < PREV_THRESHOLD) {
-            el.currentTime = data[currentIndex - 1].start
-        } else if (currentIndex > 0) {
+        if (el.currentTime - data[currentIndex].start < PREV_THRESHOLD || count > 1) {
+            el.currentTime = data[Math.max(0, currentIndex - count)].start
+        } else if (currentIndex >= 0) {
             el.currentTime = data[currentIndex].start
         }
-    }
+    }, [data])
 
-    function nextVerse() {
+    const nextVerse = useCallback((count = 1) => {
         const el = audio.current
         if (!el || !data) return
 
@@ -77,12 +78,17 @@ export default function AudioDialog({ className = '', chapterId, onClose, onVers
         )
         if (currentIndex < 0) return
 
-        if (data[currentIndex + 1]) {
-            el.currentTime = data[currentIndex + 1].start
-        }
-    }
+        el.currentTime = data[Math.min(data.length - 1, currentIndex + count)].start
+    }, [data])
 
-    function toggleSpeed() {
+    const seek = useCallback((progress: number) => {
+        const el = audio.current
+        if (!el) return
+
+        el.currentTime = progress
+    }, [])
+
+    const toggleSpeed = useCallback(() => {
         const newIndex = (speed + 1) % SPEEDS.length
         setSpeed(newIndex)
 
@@ -90,37 +96,21 @@ export default function AudioDialog({ className = '', chapterId, onClose, onVers
         if (!el) return
 
         el.playbackRate = SPEEDS[newIndex]
-    }
+    }, [])
+
+    const togglePlay = useCallback(() => {
+        const el = audio.current
+        if (!el) return
+
+        if (el.paused) {
+            el.play()
+        } else {
+            el.pause()
+        }
+    }, [])
 
     const src = `https://gbt-audio.s3.amazonaws.com/${speaker}/${bookKeys[bookId - 1]}/${chapter.toString().padStart(3, '0')}.mp3`
-    const progressInterval = useRef<NodeJS.Timeout>()
     const lastVerseId = useRef<string>()
-    useEffect(() => {
-        if (isPlaying && data) {
-            audio.current?.play()
-            progressInterval.current = setInterval(() => {
-                const el = audio.current
-                if (!el) return
-
-                const verse = data.reduce<VerseAudioTiming | undefined>(
-                    (last, v) => v.start > el.currentTime ? last : v,
-                    undefined
-                )
-
-                if (lastVerseId.current !== verse?.verseId) {
-                    onVerseChange?.(verse?.verseId)
-                    lastVerseId.current = verse?.verseId
-                }
-            }, 500)
-            return () => clearInterval(progressInterval.current)
-        } else {
-            audio.current?.pause()
-            if (lastVerseId.current !== undefined) {
-                onVerseChange?.(undefined)
-                lastVerseId.current = undefined
-            }
-        }
-    }, [isPlaying, src, data])
 
     useEffect(() => {
         const el = audio.current
@@ -142,19 +132,87 @@ export default function AudioDialog({ className = '', chapterId, onClose, onVers
             const index = parseInt(verseNumber) - 1
             if (data[index]) {
                 el.currentTime = data[index].start
-                setPlaying(true)
+                el.play()
             }
         }
         window.addEventListener('click', handler)
         return () => window.removeEventListener('click', handler)
     }, [data])
 
+    const [length, setLength] = useState(0)
+    const [progress, setProgress] = useState(0)
+
+    function onTimeUpdate() {
+        const el = audio.current
+        if (!el || !data) return
+
+        setProgress(audio.current?.currentTime ?? 0)
+
+        const verse = data.reduce<VerseAudioTiming | undefined>(
+            (last, v) => v.start > el.currentTime ? last : v,
+            undefined
+        )
+
+        if (lastVerseId.current !== verse?.verseId) {
+            onVerseChange?.(verse?.verseId)
+            lastVerseId.current = verse?.verseId
+        }
+    }
+
+
+    useEffect(() => {
+        function onKeyDown(e: KeyboardEvent) {
+            const el = audio.current
+            if (!el) return
+            if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return
+
+            switch (e.key) {
+                case 'PageUp': {
+                    prevVerse(5)
+                    break
+                }
+                case 'PageDown': {
+                    nextVerse(5)
+                    break
+                }
+                case 'Home': {
+                    el.currentTime = data?.[0]?.start ?? 0
+                    break
+                }
+                case 'End': {
+                    el.currentTime = el.duration
+                    break
+                }
+                case 'ArrowUp':
+                case 'ArrowLeft': {
+                    prevVerse()
+                    break
+                }
+                case 'ArrowDown':
+                case 'ArrowRight': {
+                    nextVerse()
+                    break
+                }
+                case ' ': {
+                    togglePlay()
+                    break
+                }
+                default: return
+            }
+
+            e.preventDefault()
+            e.stopPropagation()
+        }
+        window.addEventListener('keydown', onKeyDown)
+        return () => window.removeEventListener('keydown', onKeyDown)
+    }, [data, prevVerse, nextVerse, togglePlay])
+
     return <dialog
         open
         className={`
             ${className}
             fixed
-            border border-gray-400 shadow bg-white rounded flex flex-col items-center p-4 pt-8 gap-4
+            border border-gray-400 shadow-lg bg-white rounded flex flex-col items-center px-4 pt-8 pb-3 gap-4
         `}
     >
         <button
@@ -165,9 +223,26 @@ export default function AudioDialog({ className = '', chapterId, onClose, onVers
             <Icon icon="close" />
             <span className="sr-only">{t('close')}</span>
         </button>
-        <audio ref={audio} src={src} />
+        <audio
+            ref={audio}
+            src={src}
+            onPlay={() => {
+                setPlaying(true)
+            }}
+            onPause={() => {
+                setPlaying(false)
+                if (lastVerseId.current !== undefined) {
+                    onVerseChange?.(undefined)
+                    lastVerseId.current = undefined
+                }
+            }}
+            onLoadedMetadata={() => {
+                setLength(audio.current?.duration ?? 0)
+            }}
+            onTimeUpdate={onTimeUpdate}
+        />
         <div className="flex gap-2">
-            <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={prevVerse}>
+            <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={() => prevVerse()}>
                 <Icon icon='backward-step' size="lg" fixedWidth />
                 <span className="sr-only">{t('prev')}</span>
             </Button>
@@ -175,16 +250,28 @@ export default function AudioDialog({ className = '', chapterId, onClose, onVers
                 <Icon icon="arrow-rotate-left" size="lg" fixedWidth />
                 <span className="sr-only">{t('restart')}</span>
             </Button>
-            <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={() => setPlaying(playing => !playing)}>
+            <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={togglePlay}>
                 <Icon icon={isPlaying ? 'pause' : 'play'} size="lg" fixedWidth />
                 <span className="sr-only">{t(isPlaying ? 'pause' : 'play')}</span>
             </Button>
-            <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={nextVerse}>
+            <Button variant="tertiary" className="w-8" disabled={!canPlay} onClick={() => nextVerse()}>
                 <Icon icon='forward-step' size="lg" fixedWidth />
                 <span className="sr-only">{t('next')}</span>
             </Button>
         </div>
-        <div>
+        <div className="w-full flex justify-between gap-3 items-center" >
+            <span className="text-sm">
+                {Math.floor(progress / 60).toString().padStart(2, '0')}:{Math.round(progress % 60).toString().padStart(2, '0')}
+            </span>
+            <ScrubBar
+                className="w-full"
+                length={length}
+                progress={progress}
+                onChange={seek}
+            />
+            <span className="text-sm">
+                {Math.floor(length / 60).toString().padStart(2, '0')}:{Math.round(length % 60).toString().padStart(2, '0')}
+            </span>
         </div>
         <div className="flex items-center justify-between w-full">
             <Button variant="tertiary" disabled={!canPlay} onClick={toggleSpeed}>
@@ -202,4 +289,91 @@ export default function AudioDialog({ className = '', chapterId, onClose, onVers
             />
         </div>
     </dialog>
+}
+
+interface ScrubBarProps {
+    label?: string
+    className?: string
+    length: number
+    progress: number
+    onChange?(progress: number): void
+}
+
+const BIG_STEP = 150 / 60
+const SMALL_STEP = 15 / 60
+
+function ScrubBar({ className = '', length, progress, label, onChange }: ScrubBarProps) {
+    const percent = progress / length
+
+    const root = useRef<HTMLDivElement>(null)
+    const [thumbKey, setThumbKey] = useState('left')
+    useEffect(() => {
+        const ancestor = root.current?.closest('[dir]') as HTMLElement
+        setThumbKey(ancestor?.dir === 'ltr' ? 'left' : 'right')
+    }, [])
+
+    const dragState = useRef({ pointerId: -1 })
+    function onPointerDown(e: PointerEvent) {
+        e.preventDefault()
+        e.stopPropagation()
+        e.currentTarget.setPointerCapture(e.pointerId)
+        dragState.current = { pointerId: e.pointerId }
+    }
+    const onPointerMove = throttle((e: PointerEvent) => {
+        e.preventDefault()
+        if (e.pointerId !== dragState.current.pointerId) return
+        if (!root.current) return
+
+        const rect = root.current.getBoundingClientRect()
+        const pos = Math.max(rect.left, Math.min(rect.right, e.clientX))
+        const progressPercent = (pos - rect.left) / rect.width
+        onChange?.(progressPercent * length)
+    }, 100)
+    function onPointerUp(e: PointerEvent) {
+        e.preventDefault()
+        if (e.pointerId !== dragState.current.pointerId) return
+        if (!root.current) return
+
+        dragState.current = { pointerId: -1 }
+    }
+
+    function onTouch(e: PointerEvent) {
+        if (!root.current) return
+        const rect = root.current.getBoundingClientRect()
+        const pos = Math.max(rect.left, Math.min(rect.right, e.clientX))
+        const progressPercent = (pos - rect.left) / rect.width
+        onChange?.(progressPercent * length)
+    }
+
+    return <div
+        ref={root}
+        tabIndex={0}
+        className={`${className} group relative bg-gray-400 rounded-full h-2 pointer-cursor focus:outline-none`}
+        onPointerDown={onTouch}
+        role="slider"
+        aria-label={label}
+        aria-valuemin={0}
+        aria-valuemax={length}
+        aria-valuenow={progress}
+        aria-orientation="horizontal"
+    >
+        <div
+            className="bg-green-300 absolute h-2 start-0 rounded-full"
+            style={{
+                width: `${percent * 100}%`
+            }}
+            role="presentation"
+        />
+        <div
+            className="bg-blue-800 absolute h-4 w-4 -top-1 -ml-2 rounded-full pointer-cursor group-focus:outline outline-green-300 outline-2"
+            style={{
+                [thumbKey]: `${percent * 100}%`
+            }}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            role="presentation"
+        />
+    </div>
 }

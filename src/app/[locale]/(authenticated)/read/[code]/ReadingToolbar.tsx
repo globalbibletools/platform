@@ -133,7 +133,7 @@ export default function ReadingToolbar({
             </ReadingContext.Provider>
             {showAudioPlayer &&
                 <AudioDialog
-                    className="bottom-12 w-[calc(100%-1rem)] mx-2 sm:w-72 sm:mx-auto"
+                    className="bottom-12 w-[calc(100%-1rem)] mx-2 sm:w-80 sm:mx-auto"
                     chapterId={chapterId}
                     onVerseChange={setAudioVerse}
                     onClose={() => setShowAudioPlayer(false)}
