@@ -1,7 +1,7 @@
 "use server";
 
 import * as z from 'zod';
-import {getTranslations } from 'next-intl/server';
+import {getLocale, getTranslations } from 'next-intl/server';
 import { query, transaction } from '@/db';
 import { parseForm } from '@/form-parser';
 import { verifySession } from '@/session';
@@ -9,6 +9,7 @@ import { notFound } from 'next/navigation';
 import { FormState } from '@/components/Form';
 import { randomBytes } from 'crypto';
 import mailer from '@/mailer';
+import { revalidatePath } from 'next/cache';
 
 const requestSchema = z.object({
     userId: z.string().min(1),
@@ -128,4 +129,42 @@ export async function resendUserInvite(_prevState: FormState, formData: FormData
 
     return { state: 'success', message: 'Invite sent successfully!' }
 }
+ 
 
+const disableUserSchema = z.object({
+    userId: z.string().min(1)
+})
+
+export async function disableUser(_prevState: FormState, formData: FormData): Promise<FormState> {
+    const t = await getTranslations('AdminUsersPage');
+
+    const session = await verifySession()
+    if (!session) {
+        notFound()
+    }
+
+    const request = disableUserSchema.safeParse(parseForm(formData));
+    if (!request.success) {
+        return {
+            state: 'error',
+            error: t('errors.invalid_request')
+        }
+    }
+
+    if (!session?.user.roles.includes('ADMIN')) {
+        notFound()
+    }
+
+    await query(
+        `UPDATE users
+            SET status = 'disabled'
+        WHERE id = $1
+        `,
+        [request.data.userId]
+    )
+
+    const locale = await getLocale()
+    revalidatePath(`/${locale}/admin/users`)
+
+    return { state: 'success', message: 'User disabled successfully' }
+}

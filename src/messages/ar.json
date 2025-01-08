@@ -47,7 +47,8 @@
         "title": "المستخدمون",
         "links": {
             "add_user": "دعوة مستخدم",
-            "resend_invite": "إعادة إرسال الدعوة"
+            "resend_invite": "إعادة إرسال الدعوة",
+            "disable": "تعطيل"
         },
         "headers": {
             "name": "الاسم",

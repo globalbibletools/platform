@@ -47,7 +47,8 @@
         "title": "Users",
         "links": {
             "add_user": "Invite User",
-            "resend_invite": "Resend Invite"
+            "resend_invite": "Resend Invite",
+            "disable": "Disable"
         },
         "headers": {
             "name": "Name",
