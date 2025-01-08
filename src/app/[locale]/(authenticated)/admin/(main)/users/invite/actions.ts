@@ -46,7 +46,7 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
         }
     }
 
-    const existsQuery = await query(`SELECT FROM users WHERE email = $1`, [request.data.email])
+    const existsQuery = await query(`SELECT FROM users WHERE email = $1 AND status <> 'disabled'`, [request.data.email])
     if (existsQuery.rows.length > 0) {
         return {
             state: 'error',
@@ -57,7 +57,10 @@ export async function inviteUser(_prevState: FormState, formData: FormData): Pro
     const token = randomBytes(12).toString('hex')
     await query(
         `WITH new_user AS (
-            INSERT INTO users (email) VALUES ($1) RETURNING id
+            INSERT INTO users (email) VALUES ($1)
+            ON CONFLICT (email) DO UPDATE SET
+                status = 'active'
+            RETURNING id
         )
         INSERT INTO user_invitation (user_id, token, expires)
         SELECT id, $2, $3 FROM new_user
