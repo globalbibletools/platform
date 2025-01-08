@@ -5,7 +5,7 @@ import ViewTitle from "@/components/ViewTitle";
 import { query } from "@/db";
 import { getMessages, getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
-import { changeUserRole, resendUserInvite } from "./actions";
+import { changeUserRole, disableUser, resendUserInvite } from "./actions";
 import MultiselectInput from "@/components/MultiselectInput";
 import Form from "@/components/Form";
 import ServerAction from "@/components/ServerAction";
@@ -100,15 +100,26 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPage) {
                             </ListCell>
                             <ListCell className="ps-4">
                                 {user.invite !== null &&
-                                    <ServerAction
-                                        variant="tertiary"
-                                        className="ms-4"
-                                        actionData={{ userId: user.id }}
-                                        action={resendUserInvite}
-                                    >
-                                        {t("links.resend_invite")}
-                                    </ServerAction>
+                                    <>
+                                        <ServerAction
+                                            variant="tertiary"
+                                            actionData={{ userId: user.id }}
+                                            action={resendUserInvite}
+                                        >
+                                            {t("links.resend_invite")}
+                                        </ServerAction>
+                                        <span className="mx-1">|</span>
+                                    </>
                                 }
+                                <ServerAction
+                                    variant="tertiary"
+                                    destructive
+                                    actionData={{ userId: user.id }}
+                                    action={disableUser}
+                                    confirm={t("confirm_disable")}
+                                >
+                                    {t("links.disable")}
+                                </ServerAction>
                             </ListCell>
                         </ListRow>
                     ))}
@@ -147,7 +158,8 @@ async function fetchUsers(page: number, limit: number): Promise<UserPage> {
         `
         SELECT
             (
-                SELECT COUNT(*) FROM language
+                SELECT COUNT(*) FROM users u
+                WHERE u.status <> 'disabled'
             ) AS total,
             (
                 SELECT
@@ -180,6 +192,7 @@ async function fetchUsers(page: number, limit: number): Promise<UserPage> {
                         ORDER BY i.expires DESC
                         LIMIT 1
                     ) AS invitation ON true
+                    WHERE u.status <> 'disabled'
                     ORDER BY u.name
                     OFFSET $1
                     LIMIT $2

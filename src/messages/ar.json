@@ -47,7 +47,8 @@
         "title": "المستخدمون",
         "links": {
             "add_user": "دعوة مستخدم",
-            "resend_invite": "إعادة إرسال الدعوة"
+            "resend_invite": "إعادة إرسال الدعوة",
+            "disable": "تعطيل"
         },
         "headers": {
             "name": "الاسم",
@@ -58,7 +59,8 @@
             "invalid_request": "طلب غير صالح"
         },
         "role": "{role, select, ADMIN {مدير} other {}}",
-        "email_status": "{status, select, BOUNCED {مرتجع} COMPLAINED {مُشتكى} UNVERIFIED {غير موثق} other {}}"
+        "email_status": "{status, select, BOUNCED {مرتجع} COMPLAINED {مُشتكى} UNVERIFIED {غير موثق} other {}}",
+        "confirm_disable": "تعطيل المستخدم سيمنعه من الوصول إلى المنصة. إذا لزم الأمر، يمكن إعادة دعوته. هل أنت متأكد أنك تريد تعطيل هذا المستخدم؟"
     },
     "AudioDialog": {
         "play": "تشغيل",
@@ -81,6 +83,12 @@
             "log_in": "تسجيل الدخول",
             "help": "مساعدة"
         }
+    },
+    "ConfirmModal": {
+        "title": "هل أنت متأكد؟",
+        "no": "لا",
+        "yes": "نعم",
+        "close": "إغلاق"
     },
     "EmailVerification": {
         "title": "تحقق من البريد الإلكتروني",

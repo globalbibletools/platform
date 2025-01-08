@@ -1,7 +1,7 @@
 "use server";
 
 import * as z from 'zod';
-import {getTranslations } from 'next-intl/server';
+import {getLocale, getTranslations } from 'next-intl/server';
 import { query, transaction } from '@/db';
 import { parseForm } from '@/form-parser';
 import { verifySession } from '@/session';
@@ -9,6 +9,7 @@ import { notFound } from 'next/navigation';
 import { FormState } from '@/components/Form';
 import { randomBytes } from 'crypto';
 import mailer from '@/mailer';
+import { revalidatePath } from 'next/cache';
 
 const requestSchema = z.object({
     userId: z.string().min(1),
@@ -31,6 +32,14 @@ export async function changeUserRole(_prevState: FormState, formData: FormData):
             state: 'error',
             error: t('errors.invalid_request')
         }
+    }
+
+    const usersQuery = await query<{ id: string }>(
+        `SELECT id FROM users WHERE id = $1 AND status <> 'disabled'`,
+        [request.data.userId]
+    )
+    if (usersQuery.rows.length === 0) {
+        notFound()
     }
 
     await transaction(async query => {
@@ -97,7 +106,7 @@ export async function resendUserInvite(_prevState: FormState, formData: FormData
             u.email,
             u.hashed_password IS NOT NULL AS "isActive"
         FROM users AS u
-        WHERE u.id = $1`,
+        WHERE u.id = $1 AND status <> 'disabled'`,
         [request.data.userId]
     )
     const user = userQuery.rows[0]
@@ -128,4 +137,67 @@ export async function resendUserInvite(_prevState: FormState, formData: FormData
 
     return { state: 'success', message: 'Invite sent successfully!' }
 }
+ 
 
+const disableUserSchema = z.object({
+    userId: z.string().min(1)
+})
+
+export async function disableUser(_prevState: FormState, formData: FormData): Promise<FormState> {
+    const t = await getTranslations('AdminUsersPage');
+
+    const session = await verifySession()
+    if (!session) {
+        notFound()
+    }
+
+    const request = disableUserSchema.safeParse(parseForm(formData));
+    if (!request.success) {
+        return {
+            state: 'error',
+            error: t('errors.invalid_request')
+        }
+    }
+
+    if (!session?.user.roles.includes('ADMIN')) {
+        notFound()
+    }
+
+    await query(
+        `
+        WITH delete_lang_roles AS (
+            DELETE FROM language_member_role
+            WHERE user_id = $1
+        ),
+        delete_sys_roles AS (
+            DELETE FROM user_system_role
+            WHERE user_id = $1
+        ),
+        delete_sessions AS (
+            DELETE FROM session
+            WHERE user_id = $1
+        ),
+        delete_invites AS (
+            DELETE FROM user_invitation
+            WHERE user_id = $1
+        ),
+        delete_email_verifications AS (
+            DELETE FROM user_email_verification
+            WHERE user_id = $1
+        ),
+        delete_password_reset AS (
+            DELETE FROM reset_password_token
+            WHERE user_id = $1
+        )
+        UPDATE users
+            SET status = 'disabled'
+        WHERE id = $1
+        `,
+        [request.data.userId]
+    )
+
+    const locale = await getLocale()
+    revalidatePath(`/${locale}/admin/users`)
+
+    return { state: 'success', message: 'User disabled successfully' }
+}

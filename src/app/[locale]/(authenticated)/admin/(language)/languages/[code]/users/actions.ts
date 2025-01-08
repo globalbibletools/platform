@@ -44,6 +44,14 @@ export async function changeUserLanguageRole(_prevState: FormState, formData: Fo
         notFound()
     }
 
+    const usersQuery = await query<{ id: string }>(
+        `SELECT id FROM users WHERE id = $1 AND status <> 'disabled'`,
+        [request.data.userId]
+    )
+    if (usersQuery.rows.length === 0) {
+        notFound()
+    }
+
     await transaction(async query => {
         await query(
             `DELETE FROM language_member_role AS r

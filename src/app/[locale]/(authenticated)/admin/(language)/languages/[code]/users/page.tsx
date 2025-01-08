@@ -150,6 +150,7 @@ async function fetchUsers(code: string) {
             ORDER BY i.expires DESC
             LIMIT 1
         ) AS invitation ON true
+        WHERE u.status <> 'disabled'
         ORDER BY u.name`,
         [code]
     )

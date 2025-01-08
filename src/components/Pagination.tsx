@@ -59,7 +59,7 @@ export default function Pagination({ limit, total, className = '' }: PaginationP
         </form>
         <Button
             variant="secondary"
-            disabled={page > maxPages}
+            disabled={page >= maxPages}
             onClick={() => {
                 navigateToPage(page + 1)
             }}

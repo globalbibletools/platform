@@ -47,7 +47,8 @@
         "title": "Users",
         "links": {
             "add_user": "Invite User",
-            "resend_invite": "Resend Invite"
+            "resend_invite": "Resend Invite",
+            "disable": "Disable"
         },
         "headers": {
             "name": "Name",
@@ -58,7 +59,8 @@
             "invalid_request": "Invalid request"
         },
         "role": "{role, select, ADMIN {Admin} other {}}",
-        "email_status": "{status, select, BOUNCED {Bounced} COMPLAINED {Complained} UNVERIFIED {Unverified} other {}}"
+        "email_status": "{status, select, BOUNCED {Bounced} COMPLAINED {Complained} UNVERIFIED {Unverified} other {}}",
+        "confirm_disable": "Disabling a user will prevent them from accessing the platform. If necessary, they can be reinvited. Are you sure you want to disable this user?"
     },
     "AudioDialog": {
         "play": "Play",
@@ -81,6 +83,12 @@
             "log_in": "Log In",
             "help": "Help"
         }
+    },
+    "ConfirmModal": {
+        "title": "Are you sure?",
+        "no": "No",
+        "yes": "Yes",
+        "close": "Close"
     },
     "EmailVerification": {
         "title": "Verify Email",
