@@ -164,7 +164,32 @@ export async function disableUser(_prevState: FormState, formData: FormData): Pr
     }
 
     await query(
-        `UPDATE users
+        `
+        WITH delete_lang_roles AS (
+            DELETE FROM language_member_role
+            WHERE user_id = $1
+        ),
+        delete_sys_roles AS (
+            DELETE FROM user_system_role
+            WHERE user_id = $1
+        ),
+        delete_sessions AS (
+            DELETE FROM session
+            WHERE user_id = $1
+        ),
+        delete_invites AS (
+            DELETE FROM user_invitation
+            WHERE user_id = $1
+        ),
+        delete_email_verifications AS (
+            DELETE FROM user_email_verification
+            WHERE user_id = $1
+        ),
+        delete_password_reset AS (
+            DELETE FROM reset_password_token
+            WHERE user_id = $1
+        )
+        UPDATE users
             SET status = 'disabled'
         WHERE id = $1
         `,
