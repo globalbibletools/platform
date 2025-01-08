@@ -40,7 +40,7 @@ export async function login(_state: FormState, formData: FormData): Promise<Form
         }
     }
 
-    const result = await query<{ id: string, hashedPassword: string }>(`SELECT id, hashed_password AS "hashedPassword" FROM users WHERE email = $1`, [request.data.email.toLowerCase()])
+    const result = await query<{ id: string, hashedPassword: string }>(`SELECT id, hashed_password AS "hashedPassword" FROM users WHERE email = $1 AND status <> 'disabled'`, [request.data.email.toLowerCase()])
     const user = result.rows[0];
 
     if (!user) {
