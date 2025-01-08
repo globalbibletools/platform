@@ -41,7 +41,8 @@ export default function RootLayout({
                 DocumentTitle: messages.DocumentTitle,
                 Error: messages.Error,
                 ModalView: messages.ModalView, // Needed for public error page
-                Flash: messages.Flash
+                Flash: messages.Flash,
+                ConfirmModal: messages.ConfirmModal
             }}
         >
             <FlashProvider>

@@ -3,18 +3,22 @@
 import { useFormState } from 'react-dom'
 import Button, { ActionProps } from './Button'
 import { FormState } from './Form'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useFlash } from '../flash';
+import ConfirmModal, { ConfirmModalRef } from './ConfirmModal';
 
 export interface ServerActionProps extends ActionProps {
     // At some point, we can allow action data to take nested objects and arrays if we need to.
     actionData?: Record<string, string | number>
     action: (state: Awaited<FormState>, formData: FormData) => FormState | Promise<FormState>
+    confirm?: string | boolean
 }
 
-export default function ServerAction({ action, actionData, ...props }: ServerActionProps) {
+export default function ServerAction({ action, actionData, confirm = false, ...props }: ServerActionProps) {
     const [state, serverAction] = useFormState(action, { state: 'idle' })
     const flash = useFlash()
+
+    const confirmModal = useRef<ConfirmModalRef>(null)
 
     useEffect(() => {
         if (state.state === 'error' && state.error) {
@@ -24,13 +28,33 @@ export default function ServerAction({ action, actionData, ...props }: ServerAct
         }
     }, [state])
 
-    return <Button {...props} onClick={() => {
-        const form = new FormData()
-        if (actionData) {
-            for (const [key, value] of Object.entries(actionData)) {
-                form.set(key, value.toString())
-            }
+    function onModalClose() {
+        const result = confirmModal.current?.returnValue
+
+        if (result === 'yes') {
+            submit()
         }
-        serverAction(form)
-    }} />
+    }
+
+    function submit() {
+            const form = new FormData()
+            if (actionData) {
+                for (const [key, value] of Object.entries(actionData)) {
+                    form.set(key, value.toString())
+                }
+            }
+            serverAction(form)
+    }
+
+    return <>
+        <Button {...props} onClick={() => {
+            if (confirm) {
+                confirmModal.current?.showModal()
+                return
+            }
+
+            submit()
+        }} />
+        { confirm && <ConfirmModal ref={confirmModal} prompt={typeof confirm === 'string' ? confirm : ''} onClose={onModalClose}/> }
+    </>
 }

@@ -116,6 +116,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPage) {
                                     destructive
                                     actionData={{ userId: user.id }}
                                     action={disableUser}
+                                    confirm={t("confirm_disable")}
                                 >
                                     {t("links.disable")}
                                 </ServerAction>
