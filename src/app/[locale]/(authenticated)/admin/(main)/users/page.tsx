@@ -157,7 +157,8 @@ async function fetchUsers(page: number, limit: number): Promise<UserPage> {
         `
         SELECT
             (
-                SELECT COUNT(*) FROM language
+                SELECT COUNT(*) FROM users u
+                WHERE u.status <> 'disabled'
             ) AS total,
             (
                 SELECT
@@ -190,6 +191,7 @@ async function fetchUsers(page: number, limit: number): Promise<UserPage> {
                         ORDER BY i.expires DESC
                         LIMIT 1
                     ) AS invitation ON true
+                    WHERE u.status <> 'disabled'
                     ORDER BY u.name
                     OFFSET $1
                     LIMIT $2

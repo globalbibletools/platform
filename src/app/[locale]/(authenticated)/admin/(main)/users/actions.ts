@@ -34,6 +34,14 @@ export async function changeUserRole(_prevState: FormState, formData: FormData):
         }
     }
 
+    const usersQuery = await query<{ id: string }>(
+        `SELECT id FROM users WHERE id = $1 AND status <> 'disabled'`,
+        [request.data.userId]
+    )
+    if (usersQuery.rows.length === 0) {
+        notFound()
+    }
+
     await transaction(async query => {
         await query(
             `DELETE FROM user_system_role AS r WHERE r.user_id = $1 AND r.role != ALL($2::system_role[])`,
@@ -98,7 +106,7 @@ export async function resendUserInvite(_prevState: FormState, formData: FormData
             u.email,
             u.hashed_password IS NOT NULL AS "isActive"
         FROM users AS u
-        WHERE u.id = $1`,
+        WHERE u.id = $1 AND status <> 'disabled'`,
         [request.data.userId]
     )
     const user = userQuery.rows[0]
