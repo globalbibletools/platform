@@ -4,7 +4,6 @@ import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import { verifySession } from "@/session"
 import TranslateView from "./TranslationView"
-import { fetchCurrentLanguage } from "../layout"
 import { translateClient } from "@/google-translate"
 import languageMap from "@/data/locale-mapping.json"
 
@@ -324,3 +323,29 @@ async function saveMachineTranslations(code: string, referenceGlosses: string[],
     }
 }
 
+interface CurrentLanguage {
+    code: string
+    name: string
+    font: string
+    textDirection: string
+    translationIds: string[]
+    roles: string[]
+}
+
+async function fetchCurrentLanguage(code: string, userId?: string): Promise<CurrentLanguage | undefined> {
+    const result = await query<CurrentLanguage>(
+        `
+        SELECT
+            code, name, font, text_direction AS "textDirection", translation_ids AS "translationIds",
+            (
+                SELECT COALESCE(JSON_AGG(r."role"), '[]') FROM language_member_role AS r
+                WHERE r.language_id = l.id
+                    AND r.user_id = $2
+            ) AS roles
+        FROM language AS l
+        WHERE code = $1
+        `,
+        [code, userId]
+    )
+    return result.rows[0]
+}

@@ -64,7 +64,7 @@ interface CurrentLanguage {
 }
 
 // TODO: cache this, it will only change when the language settings are changed or the user roles change on the language.
-export async function fetchCurrentLanguage(code: string, userId?: string): Promise<CurrentLanguage | undefined> {
+async function fetchCurrentLanguage(code: string, userId?: string): Promise<CurrentLanguage | undefined> {
     const result = await query<CurrentLanguage>(
         `
         SELECT
