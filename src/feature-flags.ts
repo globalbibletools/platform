@@ -21,9 +21,9 @@ export function setFeatureFlag(feature: Feature, enabled: boolean) {
     let featureList = window.localStorage.getItem('features')?.split(',') ?? []
 
     if (enabled) {
-        featureList = featureList.filter(f => f !== feature)
-    } else {
         featureList.push(feature)
+    } else {
+        featureList = featureList.filter(f => f !== feature)
     }
 
     window.localStorage.setItem('features', featureList.join(','))

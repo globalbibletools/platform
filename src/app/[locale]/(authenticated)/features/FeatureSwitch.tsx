@@ -17,7 +17,6 @@ export default function FeatureSwitch({ feature, label }: FeatureSwitchProps) {
     }, [feature])
 
     function onChange(checked: boolean) {
-        console.log('toggle', checked)
         setEnabled(checked)
         setFeatureFlag(feature, checked)
     }

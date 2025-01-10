@@ -429,16 +429,21 @@ export async function predictGlosses(_prev: FormState, formData: FormData): Prom
 
     await query(
         `
-        INSERT INTO machine_gloss (word_id, language_id, model_id, gloss)
+        INSERT INTO machine_gloss (word_id, language_id, model_id, gloss, updated_at, updated_by)
         SELECT
             UNNEST($1::TEXT[]),
             (SELECT id FROM language WHERE code = $3),
             (SELECT id FROM machine_gloss_model WHERE code = 'gpt-4o-mini'),
-            UNNEST($2::TEXT[])
+            UNNEST($2::TEXT[]),
+            NOW(),
+            $4
         ON CONFLICT ON CONSTRAINT machine_gloss_word_id_language_id_model_id_key
-        DO UPDATE SET gloss = EXCLUDED.gloss
+        DO UPDATE SET
+            gloss = EXCLUDED.gloss,
+            updated_at = EXCLUDED.updated_at,
+            updated_by = EXCLUDED.updated_by
         `,
-        [result.map(r => r.id), result.map(r => r.translation), request.data.code]
+        [result.map(r => r.id), result.map(r => r.translation), request.data.code, session.user.id]
     )
 
     const locale = await getLocale()
