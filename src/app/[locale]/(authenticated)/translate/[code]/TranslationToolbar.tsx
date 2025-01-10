@@ -8,13 +8,13 @@ import TextInput from "@/components/TextInput";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { approveAll, changeInterlinearLocation, linkWords, redirectToUnapproved, sanityCheck, unlinkPhrase } from "./actions";
+import { approveAll, changeInterlinearLocation, linkWords, predictGlosses, redirectToUnapproved, sanityCheck, unlinkPhrase } from "./actions";
 import { bookFirstVerseId, bookLastVerseId, decrementVerseId, incrementVerseId } from "@/verse-utils";
 import { useTranslationClientState } from "./TranslationClientState";
 import TranslationProgressBar from "./TranslationProgressBar";
 import { useSWRConfig } from "swr";
 import { useFlash } from "@/flash";
-import ServerAction from "@/components/ServerAction";
+import { useFeatureFlag } from "@/feature-flags";
 
 export interface TranslationToolbarProps {
     languages: { name: string; code: string }[];
@@ -27,6 +27,8 @@ export default function TranslationToolbar({
     currentLanguage,
     userRoles
 }: TranslationToolbarProps) {
+    const isLlmPredictionEnabled = useFeatureFlag('llm-prediction')
+
     const t = useTranslations("TranslationToolbar");
     const { verseId, code, locale } = useParams<{ locale: string, code: string, verseId: string }>()
     const router = useRouter()
@@ -130,6 +132,19 @@ export default function TranslationToolbar({
             setBacktranslations(result.data)
         }
         setRunningSanityCheck(false)
+    }, [code, verseId])
+
+    const [runningGlossPrediction, setRunningGlossPrediction] = useState(false)
+    const onPredictGlosses = useCallback(async () => {
+        const form = new FormData()
+        form.set('code', code)
+        form.set('verseId', verseId)
+        setRunningGlossPrediction(true)
+        const result = await predictGlosses({ state: 'idle' }, form)
+        if (result.state === 'error' && result.error) {
+            flash.error(result.error)
+        }
+        setRunningGlossPrediction(false)
     }, [code, verseId])
 
     useEffect(() => {
@@ -264,6 +279,16 @@ export default function TranslationToolbar({
                                 <Button variant="tertiary" disabled={!verseId} onClick={onSanityCheck}>
                                     <Icon icon={runningSanityCheck ? "arrows-rotate" : "clipboard-check"} className="me-1" />
                                     {t('sanity_check')}
+                                </Button>
+                            </>
+                        }
+                        {isLlmPredictionEnabled && <>
+                                <span className="mx-1 dark:text-gray-300" aria-hidden="true">
+                                    |
+                                </span>
+                                <Button variant="tertiary" disabled={!verseId} onClick={onPredictGlosses}>
+                                    <Icon icon={runningGlossPrediction ? "arrows-rotate" : "wand-magic-sparkles"} className="me-1" />
+                                    Predict Glosses
                                 </Button>
                             </>
                         }
