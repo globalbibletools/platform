@@ -5,6 +5,7 @@
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
+        "format": "prettier . --write",
         "check-types": "tsc --noEmit",
         "prepare": "husky || true"
     },
@@ -63,10 +64,12 @@
         "chart.js": "4.4.4",
         "eslint": "^8",
         "eslint-config-next": "14.2.5",
+        "eslint-config-prettier": "9.1.0",
         "husky": "9.1.7",
         "lint-staged": "15.2.11",
         "lodash": "4.17.21",
         "postcss": "^8",
+        "prettier": "3.4.2",
         "tailwindcss": "^3.4.1",
         "typescript": "^5",
         "webpack-merge": "6.0.1"
