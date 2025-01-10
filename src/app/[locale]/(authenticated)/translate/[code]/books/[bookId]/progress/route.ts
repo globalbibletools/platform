@@ -3,33 +3,45 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { NextRequest } from "next/server";
 
-export async function GET(_request: NextRequest, { params }: { params: { bookId: string; code: string, locale: string }}) {
-    const bookProgress = await fetchBookProgress(parseInt(params.bookId), params.code)
-    if (!bookProgress) {
-        notFound()
-    }
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: { bookId: string; code: string; locale: string } },
+) {
+  const bookProgress = await fetchBookProgress(
+    parseInt(params.bookId),
+    params.code,
+  );
+  if (!bookProgress) {
+    notFound();
+  }
 
-    const t = await getTranslations("TranslationProgressBar")
+  const t = await getTranslations("TranslationProgressBar");
 
-    return Response.json({
-        wordCount: bookProgress.wordCount,
-        approvedCount: bookProgress.approvedCount,
-        description: t("progress", {
-            wordCount: bookProgress.wordCount,
-            approvedCount: bookProgress.approvedCount,
-            percent: (100 * bookProgress.approvedCount / bookProgress.wordCount).toFixed(1)
-        })
-    })
+  return Response.json({
+    wordCount: bookProgress.wordCount,
+    approvedCount: bookProgress.approvedCount,
+    description: t("progress", {
+      wordCount: bookProgress.wordCount,
+      approvedCount: bookProgress.approvedCount,
+      percent: (
+        (100 * bookProgress.approvedCount) /
+        bookProgress.wordCount
+      ).toFixed(1),
+    }),
+  });
 }
 
 interface BookProgress {
-    wordCount: number
-    approvedCount: number
+  wordCount: number;
+  approvedCount: number;
 }
 
-async function fetchBookProgress(bookId: number, languageCode: string): Promise<BookProgress | undefined> {
-    const result = await query<BookProgress>(
-        `
+async function fetchBookProgress(
+  bookId: number,
+  languageCode: string,
+): Promise<BookProgress | undefined> {
+  const result = await query<BookProgress>(
+    `
         SELECT
             (
                 SELECT
@@ -52,8 +64,7 @@ async function fetchBookProgress(bookId: number, languageCode: string): Promise<
         FROM book AS b
         WHERE b.id = $1
         `,
-        [bookId, languageCode]
-    )
-    return result.rows[0]
+    [bookId, languageCode],
+  );
+  return result.rows[0];
 }
-

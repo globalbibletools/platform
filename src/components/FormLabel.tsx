@@ -1,7 +1,7 @@
-import { ComponentProps, forwardRef } from 'react';
+import { ComponentProps, forwardRef } from "react";
 
-const FormLabel = forwardRef<HTMLLabelElement, ComponentProps<'label'>>(
-  ({ className = '', ...props }, ref) => {
+const FormLabel = forwardRef<HTMLLabelElement, ComponentProps<"label">>(
+  ({ className = "", ...props }, ref) => {
     return (
       <label
         ref={ref}
@@ -12,8 +12,7 @@ const FormLabel = forwardRef<HTMLLabelElement, ComponentProps<'label'>>(
         {...props}
       />
     );
-  }
+  },
 );
-FormLabel.displayName = 'FormLabel';
+FormLabel.displayName = "FormLabel";
 export default FormLabel;
-

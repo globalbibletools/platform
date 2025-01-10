@@ -1,67 +1,80 @@
-import { fontMap } from "@/fonts"
-import useSWR from "swr"
-import { parseVerseId } from "@/verse-utils"
-import bookKeys from "@/data/book-keys.json"
-import { BibleClient } from "@gracious.tech/fetch-client"
+import { fontMap } from "@/fonts";
+import useSWR from "swr";
+import { parseVerseId } from "@/verse-utils";
+import bookKeys from "@/data/book-keys.json";
+import { BibleClient } from "@gracious.tech/fetch-client";
 
 export interface TranslationReferenceProps {
-    verseId: string
-    language: { textDirection: string, font: string, translationIds: string[] }
+  verseId: string;
+  language: { textDirection: string; font: string; translationIds: string[] };
 }
 
-const client = new BibleClient()
+const client = new BibleClient();
 
-export default function TranslationReference({ verseId, language }: TranslationReferenceProps) {
-    const { data } = useTranslationQuery(verseId, language.translationIds)
+export default function TranslationReference({
+  verseId,
+  language,
+}: TranslationReferenceProps) {
+  const { data } = useTranslationQuery(verseId, language.translationIds);
 
-    if (!data) {
-        return
-    }
+  if (!data) {
+    return;
+  }
 
-    return <p
-        className="mx-2 text-base"
-        dir={data.direction}
-        style={{
-            fontFamily: fontMap[language.font]
-        }}
+  return (
+    <p
+      className="mx-2 text-base"
+      dir={data.direction}
+      style={{
+        fontFamily: fontMap[language.font],
+      }}
     >
-        <span className="text-sm font-bold me-2" title={data.name}>
-            {data.shortName}
-        </span>
-        <span>{data.translation}</span>
+      <span className="text-sm font-bold me-2" title={data.name}>
+        {data.shortName}
+      </span>
+      <span>{data.translation}</span>
     </p>
+  );
 }
 
 function useTranslationQuery(verseId: string, translationIds: string[]) {
-    return useSWR(['verse-translation', verseId, translationIds], async ([, verseId, translationIds]) => {
-        const { bookId, chapterNumber, verseNumber } = parseVerseId(verseId)
-        const bookKey = bookKeys[bookId - 1].toLowerCase();
-        const collection = await client.fetch_collection();
-        const translations = collection.get_translations();
-        for (const translationId of translationIds) {
-            try {
-                const book = await collection.fetch_book(translationId, bookKey, 'txt');
-                const verseTranslation = book.get_verse(chapterNumber, verseNumber, {
-                    attribute: false,
-                    verse_nums: false,
-                    headings: false,
-                    notes: false,
-                });
-                const translation = translations.find((t) => t.id === translationId);
-                if (translation) {
-                    const { name_local, name_english, name_abbrev, direction } = translation;
-                    return {
-                        name: name_local ? name_local : name_english,
-                        shortName: name_abbrev,
-                        translation: verseTranslation,
-                        direction
-                    };
-                }
-            } catch (e) {
-                console.log(e);
-                continue;
-            }
+  return useSWR(
+    ["verse-translation", verseId, translationIds],
+    async ([, verseId, translationIds]) => {
+      const { bookId, chapterNumber, verseNumber } = parseVerseId(verseId);
+      const bookKey = bookKeys[bookId - 1].toLowerCase();
+      const collection = await client.fetch_collection();
+      const translations = collection.get_translations();
+      for (const translationId of translationIds) {
+        try {
+          const book = await collection.fetch_book(
+            translationId,
+            bookKey,
+            "txt",
+          );
+          const verseTranslation = book.get_verse(chapterNumber, verseNumber, {
+            attribute: false,
+            verse_nums: false,
+            headings: false,
+            notes: false,
+          });
+          const translation = translations.find((t) => t.id === translationId);
+          if (translation) {
+            const { name_local, name_english, name_abbrev, direction } =
+              translation;
+            return {
+              name: name_local ? name_local : name_english,
+              shortName: name_abbrev,
+              translation: verseTranslation,
+              direction,
+            };
+          }
+        } catch (e) {
+          console.log(e);
+          continue;
         }
-        return
-    })
+      }
+      return;
+    },
+  );
 }

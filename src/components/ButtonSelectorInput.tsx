@@ -1,7 +1,7 @@
 "use client";
 
-import { ComponentProps, ReactNode, createContext, useContext } from 'react';
-import { useFormContext } from './Form';
+import { ComponentProps, ReactNode, createContext, useContext } from "react";
+import { useFormContext } from "./Form";
 
 interface ButtonSelectorContextValue {
   name: string;
@@ -13,18 +13,18 @@ interface ButtonSelectorContextValue {
 }
 
 const ButtonSelectorContext = createContext<ButtonSelectorContextValue | null>(
-  null
+  null,
 );
 
 export interface ButtonSelectorInputProps
   extends Omit<
-    ComponentProps<'fieldset'>,
-    'defaultValue' | 'value' | 'onChange'
+    ComponentProps<"fieldset">,
+    "defaultValue" | "value" | "onChange"
   > {
   name: string;
   value?: string;
   defaultValue?: string;
-  autosubmit?: boolean
+  autosubmit?: boolean;
   onChange?(value: string): void;
 }
 
@@ -38,20 +38,29 @@ export function ButtonSelectorInput({
   ...props
 }: ButtonSelectorInputProps) {
   const formContext = useFormContext();
-  const hasErrors = formContext?.state === 'error' && (formContext.validation?.[name ?? '']?.length ?? 0) > 0
+  const hasErrors =
+    formContext?.state === "error" &&
+    (formContext.validation?.[name ?? ""]?.length ?? 0) > 0;
 
   return (
     <ButtonSelectorContext.Provider
-      value={{ name, defaultValue, hasErrors, value, onChange, autosubmit }}
+      value={{
+        name,
+        defaultValue,
+        hasErrors,
+        value,
+        onChange,
+        autosubmit,
+      }}
     >
       <fieldset
         className={`
           inline-block rounded-lg shadow-md dark:shadow-none
           has-[:focus-visible]:outline outline-2
           ${
-            hasErrors
-              ? 'focus-within:outline-red-700'
-              : 'focus-within:outline-green-300'
+            hasErrors ?
+              "focus-within:outline-red-700"
+            : "focus-within:outline-green-300"
           }
         `}
         {...props}
@@ -73,7 +82,7 @@ export function ButtonSelectorOption({
 }: ButtonSelectorOptionProps) {
   const selectorContext = useContext(ButtonSelectorContext);
   if (!selectorContext)
-    throw new Error('ButtonSelectorOption must be within a ButtonSelector');
+    throw new Error("ButtonSelectorOption must be within a ButtonSelector");
 
   return (
     <label
@@ -85,9 +94,9 @@ export function ButtonSelectorOption({
         has-[:checked]:bg-blue-800 has-[:checked]:text-white
         dark:text-green-400 dark:bg-gray-800 dark:has-[:checked]:bg-green-400 dark:has-[:checked]:text-gray-800 dark:shadow-none
         ${
-          selectorContext.hasErrors
-            ? 'border-red-700 shadow-red-100'
-            : 'border-blue-800 dark:border-green-400'
+          selectorContext.hasErrors ?
+            "border-red-700 shadow-red-100"
+          : "border-blue-800 dark:border-green-400"
         }
       `}
     >
@@ -100,19 +109,18 @@ export function ButtonSelectorOption({
           selectorContext.value ? selectorContext.value === value : undefined
         }
         defaultChecked={
-          selectorContext.defaultValue
-            ? selectorContext.defaultValue === value
-            : undefined
+          selectorContext.defaultValue ?
+            selectorContext.defaultValue === value
+          : undefined
         }
         onChange={(e) => {
-            if (selectorContext.autosubmit) {
-                e.target.form?.requestSubmit()
-            }
-            selectorContext.onChange?.(e.target.value)
+          if (selectorContext.autosubmit) {
+            e.target.form?.requestSubmit();
+          }
+          selectorContext.onChange?.(e.target.value);
         }}
       />
       {children}
     </label>
   );
 }
-

@@ -1,14 +1,15 @@
-import { createTransport, SendMailOptions } from 'nodemailer';
-import { query } from '@/db';
+import { createTransport, SendMailOptions } from "nodemailer";
+import { query } from "@/db";
 
-const transporter = process.env['EMAIL_SERVER']
-  ? createTransport({
-      url: process.env['EMAIL_SERVER'],
+const transporter =
+  process.env["EMAIL_SERVER"] ?
+    createTransport({
+      url: process.env["EMAIL_SERVER"],
     })
   : {
       async sendMail(options: SendMailOptions): Promise<void> {
         console.log(
-          `Sending email to ${options.to}:\n${options.text ?? options.html}`
+          `Sending email to ${options.to}:\n${options.text ?? options.html}`,
         );
       },
     };
@@ -40,7 +41,7 @@ export class EmailNotVerifiedError extends Error {
 export class MissingEmailUserError extends Error {
   constructor(userId: string) {
     super(
-      `We can't send emails to user with id ${userId} because they don't exist.`
+      `We can't send emails to user with id ${userId} because they don't exist.`,
     );
   }
 }
@@ -58,28 +59,31 @@ const mailer = {
   async sendEmail({ subject, text, html, ...options }: EmailOptions) {
     let email;
 
-    if ('email' in options) {
+    if ("email" in options) {
       email = options.email;
     } else {
-      const userRequest = await query<{ email: string, emailStatus: string }>(
+      const userRequest = await query<{
+        email: string;
+        emailStatus: string;
+      }>(
         `
         SELECT email, "emailStatus" FROM users WHERE id = $1
         `,
-        [options.userId]
-      )
-      const user = userRequest.rows[0]
+        [options.userId],
+      );
+      const user = userRequest.rows[0];
 
       if (!user) {
         throw new MissingEmailUserError(options.userId);
       }
-      if (user.emailStatus !== 'VERIFIED') {
+      if (user.emailStatus !== "VERIFIED") {
         throw new EmailNotVerifiedError(user.email);
       }
       email = user.email;
     }
 
     await this.transporter.sendMail({
-      from: process.env['EMAIL_FROM'],
+      from: process.env["EMAIL_FROM"],
       subject,
       text,
       html,
@@ -88,4 +92,4 @@ const mailer = {
   },
 };
 
-export default mailer
+export default mailer;

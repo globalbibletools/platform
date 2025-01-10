@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
 /**
  * Generates a ID to use in generic components with a reasonable guarantee of uniqueness.
@@ -13,4 +13,3 @@ export default function useCssId(scope: string): string {
     else return rand;
   }, [scope]);
 }
-

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from "react";
 
 export interface UseTextWidthOptions {
   /** The text to measure */
@@ -17,16 +17,16 @@ export function useTextWidth(options: UseTextWidthOptions): number {
   const el = useRef<HTMLDivElement>();
 
   useLayoutEffect(() => {
-    const div = document.createElement('div');
-    div.style.width = 'auto';
-    div.style.height = '0';
-    div.style.maxHeight = '0';
-    div.style.visibility = 'hidden';
-    div.style.position = 'absolute';
+    const div = document.createElement("div");
+    div.style.width = "auto";
+    div.style.height = "0";
+    div.style.maxHeight = "0";
+    div.style.visibility = "hidden";
+    div.style.position = "absolute";
     // This seems hacky, but it gets the elements completely off the screen, so
     // that they don't affect the scroll bar.
-    div.style.top = '-9999px';
-    div.style.left = '-9999px';
+    div.style.top = "-9999px";
+    div.style.left = "-9999px";
     document.body.appendChild(div);
     el.current = div;
     return () => div.remove();
@@ -45,4 +45,3 @@ export function useTextWidth(options: UseTextWidthOptions): number {
 
   return width;
 }
-

@@ -1,13 +1,13 @@
-import { ReactNode } from 'react';
-import Button from './Button';
-import { LinkProps } from 'next/link';
+import { ReactNode } from "react";
+import Button from "./Button";
+import { LinkProps } from "next/link";
 
 export interface ListProps {
   children?: ReactNode;
   className?: string;
 }
 
-export function List({ children, className = '' }: ListProps) {
+export function List({ children, className = "" }: ListProps) {
   return <table className={`${className}`}>{children}</table>;
 }
 
@@ -30,7 +30,7 @@ export interface ListHeaderCellProps {
 
 export function ListHeaderCell({
   children,
-  className = '',
+  className = "",
 }: ListHeaderCellProps) {
   return (
     <th
@@ -47,7 +47,7 @@ export function ListHeaderCell({
 export interface ListRowActionProps {
   children?: ReactNode;
   colSpan: number;
-  href?: LinkProps['href'];
+  href?: LinkProps["href"];
   onClick?(): void;
 }
 
@@ -76,7 +76,7 @@ export interface ListRowProps {
   children?: ReactNode;
 }
 
-export function ListRow({ children, className = '' }: ListRowProps) {
+export function ListRow({ children, className = "" }: ListRowProps) {
   return (
     <tr
       className={`h-8 border-green-200 dark:border-green-700 border-b ${className}`}
@@ -95,7 +95,7 @@ export interface ListCellProps {
 export function ListCell({
   children,
   header = false,
-  className = '',
+  className = "",
 }: ListCellProps) {
   if (header) {
     return (
@@ -111,4 +111,3 @@ export function ListCell({
     );
   }
 }
-

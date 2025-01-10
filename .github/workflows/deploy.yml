@@ -51,5 +51,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           secrets: |
-            "database-url=${{ secrets.DATABASE_URL }}"  
-
+            "database-url=${{ secrets.DATABASE_URL }}"

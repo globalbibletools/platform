@@ -1,13 +1,13 @@
-import { useEditor, EditorContent, Editor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import { Icon } from '@/components/Icon';
+import { useEditor, EditorContent, Editor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { Icon } from "@/components/Icon";
 import {
   ComponentProps,
   forwardRef,
   useEffect,
   useImperativeHandle,
-} from 'react';
-import { useTranslations } from 'next-intl';
+} from "react";
+import { useTranslations } from "next-intl";
 
 export interface RichTextInputProps {
   name: string;
@@ -15,8 +15,8 @@ export interface RichTextInputProps {
   defaultValue?: string;
   onChange?: (newValue: string) => void;
   onBlur?: () => void;
-  'aria-labelledby'?: string;
-  'aria-label'?: string;
+  "aria-labelledby"?: string;
+  "aria-label"?: string;
 }
 
 export interface RichTextInputRef {
@@ -35,13 +35,13 @@ export const extensions = [
 
 const RichTextInput = forwardRef<RichTextInputRef, RichTextInputProps>(
   ({ name, onChange, onBlur, value, defaultValue, ...props }, ref) => {
-    const t = useTranslations('RichTextInput');
+    const t = useTranslations("RichTextInput");
 
     const editor = useEditor({
       extensions,
       editorProps: {
         attributes: {
-          class: 'focus:outline-none min-h-[24px] rich-text',
+          class: "focus:outline-none min-h-[24px] rich-text",
           ...props,
         },
       },
@@ -53,8 +53,8 @@ const RichTextInput = forwardRef<RichTextInputRef, RichTextInputProps>(
 
     useEffect(() => {
       if (value !== editor?.getHTML()) {
-        editor?.commands.setContent(value ?? '', false, {
-          preserveWhitespace: 'full',
+        editor?.commands.setContent(value ?? "", false, {
+          preserveWhitespace: "full",
         });
       }
     }, [value, editor]);
@@ -64,7 +64,7 @@ const RichTextInput = forwardRef<RichTextInputRef, RichTextInputProps>(
       () => ({
         focus: () => editor?.commands.focus(),
       }),
-      [editor]
+      [editor],
     );
 
     return (
@@ -77,56 +77,56 @@ const RichTextInput = forwardRef<RichTextInputRef, RichTextInputProps>(
         <div className="border-gray-400 border-b p-1 flex gap-3">
           <div className="flex gap-1">
             <RichTextInputButton
-              active={editor?.isActive('bold')}
+              active={editor?.isActive("bold")}
               disabled={!editor?.can().toggleBold()}
               icon="bold"
-              label={t('bold_tooltip')}
+              label={t("bold_tooltip")}
               onClick={() => editor?.chain().focus().toggleBold().run()}
             />
             <RichTextInputButton
-              active={editor?.isActive('italic')}
+              active={editor?.isActive("italic")}
               disabled={!editor?.can().toggleItalic()}
               icon="italic"
-              label={t('italic_tooltip')}
+              label={t("italic_tooltip")}
               onClick={() => editor?.chain().focus().toggleItalic().run()}
             />
             <RichTextInputButton
-              active={editor?.isActive('strike')}
+              active={editor?.isActive("strike")}
               disabled={!editor?.can().toggleStrike()}
               icon="strikethrough"
-              label={t('strike_tooltip')}
+              label={t("strike_tooltip")}
               onClick={() => editor?.chain().focus().toggleStrike().run()}
             />
           </div>
           <div className="flex gap-1">
             <RichTextInputButton
-              active={editor?.isActive('bulletList')}
+              active={editor?.isActive("bulletList")}
               disabled={!editor?.can().toggleBulletList()}
               icon="list-ul"
-              label={t('bullet_list_tooltip')}
+              label={t("bullet_list_tooltip")}
               onClick={() => editor?.chain().focus().toggleBulletList().run()}
             />
             <RichTextInputButton
-              active={editor?.isActive('orderedList')}
+              active={editor?.isActive("orderedList")}
               disabled={!editor?.can().toggleOrderedList()}
               icon="list-ol"
-              label={t('ordered_list_tooltip')}
+              label={t("ordered_list_tooltip")}
               onClick={() => editor?.chain().focus().toggleOrderedList().run()}
             />
             <RichTextInputButton
-              disabled={!editor?.can().sinkListItem('listItem')}
+              disabled={!editor?.can().sinkListItem("listItem")}
               icon="indent"
-              label={t('indent_tooltip')}
+              label={t("indent_tooltip")}
               onClick={() =>
-                editor?.chain().focus().sinkListItem('listItem').run()
+                editor?.chain().focus().sinkListItem("listItem").run()
               }
             />
             <RichTextInputButton
-              disabled={!editor?.can().liftListItem('listItem')}
+              disabled={!editor?.can().liftListItem("listItem")}
               icon="outdent"
-              label={t('outdent_tooltip')}
+              label={t("outdent_tooltip")}
               onClick={() =>
-                editor?.chain().focus().liftListItem('listItem').run()
+                editor?.chain().focus().liftListItem("listItem").run()
               }
             />
           </div>
@@ -134,9 +134,9 @@ const RichTextInput = forwardRef<RichTextInputRef, RichTextInputProps>(
         <EditorContent editor={editor} className="py-2 px-3 shadow-inner" />
       </div>
     );
-  }
+  },
 );
-RichTextInput.displayName = 'RichTextInput'
+RichTextInput.displayName = "RichTextInput";
 
 export default RichTextInput;
 
@@ -144,7 +144,7 @@ interface RichTextInputButtonProps {
   active?: boolean;
   onClick?(): void;
   disabled?: boolean;
-  icon: ComponentProps<typeof Icon>['icon'];
+  icon: ComponentProps<typeof Icon>["icon"];
   label: string;
 }
 
@@ -161,7 +161,7 @@ function RichTextInputButton({
       tabIndex={-1}
       className={`
         w-7 h-7 disabled:text-gray-400 dark:disabled:text-gray-500
-        ${active ? 'rounded bg-green-100 dark:bg-green-800' : ''}
+        ${active ? "rounded bg-green-100 dark:bg-green-800" : ""}
       `}
       onClick={onClick}
       disabled={disabled}
@@ -174,6 +174,5 @@ function RichTextInputButton({
 }
 
 export function isRichTextEmpty(richText: string) {
-    return richText === '' || richText === '<p></p>'
+  return richText === "" || richText === "<p></p>";
 }
-

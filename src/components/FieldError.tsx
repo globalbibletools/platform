@@ -4,12 +4,13 @@ import { useFormContext } from "./Form";
 
 export interface FieldErrorProps {
   id?: string;
-  name: string
+  name: string;
 }
 
 export default function FieldError({ id, name }: FieldErrorProps) {
-    const formContext = useFormContext()
-    const errors = formContext?.state === 'error' ? formContext.validation?.[name] : undefined
+  const formContext = useFormContext();
+  const errors =
+    formContext?.state === "error" ? formContext.validation?.[name] : undefined;
 
   if (errors?.[0]) {
     return (
@@ -21,4 +22,3 @@ export default function FieldError({ id, name }: FieldErrorProps) {
     return null;
   }
 }
-
