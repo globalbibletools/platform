@@ -8,6 +8,7 @@ export const Icon = FontAwesomeIcon;
 library.add(
   FaBrands.faGithub,
   FaBrands.faGoogle,
+  FaSolid.faMagicWandSparkles,
   FaSolid.faCirclePlay,
   FaSolid.faClipboardCheck,
   FaSolid.faPause,

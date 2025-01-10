@@ -7,7 +7,7 @@ const openai = new OpenAI({
 interface Word {
     id: string
     text: string
-    english: string
+    english?: string
 }
 
 interface PredictGlossesOptions {
@@ -15,7 +15,12 @@ interface PredictGlossesOptions {
     words: Word[]
 }
 
-export async function predictGlosses({ languageName, words }: PredictGlossesOptions) {
+interface PredictedGloss {
+    id: string
+    translation: string
+}
+
+export async function predictGlosses({ languageName, words }: PredictGlossesOptions): Promise<PredictedGloss[]> {
     const response = await openai.chat.completions.create({
         ...REQUEST_BASE,
         messages: [
@@ -33,14 +38,15 @@ export async function predictGlosses({ languageName, words }: PredictGlossesOpti
                 "content": [
                     {
                         "type": "text",
-                        "text": words.map(word => `${word.id} ${word.text}`).join('\n')
+                        "text": words.map(word => `${word.id} ${word.text} - ${word.english}`).join('\n')
                     }
                 ]
             }
         ]
     });
 
-    return JSON.parse(response.choices[0].message.content ?? '{}')
+    const result = JSON.parse(response.choices[0].message.content ?? '{}') as { translations: PredictedGloss[] }
+    return result.translations
 }
 
 const SYSTEM_PROMPT = `You are going to be producing literal translations in {languageName} for individual words in the Hebrew Old Testament and Greek New Testament. I will give you a list of individual Hebrew or Greek words in order from the text with the ID you should use when outputting the translation and an example in English. The translation for each word should meet the following criteria:

@@ -11,7 +11,7 @@ ALTER TABLE machine_gloss
     DROP CONSTRAINT machine_gloss_pkey,
     ADD COLUMN id SERIAL PRIMARY KEY,
     ADD COLUMN model_id INT REFERENCES machine_gloss_model (id),
-    ADD UNIQUE (word_id, language_id, model);
+    ADD UNIQUE (word_id, language_id, model_id);
 
 UPDATE machine_gloss
     SET model_id = (SELECT id FROM machine_gloss_model WHERE code = 'google-translate');
