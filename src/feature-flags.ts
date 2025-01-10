@@ -1,16 +1,31 @@
 import { useLayoutEffect, useMemo, useState } from "react"
 
-type Features = 'llm-prediction'
+export type Feature = 'llm-prediction'
 
-export function isFeatureEnabled(feature: Features) {
+export const features: Feature[] = ['llm-prediction']
+
+export function isFeatureEnabled(feature: Feature) {
     const featureList = window.localStorage.getItem('features')?.split(',') ?? []
     return featureList.includes(feature)
 }
 
-export function useFeatureFlag(feature: Features) {
+export function useFeatureFlag(feature: Feature) {
     // Can't use useMemo because window isn't available in SSR.
     const [isEnabled, setEnabled] = useState(false)
     useLayoutEffect(() => setEnabled(isFeatureEnabled(feature)), [feature])
 
     return isEnabled
 }
+
+export function setFeatureFlag(feature: Feature, enabled: boolean) {
+    let featureList = window.localStorage.getItem('features')?.split(',') ?? []
+
+    if (enabled) {
+        featureList = featureList.filter(f => f !== feature)
+    } else {
+        featureList.push(feature)
+    }
+
+    window.localStorage.setItem('features', featureList.join(','))
+}
+

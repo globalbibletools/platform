@@ -89,10 +89,10 @@ const config: Config = {
           ...defaultTheme.fontFamily.sans,
         ],
       },
-    },
-    boxShadow: {
-        left: '-1px 0 3px 0 rgb(0 0 0 / 0.1), -1px 0 2px -1px rgb(0 0 0 / 0.1)',
-        right: '1px 0 3px 0 rgb(0 0 0 / 0.1), 1px 0 2px -1px rgb(0 0 0 / 0.1)',
+      boxShadow: {
+          left: '-1px 0 3px 0 rgb(0 0 0 / 0.1), -1px 0 2px -1px rgb(0 0 0 / 0.1)',
+          right: '1px 0 3px 0 rgb(0 0 0 / 0.1), 1px 0 2px -1px rgb(0 0 0 / 0.1)',
+      },
     },
     colors: {
       transparent: 'transparent',
