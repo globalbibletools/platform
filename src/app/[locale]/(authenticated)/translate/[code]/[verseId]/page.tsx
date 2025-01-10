@@ -173,8 +173,10 @@ async function fetchMachineSuggestions(verseId: string, languageCode: string): P
         SELECT w.id AS "wordId", mg.gloss AS suggestion
         FROM word AS w
         JOIN machine_gloss AS mg ON mg.word_id = w.id
+        JOIN machine_gloss_model AS model ON mg.model_id = model.id
         WHERE w.verse_id = $1
 			AND mg.language_id = (SELECT id FROM language WHERE code = $2)
+            AND model.code = 'google-translate'
         `,
         [verseId, languageCode]
     )
@@ -304,8 +306,11 @@ async function saveMachineTranslations(code: string, referenceGlosses: string[],
     try {
         await query(
             `
-            INSERT INTO machine_gloss (word_id, gloss, language_id)
-            SELECT phw.word_id, data.machine_gloss, (SELECT id FROM language WHERE code = $1)
+            INSERT INTO machine_gloss (word_id, gloss, language_id, model_id)
+            SELECT
+                phw.word_id, data.machine_gloss,
+                (SELECT id FROM language WHERE code = $1),
+                (SELECT id FROM machine_gloss_model WHERE code = 'google-translate')
             FROM phrase_word AS phw
             JOIN gloss AS g ON g.phrase_id = phw.phrase_id
             JOIN phrase AS ph ON phw.phrase_id = ph.id
@@ -313,7 +318,7 @@ async function saveMachineTranslations(code: string, referenceGlosses: string[],
                 ON LOWER(g.gloss) = data.ref_gloss
             WHERE ph.deleted_at IS NULL
                 AND ph.language_id = (SELECT id FROM language WHERE code = 'eng')
-            ON CONFLICT ON CONSTRAINT machine_gloss_pkey
+            ON CONFLICT ON CONSTRAINT machine_gloss_word_id_language_id_model_key
             DO UPDATE SET gloss = EXCLUDED.gloss
             `,
             [code, referenceGlosses, machineGlosses]
