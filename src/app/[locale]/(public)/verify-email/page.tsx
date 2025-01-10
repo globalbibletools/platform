@@ -12,7 +12,7 @@ interface Props {
 
 export async function generateMetadata(
   _: any,
-  parent: ResolvingMetadata
+  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const t = await getTranslations("EmailVerification");
   const { title } = await parent;
@@ -35,7 +35,7 @@ export default async function EmailVerificationView({ searchParams }: Props) {
     expires: number;
   }>(
     `SELECT user_id, email, expires FROM user_email_verification WHERE token = $1`,
-    [searchParams.token]
+    [searchParams.token],
   );
   const verification = verificationQuery.rows[0];
 
@@ -51,7 +51,7 @@ export default async function EmailVerificationView({ searchParams }: Props) {
                 email_status = 'VERIFIED' 
             WHERE users.id = $2
             `,
-        [verification.email, verification.userId]
+        [verification.email, verification.userId],
       );
       await q(`DELETE FROM user_email_verification WHERE token = $1`, [
         searchParams.token,

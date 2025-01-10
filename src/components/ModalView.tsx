@@ -1,7 +1,7 @@
-import Link from 'next/link';
-import { ReactNode, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import LanguageDialog from './LanguageDialog';
+import Link from "next/link";
+import { ReactNode, useEffect } from "react";
+import { useTranslations } from "next-intl";
+import LanguageDialog from "./LanguageDialog";
 
 export interface ModalViewProps {
   className?: string;
@@ -12,9 +12,9 @@ export interface ModalViewProps {
 export default function ModalView({
   children,
   header,
-  className = '',
+  className = "",
 }: ModalViewProps) {
-    const t = useTranslations("ModalView")
+  const t = useTranslations("ModalView");
 
   return (
     <div
@@ -45,4 +45,3 @@ export interface ModalViewTitleProps {
 export function ModalViewTitle({ children }: ModalViewTitleProps) {
   return <h1 className="text-2xl font-bold text-center mb-4">{children}</h1>;
 }
-

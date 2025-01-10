@@ -1,57 +1,53 @@
 import type { Metadata } from "next";
-import { config } from '@fortawesome/fontawesome-svg-core'
+import { config } from "@fortawesome/fontawesome-svg-core";
 import { NextIntlClientProvider, useMessages } from "next-intl";
 import { getTranslations } from "next-intl/server";
-import '@fortawesome/fontawesome-svg-core/styles.css'
+import "@fortawesome/fontawesome-svg-core/styles.css";
 import "@/globals.css";
 import { headFontClass } from "@/fonts";
 import languages from "../../languages.json";
 import { FlashProvider } from "@/flash";
 import GoogleAnalytics from "./GoogleAnalytics";
- 
+
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("RootLayout")
+  const t = await getTranslations("RootLayout");
   return {
-    title: t("app_name")
-  }
+    title: t("app_name"),
+  };
 }
 
-config.autoAddCss = false
+config.autoAddCss = false;
 
 export default function RootLayout({
   children,
-  params
+  params,
 }: Readonly<{
   children: React.ReactNode;
-  params: { locale: string }
+  params: { locale: string };
 }>) {
-    const messages = useMessages()
+  const messages = useMessages();
 
-    const language = languages[params.locale as keyof typeof languages]
+  const language = languages[params.locale as keyof typeof languages];
 
   return (
     <html
-        className={`${headFontClass} ${language.class}`}
-        lang={params.locale}
-        dir={language.dir}
+      className={`${headFontClass} ${language.class}`}
+      lang={params.locale}
+      dir={language.dir}
     >
       <body className="dark:bg-gray-800 dark:text-gray-200">
         <NextIntlClientProvider
-            messages={{
-                DocumentTitle: messages.DocumentTitle,
-                Error: messages.Error,
-                ModalView: messages.ModalView, // Needed for public error page
-                Flash: messages.Flash,
-                ConfirmModal: messages.ConfirmModal
-            }}
+          messages={{
+            DocumentTitle: messages.DocumentTitle,
+            Error: messages.Error,
+            ModalView: messages.ModalView, // Needed for public error page
+            Flash: messages.Flash,
+            ConfirmModal: messages.ConfirmModal,
+          }}
         >
-            <FlashProvider>
-                {children}
-            </FlashProvider>
+          <FlashProvider>{children}</FlashProvider>
         </NextIntlClientProvider>
-        {process.env.NODE_ENV === 'production' && (
-            <GoogleAnalytics />
-        )}
+        {process.env.NODE_ENV === "production" && <GoogleAnalytics />}
       </body>
     </html>
   );

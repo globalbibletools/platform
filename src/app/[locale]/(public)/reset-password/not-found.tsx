@@ -1,28 +1,34 @@
-import Button from '@/components/Button'
-import ModalView from '@/components/ModalView'
-import { Metadata, ResolvingMetadata } from 'next'
-import { getLocale, getTranslations } from 'next-intl/server'
+import Button from "@/components/Button";
+import ModalView from "@/components/ModalView";
+import { Metadata, ResolvingMetadata } from "next";
+import { getLocale, getTranslations } from "next-intl/server";
 
-export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
-  const t = await getTranslations("AcceptInvitePage")
-  const { title } = await parent
+export async function generateMetadata(
+  _: any,
+  parent: ResolvingMetadata,
+): Promise<Metadata> {
+  const t = await getTranslations("AcceptInvitePage");
+  const { title } = await parent;
 
   return {
-    title: `${t("title")} | ${title?.absolute}`
-  }
+    title: `${t("title")} | ${title?.absolute}`,
+  };
 }
 
 export default async function InviteNotFoundPage() {
-    const t = await getTranslations('ResetPasswordPage') 
-    const locale = await getLocale()
+  const t = await getTranslations("ResetPasswordPage");
+  const locale = await getLocale();
 
-    return <ModalView className="max-w-[480px] w-full"
-        header={
+  return (
+    <ModalView
+      className="max-w-[480px] w-full"
+      header={
         <Button href={`/${locale}/login`} variant="tertiary">
-          {t('actions.log_in')}
+          {t("actions.log_in")}
         </Button>
       }
     >
-        <p className="text-center">{t('not_found')}</p>
+      <p className="text-center">{t("not_found")}</p>
     </ModalView>
+  );
 }

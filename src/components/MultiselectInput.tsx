@@ -1,10 +1,10 @@
 "use client";
 
-import { ChangeEvent, forwardRef, useMemo, useRef } from 'react';
-import { Combobox } from '@headlessui/react';
-import { Icon } from './Icon';
-import { useFormContext } from './Form';
-import debounce from './debounce';
+import { ChangeEvent, forwardRef, useMemo, useRef } from "react";
+import { Combobox } from "@headlessui/react";
+import { Icon } from "./Icon";
+import { useFormContext } from "./Form";
+import debounce from "./debounce";
 
 export interface MultiselectInputProps {
   className?: string;
@@ -13,7 +13,7 @@ export interface MultiselectInputProps {
   value?: string[];
   defaultValue?: string[];
   placeholder?: string;
-  autosubmit?: boolean
+  autosubmit?: boolean;
   onChange?(value: string[]): void;
   onBlur?(): void;
 }
@@ -21,7 +21,7 @@ export interface MultiselectInputProps {
 const MultiselectInput = forwardRef<HTMLInputElement, MultiselectInputProps>(
   (
     {
-      className = '',
+      className = "",
       value,
       onChange,
       onBlur,
@@ -29,26 +29,34 @@ const MultiselectInput = forwardRef<HTMLInputElement, MultiselectInputProps>(
       name,
       defaultValue,
       placeholder,
-      autosubmit
+      autosubmit,
     },
-    ref
+    ref,
   ) => {
     const formContext = useFormContext();
-    const hasErrors = formContext?.state === 'error' && (formContext.validation?.[name ?? '']?.length ?? 0) > 0
+    const hasErrors =
+      formContext?.state === "error" &&
+      (formContext.validation?.[name ?? ""]?.length ?? 0) > 0;
 
-    const root = useRef<HTMLDivElement>(null)
-    const autosubmitForm = useMemo(() => autosubmit ? debounce(() => {
-        root.current?.closest('form')?.requestSubmit()
-    }, 1000) : undefined, [autosubmit])
+    const root = useRef<HTMLDivElement>(null);
+    const autosubmitForm = useMemo(
+      () =>
+        autosubmit ?
+          debounce(() => {
+            root.current?.closest("form")?.requestSubmit();
+          }, 1000)
+        : undefined,
+      [autosubmit],
+    );
 
     return (
       <div ref={root} className={`${className} relative`}>
         <Combobox
           value={value}
-            onChange={value => {
-                autosubmitForm?.()
-                onChange?.(value)
-            }}
+          onChange={(value) => {
+            autosubmitForm?.();
+            onChange?.(value);
+          }}
           multiple
           name={name}
           defaultValue={defaultValue}
@@ -59,9 +67,9 @@ const MultiselectInput = forwardRef<HTMLInputElement, MultiselectInputProps>(
             has-[:focus-visible]:outline outline-2
             bg-white dark:bg-gray-800
             ${
-              hasErrors
-                ? 'border-red-700 shadow-red-100 outline-red-700'
-                : 'border-gray-400 dark:border-gray-500 outline-green-300'
+              hasErrors ?
+                "border-red-700 shadow-red-100 outline-red-700"
+              : "border-gray-400 dark:border-gray-500 outline-green-300"
             }
           `}
           >
@@ -72,13 +80,13 @@ const MultiselectInput = forwardRef<HTMLInputElement, MultiselectInputProps>(
               onBlur={onBlur}
               displayValue={(value: string[]) =>
                 value
-                  .map((v) => items.find((i) => i.value === v)?.label ?? '')
-                  .join(', ')
+                  .map((v) => items.find((i) => i.value === v)?.label ?? "")
+                  .join(", ")
               }
               placeholder={placeholder}
             />
             <Combobox.Button className="w-8">
-              {({ open }) => <Icon icon={open ? 'caret-up' : 'caret-down'} />}
+              {({ open }) => <Icon icon={open ? "caret-up" : "caret-down"} />}
             </Combobox.Button>
           </div>
           <Combobox.Options
@@ -107,8 +115,7 @@ const MultiselectInput = forwardRef<HTMLInputElement, MultiselectInputProps>(
         </Combobox>
       </div>
     );
-  }
+  },
 );
-MultiselectInput.displayName= "MultiselectInput"
+MultiselectInput.displayName = "MultiselectInput";
 export default MultiselectInput;
-

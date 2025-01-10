@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 
 export interface ViewTitleProps {
   className?: string;
@@ -6,9 +6,12 @@ export interface ViewTitleProps {
 }
 
 export default function ViewTitle({
-  className = '',
+  className = "",
   children,
 }: ViewTitleProps) {
-  return <h1 className={`text-2xl font-bold pb-2 capitalize ${className}`}>{children}</h1>;
+  return (
+    <h1 className={`text-2xl font-bold pb-2 capitalize ${className}`}>
+      {children}
+    </h1>
+  );
 }
-

@@ -14,7 +14,7 @@ import homeRedirect from "@/home-redirect";
 
 export async function generateMetadata(
   _: any,
-  parent: ResolvingMetadata
+  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const t = await getTranslations("ResetPasswordPage");
   const { title } = await parent;
@@ -34,7 +34,7 @@ export default async function ResetPasswordPage({
 
   const session = await verifySession();
   if (session) {
-    redirect(await homeRedirect(), RedirectType.replace)
+    redirect(await homeRedirect(), RedirectType.replace);
   }
 
   if (!searchParams.token) {
@@ -45,7 +45,7 @@ export default async function ResetPasswordPage({
     `SELECT FROM reset_password_token WHERE token = $1
             AND expires > (EXTRACT(EPOCH FROM CURRENT_TIMESTAMP)::bigint * 1000::bigint)
         `,
-    [searchParams.token]
+    [searchParams.token],
   );
   if (tokenQuery.rows.length === 0) {
     notFound();

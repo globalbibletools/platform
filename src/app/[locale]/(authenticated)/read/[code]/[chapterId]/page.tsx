@@ -1,60 +1,68 @@
-import { NextIntlClientProvider } from "next-intl"
-import { getMessages } from "next-intl/server"
-import ReadingView from "./ReadingView"
-import { query } from "@/db"
-import { notFound } from "next/navigation"
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import ReadingView from "./ReadingView";
+import { query } from "@/db";
+import { notFound } from "next/navigation";
 
 export interface ReadingPageProps {
-    params: { chapterId: string, code: string }
+  params: { chapterId: string; code: string };
 }
 
 export default async function ReadingPage({ params }: ReadingPageProps) {
-    const messages = await getMessages()
+  const messages = await getMessages();
 
-    const bookId = parseInt(params.chapterId.slice(0, 2)) || 1;
-    const chapterNumber = parseInt(params.chapterId.slice(2, 5)) || 1;
-    const [chapterVerses, currentLanguage] = await Promise.all([
-        fetchChapterVerses(bookId, chapterNumber, params.code),
-        fetchCurrentLanguage(params.code)
-    ])
+  const bookId = parseInt(params.chapterId.slice(0, 2)) || 1;
+  const chapterNumber = parseInt(params.chapterId.slice(2, 5)) || 1;
+  const [chapterVerses, currentLanguage] = await Promise.all([
+    fetchChapterVerses(bookId, chapterNumber, params.code),
+    fetchCurrentLanguage(params.code),
+  ]);
 
-    if (!currentLanguage) {
-        notFound()
-    }
+  if (!currentLanguage) {
+    notFound();
+  }
 
-    return <NextIntlClientProvider messages={{
+  return (
+    <NextIntlClientProvider
+      messages={{
         ReadingSidebar: messages.ReadingSidebar,
-        VersesPreview: messages.VersesPreview
-    }}>
-        <ReadingView
-            chapterId={params.chapterId}
-            language={currentLanguage}
-            verses={chapterVerses}
-        />
+        VersesPreview: messages.VersesPreview,
+      }}
+    >
+      <ReadingView
+        chapterId={params.chapterId}
+        language={currentLanguage}
+        verses={chapterVerses}
+      />
     </NextIntlClientProvider>
+  );
 }
 
 interface Verse {
-    id: string
-    number: number
-    words: {
-        id: string
-        text: string
-        gloss?: string
-        linkedWords?: string[]
-        lemma: string
-        grammar: string
-        resource?: {
-            name: string
-            entry: string
-        }
-        footnote?: string
-    }[]
+  id: string;
+  number: number;
+  words: {
+    id: string;
+    text: string;
+    gloss?: string;
+    linkedWords?: string[];
+    lemma: string;
+    grammar: string;
+    resource?: {
+      name: string;
+      entry: string;
+    };
+    footnote?: string;
+  }[];
 }
 
-async function fetchChapterVerses(bookId: number, chapterId: number, code: string): Promise<Verse[]> {
-    const result = await query<Verse>(
-        `
+async function fetchChapterVerses(
+  bookId: number,
+  chapterId: number,
+  code: string,
+): Promise<Verse[]> {
+  const result = await query<Verse>(
+    `
         SELECT
           v.id,
           v.number,
@@ -107,28 +115,30 @@ async function fetchChapterVerses(bookId: number, chapterId: number, code: strin
         ) AS words ON true
         WHERE v.book_id = $1 AND v.chapter = $2
         `,
-        [bookId, chapterId, code]
-    )
-    return result.rows
+    [bookId, chapterId, code],
+  );
+  return result.rows;
 }
 
 interface CurrentLanguage {
-    code: string
-    name: string
-    font: string
-    textDirection: string
+  code: string;
+  name: string;
+  font: string;
+  textDirection: string;
 }
 
 // TODO: cache this, it will only change when the language settings are changed or the user roles change on the language.
-async function fetchCurrentLanguage(code: string): Promise<CurrentLanguage | undefined> {
-    const result = await query<CurrentLanguage>(
-        `
+async function fetchCurrentLanguage(
+  code: string,
+): Promise<CurrentLanguage | undefined> {
+  const result = await query<CurrentLanguage>(
+    `
         SELECT
             code, name, font, text_direction AS "textDirection"
         FROM language AS l
         WHERE code = $1
         `,
-        [code]
-    )
-    return result.rows[0]
+    [code],
+  );
+  return result.rows[0];
 }

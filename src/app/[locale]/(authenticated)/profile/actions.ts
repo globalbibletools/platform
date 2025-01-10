@@ -27,7 +27,7 @@ const EMAIL_VERIFICATION_EXPIRES = 60 * 60 * 1000; // 1 hour
 
 export default async function updateProfile(
   _prevState: FormState,
-  data: FormData
+  data: FormData,
 ): Promise<FormState> {
   const t = await getTranslations("ProfileView");
   const parsedData = parseForm(data) as Record<string, string>;
@@ -52,25 +52,33 @@ export default async function updateProfile(
     },
   });
   if (!request.success) {
-    return { state: "error", validation: request.error.flatten().fieldErrors };
+    return {
+      state: "error",
+      validation: request.error.flatten().fieldErrors,
+    };
   }
 
-  if(parsedData.email && parsedData.email !== parsedData.prev_email){
-    const token = randomBytes(12).toString('hex');
+  if (parsedData.email && parsedData.email !== parsedData.prev_email) {
+    const token = randomBytes(12).toString("hex");
     await query(
       `INSERT INTO user_email_verification
           (user_id, token, email, expires) 
           VALUES ($1, $2, $3, $4)
-      `, 
-      [parsedData.user_id, token, parsedData.email, Date.now() + EMAIL_VERIFICATION_EXPIRES]
+      `,
+      [
+        parsedData.user_id,
+        token,
+        parsedData.email,
+        Date.now() + EMAIL_VERIFICATION_EXPIRES,
+      ],
     );
     const url = `${process.env.ORIGIN}/verify-email?token=${token}`;
     await mailer.sendEmail({
       email: parsedData.email,
-      subject: 'Email Verification',
+      subject: "Email Verification",
       text: `Please click the link to verify your new email \n\n${url.toString()}`,
       html: `<a href="${url.toString()}">Click here</a> to verify your new email.`,
-    })
+    });
   }
 
   if (parsedData.password) {
@@ -81,7 +89,7 @@ export default async function updateProfile(
       html: `Your password for Global Bible Tools has changed.`,
     });
     await query(
-        `UPDATE users
+      `UPDATE users
         SET name = $1, 
             hashed_password = $2
         WHERE id = $3`,
@@ -89,14 +97,14 @@ export default async function updateProfile(
         parsedData.name,
         await scrypt.hash(parsedData.password),
         parsedData.user_id,
-      ]
+      ],
     );
   } else {
     await query(
       `UPDATE users
         SET name = $1
       WHERE id = $2`,
-      [parsedData.name, parsedData.user_id]
+      [parsedData.name, parsedData.user_id],
     );
   }
 

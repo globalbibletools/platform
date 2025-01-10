@@ -2,9 +2,9 @@ import verseCounts from "@/data/verse-counts.json";
 import fuzzysort from "fuzzysort";
 
 export interface VerseInfo {
-    bookId: number,
-    chapterNumber: number,
-    verseNumber: number
+  bookId: number;
+  chapterNumber: number;
+  verseNumber: number;
 }
 
 export type ChapterInfo = {
@@ -16,11 +16,11 @@ export function decrementVerseId(verseId: string) {
   let { bookId, chapterNumber, verseNumber }: VerseInfo = parseVerseId(verseId);
   verseNumber -= 1;
   if (verseNumber < 1) {
-    chapterNumber -= 1;         // Wrap to previous chapter
+    chapterNumber -= 1; // Wrap to previous chapter
     if (chapterNumber < 1) {
-      bookId -= 1;              // Wrap to previous book.
+      bookId -= 1; // Wrap to previous book.
       if (bookId < 1) {
-        bookId = 66;            // Wrap around to Revelation.
+        bookId = 66; // Wrap around to Revelation.
       }
       chapterNumber = chapterCount(bookId);
     }
@@ -32,11 +32,11 @@ export function incrementVerseId(verseId: string) {
   let { bookId, chapterNumber, verseNumber }: VerseInfo = parseVerseId(verseId);
   verseNumber += 1;
   if (verseNumber > verseCount(bookId, chapterNumber)) {
-    chapterNumber += 1;         // Wrap to next chapter.
+    chapterNumber += 1; // Wrap to next chapter.
     if (chapterNumber > chapterCount(bookId)) {
-      bookId += 1;              // Wrap to next book.
+      bookId += 1; // Wrap to next book.
       if (bookId > 66) {
-        bookId = 1;             // Wrap around to Genesis.
+        bookId = 1; // Wrap around to Genesis.
       }
       chapterNumber = 1;
     }
@@ -54,10 +54,12 @@ export function bookLastVerseId(bookId: number) {
   return generateVerseId({ bookId, chapterNumber, verseNumber });
 }
 
-
 const REFERENCE_REGEX = /^(.+?)(?:[.]?\s*(\d+)(?:([:.,]|\s)(\d+))?)?[;.,]?$/;
 
-export function parseReference(reference: string, bookNameList: string[]): string | null {
+export function parseReference(
+  reference: string,
+  bookNameList: string[],
+): string | null {
   // Parse the reference into three parts.
   const matches = reference.match(REFERENCE_REGEX);
   if (matches == null) {
@@ -72,7 +74,7 @@ export function parseReference(reference: string, bookNameList: string[]): strin
     id: i + 1,
   }));
   const results = fuzzysort.go(bookStr.toLowerCase().trim(), bookNames, {
-    key: 'name',
+    key: "name",
   });
   if (results.length > 0) {
     bookId = results[0].obj.id;
@@ -81,14 +83,14 @@ export function parseReference(reference: string, bookNameList: string[]): strin
   }
 
   // Coerce the chapter number to be valid.
-  const chapterNumber = chapterStr
-    ? clamp(parseInt(chapterStr), 1, chapterCount(bookId))
-    : 1;
+  const chapterNumber =
+    chapterStr ? clamp(parseInt(chapterStr), 1, chapterCount(bookId)) : 1;
   // Coerce the verse number to be valid.
-  const verseNumber = verseStr
-    ? clamp(parseInt(verseStr), 1, verseCount(bookId, chapterNumber))
+  const verseNumber =
+    verseStr ?
+      clamp(parseInt(verseStr), 1, verseCount(bookId, chapterNumber))
     : 1;
-  return `${bookId.toString().padStart(2, '0')}${chapterNumber.toString().padStart(3, '0')}${verseNumber.toString().padStart(3, '0')}`;
+  return `${bookId.toString().padStart(2, "0")}${chapterNumber.toString().padStart(3, "0")}${verseNumber.toString().padStart(3, "0")}`;
 }
 
 export function parseVerseId(verseId: string): VerseInfo {
@@ -103,23 +105,23 @@ export function generateVerseId({
   verseNumber,
 }: VerseInfo) {
   return [
-    bookId.toString().padStart(2, '0'),
-    chapterNumber.toString().padStart(3, '0'),
-    verseNumber.toString().padStart(3, '0'),
-  ].join('');
+    bookId.toString().padStart(2, "0"),
+    chapterNumber.toString().padStart(3, "0"),
+    verseNumber.toString().padStart(3, "0"),
+  ].join("");
 }
-export function generateChapterId({
-  bookId,
-  chapterNumber,
-}: ChapterInfo) {
+export function generateChapterId({ bookId, chapterNumber }: ChapterInfo) {
   return [
-    bookId.toString().padStart(2, '0'),
-    chapterNumber.toString().padStart(3, '0')
-  ].join('');
+    bookId.toString().padStart(2, "0"),
+    chapterNumber.toString().padStart(3, "0"),
+  ].join("");
 }
 
-export function parseReferenceRange(reference: string, bookNameList: string[]): string[] {
-  const results = reference.split('-');
+export function parseReferenceRange(
+  reference: string,
+  bookNameList: string[],
+): string[] {
+  const results = reference.split("-");
   const base = parseReference(results[0], bookNameList);
   if (base == null) {
     return [];
@@ -154,9 +156,9 @@ export function decrementChapterId(chapterId: string) {
     }
     chapterNumber = chapterCount(bookId); // Last chapter of the book.
   }
-  return `${bookId.toString().padStart(2, '0')}${chapterNumber
+  return `${bookId.toString().padStart(2, "0")}${chapterNumber
     .toString()
-    .padStart(3, '0')}`;
+    .padStart(3, "0")}`;
 }
 export function incrementChapterId(chapterId: string) {
   let { bookId, chapterNumber }: VerseInfo = parseVerseId(chapterId);
@@ -168,9 +170,9 @@ export function incrementChapterId(chapterId: string) {
     }
     chapterNumber = 1;
   }
-  return `${bookId.toString().padStart(2, '0')}${chapterNumber
+  return `${bookId.toString().padStart(2, "0")}${chapterNumber
     .toString()
-    .padStart(3, '0')}`;
+    .padStart(3, "0")}`;
 }
 
 export function bookFirstChapterId(bookId: number) {

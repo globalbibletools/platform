@@ -1,4 +1,3 @@
 {
-    "experimentalTernaries": true,
-    "tabWidth": 4
+  "experimentalTernaries": true
 }

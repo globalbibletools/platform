@@ -13,7 +13,7 @@ import { query } from "@/db";
 
 export async function generateMetadata(
   _: any,
-  parent: ResolvingMetadata
+  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const t = await getTranslations("ProfileView");
   const { title } = await parent;
@@ -29,7 +29,7 @@ export default async function ProfileView() {
 
   const result = await query<{ name?: string; email: string }>(
     `SELECT name, email FROM users WHERE id = $1`,
-    [session.user.id]
+    [session.user.id],
   );
   const user = result?.rows[0];
 
@@ -45,7 +45,7 @@ export default async function ProfileView() {
         <ViewTitle>{t("title")}</ViewTitle>
         <Form action={updateProfile}>
           <input hidden name="user_id" value={session.user.id} />
-          <input hidden name="prev_email" value={user.email}/>
+          <input hidden name="prev_email" value={user.email} />
           <div className="mb-2">
             <FormLabel htmlFor="email">{t("form.email")}</FormLabel>
             <TextInput

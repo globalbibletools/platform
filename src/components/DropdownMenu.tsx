@@ -1,9 +1,9 @@
 "use client";
 
-import { FocusEvent, ReactNode, useRef, useState } from 'react';
-import Link, { LinkProps } from 'next/link';
-import useCssId from './cssid';
-import { Icon } from './Icon';
+import { FocusEvent, ReactNode, useRef, useState } from "react";
+import Link, { LinkProps } from "next/link";
+import useCssId from "./cssid";
+import { Icon } from "./Icon";
 
 export interface DropdownProps {
   className?: string;
@@ -13,14 +13,14 @@ export interface DropdownProps {
 }
 
 export default function DropdownMenu({
-  className = '',
-  buttonClassName = '',
+  className = "",
+  buttonClassName = "",
   children,
   text,
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
-  const cssId = useCssId('dropdown-menu');
+  const cssId = useCssId("dropdown-menu");
 
   // We want to close the menu if the focus moves outside of the component.
   function onBlur(e: FocusEvent) {
@@ -46,14 +46,14 @@ export default function DropdownMenu({
         aria-controls={`${cssId}-menu`}
       >
         {text}
-        <Icon fixedWidth icon={isOpen ? 'caret-up' : 'caret-down'} />
+        <Icon fixedWidth icon={isOpen ? "caret-up" : "caret-down"} />
       </button>
       <ul
         id={`${cssId}-menu`}
         className={`
           absolute end-0 border border-gray-300 shadow-md py-2 rounded bg-white z-10 min-w-full
           dark:bg-gray-700 dark:border-gray-600
-          ${isOpen ? '' : 'hidden'}
+          ${isOpen ? "" : "hidden"}
         `}
         onClick={() => setIsOpen(false)}
       >
@@ -65,36 +65,48 @@ export default function DropdownMenu({
 
 export interface DropdownMenuItemProps {
   children: ReactNode;
-  href?: LinkProps['href'];
-  prefetch?: boolean
-  onClick?(): void
+  href?: LinkProps["href"];
+  prefetch?: boolean;
+  onClick?(): void;
 }
 
 const className =
-  'focus:outline-none focus:bg-gray-200 hover:bg-gray-200 block whitespace-nowrap px-4 py-1 text-start w-full';
+  "focus:outline-none focus:bg-gray-200 hover:bg-gray-200 block whitespace-nowrap px-4 py-1 text-start w-full";
 
-export function DropdownMenuItem({ children, href, onClick, prefetch }: DropdownMenuItemProps) {
+export function DropdownMenuItem({
+  children,
+  href,
+  onClick,
+  prefetch,
+}: DropdownMenuItemProps) {
   return (
     <li className="w-full">
       {/* If we want to link to external URLs, we have use a standard anchor element. */}
       {(() => {
-          if (typeof href === 'string' && href.startsWith('http')) {
-            return <a className={className} href={href} onClick={onClick}>
+        if (typeof href === "string" && href.startsWith("http")) {
+          return (
+            <a className={className} href={href} onClick={onClick}>
               {children}
             </a>
-          } else if (href) {
-            return <Link className={className} href={href} onClick={onClick} prefetch={prefetch}>
+          );
+        } else if (href) {
+          return (
+            <Link
+              className={className}
+              href={href}
+              onClick={onClick}
+              prefetch={prefetch}
+            >
               {children}
             </Link>
-          } else {
-              return <button
-                type="button"
-                className={className}
-                onClick={onClick}
-              >
-                {children}
-              </button>
-          }
+          );
+        } else {
+          return (
+            <button type="button" className={className} onClick={onClick}>
+              {children}
+            </button>
+          );
+        }
       })()}
     </li>
   );
@@ -111,7 +123,7 @@ export function DropdownMenuSubmenu({
 }: DropdownMenuSubmenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const root = useRef<HTMLLIElement>(null);
-  const cssId = useCssId('dropdown-menu');
+  const cssId = useCssId("dropdown-menu");
 
   // We want to close the menu if the focus moves outside of the component.
   function onBlur(e: FocusEvent) {
@@ -136,13 +148,13 @@ export function DropdownMenuSubmenu({
         aria-controls={`${cssId}-menu`}
       >
         {text}
-        <Icon fixedWidth icon={isOpen ? 'caret-up' : 'caret-down'} />
+        <Icon fixedWidth icon={isOpen ? "caret-up" : "caret-down"} />
       </button>
       <ul
         id={`${cssId}-menu`}
         className={`
           absolute end-0 border border-slate-300 shadow-md py-2 rounded bg-white
-          ${isOpen ? '' : 'hidden'}
+          ${isOpen ? "" : "hidden"}
         `}
         onClick={() => setIsOpen(false)}
       >
@@ -151,4 +163,3 @@ export function DropdownMenuSubmenu({
     </li>
   );
 }
-

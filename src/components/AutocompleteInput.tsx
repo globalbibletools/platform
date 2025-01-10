@@ -5,12 +5,12 @@ import {
   useEffect,
   useRef,
   useState,
-} from 'react';
+} from "react";
 
 export interface AutocompleteInputProps
-  extends Omit<ComponentProps<'input'>, 'value' | 'onChange' | 'onSelect'> {
+  extends Omit<ComponentProps<"input">, "value" | "onChange" | "onSelect"> {
   inputClassName?: string;
-  state?: 'success';
+  state?: "success";
   value?: string;
   right?: boolean;
   onChange?(value: string): void;
@@ -21,14 +21,14 @@ export interface AutocompleteInputProps
 
 function normalizeFilter(word: string) {
   // From https://stackoverflow.com/a/37511463
-  return word.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+  return word.normalize("NFD").replace(/\p{Diacritic}/gu, "");
 }
 
 const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
   (
     {
-      inputClassName = '',
-      className = '',
+      inputClassName = "",
+      className = "",
       style,
       suggestions,
       value,
@@ -40,18 +40,18 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
       renderOption,
       ...props
     },
-    ref
+    ref,
   ) => {
-    const [input, setInput] = useState('');
+    const [input, setInput] = useState("");
     const [isFocused, setFocus] = useState(false);
     const [isOpen, setOpen] = useState(false);
     const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>(
-      []
+      [],
     );
     const [activeIndex, setActiveIndex] = useState<number | undefined>();
 
     useEffect(() => {
-      setInput(value ?? '');
+      setInput(value ?? "");
     }, [value]);
 
     useEffect(() => {
@@ -59,8 +59,8 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
         const normalizedInput = normalizeFilter(input.toLowerCase());
         setFilteredSuggestions(
           suggestions.filter((suggestion) =>
-            normalizeFilter(suggestion.toLowerCase()).includes(normalizedInput)
-          )
+            normalizeFilter(suggestion.toLowerCase()).includes(normalizedInput),
+          ),
         );
         setActiveIndex(undefined);
       } else {
@@ -80,7 +80,7 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
     }
 
     function change(newValue: string) {
-      setInput(newValue)
+      setInput(newValue);
       if (newValue !== value) {
         onChange?.(newValue);
       }
@@ -92,7 +92,7 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
         const handler = (e: PointerEvent) => {
           if (!root.current?.contains(e.target as Element)) {
             let newValue;
-            if (typeof activeIndex === 'number') {
+            if (typeof activeIndex === "number") {
               newValue = filteredSuggestions[activeIndex];
             } else {
               newValue = input;
@@ -103,8 +103,8 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
             close();
           }
         };
-        window.addEventListener('pointerdown', handler);
-        return () => window.removeEventListener('pointerdown', handler);
+        window.addEventListener("pointerdown", handler);
+        return () => window.removeEventListener("pointerdown", handler);
       }
     }, [isFocused, onChange, input, activeIndex, filteredSuggestions, value]);
 
@@ -119,16 +119,16 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
             w-full px-3 h-9 bg-white
             dark:shadow-none dark:bg-gray-800
             ${
-              state === 'success'
-                ? 'border-green-600 dark:border-green-500'
-                : 'border-gray-400 dark:border-gray-500'
+              state === "success" ?
+                "border-green-600 dark:border-green-500"
+              : "border-gray-400 dark:border-gray-500"
             }
           `}
           autoComplete="off"
           value={
-            typeof activeIndex === 'number'
-              ? filteredSuggestions[activeIndex]
-              : input
+            typeof activeIndex === "number" ?
+              filteredSuggestions[activeIndex]
+            : input
           }
           onFocus={(e) => {
             setFocus(true);
@@ -136,7 +136,7 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
           }}
           onBlur={(e) => {
             setFocus(false);
-            close()
+            close();
             props.onBlur?.(e);
           }}
           onChange={(e) => {
@@ -146,28 +146,28 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
           onKeyDown={(e) => {
             if (!e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
               switch (e.key) {
-                case 'Enter':
-                case 'Tab': {
-                  if (isOpen && typeof activeIndex === 'number') {
+                case "Enter":
+                case "Tab": {
+                  if (isOpen && typeof activeIndex === "number") {
                     change(filteredSuggestions[activeIndex]);
-                    onSelect?.(filteredSuggestions[activeIndex])
+                    onSelect?.(filteredSuggestions[activeIndex]);
                     close();
-                    return
+                    return;
                   }
                   break;
                 }
-                case 'Escape': {
+                case "Escape": {
                   e.preventDefault();
                   e.stopPropagation();
                   if (isOpen) {
-                      close();
-                      return
+                    close();
+                    return;
                   }
                   break;
                 }
-                case 'ArrowDown': {
+                case "ArrowDown": {
                   if (isOpen) {
-                    if (typeof activeIndex === 'number') {
+                    if (typeof activeIndex === "number") {
                       if (activeIndex === filteredSuggestions.length - 1) {
                         setActiveIndex(undefined);
                       } else {
@@ -181,11 +181,11 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
                   }
                   e.preventDefault();
                   e.stopPropagation();
-                  return
+                  return;
                 }
-                case 'ArrowUp': {
+                case "ArrowUp": {
                   if (isOpen) {
-                    if (typeof activeIndex === 'number') {
+                    if (typeof activeIndex === "number") {
                       if (activeIndex === 0) {
                         setActiveIndex(undefined);
                       } else {
@@ -199,7 +199,7 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
                   }
                   e.preventDefault();
                   e.stopPropagation();
-                  return
+                  return;
                 }
               }
             }
@@ -211,27 +211,27 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
             className={`
               z-10 absolute min-w-full min-h-[24px] max-h-80 bg-white overflow-auto mt-1 rounded border border-gray-400 shadow
               dark:bg-gray-700 dark:border-gray-600
-              ${right ? 'right-0' : 'left-0'}
+              ${right ? "right-0" : "left-0"}
             `}
           >
             {filteredSuggestions.map((suggestion, i) => (
               <li
                 tabIndex={-1}
                 ref={
-                  i === activeIndex
-                    ? (el) => {
-                        el?.scrollIntoView({
-                          block: 'nearest',
-                        });
-                      }
-                    : undefined
+                  i === activeIndex ?
+                    (el) => {
+                      el?.scrollIntoView({
+                        block: "nearest",
+                      });
+                    }
+                  : undefined
                 }
                 className={`
                   px-3 py-1 whitespace-nowrap cursor-pointer
                   ${
-                    i === activeIndex
-                      ? 'bg-green-200 dark:bg-green-400 dark:text-gray-800'
-                      : ''
+                    i === activeIndex ?
+                      "bg-green-200 dark:bg-green-400 dark:text-gray-800"
+                    : ""
                   }
                 `}
                 key={i}
@@ -248,8 +248,7 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
         )}
       </div>
     );
-  }
+  },
 );
-AutocompleteInput.displayName = 'AutocompleteInput'
+AutocompleteInput.displayName = "AutocompleteInput";
 export default AutocompleteInput;
-

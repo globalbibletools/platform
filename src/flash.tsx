@@ -7,10 +7,10 @@ import {
   useContext,
   useMemo,
   useState,
-} from 'react';
-import { Transition } from '@headlessui/react';
-import { Icon } from '@/components/Icon';
-import { useTranslations } from 'next-intl';
+} from "react";
+import { Transition } from "@headlessui/react";
+import { Icon } from "@/components/Icon";
+import { useTranslations } from "next-intl";
 
 // Flash messages have several states that help make their lifecycle easier to manage:
 // unshown - This message has been added, but not yet displayed.
@@ -20,12 +20,12 @@ import { useTranslations } from 'next-intl';
 // dismissed - This message has been dismissed either by the user or by a timeout.
 //             A message in this state will animate out of view, and then be removed from the list.
 
-type FlashMessageType = 'error' | 'success';
+type FlashMessageType = "error" | "success";
 interface FlashMessage {
   id: string;
   message: string;
   level: FlashMessageType;
-  state: 'unshown' | 'shown' | 'dismissed';
+  state: "unshown" | "shown" | "dismissed";
   timeout?: number;
   timeoutId?: ReturnType<typeof setTimeout>;
 }
@@ -61,15 +61,15 @@ export function FlashProvider({ children }: FlashProviderProps) {
   // These helper functions all have useCallback so that `useFlash` never triggers a render of components that use it.
   const error = useCallback((message: string) => {
     setMessages((messages) => [
-      { id: generateId(), message, level: 'error', state: 'unshown' },
+      { id: generateId(), message, level: "error", state: "unshown" },
       ...messages,
     ]);
   }, []);
   const remove = useCallback((id: string) => {
     setMessages((messages) =>
       messages.map((message) =>
-        message.id === id ? { ...message, state: 'dismissed' } : message
-      )
+        message.id === id ? { ...message, state: "dismissed" } : message,
+      ),
     );
   }, []);
   const success = useCallback(
@@ -79,8 +79,8 @@ export function FlashProvider({ children }: FlashProviderProps) {
         {
           id,
           message,
-          level: 'success',
-          state: 'unshown',
+          level: "success",
+          state: "unshown",
           timeout,
           timeoutId: setTimeout(() => {
             remove(id);
@@ -89,7 +89,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
         ...messages,
       ]);
     },
-    [remove]
+    [remove],
   );
   const clear = useCallback(() => {
     setMessages([]);
@@ -98,7 +98,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
   // We memoize the context value so that `useFlash` never triggers a rerender in components that use it.
   const contextValue = useMemo(
     () => ({ error, success, clear }),
-    [error, success, clear]
+    [error, success, clear],
   );
 
   const t = useTranslations("Flash");
@@ -111,16 +111,16 @@ export function FlashProvider({ children }: FlashProviderProps) {
           return (
             <Transition
               key={message.id}
-              appear={message.state === 'unshown'}
-              show={message.state !== 'dismissed'}
+              appear={message.state === "unshown"}
+              show={message.state !== "dismissed"}
               className={`
                 mt-2 rounded shadow border font-bold flex items-stretch bg-white
                 pointer-events-auto
                 dark:bg-gray-800
                 ${
-                  message.level === 'success'
-                    ? 'border-green-600'
-                    : 'border-red-600'
+                  message.level === "success" ?
+                    "border-green-600"
+                  : "border-red-600"
                 }
               `}
               enter="transition-opacity transition-transform duration-300"
@@ -131,27 +131,30 @@ export function FlashProvider({ children }: FlashProviderProps) {
               leaveTo="opacity-0"
               afterEnter={() => {
                 setMessages((messages) =>
-                  messages.map((m, i) => ({ ...m, state: 'shown' }))
+                  messages.map((m, i) => ({
+                    ...m,
+                    state: "shown",
+                  })),
                 );
               }}
               afterLeave={() =>
                 setMessages((messages) =>
-                  messages.filter((m) => m.id !== message.id)
+                  messages.filter((m) => m.id !== message.id),
                 )
               }
             >
               <div
                 className={`
                 w-9
-                ${message.level === 'success' ? 'bg-green-600' : 'bg-red-600'}
+                ${message.level === "success" ? "bg-green-600" : "bg-red-600"}
               `}
               >
                 <div className="flex justify-center items-center py-2 h-10">
                   <Icon
                     icon={
-                      message.level === 'success'
-                        ? 'check'
-                        : 'exclamation-triangle'
+                      message.level === "success" ?
+                        "check"
+                      : "exclamation-triangle"
                     }
                     size="lg"
                     className=" text-white"
@@ -160,10 +163,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
               </div>
               <div role="alert" className="py-2 px-3">
                 <span className="sr-only">
-                  {message.level === 'error'
-                    ? t('error')
-                    : t('success')}
-                  :
+                  {message.level === "error" ? t("error") : t("success")}:
                 </span>
                 {message.message}
               </div>
@@ -173,7 +173,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
                 onClick={() => remove(message.id)}
               >
                 <Icon icon="close" />
-                <span className="sr-only">{t('close')}</span>
+                <span className="sr-only">{t("close")}</span>
               </button>
             </Transition>
           );
@@ -193,8 +193,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
 export function useFlash() {
   const context = useContext(FlashContext);
   if (!context) {
-    throw new Error('useFlash should be used within FlashContext component.');
+    throw new Error("useFlash should be used within FlashContext component.");
   }
   return context;
 }
-

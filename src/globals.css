@@ -4,14 +4,14 @@
 
 @layer base {
   :root {
-      --font-sans: var(--font-noto-sans);
+    --font-sans: var(--font-noto-sans);
   }
 
   .locale-en {
-      --font-sans: var(--font-noto-sans);
+    --font-sans: var(--font-noto-sans);
   }
   .locale-ar {
-      --font-sans: var(--font-noto-sans-arabic), var(--font-noto-sans);
+    --font-sans: var(--font-noto-sans-arabic), var(--font-noto-sans);
   }
 }
 
@@ -35,4 +35,3 @@
     unicode-bidi: plaintext;
   }
 }
-

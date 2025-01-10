@@ -1,13 +1,12 @@
 {
   "en": {
-      "name": "English",
-      "class": "locale-en",
-      "dir": "ltr"
+    "name": "English",
+    "class": "locale-en",
+    "dir": "ltr"
   },
   "ar": {
-      "name": "اَلْعَرَبِيَّةُ",
-      "class": "locale-ar",
-      "dir": "rtl"
+    "name": "اَلْعَرَبِيَّةُ",
+    "class": "locale-ar",
+    "dir": "rtl"
   }
 }
-

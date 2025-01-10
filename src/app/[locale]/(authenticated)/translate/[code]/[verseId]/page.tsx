@@ -1,90 +1,117 @@
-import { query } from "@/db"
-import { notFound } from "next/navigation"
-import { NextIntlClientProvider } from "next-intl"
-import { getMessages } from "next-intl/server"
-import { verifySession } from "@/session"
-import TranslateView from "./TranslationView"
-import { translateClient } from "@/google-translate"
-import languageMap from "@/data/locale-mapping.json"
+import { query } from "@/db";
+import { notFound } from "next/navigation";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import { verifySession } from "@/session";
+import TranslateView from "./TranslationView";
+import { translateClient } from "@/google-translate";
+import languageMap from "@/data/locale-mapping.json";
 
 interface Props {
-    params: { code: string, verseId: string }
+  params: { code: string; verseId: string };
 }
 
-const CHAR_REGEX = /\w/
+const CHAR_REGEX = /\w/;
 
 export default async function InterlinearView({ params }: Props) {
-    const messages = await getMessages()
+  const messages = await getMessages();
 
-    const session = await verifySession()
+  const session = await verifySession();
 
-    const [language, verse, phrases, suggestions, machineSuggestions] = await Promise.all([
-        fetchCurrentLanguage(params.code, session?.user.id),
-        fetchVerse(params.verseId),
-        fetchPhrases(params.verseId, params.code, session?.user.id),
-        fetchSuggestions(params.verseId, params.code),
-        fetchMachineSuggestions(params.verseId, params.code)
-    ])
+  const [language, verse, phrases, suggestions, machineSuggestions] =
+    await Promise.all([
+      fetchCurrentLanguage(params.code, session?.user.id),
+      fetchVerse(params.verseId),
+      fetchPhrases(params.verseId, params.code, session?.user.id),
+      fetchSuggestions(params.verseId, params.code),
+      fetchMachineSuggestions(params.verseId, params.code),
+    ]);
 
-    if (!verse || !language) {
-        notFound()
-    }
+  if (!verse || !language) {
+    notFound();
+  }
 
-    // We only want to machine translate words that
-    // 1. Don't have an approved gloss
-    // 2. Already have a machine gloss
-    // 3. Have no suggestions from other verses
-    // 4. Have a reference gloss in English to translate from.
-    const wordsToTranslate = Array.from(new Set(
-        verse.words
-            .filter(w =>
-                phrases.find(ph => ph.wordIds.includes(w.id))?.gloss?.state !== 'APPROVED' &&
-                machineSuggestions.every(s => s.wordId !== w.id || s.suggestions.every(sug => sug.model !== 'google-translate')) &&
-                !suggestions.find(s => s.formId === w.formId)?.suggestions.length &&
-                !!w.referenceGloss?.match(CHAR_REGEX)
-            )
-            .map(w => (w.referenceGloss ?? '').toLowerCase())
-    ))
+  // We only want to machine translate words that
+  // 1. Don't have an approved gloss
+  // 2. Already have a machine gloss
+  // 3. Have no suggestions from other verses
+  // 4. Have a reference gloss in English to translate from.
+  const wordsToTranslate = Array.from(
+    new Set(
+      verse.words
+        .filter(
+          (w) =>
+            phrases.find((ph) => ph.wordIds.includes(w.id))?.gloss?.state !==
+              "APPROVED" &&
+            machineSuggestions.every(
+              (s) =>
+                s.wordId !== w.id ||
+                s.suggestions.every((sug) => sug.model !== "google-translate"),
+            ) &&
+            !suggestions.find((s) => s.formId === w.formId)?.suggestions
+              .length &&
+            !!w.referenceGloss?.match(CHAR_REGEX),
+        )
+        .map((w) => (w.referenceGloss ?? "").toLowerCase()),
+    ),
+  );
 
-    const newMachineSuggestions = language.roles.includes('TRANSLATOR')
-        ? await machineTranslate(wordsToTranslate, params.code)
-        : {}
+  const newMachineSuggestions =
+    language.roles.includes("TRANSLATOR") ?
+      await machineTranslate(wordsToTranslate, params.code)
+    : {};
 
-    const words = verse.words.map(w => ({
-        ...w,
-        suggestions: suggestions.find(s => s.formId === w.formId)?.suggestions ?? [],
-        machineSuggestions: [
-            ...(machineSuggestions.find(s => s.wordId === w.id)?.suggestions ?? []),
-            ...(newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? ''] ? [{ model: 'google-translate', gloss: newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? '']}] : [])
+  const words = verse.words.map((w) => ({
+    ...w,
+    suggestions:
+      suggestions.find((s) => s.formId === w.formId)?.suggestions ?? [],
+    machineSuggestions: [
+      ...(machineSuggestions.find((s) => s.wordId === w.id)?.suggestions ?? []),
+      ...(newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? ""] ?
+        [
+          {
+            model: "google-translate",
+            gloss: newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? ""],
+          },
         ]
-    }))
+      : []),
+    ],
+  }));
 
-    return <NextIntlClientProvider messages={{
+  return (
+    <NextIntlClientProvider
+      messages={{
         TranslateWord: messages.TranslateWord,
         TranslationSidebar: messages.TranslationSidebar,
         RichTextInput: messages.RichTextInput,
         VersesPreview: messages.VersesPreview,
-    }}>
-        <TranslateView
-            verseId={params.verseId}
-            words={words}
-            phrases={phrases}
-            language={language}
-        />
+      }}
+    >
+      <TranslateView
+        verseId={params.verseId}
+        words={words}
+        phrases={phrases}
+        language={language}
+      />
     </NextIntlClientProvider>
+  );
 }
 
 interface Phrase {
-    id: number,
-    wordIds: string[],
-    gloss?: { text: string, state: string },
-    translatorNote?: { authorName: string, timestamp: string, content: string },
-    footnote?: { authorName: string, timestamp: string, content: string }
+  id: number;
+  wordIds: string[];
+  gloss?: { text: string; state: string };
+  translatorNote?: { authorName: string; timestamp: string; content: string };
+  footnote?: { authorName: string; timestamp: string; content: string };
 }
 
-async function fetchPhrases(verseId: string, languageCode: string, userId?: string): Promise<Phrase[]> {
-    await query(
-        `
+async function fetchPhrases(
+  verseId: string,
+  languageCode: string,
+  userId?: string,
+): Promise<Phrase[]> {
+  await query(
+    `
             WITH phw AS (
               INSERT INTO phrase_word (phrase_id, word_id)
               SELECT
@@ -103,10 +130,10 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
             INSERT INTO phrase (id, language_id, created_at, created_by)
             SELECT phw.phrase_id, (SELECT id FROM language WHERE code = $1), now(), $3::uuid FROM phw
         `,
-        [languageCode, verseId, userId]
-    )
-    const result = await query<Phrase>(
-        `
+    [languageCode, verseId, userId],
+  );
+  const result = await query<Phrase>(
+    `
         SELECT
 			ph.id,
 			ph.word_ids AS "wordIds",
@@ -160,24 +187,27 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
 		) AS tn ON tn.phrase_id = ph.id
 		ORDER BY ph.id
         `,
-        [verseId, languageCode]
-    )
-    return result.rows
+    [verseId, languageCode],
+  );
+  return result.rows;
 }
 
 interface ModelSuggestion {
-    model: string
-    gloss: string
+  model: string;
+  gloss: string;
 }
 
 interface MachineSuggestion {
-    wordId: string
-    suggestions: ModelSuggestion[]
+  wordId: string;
+  suggestions: ModelSuggestion[];
 }
 
-async function fetchMachineSuggestions(verseId: string, languageCode: string): Promise<MachineSuggestion[]> {
-    const result = await query<MachineSuggestion>(
-        `
+async function fetchMachineSuggestions(
+  verseId: string,
+  languageCode: string,
+): Promise<MachineSuggestion[]> {
+  const result = await query<MachineSuggestion>(
+    `
         SELECT w.id AS "wordId", JSON_AGG(JSON_BUILD_OBJECT('model', model.code, 'gloss', mg.gloss)) AS suggestions
         FROM word AS w
         JOIN machine_gloss AS mg ON mg.word_id = w.id
@@ -186,19 +216,22 @@ async function fetchMachineSuggestions(verseId: string, languageCode: string): P
 			AND mg.language_id = (SELECT id FROM language WHERE code = $2)
         GROUP BY w.id
         `,
-        [verseId, languageCode]
-    )
-    return result.rows
+    [verseId, languageCode],
+  );
+  return result.rows;
 }
 
 interface FormSuggestion {
-    formId: string,
-    suggestions: string[]
+  formId: string;
+  suggestions: string[];
 }
 
-async function fetchSuggestions(verseId: string, languageCode: string): Promise<FormSuggestion[]> {
-    const result = await query<FormSuggestion>(
-        `
+async function fetchSuggestions(
+  verseId: string,
+  languageCode: string,
+): Promise<FormSuggestion[]> {
+  const result = await query<FormSuggestion>(
+    `
         SELECT 
             sc.form_id AS "formId",
             ARRAY_AGG(sc.gloss ORDER BY sc.count DESC) AS suggestions
@@ -211,29 +244,29 @@ async function fetchSuggestions(verseId: string, languageCode: string): Promise<
             AND sc.count > 0
         GROUP BY sc.form_id
         `,
-        [verseId, languageCode]
-    )
-    return result.rows
+    [verseId, languageCode],
+  );
+  return result.rows;
 }
 
 interface VerseWord {
-    id: string
-    text: string
-    referenceGloss?: string
-    lemma: string
-    formId: string
-    grammar: string
-    resource?: { name: string, entry: string }
+  id: string;
+  text: string;
+  referenceGloss?: string;
+  lemma: string;
+  formId: string;
+  grammar: string;
+  resource?: { name: string; entry: string };
 }
 
 interface Verse {
-    words: VerseWord[]
+  words: VerseWord[];
 }
 
 // TODO: cache this, it should almost never change
 async function fetchVerse(verseId: string): Promise<Verse | undefined> {
-    const result = await query<Verse>(
-        `
+  const result = await query<Verse>(
+    `
         SELECT
             (
                 SELECT
@@ -278,42 +311,47 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
         FROM verse AS v
         WHERE v.id = $1
         `,
-        [verseId]
-    )
+    [verseId],
+  );
 
-    return result.rows[0]
+  return result.rows[0];
 }
 
 async function machineTranslate(
-    words: string[],
-    code: string
+  words: string[],
+  code: string,
 ): Promise<Record<string, string>> {
-    const languageCode = languageMap[code as keyof typeof languageMap];
-    if (!languageCode || !translateClient || words.length === 0) return {};
+  const languageCode = languageMap[code as keyof typeof languageMap];
+  if (!languageCode || !translateClient || words.length === 0) return {};
 
-    const start = performance.now()
-    const machineGlosses = await translateClient.translate(
-        words,
-        languageCode
-    );
-    const duration = performance.now() - start
-    const wordMap = Object.fromEntries(
-        words.map((word, i) => [word, machineGlosses[i]])
-    );
+  const start = performance.now();
+  const machineGlosses = await translateClient.translate(words, languageCode);
+  const duration = performance.now() - start;
+  const wordMap = Object.fromEntries(
+    words.map((word, i) => [word, machineGlosses[i]]),
+  );
 
-    console.log(`Finished translating ${words.length} words (${duration.toFixed(0)}) ms`)
-    Object.entries(wordMap).forEach(([ref, gloss]) => console.log(`Translated to ${code}: ${ref} --> ${gloss}`))
+  console.log(
+    `Finished translating ${words.length} words (${duration.toFixed(0)}) ms`,
+  );
+  Object.entries(wordMap).forEach(([ref, gloss]) =>
+    console.log(`Translated to ${code}: ${ref} --> ${gloss}`),
+  );
 
-    // We do not await this so that the request can return quickly. It is not needed to finish the request.
-    saveMachineTranslations(code, words, machineGlosses)
+  // We do not await this so that the request can return quickly. It is not needed to finish the request.
+  saveMachineTranslations(code, words, machineGlosses);
 
-    return wordMap
+  return wordMap;
 }
 
-async function saveMachineTranslations(code: string, referenceGlosses: string[], machineGlosses: string[]) {
-    try {
-        await query(
-            `
+async function saveMachineTranslations(
+  code: string,
+  referenceGlosses: string[],
+  machineGlosses: string[],
+) {
+  try {
+    await query(
+      `
             INSERT INTO machine_gloss (word_id, gloss, language_id, model_id)
             SELECT
                 phw.word_id, data.machine_gloss,
@@ -329,25 +367,28 @@ async function saveMachineTranslations(code: string, referenceGlosses: string[],
             ON CONFLICT ON CONSTRAINT machine_gloss_word_id_language_id_model_id_key
             DO UPDATE SET gloss = EXCLUDED.gloss
             `,
-            [code, referenceGlosses, machineGlosses]
-        )
-    } catch (error) {
-        console.log(`Failed to save machine translations: ${error}`)
-    }
+      [code, referenceGlosses, machineGlosses],
+    );
+  } catch (error) {
+    console.log(`Failed to save machine translations: ${error}`);
+  }
 }
 
 interface CurrentLanguage {
-    code: string
-    name: string
-    font: string
-    textDirection: string
-    translationIds: string[]
-    roles: string[]
+  code: string;
+  name: string;
+  font: string;
+  textDirection: string;
+  translationIds: string[];
+  roles: string[];
 }
 
-async function fetchCurrentLanguage(code: string, userId?: string): Promise<CurrentLanguage | undefined> {
-    const result = await query<CurrentLanguage>(
-        `
+async function fetchCurrentLanguage(
+  code: string,
+  userId?: string,
+): Promise<CurrentLanguage | undefined> {
+  const result = await query<CurrentLanguage>(
+    `
         SELECT
             code, name, font, text_direction AS "textDirection", translation_ids AS "translationIds",
             (
@@ -358,7 +399,7 @@ async function fetchCurrentLanguage(code: string, userId?: string): Promise<Curr
         FROM language AS l
         WHERE code = $1
         `,
-        [code, userId]
-    )
-    return result.rows[0]
+    [code, userId],
+  );
+  return result.rows[0];
 }

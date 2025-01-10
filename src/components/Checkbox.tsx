@@ -1,12 +1,12 @@
-import { ComponentProps, ReactNode, forwardRef } from 'react';
-import { Icon } from './Icon';
+import { ComponentProps, ReactNode, forwardRef } from "react";
+import { Icon } from "./Icon";
 
-export interface CheckboxProps extends ComponentProps<'input'> {
+export interface CheckboxProps extends ComponentProps<"input"> {
   children?: ReactNode;
 }
 
 const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ className = '', children, ...props }, ref) => {
+  ({ className = "", children, ...props }, ref) => {
     return (
       <label className={`${className} flex items-top`}>
         <input ref={ref} type="checkbox" className="sr-only" {...props} />
@@ -16,20 +16,15 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             flex justify-center items-center text-blue-800
             dark:border-gray-500 dark:bg-gray-800 dark:text-green-400
             [:focus+&]:outline outline-2 outline-green-300
-            ${children ? 'mt-[2px]' : ''}
+            ${children ? "mt-[2px]" : ""}
           `}
         >
           <Icon className="hidden [:checked+div>&]:block" icon="check" />
         </div>
-        { children &&
-        <span className="ms-2">
-            {children}
-        </span>
-        }
+        {children && <span className="ms-2">{children}</span>}
       </label>
     );
-  }
+  },
 );
 Checkbox.displayName = "Checkbox";
 export default Checkbox;
-

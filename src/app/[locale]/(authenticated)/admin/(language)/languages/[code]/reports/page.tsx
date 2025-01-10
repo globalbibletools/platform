@@ -6,55 +6,60 @@ import { Metadata, ResolvingMetadata } from "next";
 import ProgressChart from "./ProgressChart";
 
 interface Props {
-    params: { code: string }
+  params: { code: string };
 }
 
-export async function generateMetadata(_: any, parent: ResolvingMetadata): Promise<Metadata> {
-  const t = await getTranslations("LanguageReportsPage")
-  const { title } = await parent
+export async function generateMetadata(
+  _: any,
+  parent: ResolvingMetadata,
+): Promise<Metadata> {
+  const t = await getTranslations("LanguageReportsPage");
+  const { title } = await parent;
 
   return {
-    title: `${t("title")} | ${title?.absolute}`
-  }
+    title: `${t("title")} | ${title?.absolute}`,
+  };
 }
 
 export default async function LanguageReportsPage({ params }: Props) {
-    const t = await getTranslations('LanguageReportsPage')
+  const t = await getTranslations("LanguageReportsPage");
 
-  const [
-    currentProgressData,
-    { contributors, books, data: progressData }
-  ] = await Promise.all([
+  const [currentProgressData, { contributors, books, data: progressData }] =
+    await Promise.all([
       fetchCurrentProgress(params.code),
-      fetchLanguageProgressData(params.code)
-  ])
+      fetchLanguageProgressData(params.code),
+    ]);
 
   return (
     <div className="absolute w-full h-full px-8 py-6 overflow-y-auto">
-      <ViewTitle className="mb-4">
-        {t('title')}
-      </ViewTitle>
-        <section className="w-full mb-12">
-          <h2 className="font-bold mb-2">Reader&apos;s Bible Progress</h2>
-          <ProgressChart contributors={contributors} books={books} data={progressData} />
-        </section>
-        <section className="w-full h-[1200px] mb-6">
-          <h2 className="font-bold">Words Approved by Book</h2>
-          <ChapterChart data={currentProgressData} />
-        </section>
+      <ViewTitle className="mb-4">{t("title")}</ViewTitle>
+      <section className="w-full mb-12">
+        <h2 className="font-bold mb-2">Reader&apos;s Bible Progress</h2>
+        <ProgressChart
+          contributors={contributors}
+          books={books}
+          data={progressData}
+        />
+      </section>
+      <section className="w-full h-[1200px] mb-6">
+        <h2 className="font-bold">Words Approved by Book</h2>
+        <ChapterChart data={currentProgressData} />
+      </section>
     </div>
   );
 }
 
 interface BookTotalProgress {
-    name: string,
-    wordCount: number,
-    approvedCount: number
+  name: string;
+  wordCount: number;
+  approvedCount: number;
 }
 
-async function fetchCurrentProgress(code: string): Promise<BookTotalProgress[]> {
-    const request = await query<BookTotalProgress>(
-        `SELECT b.name, COUNT(*) AS "wordCount", COUNT(*) FILTER (WHERE ph.word_id IS NOT NULL) AS "approvedCount" FROM book AS b
+async function fetchCurrentProgress(
+  code: string,
+): Promise<BookTotalProgress[]> {
+  const request = await query<BookTotalProgress>(
+    `SELECT b.name, COUNT(*) AS "wordCount", COUNT(*) FILTER (WHERE ph.word_id IS NOT NULL) AS "approvedCount" FROM book AS b
         JOIN verse AS v ON v.book_id = b.id
         JOIN word AS w ON w.verse_id = v.id
         LEFT JOIN (
@@ -68,47 +73,47 @@ async function fetchCurrentProgress(code: string): Promise<BookTotalProgress[]> 
         ) AS ph ON ph.word_id = w.id
         GROUP BY b.id
         ORDER BY b.id`,
-        [code]
-    )
-    return request.rows
+    [code],
+  );
+  return request.rows;
 }
 
 interface UserContribution {
-    userId: string | null
-    approvedCount: number
-    unapprovedCount: number
+  userId: string | null;
+  approvedCount: number;
+  unapprovedCount: number;
 }
 
 interface BookProgress {
-    bookId: number
-    users: UserContribution[]
+  bookId: number;
+  users: UserContribution[];
 }
 
 interface WeeklyProgress {
-    week: Date
-    books: BookProgress[]
+  week: Date;
+  books: BookProgress[];
 }
 
 interface Contributor {
-    id: string
-    name: string
+  id: string;
+  name: string;
 }
 
 interface Book {
-    id: number
-    name: string
-    wordCount: number
+  id: number;
+  name: string;
+  wordCount: number;
 }
 
 interface ProgressData {
-    contributors: Contributor[]
-    books: Book[]
-    data: WeeklyProgress[]
+  contributors: Contributor[];
+  books: Book[];
+  data: WeeklyProgress[];
 }
 
 async function fetchLanguageProgressData(code: string): Promise<ProgressData> {
-    const request = await query<ProgressData>(
-        `SELECT
+  const request = await query<ProgressData>(
+    `SELECT
             (
                 SELECT JSON_AGG(book) FROM (
                     SELECT JSON_BUILD_OBJECT('id', book.id, 'name', book.name, 'wordCount', COUNT(*)) AS book FROM book
@@ -144,7 +149,7 @@ async function fetchLanguageProgressData(code: string): Promise<ProgressData> {
                 ) week
             ) AS data;
         `,
-        [code]
-    )
-    return request.rows[0]
+    [code],
+  );
+  return request.rows[0];
 }
