@@ -39,7 +39,7 @@ export default async function InterlinearView({ params }: Props) {
         verse.words
             .filter(w =>
                 phrases.find(ph => ph.wordIds.includes(w.id))?.gloss?.state !== 'APPROVED' &&
-                !machineSuggestions.find(s => s.wordId === w.id) &&
+                machineSuggestions.every(s => s.wordId !== w.id || s.suggestions.every(sug => sug.model !== 'google-translate')) &&
                 !suggestions.find(s => s.formId === w.formId)?.suggestions.length &&
                 !!w.referenceGloss?.match(CHAR_REGEX)
             )
@@ -53,7 +53,10 @@ export default async function InterlinearView({ params }: Props) {
     const words = verse.words.map(w => ({
         ...w,
         suggestions: suggestions.find(s => s.formId === w.formId)?.suggestions ?? [],
-        machineSuggestion: machineSuggestions.find(s => s.wordId === w.id)?.suggestion ?? newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? '']
+        machineSuggestions: [
+            ...(machineSuggestions.find(s => s.wordId === w.id)?.suggestions ?? []),
+            ...(newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? ''] ? [{ model: 'google-translate', gloss: newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? '']}] : [])
+        ]
     }))
 
     return <NextIntlClientProvider messages={{
@@ -162,21 +165,26 @@ async function fetchPhrases(verseId: string, languageCode: string, userId?: stri
     return result.rows
 }
 
+interface ModelSuggestion {
+    model: string
+    gloss: string
+}
+
 interface MachineSuggestion {
     wordId: string
-    suggestion: string
+    suggestions: ModelSuggestion[]
 }
 
 async function fetchMachineSuggestions(verseId: string, languageCode: string): Promise<MachineSuggestion[]> {
     const result = await query<MachineSuggestion>(
         `
-        SELECT w.id AS "wordId", mg.gloss AS suggestion
+        SELECT w.id AS "wordId", JSON_AGG(JSON_BUILD_OBJECT('model', model.code, 'gloss', mg.gloss)) AS suggestions
         FROM word AS w
         JOIN machine_gloss AS mg ON mg.word_id = w.id
         JOIN machine_gloss_model AS model ON mg.model_id = model.id
         WHERE w.verse_id = $1
 			AND mg.language_id = (SELECT id FROM language WHERE code = $2)
-            AND model.code = 'google-translate'
+        GROUP BY w.id
         `,
         [verseId, languageCode]
     )

@@ -9,6 +9,11 @@ import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import { incrementVerseId } from "@/verse-utils";
 
+interface MachineSuggestion {
+    model: string
+    gloss: string
+}
+
 interface Word {
     id: string,
     text: string,
@@ -18,7 +23,7 @@ interface Word {
     lemma: string,
     grammar: string,
     resource?: { name: string, entry: string }
-    machineSuggestion?: string
+    machineSuggestions: MachineSuggestion[]
 }
 interface Phrase {
     id: number,
@@ -119,6 +124,7 @@ export default function TranslateView({ verseId, words, phrases, language }: Tra
                         backtranslation={backtranslations?.find(t => t.phraseId === phrase.id)?.translation}
                         language={language}
                         isHebrew={isHebrew}
+                        showLlmGloss={words.some(word => word.machineSuggestions.some(sug => sug.model === 'gpt-4o-mini'))}
                         onFocus={() => {
                             setSidebarWord(word);
                             focusPhrase(phrase);

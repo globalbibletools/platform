@@ -14,7 +14,7 @@ import { useSWRConfig } from "swr";
 import { useParams } from "next/navigation";
 
 export interface TranslateWordProps {
-    word: { id: string, text: string, referenceGloss?: string, suggestions: string[], machineSuggestion?: string }
+    word: { id: string, text: string, referenceGloss?: string, suggestions: string[], machineSuggestions: { model: string, gloss: string }[] }
     phrase: { id: number, wordIds: string[], gloss?: { text: string, state: string }, translatorNote?: { authorName: string, timestamp: string, content: string }, footnote?: { authorName: string, timestamp: string, content: string } }
     backtranslation?: string
     language: {
@@ -23,6 +23,7 @@ export interface TranslateWordProps {
         roles: string[]
     }
     isHebrew: boolean
+    showLlmGloss: boolean
     wordSelected: boolean
     phraseFocused: boolean
     onSelect?(): void
@@ -31,7 +32,7 @@ export interface TranslateWordProps {
     onOpenNotes?(): void
 }
 
-export default function TranslateWord({ word, phrase, isHebrew, language, phraseFocused, wordSelected, backtranslation, onSelect, onFocus, onShowDetail, onOpenNotes }: TranslateWordProps) {
+export default function TranslateWord({ word, phrase, isHebrew, language, phraseFocused, wordSelected, backtranslation, showLlmGloss, onSelect, onFocus, onShowDetail, onOpenNotes }: TranslateWordProps) {
     const t = useTranslations("TranslateWord")
     const { mutate } = useSWRConfig()
 
@@ -40,6 +41,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
     const refGloss = useRef<HTMLSpanElement>(null)
     const targetGloss = useRef<HTMLSpanElement>(null)
     const backtranslatedGloss = useRef<HTMLSpanElement>(null)
+    const llmGloss = useRef<HTMLSpanElement>(null)
     const input = useRef<HTMLInputElement>(null)
 
     const editable = language.roles.includes('TRANSLATOR')
@@ -50,16 +52,18 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
     const dir = 'ltr'
 
     const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
+    const googleTranslateSuggestion = word.machineSuggestions.find(sug => sug.model === 'google-translate')?.gloss
+    const llmSuggestion = word.machineSuggestions.find(sug => sug.model === 'gpt-4o-mini')?.gloss
     const hasMachineSuggestion =
           !isMultiWord &&
          !phrase.gloss?.text &&
          word.suggestions.length === 0 &&
-         !!word.machineSuggestion
+         !!googleTranslateSuggestion
     const glossValue =
         phrase?.gloss?.text ||
         (isMultiWord
             ? undefined
-            : word.suggestions[0] || word.machineSuggestion);
+            : word.suggestions[0] || googleTranslateSuggestion);
 
     const { locale, code } = useParams<{ locale: string, code: string }>()
     const [saving, setSaving] = useState(false)
@@ -112,6 +116,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                 refGloss.current?.clientWidth ?? 0,
                 targetGloss.current?.clientWidth ?? 0,
                 backtranslatedGloss.current?.clientWidth ?? 0,
+                llmGloss.current?.clientWidth ?? 0,
             )
         );
     }, [hasNote, glossWidth, hasMachineSuggestion, isMultiWord]);
@@ -198,6 +203,17 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                 {word.referenceGloss}
             </span>
         </div>
+        {
+            showLlmGloss && <div
+                    className={`h-8 ${isHebrew ? 'text-right pr-3' : 'text-left pl-3'
+                        }`}
+                    dir={language.textDirection}
+                >
+                    <span className="inline-block italic" ref={llmGloss}>
+                        {llmSuggestion}
+                    </span>
+                </div>
+        }
         {!editable
             ?
                 <div
@@ -268,7 +284,7 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                                 renderOption={(item, i) => (
                                     <div
                                         className={
-                                            word.machineSuggestion
+                                            googleTranslateSuggestion
                                                 ? `relative ${isHebrew ? 'pl-5' : 'pr-5'}`
                                                 : ''
                                         }
@@ -348,8 +364,8 @@ export default function TranslateWord({ word, phrase, isHebrew, language, phrase
                                 }}
                                 onFocus={() => onFocus?.()}
                                 suggestions={
-                                    word.machineSuggestion
-                                        ? [...word.suggestions, word.machineSuggestion]
+                                    googleTranslateSuggestion
+                                        ? [...word.suggestions, googleTranslateSuggestion]
                                         : word.suggestions
                                 }
                                 ref={input}

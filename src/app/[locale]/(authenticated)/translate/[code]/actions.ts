@@ -441,6 +441,9 @@ export async function predictGlosses(_prev: FormState, formData: FormData): Prom
         [result.map(r => r.id), result.map(r => r.translation), request.data.code]
     )
 
+    const locale = await getLocale()
+    revalidatePath(`/${locale}/translate/${request.data.code}/${request.data.verseId}`)
+
     return { state: 'success' }
 }
 
