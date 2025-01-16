@@ -2,6 +2,7 @@ import os from "os";
 import { trace } from "@opentelemetry/api";
 import pino from "pino";
 
+// If this changes, update the pino configuration in the next patch so it matches
 export const logger = pino({
   level: process.env.LOG_LEVEL ?? "info",
   formatters: {
