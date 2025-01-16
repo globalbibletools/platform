@@ -10,6 +10,7 @@ import { FormState } from "@/components/Form";
 import { randomBytes } from "crypto";
 import mailer from "@/mailer";
 import { revalidatePath } from "next/cache";
+import { serverActionLogger } from "@/server-action";
 
 const requestSchema = z.object({
   userId: z.string().min(1),
@@ -22,15 +23,19 @@ export async function changeUserRole(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("changeUserRole");
+
   const t = await getTranslations("AdminUsersPage");
 
   const session = await verifySession();
   if (!session?.user.roles.includes("ADMIN")) {
+    logger.error("unauthorized");
     notFound();
   }
 
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
+    logger.error("request parse error");
     return {
       state: "error",
       error: t("errors.invalid_request"),
@@ -42,6 +47,7 @@ export async function changeUserRole(
     [request.data.userId],
   );
   if (usersQuery.rows.length === 0) {
+    logger.error("user not found");
     notFound();
   }
 
@@ -73,15 +79,19 @@ export async function resendUserInvite(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("resendUserInvite");
+
   const t = await getTranslations("AdminUsersPage");
 
   const session = await verifySession();
   if (!session) {
+    logger.error("unauthorized");
     notFound();
   }
 
   const request = resendUserInviteSchema.safeParse(parseForm(formData));
   if (!request.success) {
+    logger.error("request parse error");
     return {
       state: "error",
       error: t("errors.invalid_request"),
@@ -105,6 +115,7 @@ export async function resendUserInvite(
   const access = accessQuery.rows[0] ?? { isLanguageAdmin: false };
 
   if (!session?.user.roles.includes("ADMIN") && !access.isLanguageAdmin) {
+    logger.error("unauthorized");
     notFound();
   }
 
@@ -118,6 +129,7 @@ export async function resendUserInvite(
   );
   const user = userQuery.rows[0];
   if (!user) {
+    logger.error("user not found");
     notFound();
   } else if (user.isActive) {
     return {
@@ -153,15 +165,19 @@ export async function disableUser(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("disableUser");
+
   const t = await getTranslations("AdminUsersPage");
 
   const session = await verifySession();
   if (!session) {
+    logger.error("unauthorized");
     notFound();
   }
 
   const request = disableUserSchema.safeParse(parseForm(formData));
   if (!request.success) {
+    logger.error("request parse error");
     return {
       state: "error",
       error: t("errors.invalid_request"),
@@ -169,6 +185,7 @@ export async function disableUser(
   }
 
   if (!session?.user.roles.includes("ADMIN")) {
+    logger.error("unauthorized");
     notFound();
   }
 

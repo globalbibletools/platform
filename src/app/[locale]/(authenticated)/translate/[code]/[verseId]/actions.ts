@@ -2,6 +2,7 @@
 
 import { query } from "@/db";
 import { parseForm } from "@/form-parser";
+import { serverActionLogger } from "@/server-action";
 import { verifySession } from "@/session";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
@@ -15,13 +16,17 @@ const updateGlossSchema = z.object({
 });
 
 export async function updateGloss(formData: FormData): Promise<any> {
+  const logger = serverActionLogger("updateGloss");
+
   const session = await verifySession();
   if (!session?.user) {
+    logger.error("unauthorized");
     notFound();
   }
 
   const request = updateGlossSchema.safeParse(parseForm(formData));
   if (!request.success) {
+    logger.error("request parse error");
     return;
   }
 
@@ -39,6 +44,7 @@ export async function updateGloss(formData: FormData): Promise<any> {
     (!session?.user.roles.includes("ADMIN") &&
       !language.roles.includes("TRANSLATOR"))
   ) {
+    logger.error("unauthorized");
     notFound();
   }
 

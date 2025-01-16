@@ -6,6 +6,7 @@ import { notFound, redirect } from "next/navigation";
 import { query } from "@/db";
 import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
+import { serverActionLogger } from "@/server-action";
 
 const requestSchema = z.object({
   code: z.string().length(3),
@@ -16,11 +17,14 @@ export async function createLanguage(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("createLanguage");
+
   const t = await getTranslations("NewLanguagePage");
   const locale = await getLocale();
 
   const session = await verifySession();
   if (!session?.user.roles.includes("ADMIN")) {
+    logger.error("unauthorized");
     notFound();
   }
 
@@ -42,6 +46,7 @@ export async function createLanguage(
     },
   );
   if (!request.success) {
+    logger.error("request parse error");
     return {
       state: "error",
       validation: request.error.flatten().fieldErrors,
@@ -52,6 +57,7 @@ export async function createLanguage(
     request.data.code,
   ]);
   if (existsQuery.rows.length > 0) {
+    logger.error("language already exists");
     return {
       state: "error",
       error: t("errors.language_exists"),

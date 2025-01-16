@@ -9,6 +9,7 @@ import { parseForm } from "@/form-parser";
 import mailer from "@/mailer";
 import { query } from "@/db";
 import { randomBytes } from "crypto";
+import { serverActionLogger } from "@/server-action";
 
 const scrypt = new Scrypt();
 
@@ -25,10 +26,12 @@ const profileValidationSchema = z
 
 const EMAIL_VERIFICATION_EXPIRES = 60 * 60 * 1000; // 1 hour
 
-export default async function updateProfile(
+export async function updateProfile(
   _prevState: FormState,
   data: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("updateProfile");
+
   const t = await getTranslations("ProfileView");
   const parsedData = parseForm(data) as Record<string, string>;
   const request = profileValidationSchema.safeParse(parsedData, {
@@ -52,6 +55,7 @@ export default async function updateProfile(
     },
   });
   if (!request.success) {
+    logger.error("request parse error");
     return {
       state: "error",
       validation: request.error.flatten().fieldErrors,

@@ -12,6 +12,7 @@ import { translateClient } from "@/google-translate";
 import languageMap from "@/data/locale-mapping.json";
 import { FormState } from "@/components/Form";
 import { predictGlosses as runGlossPrediction } from "@/ai-gloss-prediction";
+import { serverActionLogger } from "@/server-action";
 
 const requestSchema = z.object({
   language: z.string(),
@@ -21,11 +22,14 @@ const requestSchema = z.object({
 export async function changeInterlinearLocation(
   formData: FormData,
 ): Promise<void> {
+  const logger = serverActionLogger("changeInterlinearLocation");
+
   const locale = await getLocale();
   const t = await getTranslations("TranslationToolbar");
 
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
+    logger.error("request parse error");
     return;
   }
 
@@ -33,7 +37,7 @@ export async function changeInterlinearLocation(
   try {
     verseId = parseReference(request.data.reference, t.raw("book_names"));
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return;
   }
 
@@ -48,8 +52,11 @@ const redirectToUnapprovedSchema = z.object({
 export async function redirectToUnapproved(
   formData: FormData,
 ): Promise<void | string> {
+  const logger = serverActionLogger("redirectToUnapproved");
+
   const request = redirectToUnapprovedSchema.safeParse(parseForm(formData));
   if (!request.success) {
+    logger.error("request parse error");
     return;
   }
 
@@ -94,6 +101,7 @@ export async function redirectToUnapproved(
     );
 
     if (result.rows.length === 0) {
+      logger.error("all verses are approved");
       const t = await getTranslations("TranslationToolbar");
       return t("errors.all_approved");
     }

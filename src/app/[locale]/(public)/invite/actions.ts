@@ -9,6 +9,7 @@ import { transaction } from "@/db";
 import { parseForm } from "@/form-parser";
 import { FormState } from "@/components/Form";
 import homeRedirect from "@/home-redirect";
+import { serverActionLogger } from "@/server-action";
 
 const scrypt = new Scrypt();
 
@@ -28,6 +29,8 @@ export async function acceptInvite(
   prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("acceptInvite");
+
   const t = await getTranslations("AcceptInvitePage");
   const locale = await getLocale();
 
@@ -61,6 +64,7 @@ export async function acceptInvite(
     },
   });
   if (!request.success) {
+    logger.error("request parse error");
     return {
       state: "error",
       validation: request.error.flatten().fieldErrors,
@@ -85,6 +89,7 @@ export async function acceptInvite(
 
     const userId = updatedUserQuery.rows[0]?.id;
     if (!userId) {
+      logger.error("user does not exist");
       notFound();
     }
 

@@ -8,6 +8,7 @@ import { parseForm } from "@/form-parser";
 import { randomBytes } from "crypto";
 import mailer from "@/mailer";
 import { FormState } from "@/components/Form";
+import { serverActionLogger } from "@/server-action";
 
 const EXPIRATION = 60 * 60 * 1000; // 1 hr
 
@@ -19,6 +20,8 @@ export async function forgotPassword(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("forgotPassword");
+
   const t = await getTranslations("ForgotPasswordPage");
 
   const request = loginSchema.safeParse(parseForm(formData), {
@@ -31,6 +34,7 @@ export async function forgotPassword(
     },
   });
   if (!request.success) {
+    logger.error("request parse error");
     return {
       state: "error",
       validation: request.error.flatten().fieldErrors,

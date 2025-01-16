@@ -8,7 +8,7 @@ import FieldError from "@/components/FieldError";
 import Button from "@/components/Button";
 import { notFound } from "next/navigation";
 import Form from "@/components/Form";
-import updateProfile from "./actions";
+import { updateProfile } from "./actions";
 import { query } from "@/db";
 
 export async function generateMetadata(

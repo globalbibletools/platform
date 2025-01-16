@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { query } from "@/db";
 import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
+import { serverActionLogger } from "@/server-action";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -19,10 +20,13 @@ export async function updateLanguageSettings(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("updateLanguageSettings");
+
   const t = await getTranslations("LanguageSettingsPage");
 
   const session = await verifySession();
   if (!session) {
+    logger.error("unauthorized");
     notFound();
   }
 
@@ -53,6 +57,7 @@ export async function updateLanguageSettings(
     },
   );
   if (!request.success) {
+    logger.error("request parse error");
     return {
       state: "error",
       validation: request.error.flatten().fieldErrors,
@@ -73,6 +78,7 @@ export async function updateLanguageSettings(
     (!session?.user.roles.includes("ADMIN") &&
       !language.roles.includes("ADMIN"))
   ) {
+    logger.error("unauthorized");
     notFound();
   }
 
