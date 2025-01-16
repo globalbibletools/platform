@@ -9,6 +9,7 @@ import { parseForm } from "@/form-parser";
 import { verifySession } from "@/session";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { serverActionLogger } from "@/server-action";
 
 const importSchema = z.object({
   code: z.string(),
@@ -19,11 +20,16 @@ export async function importLanguage(
   _state: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("importLanguage");
+
   const t = await getTranslations("LanguageImportPage");
   const locale = await getLocale();
 
   const session = await verifySession();
-  if (!session) redirect(`${locale}/login`);
+  if (!session) {
+    logger.error("unauthorized");
+    redirect(`${locale}/login`);
+  }
 
   const request = importSchema.safeParse(parseForm(formData), {
     errorMap: (error) => {
@@ -35,6 +41,7 @@ export async function importLanguage(
     },
   });
   if (!request.success) {
+    logger.error("request parse error");
     return {
       state: "error",
       validation: request.error.flatten().fieldErrors,
@@ -55,6 +62,7 @@ export async function importLanguage(
     (!session?.user.roles.includes("ADMIN") &&
       !language.roles.includes("ADMIN"))
   ) {
+    logger.error("unauthorized");
     notFound();
   }
 
@@ -91,7 +99,13 @@ export async function importLanguage(
         }),
       );
     } else {
-      console.log(`Importing ${request.data.language} to ${request.data.code}`);
+      logger.info(
+        {
+          sourceLanguage: request.data.language,
+          targetLanguage: request.data.code,
+        },
+        "Starting import",
+      );
     }
   }
 
@@ -105,13 +119,19 @@ const resetImportSchema = z.object({
 });
 
 export async function resetImport(formData: FormData): Promise<void> {
+  const logger = serverActionLogger("resetImport");
+
   const locale = await getLocale();
 
   const session = await verifySession();
-  if (!session) redirect(`${locale}/login`);
+  if (!session) {
+    logger.error("unauthorized");
+    redirect(`${locale}/login`);
+  }
 
   const request = resetImportSchema.safeParse(parseForm(formData));
   if (!request.success) {
+    logger.error("request parse error");
     throw new Error("malformed request");
   }
 
@@ -129,6 +149,7 @@ export async function resetImport(formData: FormData): Promise<void> {
     (!session?.user.roles.includes("ADMIN") &&
       !language.roles.includes("ADMIN"))
   ) {
+    logger.error("unauthorized");
     notFound();
   }
 

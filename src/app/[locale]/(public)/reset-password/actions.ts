@@ -10,6 +10,7 @@ import { Scrypt } from "oslo/password";
 import { createSession } from "@/session";
 import { FormState } from "@/components/Form";
 import homeRedirect from "@/home-redirect";
+import { serverActionLogger } from "@/server-action";
 
 const scrypt = new Scrypt();
 
@@ -27,6 +28,8 @@ export async function resetPassword(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("resetPassword");
+
   const t = await getTranslations("ResetPasswordPage");
 
   const request = resetPasswordSchema.safeParse(parseForm(formData), {
@@ -49,6 +52,7 @@ export async function resetPassword(
     },
   });
   if (!request.success) {
+    logger.error("request parse error");
     return {
       state: "error",
       validation: request.error.flatten().fieldErrors,
@@ -71,6 +75,7 @@ export async function resetPassword(
 
   const user = result.rows[0];
   if (!user) {
+    logger.error("user not found");
     notFound();
   }
 

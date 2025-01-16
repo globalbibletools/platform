@@ -5,6 +5,7 @@ import { parseForm } from "@/form-parser";
 import { parseReference } from "@/verse-utils";
 import { getLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
+import { serverActionLogger } from "@/server-action";
 
 const requestSchema = z.object({
   language: z.string(),
@@ -12,11 +13,14 @@ const requestSchema = z.object({
 });
 
 export async function changeChapter(formData: FormData): Promise<void> {
+  const logger = serverActionLogger("changeChapter");
+
   const locale = await getLocale();
   const t = await getTranslations("ReadingToolbar");
 
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
+    logger.error("request parse error");
     return;
   }
 
@@ -24,7 +28,7 @@ export async function changeChapter(formData: FormData): Promise<void> {
   try {
     verseId = parseReference(request.data.reference, t.raw("book_names"));
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return;
   }
 

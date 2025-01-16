@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
 import { FormState } from "@/components/Form";
+import { serverActionLogger } from "@/server-action";
 
 const changeUserRequestSchema = z.object({
   code: z.string(),
@@ -19,15 +20,19 @@ export async function changeUserLanguageRole(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("changeUserLanguageRole");
+
   const t = await getTranslations("AdminUsersPage");
 
   const session = await verifySession();
   if (!session) {
+    logger.error("unauthorized");
     notFound();
   }
 
   const request = changeUserRequestSchema.safeParse(parseForm(formData));
   if (!request.success) {
+    logger.error("request parser error");
     return {
       state: "error",
       error: t("errors.invalid_request"),
@@ -48,6 +53,7 @@ export async function changeUserLanguageRole(
     (!session?.user.roles.includes("ADMIN") &&
       !language.roles.includes("ADMIN"))
   ) {
+    logger.error("unauthorized");
     notFound();
   }
 
@@ -56,6 +62,7 @@ export async function changeUserLanguageRole(
     [request.data.userId],
   );
   if (usersQuery.rows.length === 0) {
+    logger.error("user not found");
     notFound();
   }
 
@@ -94,15 +101,19 @@ export async function removeLanguageUser(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("removeLanguageUser");
+
   const t = await getTranslations("AdminUsersPage");
 
   const session = await verifySession();
   if (!session) {
+    logger.error("unauthorized");
     notFound();
   }
 
   const request = removeUserRequestSchema.safeParse(parseForm(formData));
   if (!request.success) {
+    logger.error("request parse error");
     return {
       state: "error",
       error: t("errors.invalid_request"),
@@ -123,6 +134,7 @@ export async function removeLanguageUser(
     (!session?.user.roles.includes("ADMIN") &&
       !language.roles.includes("ADMIN"))
   ) {
+    logger.error("unauthorized");
     notFound();
   }
 

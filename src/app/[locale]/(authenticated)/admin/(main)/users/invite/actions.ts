@@ -8,6 +8,7 @@ import { randomBytes } from "crypto";
 import { verifySession } from "@/session";
 import mailer from "@/mailer";
 import { FormState } from "@/components/Form";
+import { serverActionLogger } from "@/server-action";
 
 const requestSchema = z.object({
   email: z.string().email().min(1),
@@ -19,11 +20,14 @@ export async function inviteUser(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("inviteUser");
+
   const t = await getTranslations("InviteUserPage");
   const locale = await getLocale();
 
   const session = await verifySession();
   if (!session?.user.roles.includes("ADMIN")) {
+    logger.error("unauthorized");
     notFound();
   }
 
@@ -46,6 +50,7 @@ export async function inviteUser(
     },
   );
   if (!request.success) {
+    logger.error("request parse error");
     return {
       state: "error",
       validation: request.error.flatten().fieldErrors,
@@ -57,6 +62,7 @@ export async function inviteUser(
     [request.data.email],
   );
   if (existsQuery.rows.length > 0) {
+    logger.error("user already exists");
     return {
       state: "error",
       error: t("errors.user_exists"),

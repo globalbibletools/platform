@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { query } from "@/db";
 import { FormState } from "@/components/Form";
 import homeRedirect from "@/home-redirect";
+import { serverActionLogger } from "@/server-action";
 
 const scrypt = new Scrypt();
 
@@ -20,6 +21,8 @@ export async function login(
   _state: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("logIn");
+
   const t = await getTranslations("LoginPage");
 
   const request = loginSchema.safeParse(
@@ -40,6 +43,7 @@ export async function login(
     },
   );
   if (!request.success) {
+    logger.error("request parse error");
     return {
       state: "error",
       validation: request.error.flatten().fieldErrors,
@@ -53,6 +57,7 @@ export async function login(
   const user = result.rows[0];
 
   if (!user) {
+    logger.error("missing user");
     return {
       state: "error",
       error: "Invalid email or password.",
@@ -61,6 +66,7 @@ export async function login(
 
   const valid = await scrypt.verify(user.hashedPassword, request.data.password);
   if (!valid) {
+    logger.error("invalid password");
     return {
       state: "error",
       error: "Invalid email or password.",
@@ -69,6 +75,5 @@ export async function login(
 
   await createSession(user.id);
 
-  const locale = await getLocale();
   redirect(await homeRedirect());
 }

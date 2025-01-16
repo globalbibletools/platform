@@ -9,6 +9,7 @@ import { parseForm } from "@/form-parser";
 import { verifySession } from "@/session";
 import mailer from "@/mailer";
 import { FormState } from "@/components/Form";
+import { serverActionLogger } from "@/server-action";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -22,11 +23,14 @@ export async function inviteUser(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const logger = serverActionLogger("inviteUser");
+
   const t = await getTranslations("InviteUserPage");
   const locale = await getLocale();
 
   const session = await verifySession();
   if (!session) {
+    logger.error("unauthorized");
     notFound();
   }
 
@@ -44,6 +48,7 @@ export async function inviteUser(
     },
   });
   if (!request.success) {
+    logger.error("request parse error");
     return {
       state: "error",
       validation: request.error.flatten().fieldErrors,
@@ -64,6 +69,7 @@ export async function inviteUser(
     (!session?.user.roles.includes("ADMIN") &&
       !language.roles.includes("ADMIN"))
   ) {
+    logger.error("unauthorized");
     notFound();
   }
 
