@@ -1,0 +1,68 @@
+diff --git a/node_modules/next/dist/server/lib/start-server.js b/node_modules/next/dist/server/lib/start-server.js
+index 3bd2681..aabe1b0 100644
+--- a/node_modules/next/dist/server/lib/start-server.js
++++ b/node_modules/next/dist/server/lib/start-server.js
+@@ -39,6 +39,38 @@ const _appinfolog = require("./app-info-log");
+ const _turbopackwarning = require("../../lib/turbopack-warning");
+ const _trace = require("../../trace");
+ const _ispostpone = require("./router-utils/is-postpone");
++
++const os = require('os');
++const { trace } = require("@opentelemetry/api");
++const pino = require("pino");
++
++const httpLogger = pino({
++  level: process.env.LOG_LEVEL ?? "info",
++  formatters: {
++    level: (label) => ({ level: label }),
++  },
++  base:
++    process.env.NODE_ENV === "production" ?
++      {
++        service: "platform-server",
++        pid: process.pid,
++        hostname: os.hostname(),
++      }
++    : undefined,
++  timestamp: pino.stdTimeFunctions.isoTime,
++  mixin:
++      () => {
++        const span = trace.getActiveSpan();
++        if (!span) return {};
++
++        const context = span.spanContext();
++        return {
++          spanId: context.spanId,
++          traceId: context.traceId,
++        };
++      }
++});
++
+ function _interop_require_default(obj) {
+     return obj && obj.__esModule ? obj : {
+         default: obj
+@@ -133,6 +165,8 @@ async function startServer(serverOptions) {
+         throw new Error("Using a self signed certificate is only supported with `next dev`.");
+     }
+     async function requestListener(req, res) {
++        const start = performance.now()
++
+         try {
+             if (handlersPromise) {
+                 await handlersPromise;
+@@ -145,6 +179,15 @@ async function startServer(serverOptions) {
+             _log.error(`Failed to handle request for ${req.url}`);
+             console.error(err);
+         } finally{
++            const responseTime = Math.round(performance.now() - start)
++            httpLogger.info({
++                method: req.method,
++                url: req.url,
++                ip: req.headers['x-forwarded-for']?.split(',').shift() || req.connection?.remoteAddress,
++                statusCode: res.statusCode,
++                responseTime
++            })
++
+             if (isDev) {
+                 if (_v8.default.getHeapStatistics().used_heap_size > 0.8 * _v8.default.getHeapStatistics().heap_size_limit) {
+                     _log.warn(`Server is approaching the used memory threshold, restarting...`);
