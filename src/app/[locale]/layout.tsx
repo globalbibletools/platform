@@ -7,7 +7,7 @@ import "@/globals.css";
 import { headFontClass } from "@/fonts";
 import languages from "../../languages.json";
 import { FlashProvider } from "@/flash";
-import GoogleAnalytics from "./GoogleAnalytics";
+import { AnalyticsProvider } from "@/analytics";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("RootLayout");
@@ -35,6 +35,7 @@ export default function RootLayout({
       lang={params.locale}
       dir={language.dir}
     >
+      <AnalyticsProvider id={process.env.FATHOM_ID} />
       <body className="dark:bg-gray-800 dark:text-gray-200">
         <NextIntlClientProvider
           messages={{
@@ -47,7 +48,6 @@ export default function RootLayout({
         >
           <FlashProvider>{children}</FlashProvider>
         </NextIntlClientProvider>
-        {process.env.NODE_ENV === "production" && <GoogleAnalytics />}
       </body>
     </html>
   );

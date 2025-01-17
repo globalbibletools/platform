@@ -29,6 +29,7 @@
     "@opentelemetry/sdk-trace-node": "1.29.0",
     "@opentelemetry/semantic-conventions": "1.28.0",
     "date-fns": "4.1.0",
+    "fathom-client": "3.7.2",
     "fuzzysort": "3.0.2",
     "install": "0.13.0",
     "isomorphic-dompurify": "2.15.0",
