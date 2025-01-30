@@ -37,3 +37,5 @@ next-env.d.ts
 
 .turbo
 dist/
+
+diagram.txt

@@ -105,3 +105,11 @@ We will run these manually in production as needed.
 ```bash
 psql DATABASE_URL -f packages/db/migrations/{migration}.sql
 ```
+
+### Entity Relationship Diagram
+
+Export an entity relationship diagram for the entire database using the following command. We use this to build the (Database Model page)[https://github.com/globalbibletools/platform/wiki/Database-Model] in the wiki.
+
+```bash
+psql DATABASE_URL -f db/scripts/generate_diagram.sql -o diagram.txt
+```
