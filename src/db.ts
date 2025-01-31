@@ -5,7 +5,7 @@ if (!connectionString) {
   throw new Error("DATABASE_URL env var missing");
 }
 
-const pool = new pg.Pool({ connectionString, max: 20 });
+export const pool = new pg.Pool({ connectionString, max: 20 });
 
 export async function query<T extends QueryResultRow>(
   text: string,
