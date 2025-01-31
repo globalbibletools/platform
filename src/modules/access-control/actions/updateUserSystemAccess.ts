@@ -10,6 +10,7 @@ import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import UserSystemAccessRepository from "../data-access/UserSystemAccessRepository";
 import SystemRole, { SystemRoleValue } from "../model/SystemRole";
+import { verifyAction } from "../verifyAction";
 
 const requestSchema = z.object({
   userId: z.string().min(1),
@@ -23,14 +24,7 @@ export async function updateUserSystemAccess(
   const userAccessRepo = new UserSystemAccessRepository(pool);
 
   const logger = serverActionLogger("changeUserRole");
-
   const t = await getTranslations("AdminUsersPage");
-
-  const session = await verifySession();
-  if (!session?.user.roles.includes("ADMIN")) {
-    logger.error("unauthorized");
-    notFound();
-  }
 
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
@@ -39,6 +33,18 @@ export async function updateUserSystemAccess(
       state: "error",
       error: t("errors.invalid_request"),
     };
+  }
+
+  const session = await verifySession();
+  const canContinue = await verifyAction({
+    userId: session?.user.id,
+    action: "update",
+    resourceType: "user-access",
+    resourceId: request.data?.userId,
+  });
+  if (!canContinue) {
+    logger.error("unauthorized");
+    notFound();
   }
 
   const userAccess = await userAccessRepo.findByUserId(request.data.userId);

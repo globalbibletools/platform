@@ -6,7 +6,7 @@ export interface UserSystemAccessProps {
 }
 
 export default class UserSystemAccess {
-  private props: UserSystemAccessProps;
+  constructor(private props: UserSystemAccessProps) {}
 
   get userId(): string {
     return this.props.userId;
@@ -18,9 +18,5 @@ export default class UserSystemAccess {
 
   grantAccess(roles: SystemRole[]) {
     this.props.systemRoles = roles;
-  }
-
-  constructor(props: UserSystemAccessProps) {
-    this.props = props;
   }
 }
