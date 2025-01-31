@@ -8,7 +8,7 @@ export default class SystemRole {
     this.value = value;
   }
 
-  static fromRaw(value: SystemRoleValue): SystemRole {
+  static fromRaw(value: string | SystemRoleValue): SystemRole {
     switch (value) {
       case SystemRoleValue.Admin:
         return SystemRole.Admin;
