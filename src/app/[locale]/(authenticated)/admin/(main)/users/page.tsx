@@ -12,13 +12,14 @@ import ViewTitle from "@/components/ViewTitle";
 import { query } from "@/db";
 import { getMessages, getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
-import { changeUserRole, disableUser, resendUserInvite } from "./actions";
+import { disableUser, resendUserInvite } from "./actions";
 import MultiselectInput from "@/components/MultiselectInput";
 import Form from "@/components/Form";
 import ServerAction from "@/components/ServerAction";
 import { redirect } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import Pagination from "@/components/Pagination";
+import { updateUserSystemAccess } from "@/modules/access-control/actions/updateUserSystemAccess";
 
 export async function generateMetadata(
   _: any,
@@ -94,7 +95,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPage) {
                   )}
                 </ListCell>
                 <ListCell className="py-2 ps-2">
-                  <Form action={changeUserRole}>
+                  <Form action={updateUserSystemAccess}>
                     <input type="hidden" name="userId" value={user.id} />
                     <MultiselectInput
                       className="w-28"

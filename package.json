@@ -8,7 +8,8 @@
     "format": "prettier . --write",
     "check-types": "tsc --noEmit",
     "prepare": "husky || true",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "test": "vitest"
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.678.0",
@@ -56,6 +57,8 @@
     "@fortawesome/react-fontawesome": "0.2.2",
     "@headlessui/react": "1.7.19",
     "@headlessui/tailwindcss": "0.2.1",
+    "@testing-library/dom": "10.4.0",
+    "@testing-library/react": "16.2.0",
     "@tiptap/react": "2.6.6",
     "@tiptap/starter-kit": "2.6.6",
     "@types/dompurify": "3.0.5",
@@ -65,17 +68,21 @@
     "@types/pg": "8.11.6",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@vitejs/plugin-react": "4.3.4",
     "chart.js": "4.4.4",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
     "eslint-config-prettier": "9.1.0",
     "husky": "9.1.7",
+    "jsdom": "26.0.0",
     "lint-staged": "15.2.11",
     "lodash": "4.17.21",
     "postcss": "^8",
     "prettier": "3.4.2",
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
+    "vite-tsconfig-paths": "5.1.4",
+    "vitest": "3.0.4",
     "webpack-merge": "6.0.1"
   }
 }
