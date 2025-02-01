@@ -6,7 +6,7 @@ export interface VerifyActionOptions<R extends Resource> extends Action<R> {
   userId?: string;
 }
 
-export async function verifyAction<R extends Resource>({
+export async function canPerformAction<R extends Resource>({
   userId,
   ...action
 }: VerifyActionOptions<R>): Promise<boolean> {
@@ -15,4 +15,18 @@ export async function verifyAction<R extends Resource>({
     userId ? await userPolicyRepo.findByUserId(userId) : UserPolicy.Public;
 
   return userPolicy.verifyAction(action);
+}
+
+export class UnauthorizedError extends Error {
+  constructor() {
+    super("Unauthorized");
+  }
+}
+
+export async function verifyAction<R extends Resource>(
+  action: VerifyActionOptions<R>,
+): Promise<void> {
+  if (!canPerformAction(action)) {
+    throw new UnauthorizedError();
+  }
 }

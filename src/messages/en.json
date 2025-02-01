@@ -122,6 +122,13 @@
       "log_in": "Log In"
     }
   },
+  "Form": {
+    "errors": {
+      "Unauthorized": "You are not authorized to do that.",
+      "MalformedRequest": "There was an error with your request. Please open a support ticket.",
+      "Unknown": "An unknown error occurred. Please open a support ticket."
+    }
+  },
   "InviteLanguageUserPage": {
     "title": "Invite User",
     "form": {
