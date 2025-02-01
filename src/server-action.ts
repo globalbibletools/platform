@@ -1,7 +1,7 @@
 import { ZodError } from "zod";
 import { FormState } from "./components/Form";
 import { logger } from "./logging";
-import { UnauthorizedError } from "./modules/access-control/verifyAction";
+import { UnauthorizedError } from "./modules/access-control/errors";
 
 export interface ServerActionOptions<Args extends any[], Return> {
   name: string;

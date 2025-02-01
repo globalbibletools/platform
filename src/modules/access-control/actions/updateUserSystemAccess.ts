@@ -8,7 +8,8 @@ import { handleError, serverActionLogger } from "@/server-action";
 import { verifyAction } from "@/modules/access-control/verifyAction";
 
 import userPolicyRepo from "../data-access/UserPolicyRepository";
-import SystemRole, { SystemRoleValue } from "../model/SystemRole";
+import { SystemRoleValue } from "../model/SystemRole";
+import UpdateUserSystemRoles from "../use-cases/UpdateUserSystemRoles";
 
 const requestSchema = z.object({
   userId: z.string().min(1),
@@ -41,11 +42,11 @@ export async function updateUserSystemAccess(
   }
 
   try {
-    const userPolicy = await userPolicyRepo.findByUserId(request.userId);
-
-    userPolicy.replaceSystemRoles(request.roles.map(SystemRole.fromRaw));
-
-    await userPolicyRepo.commit(userPolicy);
+    const updateUserSystemRoles = new UpdateUserSystemRoles(userPolicyRepo);
+    await updateUserSystemRoles.execute({
+      userId: request.userId,
+      systemRoles: request.roles,
+    });
     logger.debug("user access changed");
   } catch (error) {
     return handleError(error);

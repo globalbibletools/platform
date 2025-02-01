@@ -1,30 +1,12 @@
 import userPolicyRepo from "./data-access/UserPolicyRepository";
-import UserPolicy, { Action, Resource } from "./model/UserPolicy";
-
-export interface VerifyActionOptions<R extends Resource> extends Action<R> {
-  userId?: string;
-}
-
-export async function canPerformAction<R extends Resource>({
-  userId,
-  ...action
-}: VerifyActionOptions<R>): Promise<boolean> {
-  const userPolicy =
-    userId ? await userPolicyRepo.findByUserId(userId) : UserPolicy.Public;
-
-  return userPolicy.verifyAction(action);
-}
-
-export class UnauthorizedError extends Error {
-  constructor() {
-    super("Unauthorized");
-  }
-}
+import { Resource } from "./model/UserPolicy";
+import VerifyUserAction, {
+  VerifyUserActionRequest,
+} from "./use-cases/VerifyUserAction";
 
 export async function verifyAction<R extends Resource>(
-  action: VerifyActionOptions<R>,
+  action: VerifyUserActionRequest<R>,
 ): Promise<void> {
-  if (!canPerformAction(action)) {
-    throw new UnauthorizedError();
-  }
+  const verifyUserAction = new VerifyUserAction(userPolicyRepo);
+  await verifyUserAction.execute(action);
 }
