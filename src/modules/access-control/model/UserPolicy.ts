@@ -13,46 +13,36 @@ export type Action<R extends Resource> = {
   action: ResourceAction<R>;
 };
 
-interface BaseRolePolicy {
-  verifyAction<R extends Resource>(action: Action<R>): boolean;
-}
-
-export class SystemRolePolicy implements BaseRolePolicy {
-  constructor(readonly role: SystemRoleValue) {}
-
-  verifyAction<R extends Resource>({
-    resourceType,
-    action,
-  }: Action<R>): boolean {
-    switch (resourceType) {
-      case "user-access":
-        switch (action) {
-          case "update":
-            return this.role === SystemRoleValue.Admin;
-        }
-      case "language":
-        switch (action) {
-          case "create":
-            return this.role === SystemRoleValue.Admin;
-        }
-    }
-
-    return false;
-  }
-}
-
-type RolePolicy = SystemRolePolicy;
-
 export interface UserPolicyProps {
-  policies: RolePolicy[];
+  systemRoles: SystemRoleValue[];
 }
 
 export default class UserPolicy {
   constructor(private props: UserPolicyProps) {}
 
-  verifyAction<R extends Resource>(action: Action<R>): boolean {
-    return this.props.policies.some((policy) => policy.verifyAction(action));
+  get isPlatformAdmin(): boolean {
+    return this.props.systemRoles.includes(SystemRoleValue.Admin);
   }
 
-  static Public = new UserPolicy({ policies: [] });
+  verifyAction<R extends Resource>({
+    action,
+    resourceType,
+  }: Action<R>): boolean {
+    switch (resourceType) {
+      case "user-access":
+        switch (action) {
+          case "update":
+            return this.isPlatformAdmin;
+        }
+      case "language":
+        switch (action) {
+          case "create":
+            return this.isPlatformAdmin;
+        }
+    }
+
+    return false;
+  }
+
+  static Public = new UserPolicy({ systemRoles: [] });
 }
