@@ -1,4 +1,4 @@
-import { SystemRoleValue } from "./SystemRole";
+import SystemRole, { SystemRoleValue } from "./SystemRole";
 
 const ABILITIES = {
   "user-access": ["update"],
@@ -14,14 +14,27 @@ export type Action<R extends Resource> = {
 };
 
 export interface UserPolicyProps {
-  systemRoles: SystemRoleValue[];
+  userId: string;
+  systemRoles: SystemRole[];
 }
 
 export default class UserPolicy {
   constructor(private props: UserPolicyProps) {}
 
+  get userId(): string {
+    return this.props.userId;
+  }
+
+  get systemRoles(): SystemRole[] {
+    return this.props.systemRoles;
+  }
+
   get isPlatformAdmin(): boolean {
-    return this.props.systemRoles.includes(SystemRoleValue.Admin);
+    return this.props.systemRoles.includes(SystemRole.Admin);
+  }
+
+  replaceSystemRoles(roles: SystemRole[]) {
+    this.props.systemRoles = roles;
   }
 
   verifyAction<R extends Resource>({
@@ -44,5 +57,5 @@ export default class UserPolicy {
     return false;
   }
 
-  static Public = new UserPolicy({ systemRoles: [] });
+  static Public = new UserPolicy({ systemRoles: [], userId: "public" });
 }

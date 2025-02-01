@@ -3,7 +3,6 @@
 import { query } from "@/db";
 import { randomBytes } from "crypto";
 import { cookies } from "next/headers";
-import { cache } from "react";
 
 const DAY_FROM_MS = 24 * 60 * 60 * 1000;
 const EXPIRES_IN =
@@ -71,10 +70,11 @@ interface Session {
   };
 }
 
-const fetchSession = cache(
-  async (sessionId: string): Promise<Session | undefined> => {
-    const result = await query<Session>(
-      `
+const fetchSession = async (
+  sessionId: string,
+): Promise<Session | undefined> => {
+  const result = await query<Session>(
+    `
             SELECT
                 session.id, expires_at,
                 JSON_BUILD_OBJECT(
@@ -85,8 +85,7 @@ const fetchSession = cache(
             JOIN users ON users.id = session.user_id
             WHERE session.id = $1
             `,
-      [sessionId],
-    );
-    return result.rows[0];
-  },
-);
+    [sessionId],
+  );
+  return result.rows[0];
+};

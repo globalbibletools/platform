@@ -1,5 +1,6 @@
 import { query } from "@/db";
 import UserPolicy from "../model/UserPolicy";
+import SystemRole from "../model/SystemRole";
 
 const userPolicyRepository = {
   async findByUserId(userId: string): Promise<UserPolicy> {
@@ -13,8 +14,24 @@ const userPolicyRepository = {
     );
 
     return new UserPolicy({
-      systemRoles: result.rows[0]?.roles ?? [],
+      userId,
+      systemRoles: (result.rows[0]?.roles ?? []).map(SystemRole.fromRaw),
     });
+  },
+
+  async commit(model: UserPolicy): Promise<void> {
+    await query(
+      `
+        with delete_step AS (
+            delete from user_system_role
+            where user_id = $1 and role != all($2::system_role[])
+        )
+        insert into user_system_role (user_id, role)
+        select $1, unnest($2::system_role[])
+        on conflict do nothing
+      `,
+      [model.userId, model.systemRoles.map((role) => role.value)],
+    );
   },
 };
 export default userPolicyRepository;

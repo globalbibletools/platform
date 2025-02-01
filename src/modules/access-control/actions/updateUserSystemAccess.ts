@@ -1,14 +1,13 @@
 "use server";
 
 import * as z from "zod";
-import { pool } from "@/db";
 import { parseForm } from "@/form-parser";
 import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { handleError, serverActionLogger } from "@/server-action";
 import { verifyAction } from "@/modules/access-control/verifyAction";
 
-import userSystemAccessRepo from "../data-access/UserSystemAccessRepository";
+import userPolicyRepo from "../data-access/UserPolicyRepository";
 import SystemRole, { SystemRoleValue } from "../model/SystemRole";
 
 const requestSchema = z.object({
@@ -42,11 +41,11 @@ export async function updateUserSystemAccess(
   }
 
   try {
-    const userAccess = await userSystemAccessRepo.findByUserId(request.userId);
+    const userPolicy = await userPolicyRepo.findByUserId(request.userId);
 
-    userAccess.grantAccess(request.roles.map(SystemRole.fromRaw));
+    userPolicy.replaceSystemRoles(request.roles.map(SystemRole.fromRaw));
 
-    await userSystemAccessRepo.commit(userAccess);
+    await userPolicyRepo.commit(userPolicy);
     logger.debug("user access changed");
   } catch (error) {
     return handleError(error);
