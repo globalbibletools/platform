@@ -8,7 +8,7 @@ import { FormState } from "@/components/Form";
 import { handleError, serverActionLogger } from "@/server-action";
 import { verifyAction } from "@/modules/access-control/verifyAction";
 
-import UserSystemAccessRepository from "../data-access/UserSystemAccessRepository";
+import userSystemAccessRepo from "../data-access/UserSystemAccessRepository";
 import SystemRole, { SystemRoleValue } from "../model/SystemRole";
 
 const requestSchema = z.object({
@@ -42,12 +42,11 @@ export async function updateUserSystemAccess(
   }
 
   try {
-    const userAccessRepo = new UserSystemAccessRepository(pool);
-    const userAccess = await userAccessRepo.findByUserId(request.userId);
+    const userAccess = await userSystemAccessRepo.findByUserId(request.userId);
 
     userAccess.grantAccess(request.roles.map(SystemRole.fromRaw));
 
-    await userAccessRepo.commit(userAccess);
+    await userSystemAccessRepo.commit(userAccess);
     logger.debug("user access changed");
   } catch (error) {
     return handleError(error);

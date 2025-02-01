@@ -1,11 +1,9 @@
-import { Pool } from "pg";
+import { query } from "@/db";
 import UserPolicy from "../model/UserPolicy";
 
-export default class UserPolicyRepository {
-  constructor(private readonly pool: Pool) {}
-
+const userPolicyRepository = {
   async findByUserId(userId: string): Promise<UserPolicy> {
-    const result = await this.pool.query(
+    const result = await query(
       `
         select json_agg(role) AS roles
         from user_system_role
@@ -17,5 +15,6 @@ export default class UserPolicyRepository {
     return new UserPolicy({
       systemRoles: result.rows[0]?.roles ?? [],
     });
-  }
-}
+  },
+};
+export default userPolicyRepository;

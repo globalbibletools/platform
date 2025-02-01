@@ -1,12 +1,10 @@
-import { Pool } from "pg";
 import UserSystemAccess from "../model/UserSystemAccess";
 import SystemRole from "../model/SystemRole";
+import { query } from "@/db";
 
-export default class UserSystemAccessRepository {
-  constructor(private readonly pool: Pool) {}
-
+const userSystemAccessRepository = {
   async findByUserId(userId: string): Promise<UserSystemAccess> {
-    const result = await this.pool.query(
+    const result = await query(
       `
         select json_agg(role) AS roles
         from user_system_role
@@ -19,10 +17,10 @@ export default class UserSystemAccessRepository {
       userId,
       systemRoles: (result.rows[0]?.roles ?? []).map(SystemRole.fromRaw),
     });
-  }
+  },
 
   async commit(userAccess: UserSystemAccess): Promise<void> {
-    await this.pool.query(
+    await query(
       `
         with delete_step AS (
             delete from user_system_role
@@ -34,5 +32,6 @@ export default class UserSystemAccessRepository {
       `,
       [userAccess.userId, userAccess.systemRoles.map((role) => role.value)],
     );
-  }
-}
+  },
+};
+export default userSystemAccessRepository;
