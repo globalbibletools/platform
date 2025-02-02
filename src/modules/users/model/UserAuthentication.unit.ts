@@ -4,20 +4,16 @@ import PasswordReset from "./PasswordReset";
 import { Scrypt } from "oslo/password";
 import { webcrypto } from "node:crypto";
 
+// We can remove this after we upgrade from node 18
 // @ts-ignore
 globalThis.crypto = webcrypto;
 
 const scrypt = new Scrypt();
 
-describe("changePassword", async () => {
+describe("createPassword", async () => {
   test("return UserAuthentication with updated hashed password", async () => {
-    const props = {
-      hashedPassword: "asdf",
-      resets: [PasswordReset.generate()],
-    };
-    const auth = new UserAuthentication(props);
     const newPassword = "pa$$word";
-    const result = await auth.changePassword(newPassword);
+    const result = await UserAuthentication.createPassword(newPassword);
     expect(result).toEqual(
       new UserAuthentication({
         hashedPassword: expect.any(String),
@@ -52,4 +48,51 @@ describe("verifyPassword", async () => {
   });
 });
 
-// TODO: finish these tests
+describe("initiateReset", () => {
+  test("returns UserAuthentication with new reset", () => {
+    const props = {
+      hashedPassword: "asdf",
+      resets: [PasswordReset.generate()],
+    };
+    const auth = new UserAuthentication(props);
+    const reset = PasswordReset.generate();
+    expect(auth.initiateReset(reset)).toEqual(
+      new UserAuthentication({
+        ...props,
+        resets: [...props.resets, reset],
+      }),
+    );
+  });
+});
+
+describe("completeReset", () => {
+  test("returns undefined if no reset matches token", async () => {
+    const props = {
+      hashedPassword: "asdf",
+      resets: [PasswordReset.generate()],
+    };
+    const auth = new UserAuthentication(props);
+    await expect(
+      auth.completeReset("asdf", "pa$$word"),
+    ).resolves.toBeUndefined();
+  });
+
+  test("returns UserAuthentication with new password", async () => {
+    const props = {
+      hashedPassword: "asdf",
+      resets: [PasswordReset.generate()],
+    };
+    const auth = new UserAuthentication(props);
+    const newPassword = "pa$$word";
+    const result = await auth.completeReset(props.resets[0].token, newPassword);
+    expect(result).toEqual(
+      new UserAuthentication({
+        hashedPassword: expect.any(String),
+        resets: [],
+      }),
+    );
+    await expect(
+      scrypt.verify(result!.hashedPassword, newPassword),
+    ).resolves.toEqual(true);
+  });
+});

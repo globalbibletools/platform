@@ -11,19 +11,19 @@ const scrypt = new Scrypt();
 export default class UserAuthentication {
   constructor(private readonly props: UserAuthenticationProps) {}
 
+  static async createPassword(password: string) {
+    return new UserAuthentication({
+      hashedPassword: await scrypt.hash(password),
+      resets: [],
+    });
+  }
+
   get hashedPassword() {
     return this.props.hashedPassword;
   }
 
   get resets() {
     return this.props.resets;
-  }
-
-  async changePassword(newPassword: string) {
-    return new UserAuthentication({
-      hashedPassword: await scrypt.hash(newPassword),
-      resets: [],
-    });
   }
 
   async verifyPassword(password: string): Promise<boolean> {
@@ -46,6 +46,6 @@ export default class UserAuthentication {
       return;
     }
 
-    return this.changePassword(newPassword);
+    return UserAuthentication.createPassword(newPassword);
   }
 }
