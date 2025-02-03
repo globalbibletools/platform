@@ -29,6 +29,8 @@ COPY --from=build --chown=nextjs:nodejs /app/public public
 CMD node server.js
 
 FROM node:18 AS dev
+RUN apt-get update
+RUN apt-get install -y postgresql-contrib
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

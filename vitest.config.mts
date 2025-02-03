@@ -5,5 +5,6 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     include: ["**/*.unit.ts?(x)"],
+    globalSetup: ["./tests/dbSetup.ts"],
   },
 });

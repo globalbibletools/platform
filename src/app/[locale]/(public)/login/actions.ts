@@ -1,16 +1,13 @@
 "use server";
 
 import * as z from "zod";
-import { getTranslations, getLocale } from "next-intl/server";
-import { Scrypt } from "oslo/password";
+import { getTranslations } from "next-intl/server";
 import { createSession } from "@/session";
 import { redirect } from "next/navigation";
-import { query } from "@/db";
 import { FormState } from "@/components/Form";
 import homeRedirect from "@/home-redirect";
 import { serverActionLogger } from "@/server-action";
-
-const scrypt = new Scrypt();
+import userRepository from "@/modules/users/data-access/UserRepository";
 
 const loginSchema = z.object({
   email: z.string().min(1),
@@ -50,11 +47,7 @@ export async function login(
     };
   }
 
-  const result = await query<{ id: string; hashedPassword: string }>(
-    `SELECT id, hashed_password AS "hashedPassword" FROM users WHERE email = $1 AND status <> 'disabled'`,
-    [request.data.email.toLowerCase()],
-  );
-  const user = result.rows[0];
+  const user = await userRepository.findByEmail(request.data.email);
 
   if (!user) {
     logger.error("missing user");
@@ -64,8 +57,7 @@ export async function login(
     };
   }
 
-  const valid = await scrypt.verify(user.hashedPassword, request.data.password);
-  if (!valid) {
+  if (!(await user.auth?.verifyPassword(request.data.password))) {
     logger.error("invalid password");
     return {
       state: "error",

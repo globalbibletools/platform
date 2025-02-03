@@ -17,35 +17,21 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: pg_cron; Type: EXTENSION; Schema: -; Owner: -
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
 --
 
-CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog;
-
-
---
--- Name: EXTENSION pg_cron; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION pg_cron IS 'Job scheduler for PostgreSQL';
+CREATE SCHEMA public;
 
 
 --
--- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
 --
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
-
-
---
--- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+COMMENT ON SCHEMA public IS 'standard public schema';
 
 
 --
--- Name: EmailStatus; Type: TYPE; Schema: public; Owner: -
+-- Name: email_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.email_status AS ENUM (
@@ -57,7 +43,7 @@ CREATE TYPE public.email_status AS ENUM (
 
 
 --
--- Name: GlossSource; Type: TYPE; Schema: public; Owner: -
+-- Name: gloss_source; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.gloss_source AS ENUM (
@@ -67,7 +53,7 @@ CREATE TYPE public.gloss_source AS ENUM (
 
 
 --
--- Name: GlossState; Type: TYPE; Schema: public; Owner: -
+-- Name: gloss_state; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.gloss_state AS ENUM (
@@ -77,7 +63,7 @@ CREATE TYPE public.gloss_state AS ENUM (
 
 
 --
--- Name: LanguageRole; Type: TYPE; Schema: public; Owner: -
+-- Name: language_role; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.language_role AS ENUM (
@@ -88,7 +74,7 @@ CREATE TYPE public.language_role AS ENUM (
 
 
 --
--- Name: ResourceCode; Type: TYPE; Schema: public; Owner: -
+-- Name: resource_code; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.resource_code AS ENUM (
@@ -99,7 +85,7 @@ CREATE TYPE public.resource_code AS ENUM (
 
 
 --
--- Name: SystemRole; Type: TYPE; Schema: public; Owner: -
+-- Name: system_role; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.system_role AS ENUM (
@@ -108,12 +94,22 @@ CREATE TYPE public.system_role AS ENUM (
 
 
 --
--- Name: TextDirection; Type: TYPE; Schema: public; Owner: -
+-- Name: text_direction; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.text_direction AS ENUM (
     'ltr',
     'rtl'
+);
+
+
+--
+-- Name: user_status; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.user_status AS ENUM (
+    'active',
+    'disabled'
 );
 
 
@@ -277,6 +273,22 @@ BEGIN
         ON CONFLICT (language_id, form_id, gloss) DO UPDATE
             SET count = c.count + 1;
     END IF;
+
+    RETURN NULL;
+END;
+$$;
+
+
+--
+-- Name: machine_gloss_audit(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.machine_gloss_audit() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    INSERT INTO machine_gloss_history AS c (machine_gloss_id, gloss, updated_at, updated_by)
+    VALUES (OLD."id", OLD.gloss, OLD.updated_at, OLD.updated_by);
 
     RETURN NULL;
 END;
@@ -553,8 +565,95 @@ CREATE TABLE public.lemma_resource (
 CREATE TABLE public.machine_gloss (
     word_id text NOT NULL,
     language_id uuid NOT NULL,
-    gloss text
+    gloss text,
+    id integer NOT NULL,
+    model_id integer NOT NULL,
+    updated_at timestamp without time zone,
+    updated_by uuid
 );
+
+
+--
+-- Name: machine_gloss_history; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.machine_gloss_history (
+    id integer NOT NULL,
+    machine_gloss_id integer NOT NULL,
+    gloss text NOT NULL,
+    updated_at timestamp without time zone,
+    updated_by uuid
+);
+
+
+--
+-- Name: machine_gloss_history_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.machine_gloss_history_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: machine_gloss_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.machine_gloss_history_id_seq OWNED BY public.machine_gloss_history.id;
+
+
+--
+-- Name: machine_gloss_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.machine_gloss_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: machine_gloss_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.machine_gloss_id_seq OWNED BY public.machine_gloss.id;
+
+
+--
+-- Name: machine_gloss_model; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.machine_gloss_model (
+    id integer NOT NULL,
+    code text NOT NULL
+);
+
+
+--
+-- Name: machine_gloss_model_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.machine_gloss_model_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: machine_gloss_model_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.machine_gloss_model_id_seq OWNED BY public.machine_gloss_model.id;
 
 
 --
@@ -663,7 +762,8 @@ CREATE TABLE public.users (
     name text,
     email_status public.email_status DEFAULT 'UNVERIFIED'::public.email_status NOT NULL,
     email text NOT NULL,
-    hashed_password text
+    hashed_password text,
+    status public.user_status DEFAULT 'active'::public.user_status NOT NULL
 );
 
 
@@ -747,6 +847,27 @@ ALTER TABLE ONLY public.gloss_history ALTER COLUMN id SET DEFAULT nextval('publi
 --
 
 ALTER TABLE ONLY public.lemma_form_suggestion ALTER COLUMN id SET DEFAULT nextval('public.lemma_form_suggestion_id_seq'::regclass);
+
+
+--
+-- Name: machine_gloss id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss ALTER COLUMN id SET DEFAULT nextval('public.machine_gloss_id_seq'::regclass);
+
+
+--
+-- Name: machine_gloss_history id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss_history ALTER COLUMN id SET DEFAULT nextval('public.machine_gloss_history_id_seq'::regclass);
+
+
+--
+-- Name: machine_gloss_model id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss_model ALTER COLUMN id SET DEFAULT nextval('public.machine_gloss_model_id_seq'::regclass);
 
 
 --
@@ -867,11 +988,35 @@ ALTER TABLE ONLY public.lemma_resource
 
 
 --
+-- Name: machine_gloss_history machine_gloss_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss_history
+    ADD CONSTRAINT machine_gloss_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: machine_gloss_model machine_gloss_model_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss_model
+    ADD CONSTRAINT machine_gloss_model_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: machine_gloss machine_gloss_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.machine_gloss
-    ADD CONSTRAINT machine_gloss_pkey PRIMARY KEY (word_id, language_id);
+    ADD CONSTRAINT machine_gloss_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: machine_gloss machine_gloss_word_id_language_id_model_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss
+    ADD CONSTRAINT machine_gloss_word_id_language_id_model_id_key UNIQUE (word_id, language_id, model_id);
 
 
 --
@@ -1150,6 +1295,13 @@ CREATE TRIGGER increment_suggestion AFTER INSERT OR UPDATE OF gloss, state ON pu
 
 
 --
+-- Name: machine_gloss machine_gloss_audit; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER machine_gloss_audit AFTER DELETE OR UPDATE ON public.machine_gloss FOR EACH ROW EXECUTE FUNCTION public.machine_gloss_audit();
+
+
+--
 -- Name: footnote footnote_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1254,11 +1406,43 @@ ALTER TABLE ONLY public.lemma_resource
 
 
 --
+-- Name: machine_gloss_history machine_gloss_history_machine_gloss_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss_history
+    ADD CONSTRAINT machine_gloss_history_machine_gloss_id_fkey FOREIGN KEY (machine_gloss_id) REFERENCES public.machine_gloss(id);
+
+
+--
+-- Name: machine_gloss_history machine_gloss_history_updated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss_history
+    ADD CONSTRAINT machine_gloss_history_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id);
+
+
+--
 -- Name: machine_gloss machine_gloss_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.machine_gloss
     ADD CONSTRAINT machine_gloss_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: machine_gloss machine_gloss_model_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss
+    ADD CONSTRAINT machine_gloss_model_id_fkey FOREIGN KEY (model_id) REFERENCES public.machine_gloss_model(id);
+
+
+--
+-- Name: machine_gloss machine_gloss_updated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss
+    ADD CONSTRAINT machine_gloss_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id);
 
 
 --
