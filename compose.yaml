@@ -39,9 +39,7 @@ services:
       timeout: 5s
       retries: 5
   test_db:
-    build:
-      dockerfile: db/Dockerfile
-    image: postgres
+    image: postgres:14
     restart: always
     shm_size: 128mb
     user: postgres

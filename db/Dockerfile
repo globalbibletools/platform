@@ -1,4 +1,4 @@
-FROM postgres:17
+FROM postgres:14
 
-RUN apt-get update && apt-get install -y curl postgresql-17-cron && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl postgresql-14-cron && rm -rf /var/lib/apt/lists/*
 

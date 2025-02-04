@@ -11,6 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: node:18
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        volumes:
+          - ./db/scripts/docker-initdb-test.sh:/docker-entrypoint-initdb.d/docker-initdb.sh
+          - ./db:/db
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -32,3 +45,5 @@ jobs:
 
       - name: Tests
         run: npm run test
+        env:
+          TEST_DATABASE_URL: posgresql://postgres:postgres@localhost:5432/postgres
