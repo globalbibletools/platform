@@ -1,11 +1,21 @@
+import { vi } from "vitest";
 import { close, reconnect } from "@/db";
 import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
 import { UserStatusRaw } from "@/modules/users/model/UserStatus";
 import { Client } from "pg";
 import { afterAll, beforeAll, beforeEach } from "vitest";
 
-export const DATABASE_NAME = `test${process.env.VITEST_POOL_ID}`;
-export const DATABASE_URL = createDatabaseUrl(DATABASE_NAME);
+// We have to hoist this so the database url env var is available when "@/db" is imported
+const { DATABASE_NAME, DATABASE_URL } = vi.hoisted(() => {
+  const DATABASE_NAME = `test${process.env.VITEST_POOL_ID}`;
+  const DATABASE_URL = createDatabaseUrl(DATABASE_NAME);
+
+  process.env.DATABASE_URL = DATABASE_URL;
+
+  return { DATABASE_NAME, DATABASE_URL };
+});
+
+export { DATABASE_NAME, DATABASE_URL };
 
 function createDatabaseUrl(name: string) {
   const url = new URL(process.env.TEST_DATABASE_URL ?? "");
@@ -15,8 +25,6 @@ function createDatabaseUrl(name: string) {
 
 export function initializeDatabase(destroyAfter = true) {
   const dbClient = new Client(process.env.TEST_DATABASE_URL);
-
-  process.env.DATABASE_URL = DATABASE_URL;
 
   beforeAll(async () => {
     await dbClient.connect();
