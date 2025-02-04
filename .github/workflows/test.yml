@@ -21,9 +21,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        volumes:
-          - ./db/scripts/docker-initdb-test.sh:/docker-entrypoint-initdb.d/docker-initdb.sh
-          - ./db:/db
     steps:
       - name: Checkout
         uses: actions/checkout@v2

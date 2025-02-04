@@ -43,10 +43,6 @@ services:
     restart: always
     shm_size: 128mb
     user: postgres
-    volumes:
-      - test-db-data:/var/lib/postgresql/data
-      - ./db/scripts/docker-initdb-test.sh:/docker-entrypoint-initdb.d/docker-initdb.sh
-      - ./db:/db
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=asdfasdf
@@ -61,5 +57,4 @@ services:
       retries: 5
 volumes:
   db-data:
-  test-db-data:
   node-modules:
