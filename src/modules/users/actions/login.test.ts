@@ -6,11 +6,6 @@ import { randomUUID } from "crypto";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
 import { Scrypt } from "oslo/password";
-import { webcrypto } from "node:crypto";
-
-// We can remove this after we upgrade from node 18
-// @ts-ignore
-globalThis.crypto = webcrypto;
 
 initializeDatabase(false);
 

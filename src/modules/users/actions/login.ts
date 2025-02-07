@@ -8,12 +8,16 @@ import { FormState } from "@/components/Form";
 import homeRedirect from "@/home-redirect";
 import { serverActionLogger } from "@/server-action";
 import userRepository from "@/modules/users/data-access/UserRepository";
-import { query } from "@/db";
+import LogIn from "../use-cases/LogIn";
+import { IncorrectPasswordError } from "../model/errors";
+import { NotFoundError } from "@/shared/errors";
 
 const loginSchema = z.object({
   email: z.string().min(1),
   password: z.string().min(1),
 });
+
+const logIn = new LogIn(userRepository);
 
 export async function login(
   _state: FormState,
@@ -48,25 +52,28 @@ export async function login(
     };
   }
 
-  const user = await userRepository.findByEmail(request.data.email);
-
-  if (!user) {
-    logger.error("missing user");
-    return {
-      state: "error",
-      error: "Invalid email or password.",
-    };
+  let userId;
+  try {
+    const result = await logIn.execute(request.data);
+    userId = result.userId;
+  } catch (error) {
+    if (error instanceof IncorrectPasswordError) {
+      logger.error("incorrect password");
+      return {
+        state: "error",
+        error: "Invalid email or password.",
+      };
+    } else if (error instanceof NotFoundError) {
+      logger.error("user not found");
+      return {
+        state: "error",
+        error: "Invalid email or password.",
+      };
+    } else {
+      throw error;
+    }
   }
 
-  if (!(await user.auth?.verifyPassword(request.data.password))) {
-    logger.error("invalid password");
-    return {
-      state: "error",
-      error: "Invalid email or password.",
-    };
-  }
-
-  await createSession(user.id);
-
+  await createSession(userId);
   redirect(await homeRedirect());
 }

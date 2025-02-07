@@ -2,11 +2,6 @@ import { describe, expect, test } from "vitest";
 import UserAuthentication from "./UserAuthentication";
 import PasswordReset from "./PasswordReset";
 import { Scrypt } from "oslo/password";
-import { webcrypto } from "node:crypto";
-
-// We can remove this after we upgrade from node 18
-// @ts-ignore
-globalThis.crypto = webcrypto;
 
 const scrypt = new Scrypt();
 

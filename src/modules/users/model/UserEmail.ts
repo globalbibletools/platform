@@ -10,6 +10,18 @@ export interface UserEmailProps {
 export default class UserEmail {
   constructor(private readonly props: UserEmailProps) {}
 
+  get address() {
+    return this.props.address;
+  }
+
+  get status() {
+    return this.props.status;
+  }
+
+  get verification() {
+    return this.props.verification;
+  }
+
   static createForNewUser(email: string) {
     return new UserEmail({
       address: email,

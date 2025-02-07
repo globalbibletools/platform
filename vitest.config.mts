@@ -6,5 +6,6 @@ export default defineConfig({
   test: {
     include: ["**/*.{unit,test}.ts?(x)"],
     globalSetup: ["./tests/dbSetup.ts"],
+    setupFiles: ["./tests/testSetup.ts"],
   },
 });
