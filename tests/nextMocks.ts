@@ -32,25 +32,24 @@ vi.mock("next-intl/server", async (importOriginal) => {
   };
 });
 
-const cookies = vi.hoisted(() => {
-  const set = vi.fn();
-  const get = vi.fn();
-  const fn = () => ({ set, get });
-  const reset = () => {
-    set.mockReset();
-    get.mockReset();
-  };
-
+vi.mock("next/cache", () => {
   return {
-    set,
-    get,
-    fn,
-    reset,
+    revalidatePath: vi.fn(),
+    revalidateTag: vi.fn(),
   };
 });
 
+export const cookies = {
+  set: vi.fn(),
+  get: vi.fn(),
+  reset() {
+    this.set.mockReset();
+    this.get.mockReset();
+  },
+};
+
 vi.mock("next/headers", async () => {
   return {
-    cookies: cookies.fn,
+    cookies: () => ({ get: cookies.get, set: cookies.set }),
   };
 });

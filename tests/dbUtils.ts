@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import { close, reconnect } from "@/db";
+import { close, query, reconnect } from "@/db";
 import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
 import { UserStatusRaw } from "@/modules/users/model/UserStatus";
 import { Client } from "pg";
@@ -44,54 +44,104 @@ export function initializeDatabase(destroyAfter = true) {
     reconnect();
   });
 
-  if (destroyAfter) {
-    afterAll(async () => {
+  afterAll(async () => {
+    if (destroyAfter) {
       await dbClient.query(`drop database if exists ${DATABASE_NAME}`);
-    });
-  }
+    }
+    await dbClient.end();
+    console.log("closed");
+  });
 
   afterAll(async () => {
-    await dbClient.end();
     await close();
-    console.log("closed");
   });
 }
 
-interface DatabaseUser {
+interface DbUser {
   id: string;
   name?: string;
   hashedPassword?: string;
   email: string;
   emailStatus: EmailStatusRaw;
-  userStatus: UserStatusRaw;
+  status: UserStatusRaw;
+}
+
+interface DbSession {
+  id: string;
+  userId: string;
+  expiresAt: Date;
+}
+
+interface DbEmailVerification {
+  userId: string;
+  email: string;
+  token: string;
+  expiresAt: Date;
 }
 
 interface DatabaseSeed {
-  users: DatabaseUser[];
+  users?: DbUser[];
+  sessions?: DbSession[];
 }
 
 export async function seedDatabase(seed: DatabaseSeed) {
-  const dbClient = new Client(DATABASE_URL);
-  try {
-    await dbClient.connect();
-
-    if (seed.users.length > 0) {
-      await dbClient.query(
-        `
+  if (seed.users) {
+    await query(
+      `
         insert into users (id, name, hashed_password, email, email_status, status)
         select unnest($1::uuid[]), unnest($2::text[]), unnest($3::text[]), unnest($4::text[]), unnest($5::email_status[]), unnest($6::user_status[])
       `,
-        [
-          seed.users.map((user) => user.id),
-          seed.users.map((user) => user.name),
-          seed.users.map((user) => user.hashedPassword),
-          seed.users.map((user) => user.email),
-          seed.users.map((user) => user.emailStatus),
-          seed.users.map((user) => user.userStatus),
-        ],
-      );
-    }
-  } finally {
-    await dbClient.end();
+      [
+        seed.users.map((user) => user.id),
+        seed.users.map((user) => user.name),
+        seed.users.map((user) => user.hashedPassword),
+        seed.users.map((user) => user.email),
+        seed.users.map((user) => user.emailStatus),
+        seed.users.map((user) => user.status),
+      ],
+    );
   }
+
+  if (seed.sessions) {
+    await query(
+      `
+        insert into session (id, user_id, expires_at)
+        select unnest($1::uuid[]), unnest($2::uuid[]), unnest($3::timestamp[])
+      `,
+      [
+        seed.sessions.map((session) => session.id),
+        seed.sessions.map((session) => session.userId),
+        seed.sessions.map((session) => session.expiresAt),
+      ],
+    );
+  }
+}
+
+export async function findUser(id: string): Promise<DbUser | undefined> {
+  const result = await query<DbUser>(
+    `
+        select id, name, hashed_password as "hashedPassword", email, email_status as "emailStatus", status
+        from users
+        where id = $1
+    `,
+    [id],
+  );
+
+  return result.rows[0];
+}
+
+export async function findEmailVerification(
+  userId: string,
+): Promise<DbEmailVerification | undefined> {
+  const result = await query<DbEmailVerification>(
+    `
+        select user_id as "userId", email, token,
+            timestamp '1970-01-01' + make_interval(0, 0, 0, 0, 0, 0, expires / 1000) as "expiresAt"
+        from user_email_verification
+        where user_id = $1
+    `,
+    [userId],
+  );
+
+  return result.rows[0];
 }

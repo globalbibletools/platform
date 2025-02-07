@@ -10,6 +10,8 @@ import mailer from "@/mailer";
 import { query } from "@/db";
 import { randomBytes } from "crypto";
 import { serverActionLogger } from "@/server-action";
+import { verifySession } from "@/session";
+import { notFound } from "next/navigation";
 
 const scrypt = new Scrypt();
 
@@ -33,8 +35,7 @@ export async function updateProfile(
   const logger = serverActionLogger("updateProfile");
 
   const t = await getTranslations("ProfileView");
-  const parsedData = parseForm(data) as Record<string, string>;
-  const request = profileValidationSchema.safeParse(parsedData, {
+  const request = profileValidationSchema.safeParse(parseForm(data), {
     errorMap: (error) => {
       switch (error.path[0]) {
         case "email":
@@ -62,7 +63,17 @@ export async function updateProfile(
     };
   }
 
-  if (parsedData.email && parsedData.email !== parsedData.prev_email) {
+  const session = await verifySession();
+  if (!session) notFound();
+
+  const userQuery = await query(
+    `
+        select email from users where id = $1
+      `,
+    [session.user.id],
+  );
+
+  if (request.data.email && request.data.email !== userQuery.rows[0].email) {
     const token = randomBytes(12).toString("hex");
     await query(
       `INSERT INTO user_email_verification
@@ -70,24 +81,24 @@ export async function updateProfile(
           VALUES ($1, $2, $3, $4)
       `,
       [
-        parsedData.user_id,
+        session.user.id,
         token,
-        parsedData.email,
+        request.data.email,
         Date.now() + EMAIL_VERIFICATION_EXPIRES,
       ],
     );
     const url = `${process.env.ORIGIN}/verify-email?token=${token}`;
     await mailer.sendEmail({
-      email: parsedData.email,
+      email: request.data.email,
       subject: "Email Verification",
       text: `Please click the link to verify your new email \n\n${url.toString()}`,
       html: `<a href="${url.toString()}">Click here</a> to verify your new email.`,
     });
   }
 
-  if (parsedData.password) {
+  if (request.data.password) {
     await mailer.sendEmail({
-      userId: parsedData.user_id,
+      userId: session.user.id,
       subject: "Password Changed",
       text: `Your password for Global Bible Tools has changed.`,
       html: `Your password for Global Bible Tools has changed.`,
@@ -98,19 +109,19 @@ export async function updateProfile(
             hashed_password = $2
         WHERE id = $3`,
       [
-        parsedData.name,
-        await scrypt.hash(parsedData.password),
-        parsedData.user_id,
+        request.data.name,
+        await scrypt.hash(request.data.password),
+        session.user.id,
       ],
     );
-  } else {
-    await query(
-      `UPDATE users
+  }
+
+  await query(
+    `UPDATE users
         SET name = $1
       WHERE id = $2`,
-      [parsedData.name, parsedData.user_id],
-    );
-  }
+    [request.data.name, session.user.id],
+  );
 
   revalidatePath(`/${await getLocale()}/profile`);
   return { state: "success", message: t("profile_updated") };
