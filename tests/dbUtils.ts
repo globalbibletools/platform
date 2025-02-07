@@ -53,6 +53,7 @@ export function initializeDatabase(destroyAfter = true) {
   afterAll(async () => {
     await dbClient.end();
     await close();
+    console.log("closed");
   });
 }
 
