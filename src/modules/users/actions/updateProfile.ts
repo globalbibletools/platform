@@ -12,8 +12,11 @@ import { randomBytes } from "crypto";
 import { serverActionLogger } from "@/server-action";
 import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
+import { addDays } from "date-fns";
 
 const scrypt = new Scrypt();
+
+const EMAIL_VERIFICATION_EXPIRES = 7; // days
 
 const profileValidationSchema = z
   .object({
@@ -25,8 +28,6 @@ const profileValidationSchema = z
   .refine((data) => data.password === data.confirm_password, {
     path: ["confirm_password"],
   });
-
-const EMAIL_VERIFICATION_EXPIRES = 60 * 60 * 1000; // 1 hour
 
 export async function updateProfile(
   _prevState: FormState,
@@ -84,7 +85,7 @@ export async function updateProfile(
         session.user.id,
         token,
         request.data.email,
-        Date.now() + EMAIL_VERIFICATION_EXPIRES,
+        addDays(new Date(), EMAIL_VERIFICATION_EXPIRES).valueOf(),
       ],
     );
     const url = `${process.env.ORIGIN}/verify-email?token=${token}`;

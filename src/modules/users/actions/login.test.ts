@@ -78,12 +78,7 @@ test("creates session for user if password matches", async () => {
   const formData = new FormData();
   formData.set("email", user.email);
   formData.set("password", "pa$$word");
-  // TODO: create custom assertion for nextjs redirect.
-  await expect(login({ state: "idle" }, formData)).rejects.toThrowError(
-    expect.toSatisfy(
-      (error) =>
-        error.message === "NEXT_REDIRECT" &&
-        error.digest === "NEXT_REDIRECT;replace;/en/read/eng/01001;307;",
-    ),
+  await expect(login({ state: "idle" }, formData)).toBeNextjsRedirect(
+    "/en/read/eng/01001",
   );
 });

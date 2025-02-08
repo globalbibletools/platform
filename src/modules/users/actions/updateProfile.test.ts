@@ -11,7 +11,7 @@ import {
   initializeDatabase,
   seedDatabase,
 } from "@/tests/dbUtils";
-import { addDays, differenceInSeconds } from "date-fns";
+import { addDays } from "date-fns";
 
 initializeDatabase();
 
@@ -73,10 +73,7 @@ test("returns not found error if user is not logged in", async () => {
   formData.set("email", newEmail);
   formData.set("name", user.name);
 
-  // TODO: create custom assertion for nextjs not found.
-  await expect(updateProfile({ state: "idle" }, formData)).rejects.toThrowError(
-    expect.toSatisfy((error) => error.message === "NEXT_NOT_FOUND"),
-  );
+  await expect(updateProfile({ state: "idle" }, formData)).toBeNextjsNotFound();
   const updatedUser = await findUser(user.id);
   expect(updatedUser).toEqual(user);
   const emailVerification = await findEmailVerification(user.id);
@@ -118,16 +115,8 @@ test("starts email verification process if email changed", async () => {
   expect(emailVerification).toEqual({
     userId: user.id,
     email: newEmail,
-    // TODO: create custom assertion for random tokens
-    token: expect.toSatisfy(
-      (token) => typeof token === "string" && token.length >= 24,
-      "token must be a string of length at least 24",
-    ),
-    // TODO: create custom assertion for dates close to target
-    expiresAt: expect.toSatisfy(
-      (expiresAt) => differenceInSeconds(expiresAt, addDays(new Date(), 7)) < 5,
-      "expiresAt should be 7 days from now",
-    ),
+    token: expect.toBeToken(24),
+    expiresAt: expect.toBeDaysIntoFuture(7),
   });
 });
 
