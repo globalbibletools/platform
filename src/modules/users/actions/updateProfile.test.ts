@@ -1,5 +1,5 @@
-import { cookies } from "@/tests/nextMocks";
-import { sendEmailMock } from "@/tests/mailerMocks";
+import { cookies } from "@/tests/mocks/nextjs";
+import { sendEmailMock } from "@/tests/mocks/mailer";
 import { test, expect } from "vitest";
 import { randomUUID } from "crypto";
 import { Scrypt } from "oslo/password";

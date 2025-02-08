@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import PasswordReset from "./PasswordReset";
-import { addHours, differenceInSeconds } from "date-fns";
+import { addHours } from "date-fns";
 
 describe("generate", () => {
   test("generates new token with expiration date", () => {

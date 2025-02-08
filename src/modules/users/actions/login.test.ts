@@ -1,6 +1,6 @@
-import "@/tests/nextMocks";
+import "@/tests/mocks/nextjs";
 import { test, expect } from "vitest";
-import { initializeDatabase, seedDatabase } from "../../../../tests/dbUtils";
+import { initializeDatabase, seedDatabase } from "@/tests/dbUtils";
 import { login } from "./login";
 import { randomUUID } from "crypto";
 import { EmailStatusRaw } from "../model/EmailStatus";
