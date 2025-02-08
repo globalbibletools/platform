@@ -1,6 +1,5 @@
 import { cookies } from "@/tests/nextMocks";
 import { test, expect } from "vitest";
-import { updateProfile } from "./updateProfile";
 import { randomUUID } from "crypto";
 import { Scrypt } from "oslo/password";
 import { EmailStatusRaw } from "../model/EmailStatus";
@@ -12,6 +11,7 @@ import {
   seedDatabase,
 } from "@/tests/dbUtils";
 import { addDays } from "date-fns";
+import { updateProfile } from "./updateProfile";
 
 initializeDatabase();
 
@@ -120,6 +120,81 @@ test("starts email verification process if email changed", async () => {
   });
 });
 
-test.todo("rehashes password if it changed");
+test("rehashes password if it changed", async () => {
+  const user = {
+    id: randomUUID(),
+    hashedPassword: await new Scrypt().hash("pa$$word"),
+    name: "Test User",
+    email: "test@example.com",
+    emailStatus: EmailStatusRaw.Verified,
+    status: UserStatusRaw.Active,
+  };
+  const session = {
+    id: randomUUID(),
+    userId: user.id,
+    expiresAt: addDays(new Date(), 1),
+  };
+  await seedDatabase({ users: [user], sessions: [session] });
 
-test.todo("update user's name if it changed");
+  cookies.get.mockReturnValue({ value: session.id });
+
+  const newPassword = "newPa$$word!";
+  const formData = new FormData();
+  formData.set("email", user.email);
+  formData.set("name", user.name);
+  formData.set("password", newPassword);
+  formData.set("confirm_password", newPassword);
+  const response = await updateProfile({ state: "idle" }, formData);
+
+  expect(response).toEqual({
+    state: "success",
+    message: "Profile updated successfully!",
+  });
+  const updatedUser = await findUser(user.id);
+  expect(updatedUser).toEqual({
+    ...user,
+    hashedPassword: expect.any(String),
+  });
+  await expect(
+    new Scrypt().verify(updatedUser?.hashedPassword ?? "", newPassword),
+  ).resolves.toEqual(true);
+  const emailVerification = await findEmailVerification(user.id);
+  expect(emailVerification).toBeUndefined();
+});
+
+test("update user's name if it changed", async () => {
+  const user = {
+    id: randomUUID(),
+    hashedPassword: await new Scrypt().hash("pa$$word"),
+    name: "Test User",
+    email: "test@example.com",
+    emailStatus: EmailStatusRaw.Verified,
+    status: UserStatusRaw.Active,
+  };
+  const session = {
+    id: randomUUID(),
+    userId: user.id,
+    expiresAt: addDays(new Date(), 1),
+  };
+  await seedDatabase({ users: [user], sessions: [session] });
+
+  cookies.get.mockReturnValue({ value: session.id });
+
+  const newName = "Joe Translator";
+  const formData = new FormData();
+  formData.set("email", user.email);
+  formData.set("name", newName);
+  const response = await updateProfile({ state: "idle" }, formData);
+
+  expect(response).toEqual({
+    state: "success",
+    message: "Profile updated successfully!",
+  });
+  const updatedUser = await findUser(user.id);
+  expect(updatedUser).toEqual({
+    ...user,
+    name: newName,
+  });
+  const emailVerification = await findEmailVerification(user.id);
+  expect(emailVerification).toBeUndefined();
+});
