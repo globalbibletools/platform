@@ -1,4 +1,5 @@
 import { cookies } from "@/tests/nextMocks";
+import { sendEmailMock } from "@/tests/mailerMocks";
 import { test, expect } from "vitest";
 import { randomUUID } from "crypto";
 import { Scrypt } from "oslo/password";
@@ -111,12 +112,22 @@ test("starts email verification process if email changed", async () => {
   });
   const updatedUser = await findUser(user.id);
   expect(updatedUser).toEqual(user);
+
   const emailVerification = await findEmailVerification(user.id);
   expect(emailVerification).toEqual({
     userId: user.id,
     email: newEmail,
     token: expect.toBeToken(24),
     expiresAt: expect.toBeDaysIntoFuture(7),
+  });
+
+  expect(sendEmailMock).toHaveBeenCalledExactlyOnceWith({
+    email: newEmail,
+    html: `<a href="${process.env.ORIGIN}/verify-email?token=${emailVerification!.token}">Click here</a> to verify your new email.`,
+    subject: "Email Verification",
+    text: `Please click the link to verify your new email
+
+${process.env.ORIGIN}/verify-email?token=${emailVerification!.token}`,
   });
 });
 
@@ -160,6 +171,13 @@ test("rehashes password if it changed", async () => {
   ).resolves.toEqual(true);
   const emailVerification = await findEmailVerification(user.id);
   expect(emailVerification).toBeUndefined();
+
+  expect(sendEmailMock).toHaveBeenCalledExactlyOnceWith({
+    html: "Your password for Global Bible Tools has changed.",
+    subject: "Password Changed",
+    text: "Your password for Global Bible Tools has changed.",
+    userId: user.id,
+  });
 });
 
 test("update user's name if it changed", async () => {

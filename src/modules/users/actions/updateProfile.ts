@@ -92,7 +92,7 @@ export async function updateProfile(
     await mailer.sendEmail({
       email: request.data.email,
       subject: "Email Verification",
-      text: `Please click the link to verify your new email \n\n${url.toString()}`,
+      text: `Please click the link to verify your new email\n\n${url.toString()}`,
       html: `<a href="${url.toString()}">Click here</a> to verify your new email.`,
     });
   }
