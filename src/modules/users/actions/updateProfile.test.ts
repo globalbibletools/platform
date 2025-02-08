@@ -81,7 +81,6 @@ test("returns not found error if user is not logged in", async () => {
   expect(emailVerification).toBeUndefined();
 });
 
-// TODO: add email assertion to this test
 test("starts email verification process if email changed", async () => {
   const user = {
     id: randomUUID(),

@@ -8,7 +8,7 @@ export enum EmailStatusRaw {
 export default class EmailStatus {
   private constructor(readonly value: EmailStatusRaw) {}
 
-  fromRaw(raw: string): EmailStatus {
+  static fromRaw(raw: string): EmailStatus {
     switch (raw) {
       case EmailStatusRaw.Verified:
         return EmailStatus.Verified;

@@ -26,4 +26,16 @@ export default class User {
   get auth() {
     return this.props.auth;
   }
+
+  updateName(name: string) {
+    this.props.name = name;
+  }
+
+  updateEmail(email: UserEmail) {
+    this.props.email = email;
+  }
+
+  updateAuth(auth: UserAuthentication) {
+    this.props.auth = auth;
+  }
 }

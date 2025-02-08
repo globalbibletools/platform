@@ -1,22 +1,15 @@
 "use server";
 
 import * as z from "zod";
-import { Scrypt } from "oslo/password";
 import { getLocale, getTranslations } from "next-intl/server";
 import { FormState } from "@/components/Form";
 import { revalidatePath } from "next/cache";
 import { parseForm } from "@/form-parser";
-import mailer from "@/mailer";
-import { query } from "@/db";
-import { randomBytes } from "crypto";
 import { serverActionLogger } from "@/server-action";
 import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
-import { addDays } from "date-fns";
-
-const scrypt = new Scrypt();
-
-const EMAIL_VERIFICATION_EXPIRES = 7; // days
+import UpdateProfile from "../use-cases/UpdateProfile";
+import userRepository from "../data-access/UserRepository";
 
 const profileValidationSchema = z
   .object({
@@ -28,6 +21,8 @@ const profileValidationSchema = z
   .refine((data) => data.password === data.confirm_password, {
     path: ["confirm_password"],
   });
+
+const updateProfileUseCase = new UpdateProfile(userRepository);
 
 export async function updateProfile(
   _prevState: FormState,
@@ -67,62 +62,10 @@ export async function updateProfile(
   const session = await verifySession();
   if (!session) notFound();
 
-  const userQuery = await query(
-    `
-        select email from users where id = $1
-      `,
-    [session.user.id],
-  );
-
-  if (request.data.email && request.data.email !== userQuery.rows[0].email) {
-    const token = randomBytes(12).toString("hex");
-    await query(
-      `INSERT INTO user_email_verification
-          (user_id, token, email, expires) 
-          VALUES ($1, $2, $3, $4)
-      `,
-      [
-        session.user.id,
-        token,
-        request.data.email,
-        addDays(new Date(), EMAIL_VERIFICATION_EXPIRES).valueOf(),
-      ],
-    );
-    const url = `${process.env.ORIGIN}/verify-email?token=${token}`;
-    await mailer.sendEmail({
-      email: request.data.email,
-      subject: "Email Verification",
-      text: `Please click the link to verify your new email\n\n${url.toString()}`,
-      html: `<a href="${url.toString()}">Click here</a> to verify your new email.`,
-    });
-  }
-
-  if (request.data.password) {
-    await mailer.sendEmail({
-      userId: session.user.id,
-      subject: "Password Changed",
-      text: `Your password for Global Bible Tools has changed.`,
-      html: `Your password for Global Bible Tools has changed.`,
-    });
-    await query(
-      `UPDATE users
-        SET name = $1, 
-            hashed_password = $2
-        WHERE id = $3`,
-      [
-        request.data.name,
-        await scrypt.hash(request.data.password),
-        session.user.id,
-      ],
-    );
-  }
-
-  await query(
-    `UPDATE users
-        SET name = $1
-      WHERE id = $2`,
-    [request.data.name, session.user.id],
-  );
+  await updateProfileUseCase.execute({
+    id: session.user.id,
+    ...request.data,
+  });
 
   revalidatePath(`/${await getLocale()}/profile`);
   return { state: "success", message: t("profile_updated") };

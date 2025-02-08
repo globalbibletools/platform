@@ -7,24 +7,9 @@ import UserEmail from "../model/UserEmail";
 import UserAuthentication from "../model/UserAuthentication";
 import { Scrypt } from "oslo/password";
 import { NotFoundError } from "@/shared/errors";
+import mockUserRepo from "../data-access/MockUserRepository";
 
-const userRepo = {
-  users: [] as User[],
-
-  reset() {
-    this.users = [];
-  },
-
-  async findByEmail(email: string): Promise<User | undefined> {
-    return this.users.find((u) => u.email.address === email);
-  },
-};
-
-const logIn = new LogIn(userRepo);
-
-beforeEach(() => {
-  userRepo.reset();
-});
+const logIn = new LogIn(mockUserRepo);
 
 test("returns error if no user is found", async () => {
   const request = {
@@ -48,7 +33,7 @@ test("returns error if password does not match", async () => {
       resets: [],
     }),
   });
-  userRepo.users = [user];
+  mockUserRepo.users = [user];
 
   const request = {
     email: user.email.address,
@@ -71,7 +56,7 @@ test("returns user id if password matches", async () => {
       resets: [],
     }),
   });
-  userRepo.users = [user];
+  mockUserRepo.users = [user];
 
   const request = {
     email: user.email.address,
