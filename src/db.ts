@@ -37,6 +37,9 @@ export async function close() {
   await pool.end();
 }
 
-export function reconnect() {
+export async function reconnect() {
+  try {
+    await pool.end();
+  } catch (_) {}
   pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 20 });
 }

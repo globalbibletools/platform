@@ -41,7 +41,7 @@ export function initializeDatabase(destroyAfter = true) {
       `create database ${DATABASE_NAME} template test_template`,
     );
 
-    reconnect();
+    await reconnect();
   });
 
   afterAll(async () => {
@@ -49,11 +49,12 @@ export function initializeDatabase(destroyAfter = true) {
       await dbClient.query(`drop database if exists ${DATABASE_NAME}`);
     }
     await dbClient.end();
-    console.log("closed");
+    console.log("closed 1");
   });
 
   afterAll(async () => {
     await close();
+    console.log("closed 2");
   });
 }
 
