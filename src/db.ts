@@ -1,4 +1,5 @@
 import pg, { type QueryResult, type QueryResultRow } from "pg";
+import { logger } from "./logging";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL env var missing");
@@ -6,19 +7,10 @@ if (!process.env.DATABASE_URL) {
 
 let pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 20 });
 
-let count = 0;
-function error(error: unknown) {
-  console.log("error", error);
+function onError(error: unknown) {
+  logger.error(error);
 }
-function connect() {
-  console.log(`connect, open: ${++count}`);
-}
-function remove() {
-  console.log(`remove, open: ${--count}`);
-}
-pool.on("error", error);
-pool.on("connect", connect);
-pool.on("remove", remove);
+pool.on("error", onError);
 
 export async function query<T extends QueryResultRow>(
   text: string,
@@ -56,7 +48,5 @@ export async function reconnect() {
     await pool.end();
   } catch (_) {}
   pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 20 });
-  pool.on("connect", connect);
-  pool.on("remove", remove);
-  pool.on("error", error);
+  pool.on("error", onError);
 }
