@@ -1,10 +1,10 @@
 import { query, transaction } from "@/db";
 import User from "../model/User";
 import UserEmail from "../model/UserEmail";
-import UserAuthentication from "../model/UserAuthentication";
 import PasswordReset from "../model/PasswordReset";
 import EmailVerification from "../model/EmailVerification";
 import EmailStatus, { EmailStatusRaw } from "../model/EmailStatus";
+import Password from "../model/Password";
 
 interface DbUser {
   id: string;
@@ -28,16 +28,13 @@ function dbToUser(dbModel: DbUser): User {
           new EmailVerification(dbModel.email_verification)
         : undefined,
     }),
-    auth:
+    password:
       dbModel.hashed_password ?
-        new UserAuthentication({
-          hashedPassword: dbModel.hashed_password,
-          resets:
-            dbModel.password_resets?.map(
-              (reset: any) => new PasswordReset(reset),
-            ) ?? [],
-        })
+        new Password({ hash: dbModel.hashed_password })
       : undefined,
+    passwordResets:
+      dbModel.password_resets?.map((reset: any) => new PasswordReset(reset)) ??
+      [],
   });
 }
 
@@ -89,7 +86,7 @@ const userRepository = {
           user.name,
           user.email.address,
           user.email.status.value,
-          user.auth?.hashedPassword,
+          user.password?.hash,
         ],
       );
 
@@ -141,8 +138,8 @@ const userRepository = {
         `,
         [
           user.id,
-          user.auth?.resets.map((reset) => reset.token) ?? [],
-          user.auth?.resets.map((reset) => reset.expiresAt.valueOf()) ?? [],
+          user.passwordResets.map((reset) => reset.token),
+          user.passwordResets.map((reset) => reset.expiresAt.valueOf()),
         ],
       );
     });

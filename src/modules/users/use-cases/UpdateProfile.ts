@@ -1,7 +1,7 @@
 import { NotFoundError } from "@/shared/errors";
 import { UserRepository } from "../data-access/types";
 import mailer, { EmailOptions } from "@/mailer";
-import UserAuthentication from "../model/UserAuthentication";
+import Password from "../model/Password";
 
 export interface UpdateProfileRequest {
   id: string;
@@ -34,9 +34,7 @@ export default class UpdateProfile {
     }
 
     if (request.password) {
-      user.updateAuth(
-        await UserAuthentication.createPassword(request.password),
-      );
+      user.updatePassword(await Password.create(request.password));
 
       emails.push({
         userId: user.id,

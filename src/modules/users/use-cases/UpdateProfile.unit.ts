@@ -6,9 +6,9 @@ import { NotFoundError } from "@/shared/errors";
 import User from "../model/User";
 import UserEmail from "../model/UserEmail";
 import EmailStatus from "../model/EmailStatus";
-import UserAuthentication from "../model/UserAuthentication";
 import { Scrypt } from "oslo/password";
 import EmailVerification from "../model/EmailVerification";
+import Password from "../model/Password";
 
 const updateProfile = new UpdateProfile(mockUserRepo);
 
@@ -31,10 +31,8 @@ test("updates name for the user", async () => {
       address: "test@example.com",
       status: EmailStatus.Verified,
     }),
-    auth: new UserAuthentication({
-      hashedPassword: await new Scrypt().hash("asdf1234"),
-      resets: [],
-    }),
+    password: new Password({ hash: await new Scrypt().hash("asdf1234") }),
+    passwordResets: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];
@@ -63,10 +61,8 @@ test("updates email for the user if it changes", async () => {
       address: "test@example.com",
       status: EmailStatus.Verified,
     }),
-    auth: new UserAuthentication({
-      hashedPassword: await new Scrypt().hash("asdf1234"),
-      resets: [],
-    }),
+    password: new Password({ hash: await new Scrypt().hash("asdf1234") }),
+    passwordResets: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];
@@ -110,10 +106,8 @@ test("updates password for the user if it changes", async () => {
       address: "test@example.com",
       status: EmailStatus.Verified,
     }),
-    auth: new UserAuthentication({
-      hashedPassword: await new Scrypt().hash("asdf1234"),
-      resets: [],
-    }),
+    password: new Password({ hash: await new Scrypt().hash("asdf1234") }),
+    passwordResets: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];
@@ -129,16 +123,12 @@ test("updates password for the user if it changes", async () => {
   // @ts-ignore
   expect(user.props).toEqual({
     ...props,
-    auth: new UserAuthentication({
-      // @ts-ignore
-      ...props.auth.props,
-      hashedPassword: expect.any(String),
+    password: new Password({
+      hash: expect.any(String),
     }),
   });
 
-  await expect(user.auth?.verifyPassword(request.password)).resolves.toEqual(
-    true,
-  );
+  await expect(user.password?.verify(request.password)).resolves.toEqual(true);
 
   expect(sendEmailMock).toHaveBeenCalledExactlyOnceWith({
     html: "Your password for Global Bible Tools has changed.",
