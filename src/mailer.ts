@@ -67,7 +67,7 @@ const mailer = {
         emailStatus: string;
       }>(
         `
-        SELECT email, "emailStatus" FROM users WHERE id = $1
+        SELECT email, email_status AS "emailStatus" FROM users WHERE id = $1
         `,
         [options.userId],
       );

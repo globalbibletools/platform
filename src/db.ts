@@ -1,11 +1,16 @@
 import pg, { type QueryResult, type QueryResultRow } from "pg";
+import { logger } from "./logging";
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
+if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL env var missing");
 }
 
-const pool = new pg.Pool({ connectionString, max: 20 });
+let pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 20 });
+
+function onError(error: unknown) {
+  logger.error(error);
+}
+pool.on("error", onError);
 
 export async function query<T extends QueryResultRow>(
   text: string,
@@ -36,4 +41,12 @@ export async function transaction<T>(
 
 export async function close() {
   await pool.end();
+}
+
+export async function reconnect() {
+  try {
+    await pool.end();
+  } catch (_) {}
+  pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 20 });
+  pool.on("error", onError);
 }

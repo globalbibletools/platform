@@ -88,7 +88,7 @@ psql --dbname=DATABASE_URL -f packages/db/scripts/refresh_views.sql
 Export the latest database schema:
 
 ```bash
-pg_dump --no-owner --schema-only DATABASE_URL > packages/db/scripts/schema.sql
+pg_dump --no-owner --schema=public --schema-only DATABASE_URL > packages/db/scripts/schema.sql
 ```
 
 Export the latest database seed data:

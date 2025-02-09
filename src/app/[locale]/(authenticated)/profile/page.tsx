@@ -8,7 +8,7 @@ import FieldError from "@/components/FieldError";
 import Button from "@/components/Button";
 import { notFound } from "next/navigation";
 import Form from "@/components/Form";
-import { updateProfile } from "./actions";
+import { updateProfile } from "@/modules/users/actions/updateProfile";
 import { query } from "@/db";
 
 export async function generateMetadata(
@@ -44,8 +44,6 @@ export default async function ProfileView() {
       >
         <ViewTitle>{t("title")}</ViewTitle>
         <Form action={updateProfile}>
-          <input hidden name="user_id" value={session.user.id} />
-          <input hidden name="prev_email" value={user.email} />
           <div className="mb-2">
             <FormLabel htmlFor="email">{t("form.email")}</FormLabel>
             <TextInput

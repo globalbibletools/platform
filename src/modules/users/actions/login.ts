@@ -1,21 +1,23 @@
 "use server";
 
 import * as z from "zod";
-import { getTranslations, getLocale } from "next-intl/server";
-import { Scrypt } from "oslo/password";
+import { getTranslations } from "next-intl/server";
 import { createSession } from "@/session";
 import { redirect } from "next/navigation";
-import { query } from "@/db";
 import { FormState } from "@/components/Form";
 import homeRedirect from "@/home-redirect";
 import { serverActionLogger } from "@/server-action";
-
-const scrypt = new Scrypt();
+import userRepository from "@/modules/users/data-access/UserRepository";
+import LogIn from "../use-cases/LogIn";
+import { IncorrectPasswordError } from "../model/errors";
+import { NotFoundError } from "@/shared/errors";
 
 const loginSchema = z.object({
   email: z.string().min(1),
   password: z.string().min(1),
 });
+
+const logIn = new LogIn(userRepository);
 
 export async function login(
   _state: FormState,
@@ -50,30 +52,28 @@ export async function login(
     };
   }
 
-  const result = await query<{ id: string; hashedPassword: string }>(
-    `SELECT id, hashed_password AS "hashedPassword" FROM users WHERE email = $1 AND status <> 'disabled'`,
-    [request.data.email.toLowerCase()],
-  );
-  const user = result.rows[0];
-
-  if (!user) {
-    logger.error("missing user");
-    return {
-      state: "error",
-      error: "Invalid email or password.",
-    };
+  let userId;
+  try {
+    const result = await logIn.execute(request.data);
+    userId = result.userId;
+  } catch (error) {
+    if (error instanceof IncorrectPasswordError) {
+      logger.error("incorrect password");
+      return {
+        state: "error",
+        error: "Invalid email or password.",
+      };
+    } else if (error instanceof NotFoundError) {
+      logger.error("user not found");
+      return {
+        state: "error",
+        error: "Invalid email or password.",
+      };
+    } else {
+      throw error;
+    }
   }
 
-  const valid = await scrypt.verify(user.hashedPassword, request.data.password);
-  if (!valid) {
-    logger.error("invalid password");
-    return {
-      state: "error",
-      error: "Invalid email or password.",
-    };
-  }
-
-  await createSession(user.id);
-
+  await createSession(userId);
   redirect(await homeRedirect());
 }

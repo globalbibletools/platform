@@ -7,6 +7,7 @@ services:
     restart: always
     environment:
       DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
+      TEST_DATABASE_URL: postgresql://postgres:asdfasdf@test_db:5432/postgres
     volumes:
       - ./:/app
     ports:
@@ -32,6 +33,23 @@ services:
       - 5432
     ports:
       - 5432:5432
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  test_db:
+    image: postgres:14
+    restart: always
+    shm_size: 128mb
+    user: postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=asdfasdf
+    expose:
+      - 5432
+    ports:
+      - 5433:5432
     healthcheck:
       test: ["CMD", "pg_isready"]
       interval: 10s
