@@ -49,12 +49,12 @@ export function initializeDatabase(destroyAfter = true) {
       await dbClient.query(`drop database if exists ${DATABASE_NAME}`);
     }
     await dbClient.end();
-    console.log("closed 1");
+    console.log(new Date(), "closed 1");
   });
 
   afterAll(async () => {
     await close();
-    console.log("closed 2");
+    console.log(new Date(), "closed 2");
   });
 }
 
