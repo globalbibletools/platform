@@ -34,9 +34,7 @@ export function initializeDatabase(destroyAfter = true) {
     // We have to close the database connection so that we can drop the database between tests.
     await close();
 
-    await dbClient.query(
-      `drop database if exists ${DATABASE_NAME} with (force)`,
-    );
+    await dbClient.query(`drop database if exists ${DATABASE_NAME}`);
     await dbClient.query(
       `create database ${DATABASE_NAME} template test_template`,
     );
