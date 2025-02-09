@@ -1,3 +1,4 @@
+import { InvalidPasswordResetToken } from "./errors";
 import Password from "./Password";
 import PasswordReset from "./PasswordReset";
 import UserEmail from "./UserEmail";
@@ -57,7 +58,7 @@ export default class User {
         (reset) => reset.token === token && reset.checkExpiration(),
       )
     ) {
-      return;
+      throw new InvalidPasswordResetToken();
     }
 
     this.props.password = await Password.create(newPassword);

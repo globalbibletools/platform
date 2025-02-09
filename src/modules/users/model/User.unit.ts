@@ -5,6 +5,7 @@ import EmailStatus from "./EmailStatus";
 import User from "./User";
 import PasswordReset from "./PasswordReset";
 import { Scrypt } from "oslo/password";
+import { InvalidPasswordResetToken } from "./errors";
 
 const scrypt = new Scrypt();
 
@@ -37,7 +38,7 @@ describe("startPasswordReset", () => {
 });
 
 describe("completePasswordReset", () => {
-  test("returns undefined if no reset matches token", async () => {
+  test("throws error if no reset matches token", async () => {
     const props = {
       id: "user-id-asdf",
       email: new UserEmail({
@@ -50,7 +51,7 @@ describe("completePasswordReset", () => {
     const user = new User(props);
     await expect(
       user.completePasswordReset("asdf", "pa$$word"),
-    ).resolves.toBeUndefined();
+    ).rejects.toThrow(new InvalidPasswordResetToken());
   });
 
   test("updates password if reset token matches", async () => {

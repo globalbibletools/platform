@@ -3,3 +3,9 @@ export class IncorrectPasswordError extends Error {
     super();
   }
 }
+
+export class InvalidPasswordResetToken extends Error {
+  constructor() {
+    super();
+  }
+}
