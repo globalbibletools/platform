@@ -64,9 +64,7 @@ export default class User {
 
   async completePasswordReset(token: string, newPassword: string) {
     if (
-      !this.props.passwordResets.some(
-        (reset) => reset.token === token && reset.checkExpiration(),
-      )
+      !this.props.passwordResets.some((reset) => reset.validateToken(token))
     ) {
       throw new InvalidPasswordResetToken();
     }

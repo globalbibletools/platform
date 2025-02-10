@@ -14,6 +14,11 @@ const mockUserRepo = {
   async findByEmail(email: string): Promise<User | undefined> {
     return this.users.find((u) => u.email.address === email);
   },
+  async findByResetPasswordToken(token: string): Promise<User | undefined> {
+    return this.users.find((u) =>
+      u.passwordResets.some((reset) => reset.token === token),
+    );
+  },
 
   async commit(user: User): Promise<void> {},
 };

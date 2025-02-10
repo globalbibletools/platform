@@ -33,7 +33,7 @@ expect.extend({
       pass:
         typeof received === "string" && (!length || received.length === length),
       message: () =>
-        `${received} is${this.isNot ? " not" : ""} a token${length && `of length ${length}`}`,
+        `${received} is${this.isNot ? "" : " not"} a token${length && `of length ${length}`}`,
     };
   },
   async toBeNextjsRedirect(receivedPromise: any, path: string) {
@@ -49,7 +49,7 @@ expect.extend({
         received?.message === "NEXT_REDIRECT" &&
         received?.digest === `NEXT_REDIRECT;replace;${path};307;`,
       message: () =>
-        `${received} is${this.isNot ? " not" : ""} a Next.js redirect to ${path}`,
+        `${received} is${this.isNot ? "" : " not"} a Next.js redirect to ${path}`,
     };
   },
   async toBeNextjsNotFound(receivedPromise: any) {
@@ -63,7 +63,7 @@ expect.extend({
     return {
       pass: received?.message === "NEXT_NOT_FOUND",
       message: () =>
-        `${received} is${this.isNot ? " not" : ""} a Next.js not found redirect`,
+        `${received} is${this.isNot ? "" : " not"} a Next.js not found redirect`,
     };
   },
 });

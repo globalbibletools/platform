@@ -19,8 +19,8 @@ export default class PasswordReset {
     return this.props.expiresAt;
   }
 
-  checkExpiration(): boolean {
-    return this.props.expiresAt > new Date();
+  validateToken(token: string): boolean {
+    return this.props.token === token && this.props.expiresAt > new Date();
   }
 
   static generate() {

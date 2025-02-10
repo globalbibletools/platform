@@ -1,7 +1,5 @@
-import { NotFoundError } from "@/shared/errors";
 import { UserRepository } from "../data-access/types";
-import mailer, { EmailOptions } from "@/mailer";
-import Password from "../model/Password";
+import mailer from "@/mailer";
 
 export interface StartPasswordResetRequest {
   email: string;

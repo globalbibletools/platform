@@ -15,20 +15,28 @@ describe("generate", () => {
   });
 });
 
-describe("checkExpiration", () => {
-  test("return true if expiration is in the future", () => {
+describe("validateToken", () => {
+  test("return true if expiration is in the future and token matches", () => {
     const reset = new PasswordReset({
       token: "asdf",
       expiresAt: addHours(new Date(), 1.1),
     });
-    expect(reset.checkExpiration()).toEqual(true);
+    expect(reset.validateToken("asdf")).toEqual(true);
   });
 
-  test("return true if expiration is in the past", () => {
+  test("return false if token does not match", () => {
     const reset = new PasswordReset({
       token: "asdf",
-      expiresAt: addHours(new Date(), -0.1),
+      expiresAt: addHours(new Date(), 1),
     });
-    expect(reset.checkExpiration()).toEqual(false);
+    expect(reset.validateToken("garbage")).toEqual(false);
+  });
+
+  test("return false if expiration is in the past", () => {
+    const reset = new PasswordReset({
+      token: "asdf",
+      expiresAt: addHours(new Date(), -1),
+    });
+    expect(reset.validateToken("asdf")).toEqual(false);
   });
 });

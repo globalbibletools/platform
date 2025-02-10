@@ -84,6 +84,7 @@ interface DbPasswordReset {
 interface DatabaseSeed {
   users?: DbUser[];
   sessions?: DbSession[];
+  passwordResets?: DbPasswordReset[];
 }
 
 export async function seedDatabase(seed: DatabaseSeed) {
@@ -117,6 +118,20 @@ export async function seedDatabase(seed: DatabaseSeed) {
       ],
     );
   }
+
+  if (seed.passwordResets) {
+    await query(
+      `
+            insert into reset_password_token (user_id, token, expires)
+            select unnest($1::uuid[]), unnest($2::text[]), unnest($3::bigint[])
+          `,
+      [
+        seed.passwordResets.map((reset) => reset.userId),
+        seed.passwordResets.map((reset) => reset.token),
+        seed.passwordResets.map((reset) => reset.expiresAt.valueOf()),
+      ],
+    );
+  }
 }
 
 export async function findUser(id: string): Promise<DbUser | undefined> {
@@ -130,6 +145,30 @@ export async function findUser(id: string): Promise<DbUser | undefined> {
   );
 
   return result.rows[0];
+}
+
+export async function findUsers(): Promise<DbUser[]> {
+  const result = await query<DbUser>(
+    `
+        select id, name, hashed_password as "hashedPassword", email, email_status as "emailStatus", status
+        from users
+    `,
+    [],
+  );
+
+  return result.rows;
+}
+
+export async function findSessions(): Promise<DbSession[]> {
+  const result = await query<DbSession>(
+    `
+        select id, user_id as "userId", expires_at as "expiresAt"
+        from session
+    `,
+    [],
+  );
+
+  return result.rows;
 }
 
 export async function findEmailVerification(

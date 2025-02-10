@@ -8,7 +8,7 @@ import { notFound, redirect, RedirectType } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
 import { query } from "@/db";
-import { resetPassword } from "./actions";
+import { resetPassword } from "@/modules/users/actions/resetPassword";
 import Form from "@/components/Form";
 import homeRedirect from "@/home-redirect";
 

@@ -3,18 +3,17 @@
 import * as z from "zod";
 import { getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
-import { query } from "@/db";
 import { parseForm } from "@/form-parser";
 import mailer from "@/mailer";
-import { Scrypt } from "oslo/password";
 import { createSession } from "@/session";
 import { FormState } from "@/components/Form";
 import homeRedirect from "@/home-redirect";
 import { serverActionLogger } from "@/server-action";
+import ResetPassword from "../use-cases/ResetPassword";
+import userRepository from "../data-access/UserRepository";
+import { NotFoundError } from "@/shared/errors";
 
-const scrypt = new Scrypt();
-
-const resetPasswordSchema = z
+const requestSchema = z
   .object({
     token: z.string(),
     password: z.string().min(1),
@@ -24,6 +23,8 @@ const resetPasswordSchema = z
     path: ["confirm_password"],
   });
 
+const resetPasswordUseCase = new ResetPassword(userRepository);
+
 export async function resetPassword(
   _prevState: FormState,
   formData: FormData,
@@ -32,7 +33,7 @@ export async function resetPassword(
 
   const t = await getTranslations("ResetPasswordPage");
 
-  const request = resetPasswordSchema.safeParse(parseForm(formData), {
+  const request = requestSchema.safeParse(parseForm(formData), {
     errorMap: (error) => {
       if (error.path.toString() === "password") {
         if (error.code === "too_small") {
@@ -59,38 +60,19 @@ export async function resetPassword(
     };
   }
 
-  const hashedPassword = await scrypt.hash(request.data.password);
-  const result = await query<{ id: string }>(
-    `
-            UPDATE users AS u SET
-               hashed_password = $2
-            FROM reset_password_token AS t
-            WHERE u.id = t.user_id
-                AND t.token = $1
-                AND t.expires > (EXTRACT(EPOCH FROM CURRENT_TIMESTAMP)::bigint * 1000::bigint)
-            RETURNING id
-        `,
-    [request.data.token, hashedPassword],
-  );
-
-  const user = result.rows[0];
-  if (!user) {
-    logger.error("user not found");
-    notFound();
+  let userId;
+  try {
+    const response = await resetPasswordUseCase.execute(request.data);
+    userId = response.userId;
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      logger.error("user not found");
+      notFound();
+    } else {
+      throw error;
+    }
   }
 
-  await Promise.all([
-    query(`DELETE FROM reset_password_token WHERE token = $1`, [
-      request.data.token,
-    ]),
-    mailer.sendEmail({
-      userId: user.id,
-      subject: "Password Changed",
-      text: `Your password for Global Bible Tools has changed.`,
-      html: `Your password for Global Bible Tools has changed.`,
-    }),
-    createSession(user.id),
-  ]);
-
+  await createSession(userId);
   redirect(await homeRedirect());
 }

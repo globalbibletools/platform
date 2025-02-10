@@ -26,15 +26,23 @@ function dbToUser(dbModel: DbUser): User {
     }),
     emailVerification:
       dbModel.email_verification ?
-        new EmailVerification(dbModel.email_verification)
+        new EmailVerification({
+          ...dbModel.email_verification,
+          expiresAt: new Date(dbModel.email_verification.expiresAt),
+        })
       : undefined,
     password:
       dbModel.hashed_password ?
         new Password({ hash: dbModel.hashed_password })
       : undefined,
     passwordResets:
-      dbModel.password_resets?.map((reset: any) => new PasswordReset(reset)) ??
-      [],
+      dbModel.password_resets?.map(
+        (reset) =>
+          new PasswordReset({
+            ...reset,
+            expiresAt: new Date(reset.expiresAt),
+          }),
+      ) ?? [],
   });
 }
 
@@ -61,6 +69,24 @@ const userRepository = {
         where u.email = $1
       `,
       [email],
+    );
+
+    const dbModel = result.rows[0];
+    if (!dbModel) return;
+
+    return dbToUser(dbModel);
+  },
+
+  async findByResetPasswordToken(token: string) {
+    const result = await query<DbUser>(
+      `
+        ${USER_SELECT}
+        where u.id = (
+            select user_id from reset_password_token
+            where token = $1
+        )
+      `,
+      [token],
     );
 
     const dbModel = result.rows[0];
