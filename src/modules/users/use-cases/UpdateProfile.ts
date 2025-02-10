@@ -22,9 +22,9 @@ export default class UpdateProfile {
     const emails: EmailOptions[] = [];
 
     if (request.email !== user.email.address) {
-      user.updateEmail(user.email.initiateEmailChange(request.email));
+      const verification = user.startEmailChange(request.email);
 
-      const url = `${process.env.ORIGIN}/verify-email?token=${user.email.verification?.token}`;
+      const url = `${process.env.ORIGIN}/verify-email?token=${verification.token}`;
       emails.push({
         email: request.email,
         subject: "Email Verification",

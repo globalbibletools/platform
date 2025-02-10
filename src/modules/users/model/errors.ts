@@ -9,3 +9,9 @@ export class InvalidPasswordResetToken extends Error {
     super();
   }
 }
+
+export class InvalidEmailVerificationToken extends Error {
+  constructor() {
+    super();
+  }
+}

@@ -1,4 +1,9 @@
-import { InvalidPasswordResetToken } from "./errors";
+import EmailStatus from "./EmailStatus";
+import EmailVerification from "./EmailVerification";
+import {
+  InvalidEmailVerificationToken,
+  InvalidPasswordResetToken,
+} from "./errors";
 import Password from "./Password";
 import PasswordReset from "./PasswordReset";
 import UserEmail from "./UserEmail";
@@ -9,6 +14,7 @@ export interface UserProps {
   email: UserEmail;
   password?: Password;
   passwordResets: PasswordReset[];
+  emailVerification?: EmailVerification;
 }
 
 export default class User {
@@ -24,6 +30,10 @@ export default class User {
 
   get email() {
     return this.props.email;
+  }
+
+  get emailVerification() {
+    return this.props.emailVerification;
   }
 
   get password() {
@@ -63,5 +73,23 @@ export default class User {
 
     this.props.password = await Password.create(newPassword);
     this.props.passwordResets = [];
+  }
+
+  startEmailChange(email: string): EmailVerification {
+    const verification = EmailVerification.createForEmail(email);
+    this.props.emailVerification = verification;
+    return verification;
+  }
+
+  confirmEmailChange(token: string) {
+    if (!this.props.emailVerification?.validateToken(token)) {
+      throw new InvalidEmailVerificationToken();
+    }
+
+    this.props.email = new UserEmail({
+      status: EmailStatus.Verified,
+      address: this.props.emailVerification.email,
+    });
+    this.props.emailVerification = undefined;
   }
 }

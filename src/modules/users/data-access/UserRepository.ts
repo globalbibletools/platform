@@ -23,11 +23,11 @@ function dbToUser(dbModel: DbUser): User {
     email: new UserEmail({
       address: dbModel.email,
       status: EmailStatus.fromRaw(dbModel.email_status),
-      verification:
-        dbModel.email_verification ?
-          new EmailVerification(dbModel.email_verification)
-        : undefined,
     }),
+    emailVerification:
+      dbModel.email_verification ?
+        new EmailVerification(dbModel.email_verification)
+      : undefined,
     password:
       dbModel.hashed_password ?
         new Password({ hash: dbModel.hashed_password })
@@ -90,7 +90,7 @@ const userRepository = {
         ],
       );
 
-      if (user.email.verification) {
+      if (user.emailVerification) {
         await query(
           `
             insert into user_email_verification (user_id, email, token, expires)
@@ -101,9 +101,9 @@ const userRepository = {
           `,
           [
             user.id,
-            user.email.verification.email,
-            user.email.verification.token,
-            user.email.verification.expiresAt.valueOf(),
+            user.emailVerification.email,
+            user.emailVerification.token,
+            user.emailVerification.expiresAt.valueOf(),
           ],
         );
       } else {

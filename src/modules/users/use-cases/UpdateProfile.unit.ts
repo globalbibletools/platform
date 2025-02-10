@@ -80,21 +80,21 @@ test("updates email for the user if it changes", async () => {
     email: new UserEmail({
       // @ts-ignore
       ...props.email.props,
-      verification: new EmailVerification({
-        email: request.email,
-        token: expect.toBeToken(24),
-        expiresAt: expect.toBeDaysIntoFuture(7),
-      }),
+    }),
+    emailVerification: new EmailVerification({
+      email: request.email,
+      token: expect.toBeToken(24),
+      expiresAt: expect.toBeDaysIntoFuture(7),
     }),
   });
 
   expect(sendEmailMock).toHaveBeenCalledExactlyOnceWith({
     email: request.email,
-    html: `<a href="${process.env.ORIGIN}/verify-email?token=${user.email.verification!.token}">Click here</a> to verify your new email.`,
+    html: `<a href="${process.env.ORIGIN}/verify-email?token=${user.emailVerification!.token}">Click here</a> to verify your new email.`,
     subject: "Email Verification",
     text: `Please click the link to verify your new email
 
-${process.env.ORIGIN}/verify-email?token=${user.email.verification!.token}`,
+${process.env.ORIGIN}/verify-email?token=${user.emailVerification!.token}`,
   });
 });
 
