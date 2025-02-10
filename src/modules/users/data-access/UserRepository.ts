@@ -1,10 +1,10 @@
 import { query, transaction } from "@/db";
 import User from "../model/User";
 import UserEmail from "../model/UserEmail";
-import UserAuthentication from "../model/UserAuthentication";
 import PasswordReset from "../model/PasswordReset";
 import EmailVerification from "../model/EmailVerification";
 import EmailStatus, { EmailStatusRaw } from "../model/EmailStatus";
+import Password from "../model/Password";
 
 interface DbUser {
   id: string;
@@ -23,21 +23,18 @@ function dbToUser(dbModel: DbUser): User {
     email: new UserEmail({
       address: dbModel.email,
       status: EmailStatus.fromRaw(dbModel.email_status),
-      verification:
-        dbModel.email_verification ?
-          new EmailVerification(dbModel.email_verification)
-        : undefined,
     }),
-    auth:
-      dbModel.hashed_password ?
-        new UserAuthentication({
-          hashedPassword: dbModel.hashed_password,
-          resets:
-            dbModel.password_resets?.map(
-              (reset: any) => new PasswordReset(reset),
-            ) ?? [],
-        })
+    emailVerification:
+      dbModel.email_verification ?
+        new EmailVerification(dbModel.email_verification)
       : undefined,
+    password:
+      dbModel.hashed_password ?
+        new Password({ hash: dbModel.hashed_password })
+      : undefined,
+    passwordResets:
+      dbModel.password_resets?.map((reset: any) => new PasswordReset(reset)) ??
+      [],
   });
 }
 
@@ -89,11 +86,11 @@ const userRepository = {
           user.name,
           user.email.address,
           user.email.status.value,
-          user.auth?.hashedPassword,
+          user.password?.hash,
         ],
       );
 
-      if (user.email.verification) {
+      if (user.emailVerification) {
         await query(
           `
             insert into user_email_verification (user_id, email, token, expires)
@@ -104,9 +101,9 @@ const userRepository = {
           `,
           [
             user.id,
-            user.email.verification.email,
-            user.email.verification.token,
-            user.email.verification.expiresAt.valueOf(),
+            user.emailVerification.email,
+            user.emailVerification.token,
+            user.emailVerification.expiresAt.valueOf(),
           ],
         );
       } else {
@@ -141,8 +138,8 @@ const userRepository = {
         `,
         [
           user.id,
-          user.auth?.resets.map((reset) => reset.token) ?? [],
-          user.auth?.resets.map((reset) => reset.expiresAt.valueOf()) ?? [],
+          user.passwordResets.map((reset) => reset.token),
+          user.passwordResets.map((reset) => reset.expiresAt.valueOf()),
         ],
       );
     });

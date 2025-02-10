@@ -1,11 +1,20 @@
-import UserAuthentication from "./UserAuthentication";
+import EmailStatus from "./EmailStatus";
+import EmailVerification from "./EmailVerification";
+import {
+  InvalidEmailVerificationToken,
+  InvalidPasswordResetToken,
+} from "./errors";
+import Password from "./Password";
+import PasswordReset from "./PasswordReset";
 import UserEmail from "./UserEmail";
 
 export interface UserProps {
   id: string;
   name?: string;
   email: UserEmail;
-  auth?: UserAuthentication;
+  password?: Password;
+  passwordResets: PasswordReset[];
+  emailVerification?: EmailVerification;
 }
 
 export default class User {
@@ -23,8 +32,16 @@ export default class User {
     return this.props.email;
   }
 
-  get auth() {
-    return this.props.auth;
+  get emailVerification() {
+    return this.props.emailVerification;
+  }
+
+  get password() {
+    return this.props.password;
+  }
+
+  get passwordResets() {
+    return this.props.passwordResets;
   }
 
   updateName(name: string) {
@@ -35,7 +52,44 @@ export default class User {
     this.props.email = email;
   }
 
-  updateAuth(auth: UserAuthentication) {
-    this.props.auth = auth;
+  updatePassword(pw: Password) {
+    this.props.password = pw;
+  }
+
+  startPasswordReset(): PasswordReset {
+    const reset = PasswordReset.generate();
+    this.props.passwordResets.push(reset);
+    return reset;
+  }
+
+  async completePasswordReset(token: string, newPassword: string) {
+    if (
+      !this.props.passwordResets.some(
+        (reset) => reset.token === token && reset.checkExpiration(),
+      )
+    ) {
+      throw new InvalidPasswordResetToken();
+    }
+
+    this.props.password = await Password.create(newPassword);
+    this.props.passwordResets = [];
+  }
+
+  startEmailChange(email: string): EmailVerification {
+    const verification = EmailVerification.createForEmail(email);
+    this.props.emailVerification = verification;
+    return verification;
+  }
+
+  confirmEmailChange(token: string) {
+    if (!this.props.emailVerification?.validateToken(token)) {
+      throw new InvalidEmailVerificationToken();
+    }
+
+    this.props.email = new UserEmail({
+      status: EmailStatus.Verified,
+      address: this.props.emailVerification.email,
+    });
+    this.props.emailVerification = undefined;
   }
 }

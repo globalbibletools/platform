@@ -1,7 +1,7 @@
 import { NotFoundError } from "@/shared/errors";
 import { UserRepository } from "../data-access/types";
 import mailer, { EmailOptions } from "@/mailer";
-import UserAuthentication from "../model/UserAuthentication";
+import Password from "../model/Password";
 
 export interface UpdateProfileRequest {
   id: string;
@@ -22,9 +22,9 @@ export default class UpdateProfile {
     const emails: EmailOptions[] = [];
 
     if (request.email !== user.email.address) {
-      user.updateEmail(user.email.initiateEmailChange(request.email));
+      const verification = user.startEmailChange(request.email);
 
-      const url = `${process.env.ORIGIN}/verify-email?token=${user.email.verification?.token}`;
+      const url = `${process.env.ORIGIN}/verify-email?token=${verification.token}`;
       emails.push({
         email: request.email,
         subject: "Email Verification",
@@ -34,9 +34,7 @@ export default class UpdateProfile {
     }
 
     if (request.password) {
-      user.updateAuth(
-        await UserAuthentication.createPassword(request.password),
-      );
+      user.updatePassword(await Password.create(request.password));
 
       emails.push({
         userId: user.id,

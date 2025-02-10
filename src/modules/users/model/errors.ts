@@ -3,3 +3,15 @@ export class IncorrectPasswordError extends Error {
     super();
   }
 }
+
+export class InvalidPasswordResetToken extends Error {
+  constructor() {
+    super();
+  }
+}
+
+export class InvalidEmailVerificationToken extends Error {
+  constructor() {
+    super();
+  }
+}
