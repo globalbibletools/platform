@@ -1,12 +1,12 @@
 import "@/tests/mocks/nextjs";
 import { sendEmailMock } from "@/tests/mocks/mailer";
-import { test, expect } from "vitest";
-import { startPasswordReset } from "./startPasswordReset";
 import {
   findPasswordResets,
   initializeDatabase,
   seedDatabase,
 } from "@/tests/dbUtils";
+import { test, expect } from "vitest";
+import { startPasswordReset } from "./startPasswordReset";
 import { randomUUID } from "crypto";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
