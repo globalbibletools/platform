@@ -75,6 +75,12 @@ interface DbEmailVerification {
   expiresAt: Date;
 }
 
+interface DbPasswordReset {
+  userId: string;
+  token: string;
+  expiresAt: Date;
+}
+
 interface DatabaseSeed {
   users?: DbUser[];
   sessions?: DbSession[];
@@ -140,4 +146,17 @@ export async function findEmailVerification(
   );
 
   return result.rows[0];
+}
+
+export async function findPasswordResets(): Promise<DbPasswordReset[]> {
+  const result = await query<DbPasswordReset>(
+    `
+        select user_id as "userId", token,
+            timestamp '1970-01-01' + make_interval(0, 0, 0, 0, 0, 0, expires / 1000) as "expiresAt"
+        from reset_password_token
+    `,
+    [],
+  );
+
+  return result.rows;
 }
