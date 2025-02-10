@@ -95,6 +95,24 @@ const userRepository = {
     return dbToUser(dbModel);
   },
 
+  async findByEmailVerificationToken(token: string) {
+    const result = await query<DbUser>(
+      `
+        ${USER_SELECT}
+        where u.id = (
+            select user_id from user_email_verification
+            where token = $1
+        )
+      `,
+      [token],
+    );
+
+    const dbModel = result.rows[0];
+    if (!dbModel) return;
+
+    return dbToUser(dbModel);
+  },
+
   async commit(user: User): Promise<void> {
     await transaction(async (query) => {
       await query(

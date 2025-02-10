@@ -19,6 +19,9 @@ const mockUserRepo = {
       u.passwordResets.some((reset) => reset.token === token),
     );
   },
+  async findByEmailVerificationToken(token: string): Promise<User | undefined> {
+    return this.users.find((u) => u.emailVerification?.token === token);
+  },
 
   async commit(user: User): Promise<void> {},
 };
