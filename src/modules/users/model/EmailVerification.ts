@@ -30,7 +30,7 @@ export default class EmailVerification {
 
   static createForEmail(email: string) {
     return new EmailVerification({
-      email,
+      email: email.toLowerCase(),
       token: randomBytes(12).toString("hex"),
       expiresAt: addDays(new Date(), TOKEN_EXPIRES),
     });

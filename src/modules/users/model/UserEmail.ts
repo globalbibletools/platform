@@ -18,7 +18,7 @@ export default class UserEmail {
 
   static createForNewUser(email: string) {
     return new UserEmail({
-      address: email,
+      address: email.toLowerCase(),
       status: EmailStatus.Unverified,
     });
   }

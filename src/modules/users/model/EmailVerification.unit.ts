@@ -4,12 +4,12 @@ import { addDays } from "date-fns";
 
 describe("createForEmail", () => {
   test("generates new token with expiration date", () => {
-    const email = "test@example.com";
+    const email = "TEST@example.com";
     const verification = EmailVerification.createForEmail(email);
 
     expect(verification).toEqual(
       new EmailVerification({
-        email,
+        email: email.toLowerCase(),
         token: expect.toBeToken(24),
         expiresAt: expect.toBeDaysIntoFuture(7),
       }),

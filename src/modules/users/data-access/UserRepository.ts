@@ -68,7 +68,7 @@ const userRepository = {
         ${USER_SELECT}
         where u.email = $1
       `,
-      [email],
+      [email.toLowerCase()],
     );
 
     const dbModel = result.rows[0];

@@ -48,10 +48,6 @@ export default class User {
     this.props.name = name;
   }
 
-  updateEmail(email: UserEmail) {
-    this.props.email = email;
-  }
-
   updatePassword(pw: Password) {
     this.props.password = pw;
   }
