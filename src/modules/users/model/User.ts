@@ -90,4 +90,8 @@ export default class User {
     });
     this.props.emailVerification = undefined;
   }
+
+  rejectEmail(reason: EmailStatus) {
+    this.props.email = this.props.email.updateStatus(reason);
+  }
 }

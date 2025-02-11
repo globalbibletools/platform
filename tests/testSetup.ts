@@ -7,3 +7,4 @@ import "./matchers";
 globalThis.crypto = webcrypto;
 
 process.env.ORIGIN = "globalbibletools.com";
+process.env.LOG_LEVEL = "silent";

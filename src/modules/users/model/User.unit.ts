@@ -197,3 +197,27 @@ describe("confirmEmailChange", () => {
     ).toThrow();
   });
 });
+
+describe("rejectEmail", () => {
+  test("updates email to new status", async () => {
+    const props = {
+      id: "user-id-asdf",
+      email: new UserEmail({
+        address: "test@example.com",
+        status: EmailStatus.Verified,
+      }),
+      password: await Password.create("pa$$word"),
+      passwordResets: [],
+    };
+    const user = new User({ ...props });
+    user.rejectEmail(EmailStatus.Complained);
+    // @ts-ignore
+    expect(user.props).toEqual({
+      ...props,
+      email: new UserEmail({
+        address: props.email.address,
+        status: EmailStatus.Complained,
+      }),
+    });
+  });
+});
