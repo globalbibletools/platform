@@ -1,3 +1,1 @@
-import postEmailNotification from "@/modules/users/route-handlers/emailNotifications";
-
-export const POST = postEmailNotification;
+export { default as POST } from "@/modules/users/route-handlers/emailNotifications";

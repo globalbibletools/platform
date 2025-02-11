@@ -15,7 +15,6 @@ import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
 import { addDays } from "date-fns";
 import { cookies } from "@/tests/mocks/nextjs";
-import { query } from "@/db";
 
 initializeDatabase();
 

@@ -42,6 +42,7 @@ vi.mock("next/cache", () => {
 export const cookies = {
   set: vi.fn(),
   get: vi.fn(),
+  delete: vi.fn(),
   reset() {
     this.set.mockReset();
     this.get.mockReset();
@@ -50,6 +51,10 @@ export const cookies = {
 
 vi.mock("next/headers", async () => {
   return {
-    cookies: () => ({ get: cookies.get, set: cookies.set }),
+    cookies: () => ({
+      get: cookies.get,
+      set: cookies.set,
+      delete: cookies.delete,
+    }),
   };
 });
