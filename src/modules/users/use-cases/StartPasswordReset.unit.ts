@@ -25,6 +25,7 @@ test("sends password reset email", async () => {
     }),
     password: new Password({ hash: "asdf" }),
     passwordResets: [],
+    invitations: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];

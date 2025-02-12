@@ -4,9 +4,11 @@ import {
   InvalidEmailVerificationToken,
   InvalidPasswordResetToken,
 } from "./errors";
+import Invitation from "./Invitation";
 import Password from "./Password";
 import PasswordReset from "./PasswordReset";
 import UserEmail from "./UserEmail";
+import { ulid } from "@/shared/ulid";
 
 export interface UserProps {
   id: string;
@@ -15,10 +17,23 @@ export interface UserProps {
   password?: Password;
   passwordResets: PasswordReset[];
   emailVerification?: EmailVerification;
+  invitations: Invitation[];
 }
 
 export default class User {
   constructor(private props: UserProps) {}
+
+  static invite(email: string): { user: User; token: string } {
+    const invite = Invitation.generate();
+    const user = new User({
+      id: ulid(),
+      email: UserEmail.createForNewUser(email),
+      invitations: [invite],
+      passwordResets: [],
+    });
+
+    return { user, token: invite.token };
+  }
 
   get id() {
     return this.props.id;
@@ -42,6 +57,10 @@ export default class User {
 
   get passwordResets() {
     return this.props.passwordResets;
+  }
+
+  get invitations() {
+    return this.props.invitations;
   }
 
   updateName(name: string) {

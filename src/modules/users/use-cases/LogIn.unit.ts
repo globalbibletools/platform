@@ -30,6 +30,7 @@ test("returns error if password does not match", async () => {
     }),
     password: new Password({ hash: await new Scrypt().hash("asdf1234") }),
     passwordResets: [],
+    invitations: [],
   });
   mockUserRepo.users = [user];
 
@@ -51,6 +52,7 @@ test("returns user id if password matches", async () => {
     }),
     password: new Password({ hash: await new Scrypt().hash("pa$$word") }),
     passwordResets: [],
+    invitations: [],
   });
   mockUserRepo.users = [user];
 

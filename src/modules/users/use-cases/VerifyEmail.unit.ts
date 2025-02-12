@@ -32,6 +32,7 @@ test("verfies the email and sends message to user", async () => {
     }),
     password: new Password({ hash: "asdf" }),
     passwordResets: [],
+    invitations: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];

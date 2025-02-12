@@ -7,7 +7,7 @@ import ViewTitle from "@/components/ViewTitle";
 import { getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
 import Form from "@/components/Form";
-import { inviteUser } from "./actions";
+import { inviteUser } from "@/modules/users/actions/inviteUser";
 
 export async function generateMetadata(
   _: any,

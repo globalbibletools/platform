@@ -2,6 +2,20 @@ import { expect } from "vitest";
 import { differenceInSeconds } from "date-fns";
 
 expect.extend({
+  toBeUlid(received: any) {
+    const message = () =>
+      `${received} is ${this.isNot ? " not" : ""}a valid ulid`;
+
+    if (typeof received !== "string") {
+      return { pass: false, message };
+    }
+
+    const cleaned = received.replaceAll("-", "");
+    return {
+      pass: cleaned.length === 32,
+      message,
+    };
+  },
   toBeDaysIntoFuture(received: any, days: number) {
     const receivedDate = received && new Date(received);
     const actualDifference = differenceInSeconds(receivedDate, new Date());

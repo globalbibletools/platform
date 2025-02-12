@@ -5,6 +5,7 @@ import PasswordReset from "../model/PasswordReset";
 import EmailVerification from "../model/EmailVerification";
 import EmailStatus, { EmailStatusRaw } from "../model/EmailStatus";
 import Password from "../model/Password";
+import Invitation from "../model/Invitation";
 
 interface DbUser {
   id: string;
@@ -14,6 +15,7 @@ interface DbUser {
   hashed_password: string | null;
   password_resets: { token: string; expiresAt: Date }[] | null;
   email_verification: { email: string; token: string; expiresAt: Date } | null;
+  invititations: { token: string; expiresAt: Date }[] | null;
 }
 
 function dbToUser(dbModel: DbUser): User {
@@ -43,10 +45,26 @@ function dbToUser(dbModel: DbUser): User {
             expiresAt: new Date(reset.expiresAt),
           }),
       ) ?? [],
+    invitations:
+      dbModel.invititations?.map(
+        (invite) =>
+          new Invitation({
+            token: invite.token,
+            expiresAt: invite.expiresAt,
+          }),
+      ) ?? [],
   });
 }
 
 const userRepository = {
+  async existsByEmail(email: string): Promise<boolean> {
+    const result = await query(`select 1 from users where email = $1`, [
+      email.toLowerCase(),
+    ]);
+
+    return result.rows.length > 0;
+  },
+
   async findById(id: string) {
     const result = await query<DbUser>(
       `
@@ -134,14 +152,39 @@ const userRepository = {
         ],
       );
 
+      await query(
+        `
+            with data as (
+                select
+                    unnest($2::text[]) as token,
+                    unnest($3::bigint[]) as expires
+            ),
+            del as (
+                delete from user_invitation t
+                where user_id = $1
+                    and not exists (
+                        select 1 from data
+                        where data.token = t.token
+                    )
+            )
+            insert into user_invitation (user_id, token, expires)
+            select $1, data.token, data.expires from data
+            on conflict (token) do update set
+                expires = excluded.expires
+        `,
+        [
+          user.id,
+          user.invitations.map((reset) => reset.token),
+          user.invitations.map((reset) => reset.expiresAt.valueOf()),
+        ],
+      );
+
       if (user.emailVerification) {
         await query(
           `
             insert into user_email_verification (user_id, email, token, expires)
             values ($1, $2, $3, $4)
-            on conflict (token) do update set
-              email = excluded.email,
-              expires = excluded.expires
+            on conflict (token) do nothing
           `,
           [
             user.id,
@@ -214,6 +257,14 @@ const USER_SELECT = `
             )
             from user_email_verification
             where user_id = u.id
-        ) as email_verification
+        ) as email_verification,
+        (
+            select json_agg(json_build_object(
+                'token', token,
+                'expiresAt', timestamp '1970-01-01' + make_interval(0, 0, 0, 0, 0, 0, expires / 1000)
+            ))
+            from user_invitation
+            where user_id = u.id
+        ) as invitations
     from users u
 `;

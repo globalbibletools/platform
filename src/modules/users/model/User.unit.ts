@@ -8,8 +8,33 @@ import { Scrypt } from "oslo/password";
 import { InvalidPasswordResetToken } from "./errors";
 import EmailVerification from "./EmailVerification";
 import { addDays } from "date-fns";
+import Invitation from "./Invitation";
 
 const scrypt = new Scrypt();
+
+describe("invite", () => {
+  test("creates new user with an invite", () => {
+    const email = "TEST@example.com";
+    const { user, token } = User.invite(email);
+    expect(token).toBeToken(24);
+    expect(user).toEqual(
+      new User({
+        id: expect.toBeUlid(),
+        email: new UserEmail({
+          address: email.toLowerCase(),
+          status: EmailStatus.Unverified,
+        }),
+        invitations: [
+          new Invitation({
+            token,
+            expiresAt: expect.toBeDaysIntoFuture(7),
+          }),
+        ],
+        passwordResets: [],
+      }),
+    );
+  });
+});
 
 describe("startPasswordReset", () => {
   test("returns token with new reset", async () => {
@@ -21,6 +46,7 @@ describe("startPasswordReset", () => {
       }),
       password: await Password.create("pa$$word"),
       passwordResets: [],
+      invitations: [],
     };
     const user = new User({ ...props });
     const reset = user.startPasswordReset();
@@ -49,6 +75,7 @@ describe("completePasswordReset", () => {
       }),
       password: await Password.create("pa$$word"),
       passwordResets: [],
+      invitations: [],
     };
     const user = new User({ ...props });
     await expect(
@@ -65,6 +92,7 @@ describe("completePasswordReset", () => {
       }),
       password: await Password.create("pa$$word"),
       passwordResets: [PasswordReset.generate(), PasswordReset.generate()],
+      invitations: [],
     };
     const user = new User({ ...props });
     const newPassword = "pa$$word";
@@ -79,6 +107,7 @@ describe("completePasswordReset", () => {
           hash: expect.any(String),
         }),
         passwordResets: [],
+        invitations: [],
       }),
     );
     await expect(
@@ -97,6 +126,7 @@ describe("startEmailChange", () => {
       }),
       password: await Password.create("pa$$word"),
       passwordResets: [],
+      invitations: [],
     };
     const user = new User({ ...props });
     const newAddress = "new@example.com";
@@ -129,6 +159,7 @@ describe("confirmEmailChange", () => {
         token: "asdf",
         expiresAt: addDays(new Date(), 2),
       }),
+      invitations: [],
     };
     const user = new User({ ...props });
     user.confirmEmailChange(props.emailVerification.token);
@@ -152,6 +183,7 @@ describe("confirmEmailChange", () => {
       }),
       password: await Password.create("pa$$word"),
       passwordResets: [],
+      invitations: [],
     };
     const user = new User({ ...props });
     expect(() => user.confirmEmailChange("asdf")).toThrow();
@@ -171,6 +203,7 @@ describe("confirmEmailChange", () => {
         token: "asdf",
         expiresAt: addDays(new Date(), 2),
       }),
+      invitations: [],
     };
     const user = new User({ ...props });
     expect(() => user.confirmEmailChange("garbage")).toThrow();
@@ -190,6 +223,7 @@ describe("confirmEmailChange", () => {
         token: "asdf",
         expiresAt: addDays(new Date(), -1),
       }),
+      invitations: [],
     };
     const user = new User({ ...props });
     expect(() =>
@@ -208,6 +242,7 @@ describe("rejectEmail", () => {
       }),
       password: await Password.create("pa$$word"),
       passwordResets: [],
+      invitations: [],
     };
     const user = new User({ ...props });
     user.rejectEmail(EmailStatus.Complained);

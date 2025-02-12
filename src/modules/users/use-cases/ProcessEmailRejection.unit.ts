@@ -26,6 +26,7 @@ test("marks user's email as bounced", async () => {
     }),
     password: new Password({ hash: "asdf" }),
     passwordResets: [PasswordReset.generate()],
+    invitations: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];

@@ -33,6 +33,7 @@ test("updates name for the user", async () => {
     }),
     password: new Password({ hash: await new Scrypt().hash("asdf1234") }),
     passwordResets: [],
+    invitations: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];
@@ -63,6 +64,7 @@ test("updates email for the user if it changes", async () => {
     }),
     password: new Password({ hash: await new Scrypt().hash("asdf1234") }),
     passwordResets: [],
+    invitations: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];
@@ -108,6 +110,7 @@ test("updates password for the user if it changes", async () => {
     }),
     password: new Password({ hash: await new Scrypt().hash("asdf1234") }),
     passwordResets: [],
+    invitations: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];

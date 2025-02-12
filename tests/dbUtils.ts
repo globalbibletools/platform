@@ -62,6 +62,17 @@ interface DbUser {
   status: UserStatusRaw;
 }
 
+interface DbSystemRole {
+  userId: string;
+  role: string;
+}
+
+interface DbInvitation {
+  userId: string;
+  token: string;
+  expiresAt: Date;
+}
+
 interface DbSession {
   id: string;
   userId: string;
@@ -83,6 +94,7 @@ interface DbPasswordReset {
 
 interface DatabaseSeed {
   users?: DbUser[];
+  systemRoles?: DbSystemRole[];
   sessions?: DbSession[];
   passwordResets?: DbPasswordReset[];
 }
@@ -101,6 +113,19 @@ export async function seedDatabase(seed: DatabaseSeed) {
         seed.users.map((user) => user.email),
         seed.users.map((user) => user.emailStatus),
         seed.users.map((user) => user.status),
+      ],
+    );
+  }
+
+  if (seed.systemRoles) {
+    await query(
+      `
+        insert into user_system_role (user_id, role)
+        select unnest($1::uuid[]), unnest($2::system_role[])
+      `,
+      [
+        seed.systemRoles.map((r) => r.userId),
+        seed.systemRoles.map((r) => r.role),
       ],
     );
   }
@@ -152,6 +177,19 @@ export async function findUsers(): Promise<DbUser[]> {
     `
         select id, name, hashed_password as "hashedPassword", email, email_status as "emailStatus", status
         from users
+    `,
+    [],
+  );
+
+  return result.rows;
+}
+
+export async function findInvitations(): Promise<DbInvitation[]> {
+  const result = await query<DbInvitation>(
+    `
+        select user_id as "userId", token,
+            timestamp '1970-01-01' + make_interval(0, 0, 0, 0, 0, 0, expires / 1000) as "expiresAt"
+        from user_invitation
     `,
     [],
   );

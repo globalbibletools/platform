@@ -15,3 +15,9 @@ export class InvalidEmailVerificationToken extends Error {
     super();
   }
 }
+
+export class EmailAlreadyUsedError extends Error {
+  constructor(public email: string) {
+    super();
+  }
+}
