@@ -5,7 +5,10 @@ import EmailStatus from "./EmailStatus";
 import User from "./User";
 import PasswordReset from "./PasswordReset";
 import { Scrypt } from "oslo/password";
-import { InvalidPasswordResetToken } from "./errors";
+import {
+  InvalidInvitationTokenError,
+  InvalidPasswordResetToken,
+} from "./errors";
 import EmailVerification from "./EmailVerification";
 import { addDays } from "date-fns";
 import Invitation from "./Invitation";
@@ -31,6 +34,95 @@ describe("invite", () => {
           }),
         ],
         passwordResets: [],
+      }),
+    );
+  });
+});
+
+describe("acceptInvite", () => {
+  test("throws error if invite does not exist", async () => {
+    const props = {
+      id: "user-id-asdf",
+      email: new UserEmail({
+        address: "test@example.com",
+        status: EmailStatus.Unverified,
+      }),
+      passwordResets: [],
+      invitations: [],
+    };
+    const user = new User({ ...props });
+    const result = user.acceptInvite({
+      token: "asdf",
+      firstName: "First",
+      lastName: "Last",
+      password: "pa$$word",
+    });
+    await expect(result).rejects.toThrow(new InvalidInvitationTokenError());
+
+    expect(user).toEqual(new User(props));
+  });
+
+  test("throws error if invite is expired", async () => {
+    const props = {
+      id: "user-id-asdf",
+      email: new UserEmail({
+        address: "test@example.com",
+        status: EmailStatus.Unverified,
+      }),
+      passwordResets: [],
+      invitations: [
+        new Invitation({
+          token: "token-asdf",
+          expiresAt: addDays(new Date(), -1),
+        }),
+      ],
+    };
+    const user = new User({ ...props });
+    const result = user.acceptInvite({
+      token: props.invitations[0].token,
+      firstName: "First",
+      lastName: "Last",
+      password: "pa$$word",
+    });
+    await expect(result).rejects.toThrow(new InvalidInvitationTokenError());
+
+    expect(user).toEqual(new User(props));
+  });
+
+  test("converts user to an active user", async () => {
+    const props = {
+      id: "user-id-asdf",
+      email: new UserEmail({
+        address: "test@example.com",
+        status: EmailStatus.Unverified,
+      }),
+      passwordResets: [],
+      invitations: [
+        new Invitation({
+          token: "token-asdf",
+          expiresAt: addDays(new Date(), 1),
+        }),
+      ],
+    };
+    const user = new User({ ...props });
+    const request = {
+      token: props.invitations[0].token,
+      firstName: "First",
+      lastName: "Last",
+      password: "pa$$word",
+    };
+    await user.acceptInvite(request);
+
+    expect(user).toEqual(
+      new User({
+        ...props,
+        name: `${request.firstName} ${request.lastName}`,
+        password: new Password({ hash: expect.any(String) }),
+        email: new UserEmail({
+          address: user.email.address,
+          status: EmailStatus.Verified,
+        }),
+        invitations: [],
       }),
     );
   });

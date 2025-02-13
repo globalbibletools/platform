@@ -16,6 +16,12 @@ export class InvalidEmailVerificationToken extends Error {
   }
 }
 
+export class InvalidInvitationTokenError extends Error {
+  constructor() {
+    super();
+  }
+}
+
 export class EmailAlreadyUsedError extends Error {
   constructor(public email: string) {
     super();

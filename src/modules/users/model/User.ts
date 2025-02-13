@@ -2,6 +2,7 @@ import EmailStatus from "./EmailStatus";
 import EmailVerification from "./EmailVerification";
 import {
   InvalidEmailVerificationToken,
+  InvalidInvitationTokenError,
   InvalidPasswordResetToken,
 } from "./errors";
 import Invitation from "./Invitation";
@@ -18,6 +19,13 @@ export interface UserProps {
   passwordResets: PasswordReset[];
   emailVerification?: EmailVerification;
   invitations: Invitation[];
+}
+
+export interface AcceptInviteOptions {
+  token: string;
+  firstName: string;
+  lastName: string;
+  password: string;
 }
 
 export default class User {
@@ -69,6 +77,21 @@ export default class User {
 
   updatePassword(pw: Password) {
     this.props.password = pw;
+  }
+
+  async acceptInvite(options: AcceptInviteOptions): Promise<void> {
+    if (
+      !this.props.invitations.some((invite) =>
+        invite.validateToken(options.token),
+      )
+    ) {
+      throw new InvalidInvitationTokenError();
+    }
+
+    this.props.name = `${options.firstName} ${options.lastName}`;
+    this.props.password = await Password.create(options.password);
+    this.props.invitations = [];
+    this.props.email = this.props.email.updateStatus(EmailStatus.Verified);
   }
 
   startPasswordReset(): PasswordReset {

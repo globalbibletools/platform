@@ -1,29 +1,30 @@
 "use server";
 
 import * as z from "zod";
-import { getTranslations, getLocale } from "next-intl/server";
-import { Scrypt } from "oslo/password";
+import { getTranslations } from "next-intl/server";
 import { createSession } from "@/session";
 import { notFound, redirect } from "next/navigation";
-import { transaction } from "@/db";
 import { parseForm } from "@/form-parser";
 import { FormState } from "@/components/Form";
 import homeRedirect from "@/home-redirect";
 import { serverActionLogger } from "@/server-action";
-
-const scrypt = new Scrypt();
+import AcceptInvite from "../use-cases/AcceptInvite";
+import userRepository from "../data-access/UserRepository";
+import { InvalidInvitationTokenError } from "../model/errors";
 
 const loginSchema = z
   .object({
     token: z.string(),
     first_name: z.string().min(1),
     last_name: z.string().min(1),
-    password: z.string().min(1),
+    password: z.string().min(8),
     confirm_password: z.string().min(1),
   })
   .refine((data) => data.password === data.confirm_password, {
     path: ["confirm_password"],
   });
+
+const acceptInviteUseCase = new AcceptInvite(userRepository);
 
 export async function acceptInvite(
   prevState: FormState,
@@ -32,17 +33,10 @@ export async function acceptInvite(
   const logger = serverActionLogger("acceptInvite");
 
   const t = await getTranslations("AcceptInvitePage");
-  const locale = await getLocale();
 
   const request = loginSchema.safeParse(parseForm(formData), {
     errorMap: (error) => {
-      if (error.path.toString() === "email") {
-        if (error.code === "invalid_string") {
-          return { message: t("errors.email_format") };
-        } else {
-          return { message: t("errors.email_required") };
-        }
-      } else if (error.path.toString() === "password") {
+      if (error.path.toString() === "password") {
         if (error.code === "too_small") {
           return { message: t("errors.password_format") };
         } else {
@@ -71,32 +65,22 @@ export async function acceptInvite(
     };
   }
 
-  const userId = await transaction(async (query) => {
-    const updatedUserQuery = await query<{ id: string }>(
-      `UPDATE users AS u
-                SET name = $2,
-                    hashed_password = $3,
-                    email_status = 'VERIFIED'
-            WHERE u.id = (SELECT user_id FROM user_invitation WHERE token = $1)
-            RETURNING id
-            `,
-      [
-        request.data.token,
-        `${request.data.first_name} ${request.data.last_name}`,
-        await scrypt.hash(request.data.password),
-      ],
-    );
-
-    const userId = updatedUserQuery.rows[0]?.id;
-    if (!userId) {
-      logger.error("user does not exist");
+  let userId;
+  try {
+    const result = await acceptInviteUseCase.execute({
+      token: request.data.token,
+      firstName: request.data.first_name,
+      lastName: request.data.last_name,
+      password: request.data.password,
+    });
+    userId = result.userId;
+  } catch (error) {
+    if (error instanceof InvalidInvitationTokenError) {
       notFound();
+    } else {
+      throw error;
     }
-
-    await query(`DELETE FROM user_invitation WHERE user_id = $1`, [userId]);
-
-    return userId;
-  });
+  }
 
   await createSession(userId);
   redirect(await homeRedirect());

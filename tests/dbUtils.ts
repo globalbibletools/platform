@@ -97,6 +97,7 @@ interface DatabaseSeed {
   systemRoles?: DbSystemRole[];
   sessions?: DbSession[];
   passwordResets?: DbPasswordReset[];
+  invitations?: DbInvitation[];
 }
 
 export async function seedDatabase(seed: DatabaseSeed) {
@@ -154,6 +155,20 @@ export async function seedDatabase(seed: DatabaseSeed) {
         seed.passwordResets.map((reset) => reset.userId),
         seed.passwordResets.map((reset) => reset.token),
         seed.passwordResets.map((reset) => reset.expiresAt.valueOf()),
+      ],
+    );
+  }
+
+  if (seed.invitations) {
+    await query(
+      `
+            insert into user_invitation (user_id, token, expires)
+            select unnest($1::uuid[]), unnest($2::text[]), unnest($3::bigint[])
+          `,
+      [
+        seed.invitations.map((reset) => reset.userId),
+        seed.invitations.map((reset) => reset.token),
+        seed.invitations.map((reset) => reset.expiresAt.valueOf()),
       ],
     );
   }

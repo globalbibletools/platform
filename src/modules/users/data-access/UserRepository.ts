@@ -15,7 +15,7 @@ interface DbUser {
   hashed_password: string | null;
   password_resets: { token: string; expiresAt: Date }[] | null;
   email_verification: { email: string; token: string; expiresAt: Date } | null;
-  invititations: { token: string; expiresAt: Date }[] | null;
+  invitations: { token: string; expiresAt: Date }[] | null;
 }
 
 function dbToUser(dbModel: DbUser): User {
@@ -46,11 +46,11 @@ function dbToUser(dbModel: DbUser): User {
           }),
       ) ?? [],
     invitations:
-      dbModel.invititations?.map(
+      dbModel.invitations?.map(
         (invite) =>
           new Invitation({
             token: invite.token,
-            expiresAt: invite.expiresAt,
+            expiresAt: new Date(invite.expiresAt),
           }),
       ) ?? [],
   });
@@ -87,6 +87,24 @@ const userRepository = {
         where u.email = $1
       `,
       [email.toLowerCase()],
+    );
+
+    const dbModel = result.rows[0];
+    if (!dbModel) return;
+
+    return dbToUser(dbModel);
+  },
+
+  async findByInvitationToken(token: string) {
+    const result = await query<DbUser>(
+      `
+        ${USER_SELECT}
+        where u.id = (
+            select user_id from user_invitation
+            where token = $1
+        )
+      `,
+      [token],
     );
 
     const dbModel = result.rows[0];

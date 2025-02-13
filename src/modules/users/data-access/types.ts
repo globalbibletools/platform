@@ -7,5 +7,6 @@ export interface UserRepository {
   findByEmail(email: string): Promise<User | undefined>;
   findByResetPasswordToken(token: string): Promise<User | undefined>;
   findByEmailVerificationToken(token: string): Promise<User | undefined>;
+  findByInvitationToken(token: string): Promise<User | undefined>;
   commit(user: User): Promise<void>;
 }

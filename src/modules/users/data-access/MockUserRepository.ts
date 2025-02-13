@@ -26,6 +26,11 @@ const mockUserRepo = {
   async findByEmailVerificationToken(token: string): Promise<User | undefined> {
     return this.users.find((u) => u.emailVerification?.token === token);
   },
+  async findByInvitationToken(token: string): Promise<User | undefined> {
+    return this.users.find((u) =>
+      u.invitations.some((invite) => invite?.token === token),
+    );
+  },
 
   async commit(user: User): Promise<void> {
     if (this.users.includes(user)) return;

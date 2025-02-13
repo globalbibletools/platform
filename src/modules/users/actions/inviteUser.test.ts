@@ -1,14 +1,11 @@
 import { cookies } from "@/tests/mocks/nextjs";
 import { sendEmailMock } from "@/tests/mocks/mailer";
 import { test, expect } from "vitest";
-import { randomUUID } from "crypto";
 import { Scrypt } from "oslo/password";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
 import {
-  findEmailVerification,
   findInvitations,
-  findUser,
   findUsers,
   initializeDatabase,
   seedDatabase,
