@@ -92,12 +92,19 @@ interface DbPasswordReset {
   expiresAt: Date;
 }
 
+interface DbLanguage {
+  id: string;
+  code: string;
+  name: string;
+}
+
 interface DatabaseSeed {
   users?: DbUser[];
   systemRoles?: DbSystemRole[];
   sessions?: DbSession[];
   passwordResets?: DbPasswordReset[];
   invitations?: DbInvitation[];
+  languages?: DbLanguage[];
 }
 
 export async function seedDatabase(seed: DatabaseSeed) {
@@ -148,9 +155,9 @@ export async function seedDatabase(seed: DatabaseSeed) {
   if (seed.passwordResets) {
     await query(
       `
-            insert into reset_password_token (user_id, token, expires)
-            select unnest($1::uuid[]), unnest($2::text[]), unnest($3::bigint[])
-          `,
+        insert into reset_password_token (user_id, token, expires)
+        select unnest($1::uuid[]), unnest($2::text[]), unnest($3::bigint[])
+      `,
       [
         seed.passwordResets.map((reset) => reset.userId),
         seed.passwordResets.map((reset) => reset.token),
@@ -162,13 +169,27 @@ export async function seedDatabase(seed: DatabaseSeed) {
   if (seed.invitations) {
     await query(
       `
-            insert into user_invitation (user_id, token, expires)
-            select unnest($1::uuid[]), unnest($2::text[]), unnest($3::bigint[])
-          `,
+        insert into user_invitation (user_id, token, expires)
+        select unnest($1::uuid[]), unnest($2::text[]), unnest($3::bigint[])
+      `,
       [
         seed.invitations.map((reset) => reset.userId),
         seed.invitations.map((reset) => reset.token),
         seed.invitations.map((reset) => reset.expiresAt.valueOf()),
+      ],
+    );
+  }
+
+  if (seed.languages) {
+    await query(
+      `
+        insert into language (id, code, name)
+        select unnest($1::uuid[]), unnest($2::text[]), unnest($3::text[])
+      `,
+      [
+        seed.languages.map((lang) => lang.id),
+        seed.languages.map((lang) => lang.code),
+        seed.languages.map((lang) => lang.name),
       ],
     );
   }
@@ -250,5 +271,16 @@ export async function findPasswordResets(): Promise<DbPasswordReset[]> {
     [],
   );
 
+  return result.rows;
+}
+
+export async function findLanguages(): Promise<DbLanguage[]> {
+  const result = await query<DbLanguage>(
+    `
+        select id, code, name
+        from language
+    `,
+    [],
+  );
   return result.rows;
 }

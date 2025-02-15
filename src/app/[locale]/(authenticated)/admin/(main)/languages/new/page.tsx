@@ -6,7 +6,7 @@ import FieldError from "@/components/FieldError";
 import ViewTitle from "@/components/ViewTitle";
 import { getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
-import { createLanguage } from "./actions";
+import { createLanguage } from "@/modules/languages/actions/createLanguage";
 import Form from "@/components/Form";
 
 export async function generateMetadata(

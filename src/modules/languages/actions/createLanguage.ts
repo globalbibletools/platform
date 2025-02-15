@@ -3,15 +3,19 @@
 import * as z from "zod";
 import { getTranslations, getLocale } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
-import { query } from "@/db";
 import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
+import CreateLanguage from "../use-cases/CreateLanguage";
+import { LanguageAlreadyExistsError } from "../model";
+import languageRepository from "../data-access/LanguageRepository";
 
 const requestSchema = z.object({
   code: z.string().length(3),
   name: z.string().min(1),
 });
+
+const createLanguageUseCase = new CreateLanguage(languageRepository);
 
 export async function createLanguage(
   _prevState: FormState,
@@ -53,21 +57,19 @@ export async function createLanguage(
     };
   }
 
-  const existsQuery = await query(`SELECT FROM language WHERE code = $1`, [
-    request.data.code,
-  ]);
-  if (existsQuery.rows.length > 0) {
-    logger.error("language already exists");
-    return {
-      state: "error",
-      error: t("errors.language_exists"),
-    };
+  try {
+    await createLanguageUseCase.execute(request.data);
+  } catch (error) {
+    if (error instanceof LanguageAlreadyExistsError) {
+      logger.error("language already exists");
+      return {
+        state: "error",
+        error: t("errors.language_exists"),
+      };
+    } else {
+      throw error;
+    }
   }
-
-  await query(`INSERT INTO language (code, name) VALUES ($1, $2)`, [
-    request.data.code,
-    request.data.name,
-  ]);
 
   redirect(`/${locale}/admin/languages/${request.data.code}/settings`);
 }
