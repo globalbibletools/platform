@@ -4,6 +4,7 @@ import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
 import { UserStatusRaw } from "@/modules/users/model/UserStatus";
 import { Client } from "pg";
 import { afterAll, beforeAll, beforeEach } from "vitest";
+import { TextDirectionRaw } from "@/modules/languages/model";
 
 // We have to hoist this so the database url env var is available when "@/db" is imported
 const { DATABASE_NAME, DATABASE_URL } = vi.hoisted(() => {
@@ -96,6 +97,9 @@ interface DbLanguage {
   id: string;
   code: string;
   name: string;
+  font: string;
+  textDirection: TextDirectionRaw;
+  translationIds: string[];
 }
 
 interface DatabaseSeed {
@@ -109,90 +113,111 @@ interface DatabaseSeed {
 
 export async function seedDatabase(seed: DatabaseSeed) {
   if (seed.users) {
-    await query(
-      `
-        insert into users (id, name, hashed_password, email, email_status, status)
-        select unnest($1::uuid[]), unnest($2::text[]), unnest($3::text[]), unnest($4::text[]), unnest($5::email_status[]), unnest($6::user_status[])
-      `,
-      [
-        seed.users.map((user) => user.id),
-        seed.users.map((user) => user.name),
-        seed.users.map((user) => user.hashedPassword),
-        seed.users.map((user) => user.email),
-        seed.users.map((user) => user.emailStatus),
-        seed.users.map((user) => user.status),
-      ],
-    );
+    for (const user of seed.users) {
+      await insertUser(user);
+    }
   }
-
   if (seed.systemRoles) {
-    await query(
-      `
-        insert into user_system_role (user_id, role)
-        select unnest($1::uuid[]), unnest($2::system_role[])
-      `,
-      [
-        seed.systemRoles.map((r) => r.userId),
-        seed.systemRoles.map((r) => r.role),
-      ],
-    );
+    for (const role of seed.systemRoles) {
+      await insertSystemRole(role);
+    }
   }
-
   if (seed.sessions) {
-    await query(
-      `
-        insert into session (id, user_id, expires_at)
-        select unnest($1::uuid[]), unnest($2::uuid[]), unnest($3::timestamp[])
-      `,
-      [
-        seed.sessions.map((session) => session.id),
-        seed.sessions.map((session) => session.userId),
-        seed.sessions.map((session) => session.expiresAt),
-      ],
-    );
+    for (const session of seed.sessions) {
+      await insertSession(session);
+    }
   }
-
   if (seed.passwordResets) {
-    await query(
-      `
-        insert into reset_password_token (user_id, token, expires)
-        select unnest($1::uuid[]), unnest($2::text[]), unnest($3::bigint[])
-      `,
-      [
-        seed.passwordResets.map((reset) => reset.userId),
-        seed.passwordResets.map((reset) => reset.token),
-        seed.passwordResets.map((reset) => reset.expiresAt.valueOf()),
-      ],
-    );
+    for (const reset of seed.passwordResets) {
+      await insertPasswordReset(reset);
+    }
   }
-
   if (seed.invitations) {
-    await query(
-      `
-        insert into user_invitation (user_id, token, expires)
-        select unnest($1::uuid[]), unnest($2::text[]), unnest($3::bigint[])
-      `,
-      [
-        seed.invitations.map((reset) => reset.userId),
-        seed.invitations.map((reset) => reset.token),
-        seed.invitations.map((reset) => reset.expiresAt.valueOf()),
-      ],
-    );
+    for (const invite of seed.invitations) {
+      await insertInvitation(invite);
+    }
   }
-
   if (seed.languages) {
-    await query(
-      `
-        insert into language (id, code, name)
-        select unnest($1::uuid[]), unnest($2::text[]), unnest($3::text[])
-      `,
-      [
-        seed.languages.map((lang) => lang.id),
-        seed.languages.map((lang) => lang.code),
-        seed.languages.map((lang) => lang.name),
-      ],
-    );
+    for (const language of seed.languages) {
+      await insertLanguage(language);
+    }
   }
+}
+
+export async function insertUser(user: DbUser): Promise<void> {
+  await query(
+    `
+      insert into users (id, name, hashed_password, email, email_status, status)
+      values ($1, $2, $3, $4, $5, $6)
+    `,
+    [
+      user.id,
+      user.name,
+      user.hashedPassword,
+      user.email,
+      user.emailStatus,
+      user.status,
+    ],
+  );
+}
+
+export async function insertSystemRole(role: DbSystemRole): Promise<void> {
+  await query(
+    `
+      insert into user_system_role (user_id, role)
+      values ($1, $2)
+    `,
+    [role.userId, role.role],
+  );
+}
+
+export async function insertSession(session: DbSession): Promise<void> {
+  await query(
+    `
+      insert into session (id, user_id, expires_at)
+      values ($1, $2, $3)
+    `,
+    [session.id, session.userId, session.expiresAt],
+  );
+}
+
+export async function insertPasswordReset(
+  reset: DbPasswordReset,
+): Promise<void> {
+  await query(
+    `
+      insert into reset_password_token (user_id, token, expires)
+      values ($1, $2, $3)
+    `,
+    [reset.userId, reset.token, reset.expiresAt.valueOf()],
+  );
+}
+
+export async function insertInvitation(invite: DbInvitation): Promise<void> {
+  await query(
+    `
+        insert into user_invitation (user_id, token, expires)
+        values ($1, $2, $3)
+      `,
+    [invite.userId, invite.token, invite.expiresAt.valueOf()],
+  );
+}
+
+export async function insertLanguage(lang: DbLanguage): Promise<void> {
+  await query(
+    `
+        insert into language (id, code, name, font, text_direction, translation_ids)
+        values ($1, $2, $3, $4, $5, $6)
+      `,
+    [
+      lang.id,
+      lang.code,
+      lang.name,
+      lang.font,
+      lang.textDirection,
+      lang.translationIds,
+    ],
+  );
 }
 
 export async function findUser(id: string): Promise<DbUser | undefined> {
@@ -277,7 +302,7 @@ export async function findPasswordResets(): Promise<DbPasswordReset[]> {
 export async function findLanguages(): Promise<DbLanguage[]> {
   const result = await query<DbLanguage>(
     `
-        select id, code, name
+        select id, code, name, font, text_direction as "textDirection", translation_ids as "translationIds"
         from language
     `,
     [],
