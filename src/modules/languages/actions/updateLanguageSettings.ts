@@ -7,14 +7,22 @@ import { query } from "@/db";
 import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
+import UpdateLanguageSettings from "../use-cases/UpdateLanguageSettings";
+import languageRepository from "../data-access/LanguageRepository";
+import { TextDirectionRaw } from "../model";
+import { NotFoundError } from "@/shared/errors";
 
 const requestSchema = z.object({
   code: z.string(),
   name: z.string().min(1),
   font: z.string().min(1),
-  textDirection: z.string(),
-  bibleTranslationIds: z.array(z.string()).optional(),
+  textDirection: z.nativeEnum(TextDirectionRaw),
+  translationIds: z.array(z.string()).optional(),
 });
+
+const updateLanguageSettingsUseCase = new UpdateLanguageSettings(
+  languageRepository,
+);
 
 export async function updateLanguageSettings(
   _prevState: FormState,
@@ -36,7 +44,7 @@ export async function updateLanguageSettings(
       name: formData.get("name"),
       font: formData.get("font"),
       textDirection: formData.get("text_direction"),
-      bibleTranslationIds: formData
+      translationIds: formData
         .get("bible_translations")
         ?.toString()
         .split(",")
@@ -82,21 +90,18 @@ export async function updateLanguageSettings(
     notFound();
   }
 
-  await query(
-    `UPDATE language
-            SET name = $2,
-                font = $3,
-                text_direction = $4,
-                translation_ids = $5::text[]
-        WHERE code = $1`,
-    [
-      request.data.code,
-      request.data.name,
-      request.data.font,
-      request.data.textDirection,
-      request.data.bibleTranslationIds ?? [],
-    ],
-  );
+  try {
+    await updateLanguageSettingsUseCase.execute({
+      ...request.data,
+      translationIds: request.data.translationIds ?? [],
+    });
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      notFound();
+    } else {
+      throw error;
+    }
+  }
 
   return { state: "success" };
 }

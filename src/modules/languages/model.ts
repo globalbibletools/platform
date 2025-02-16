@@ -1,6 +1,6 @@
 export enum TextDirectionRaw {
-  LTR = "LTR",
-  RTL = "RTL",
+  LTR = "ltr",
+  RTL = "rtl",
 }
 
 export enum LanguageMemberRoleRaw {
@@ -12,9 +12,9 @@ export interface Language {
   id: string;
   name: string;
   code: string;
-  // font?: string;
-  // textDirection: TextDirectionRaw;
-  // bibleTranslationIds: string[];
+  font?: string;
+  textDirection: TextDirectionRaw;
+  translationIds: string[];
 }
 
 export interface LanguageMember {

@@ -1,6 +1,6 @@
 import { ulid } from "@/shared/ulid";
 import { LanguageRepository } from "../data-access/types";
-import { LanguageAlreadyExistsError } from "../model";
+import { LanguageAlreadyExistsError, TextDirectionRaw } from "../model";
 
 export interface CreateLanguageRequest {
   code: string;
@@ -18,7 +18,11 @@ export default class CreateLanguage {
 
     await this.languageRepo.create({
       id: ulid(),
-      ...request,
+      code: request.code,
+      name: request.name,
+      font: "Noto Sans",
+      textDirection: TextDirectionRaw.LTR,
+      translationIds: [],
     });
   }
 }

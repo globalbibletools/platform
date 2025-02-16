@@ -302,7 +302,9 @@ export async function findPasswordResets(): Promise<DbPasswordReset[]> {
 export async function findLanguages(): Promise<DbLanguage[]> {
   const result = await query<DbLanguage>(
     `
-        select id, code, name, font, text_direction as "textDirection", translation_ids as "translationIds"
+        select id, code, name, font,
+          text_direction as "textDirection",
+          coalesce(translation_ids, '{}') as "translationIds"
         from language
     `,
     [],

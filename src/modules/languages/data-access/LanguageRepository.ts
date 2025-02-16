@@ -19,5 +19,25 @@ const languageRepository = {
       [language.id, language.code, language.name],
     );
   },
+
+  async update(language: Omit<Language, "id">): Promise<void> {
+    await query(
+      `
+        update language set
+          name = $2,
+          font = $3,
+          text_direction = $4,
+          translation_ids = $5::text[]
+        where code = $1
+      `,
+      [
+        language.code,
+        language.name,
+        language.font,
+        language.textDirection,
+        language.translationIds,
+      ],
+    );
+  },
 };
 export default languageRepository;

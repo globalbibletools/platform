@@ -16,7 +16,7 @@ import { BibleClient } from "@gracious.tech/fetch-client";
 import SavingIndicator from "./SavingIndicator";
 import { Metadata, ResolvingMetadata } from "next";
 import { fontMap } from "@/fonts";
-import { updateLanguageSettings } from "./actions";
+import { updateLanguageSettings } from "@/modules/languages/actions/updateLanguageSettings";
 import Form from "@/components/Form";
 
 interface LanguageSettingsPageProps {

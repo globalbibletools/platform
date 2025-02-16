@@ -2,7 +2,7 @@ import { ulid } from "@/shared/ulid";
 import mockLanguageRepo from "../data-access/MockLanguageRepository";
 import CreateLanguage from "./CreateLanguage";
 import { test, expect } from "vitest";
-import { LanguageAlreadyExistsError } from "../model";
+import { LanguageAlreadyExistsError, TextDirectionRaw } from "../model";
 
 const createLanguage = new CreateLanguage(mockLanguageRepo);
 
@@ -11,6 +11,9 @@ test("throws error if language already exists with the same code", async () => {
     id: ulid(),
     code: "spa",
     name: "Spanish",
+    font: "Noto Sans",
+    textDirection: TextDirectionRaw.LTR,
+    translationIds: [],
   };
   mockLanguageRepo.languages = [existingLanguage];
 
@@ -33,6 +36,9 @@ test("creates new language", async () => {
     {
       ...request,
       id: expect.toBeUlid(),
+      font: "Noto Sans",
+      textDirection: TextDirectionRaw.LTR,
+      translationIds: [],
     },
   ]);
 });
