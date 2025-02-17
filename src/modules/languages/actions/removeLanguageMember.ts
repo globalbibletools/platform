@@ -2,25 +2,33 @@
 
 import * as z from "zod";
 import { getLocale, getTranslations } from "next-intl/server";
-import { query, transaction } from "@/db";
+import { query } from "@/db";
 import { parseForm } from "@/form-parser";
 import { revalidatePath } from "next/cache";
 import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
+import RemoveLanguageMember from "../use-cases/RemoveLanguageMember";
+import languageRepository from "../data-access/LanguageRepository";
+import languageMemberRepository from "../data-access/LanguageMemberRepository";
+import { NotFoundError } from "@/shared/errors";
 
-const changeUserRequestSchema = z.object({
+const requestSchema = z.object({
   code: z.string(),
   userId: z.string(),
-  roles: z.array(z.string()).optional().default([]),
 });
 
-export async function changeUserLanguageRole(
+const removeLanguageMemberUseCase = new RemoveLanguageMember(
+  languageRepository,
+  languageMemberRepository,
+);
+
+export async function removeLanguageMember(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const logger = serverActionLogger("changeUserLanguageRole");
+  const logger = serverActionLogger("removeLanguageUser");
 
   const t = await getTranslations("AdminUsersPage");
 
@@ -30,9 +38,9 @@ export async function changeUserLanguageRole(
     notFound();
   }
 
-  const request = changeUserRequestSchema.safeParse(parseForm(formData));
+  const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
-    logger.error("request parser error");
+    logger.error("request parse error");
     return {
       state: "error",
       error: t("errors.invalid_request"),
@@ -57,37 +65,18 @@ export async function changeUserLanguageRole(
     notFound();
   }
 
-  const usersQuery = await query<{ id: string }>(
-    `SELECT id FROM users WHERE id = $1 AND status <> 'disabled'`,
-    [request.data.userId],
-  );
-  if (usersQuery.rows.length === 0) {
-    logger.error("user not found");
-    notFound();
-  }
-
-  await transaction(async (query) => {
-    await query(
-      `DELETE FROM language_member_role AS r
-            WHERE r.language_id = (SELECT id FROM language WHERE code = $1) AND r.user_id = $2 AND r.role != 'VIEWER' AND r.role != ALL($3::language_role[])`,
-      [request.data.code, request.data.userId, request.data.roles],
-    );
-
-    if (request.data.roles && request.data.roles.length > 0) {
-      await query(
-        `
-                INSERT INTO language_member_role (language_id, user_id, role)
-                SELECT l.id, $2, UNNEST($3::language_role[])
-                FROM language AS l
-                WHERE l.code = $1
-                ON CONFLICT DO NOTHING`,
-        [request.data.code, request.data.userId, request.data.roles],
-      );
+  try {
+    await removeLanguageMemberUseCase.execute(request.data);
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      notFound();
+    } else {
+      throw error;
     }
-  });
+  }
 
   const locale = await getLocale();
   revalidatePath(`/${locale}/admin/languages/${request.data.code}/users`);
 
-  return { state: "success", message: "User role updated" };
+  return { state: "success", message: "User removed successfully." };
 }

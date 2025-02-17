@@ -11,5 +11,15 @@ const languageMemberRepository = {
       [member.languageId, member.userId, ["VIEWER", ...member.roles]],
     );
   },
+
+  async delete(languageId: string, userId: string): Promise<void> {
+    await query(
+      `
+        delete from language_member_role
+        where language_id = $1 and user_id = $2
+      `,
+      [languageId, userId],
+    );
+  },
 };
 export default languageMemberRepository;

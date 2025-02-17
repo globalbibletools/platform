@@ -108,7 +108,7 @@ interface DbLanguage {
 interface DbLanguageMember {
   languageId: string;
   userId: string;
-  role: LanguageMemberRoleRaw;
+  role: LanguageMemberRoleRaw | "VIEWER";
 }
 
 interface DatabaseSeed {
@@ -118,6 +118,7 @@ interface DatabaseSeed {
   passwordResets?: DbPasswordReset[];
   invitations?: DbInvitation[];
   languages?: DbLanguage[];
+  languageMemberRoles?: DbLanguageMember[];
 }
 
 export async function seedDatabase(seed: DatabaseSeed) {
@@ -149,6 +150,11 @@ export async function seedDatabase(seed: DatabaseSeed) {
   if (seed.languages) {
     for (const language of seed.languages) {
       await insertLanguage(language);
+    }
+  }
+  if (seed.languageMemberRoles) {
+    for (const role of seed.languageMemberRoles) {
+      await insertLanguageMemberRole(role);
     }
   }
 }
@@ -226,6 +232,18 @@ export async function insertLanguage(lang: DbLanguage): Promise<void> {
       lang.textDirection,
       lang.translationIds,
     ],
+  );
+}
+
+export async function insertLanguageMemberRole(
+  role: DbLanguageMember,
+): Promise<void> {
+  await query(
+    `
+        insert into language_member_role (language_id, user_id, role)
+        values ($1, $2, $3)
+      `,
+    [role.languageId, role.userId, role.role],
   );
 }
 

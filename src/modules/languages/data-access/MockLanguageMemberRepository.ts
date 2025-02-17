@@ -16,6 +16,12 @@ const mockLanguageMemberRepo = {
 
     this.members.push(member);
   },
+
+  async delete(languageId: string, userId: string): Promise<void> {
+    this.members = this.members.filter(
+      (m) => m.languageId !== languageId || m.userId !== userId,
+    );
+  },
 };
 export default mockLanguageMemberRepo;
 

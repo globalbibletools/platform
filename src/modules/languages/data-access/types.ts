@@ -9,4 +9,5 @@ export interface LanguageRepository {
 
 export interface LanguageMemberRepository {
   create(member: LanguageMember): Promise<void>;
+  delete(languageId: string, memberId: string): Promise<void>;
 }

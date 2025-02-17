@@ -14,7 +14,8 @@ import { getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
 import MultiselectInput from "@/components/MultiselectInput";
 import Form from "@/components/Form";
-import { changeUserLanguageRole, removeLanguageUser } from "./actions";
+import { changeUserLanguageRole } from "./actions";
+import { removeLanguageMember } from "@/modules/languages/actions/removeLanguageMember";
 import ServerAction from "@/components/ServerAction";
 import { resendUserInvite } from "../../../../(main)/users/actions";
 
@@ -114,7 +115,7 @@ export default async function LanguageUsersPage({
                       userId: user.id,
                       code: params.code,
                     }}
-                    action={removeLanguageUser}
+                    action={removeLanguageMember}
                   >
                     <Icon icon="xmark" />
                     <span className="sr-only">{t("links.remove")}</span>
