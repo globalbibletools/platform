@@ -16,7 +16,7 @@ const mockUserRepo = {
     return this.users.find((u) => u.id === id);
   },
   async findByEmail(email: string): Promise<User | undefined> {
-    return this.users.find((u) => u.email.address === email);
+    return this.users.find((u) => u.email.address === email.toLowerCase());
   },
   async findByResetPasswordToken(token: string): Promise<User | undefined> {
     return this.users.find((u) =>

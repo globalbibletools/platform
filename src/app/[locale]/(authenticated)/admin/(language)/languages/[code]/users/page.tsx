@@ -17,7 +17,7 @@ import Form from "@/components/Form";
 import { changeLanguageMemberRoles } from "@/modules/languages/actions/changeLanguageMemberRoles";
 import { removeLanguageMember } from "@/modules/languages/actions/removeLanguageMember";
 import ServerAction from "@/components/ServerAction";
-import { resendUserInvite } from "../../../../(main)/users/actions";
+import { inviteUser } from "@/modules/users/actions/inviteUser";
 
 interface LanguageUsersPageProps {
   params: { code: string };
@@ -101,8 +101,8 @@ export default async function LanguageUsersPage({
                     <ServerAction
                       variant="tertiary"
                       className="ms-4"
-                      actionData={{ userId: user.id }}
-                      action={resendUserInvite}
+                      actionData={{ email: user.email }}
+                      action={inviteUser}
                     >
                       {t("links.resend_invite")}
                     </ServerAction>

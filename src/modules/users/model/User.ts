@@ -4,6 +4,7 @@ import {
   InvalidEmailVerificationToken,
   InvalidInvitationTokenError,
   InvalidPasswordResetToken,
+  UserAlreadyActiveError,
 } from "./errors";
 import Invitation from "./Invitation";
 import Password from "./Password";
@@ -77,6 +78,14 @@ export default class User {
 
   updatePassword(pw: Password) {
     this.props.password = pw;
+  }
+
+  reinvite(): string {
+    if (this.props.password) throw new UserAlreadyActiveError();
+
+    const invite = Invitation.generate();
+    this.props.invitations.push(invite);
+    return invite.token;
   }
 
   async acceptInvite(options: AcceptInviteOptions): Promise<void> {

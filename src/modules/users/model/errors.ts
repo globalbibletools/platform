@@ -22,8 +22,8 @@ export class InvalidInvitationTokenError extends Error {
   }
 }
 
-export class EmailAlreadyUsedError extends Error {
-  constructor(public email: string) {
+export class UserAlreadyActiveError extends Error {
+  constructor() {
     super();
   }
 }

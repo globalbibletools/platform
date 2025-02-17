@@ -12,13 +12,14 @@ import ViewTitle from "@/components/ViewTitle";
 import { query } from "@/db";
 import { getMessages, getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
-import { changeUserRole, disableUser, resendUserInvite } from "./actions";
+import { changeUserRole, disableUser } from "./actions";
 import MultiselectInput from "@/components/MultiselectInput";
 import Form from "@/components/Form";
 import ServerAction from "@/components/ServerAction";
 import { redirect } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import Pagination from "@/components/Pagination";
+import { inviteUser } from "@/modules/users/actions/inviteUser";
 
 export async function generateMetadata(
   _: any,
@@ -118,8 +119,8 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPage) {
                     <>
                       <ServerAction
                         variant="tertiary"
-                        actionData={{ userId: user.id }}
-                        action={resendUserInvite}
+                        actionData={{ email: user.email }}
+                        action={inviteUser}
                       >
                         {t("links.resend_invite")}
                       </ServerAction>

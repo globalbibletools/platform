@@ -94,10 +94,11 @@ test("returns not found if user is not a platform admin", async () => {
   await expect(response).toBeNextjsNotFound();
 });
 
-test("returns error if email is already in use", async () => {
+test("returns error if user is already active", async () => {
   const existingUser = {
     id: ulid(),
     email: "invite@example.com",
+    hashedPassword: "password hash",
     emailStatus: EmailStatusRaw.Verified,
     status: UserStatusRaw.Active,
   };

@@ -8,7 +8,7 @@ import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import InviteUser from "../use-cases/InviteUser";
 import userRepository from "../data-access/UserRepository";
-import { EmailAlreadyUsedError } from "../model/errors";
+import { UserAlreadyActiveError } from "../model/errors";
 
 const requestSchema = z.object({
   email: z.string().email().min(1),
@@ -60,7 +60,7 @@ export async function inviteUser(
   try {
     await inviteUserUseCase.execute({ email: request.data.email });
   } catch (error) {
-    if (error instanceof EmailAlreadyUsedError) {
+    if (error instanceof UserAlreadyActiveError) {
       logger.error("user already exists");
       return {
         state: "error",

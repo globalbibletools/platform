@@ -8,6 +8,7 @@ import { Scrypt } from "oslo/password";
 import {
   InvalidInvitationTokenError,
   InvalidPasswordResetToken,
+  UserAlreadyActiveError,
 } from "./errors";
 import EmailVerification from "./EmailVerification";
 import { addDays } from "date-fns";
@@ -34,6 +35,58 @@ describe("invite", () => {
           }),
         ],
         passwordResets: [],
+      }),
+    );
+  });
+});
+
+describe("reinvite", () => {
+  test("throws error if user is already active", async () => {
+    const props = {
+      id: "user-id-asdf",
+      email: new UserEmail({
+        address: "test@example.com",
+        status: EmailStatus.Unverified,
+      }),
+      password: await Password.create("pa$$word"),
+      passwordResets: [],
+      invitations: [],
+    };
+    const user = new User({ ...props });
+
+    expect(() => user.reinvite()).toThrow(new UserAlreadyActiveError());
+  });
+
+  test("creates new invite for user", () => {
+    const invitations = [
+      new Invitation({
+        token: "token-asdf",
+        expiresAt: addDays(new Date(), 2),
+      }),
+    ];
+    const props = {
+      id: "user-id-asdf",
+      email: new UserEmail({
+        address: "test@example.com",
+        status: EmailStatus.Unverified,
+      }),
+      passwordResets: [],
+      invitations: invitations.slice(),
+    };
+    const user = new User({ ...props });
+
+    const token = user.reinvite();
+    expect(token).toBeToken(24);
+    expect(user).toEqual(
+      new User({
+        ...props,
+        invitations: [
+          ...invitations,
+          new Invitation({
+            token: expect.toBeToken(24),
+            expiresAt: expect.toBeDaysIntoFuture(7),
+          }),
+        ],
       }),
     );
   });

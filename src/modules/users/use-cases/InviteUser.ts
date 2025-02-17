@@ -1,7 +1,6 @@
 import mailer from "@/mailer";
 import { UserRepository } from "../data-access/types";
 import User from "../model/User";
-import { EmailAlreadyUsedError } from "../model/errors";
 
 export interface InviteUserRequest {
   email: string;
@@ -15,12 +14,17 @@ export default class InviteUser {
   constructor(private readonly userRepo: UserRepository) {}
 
   async execute(request: InviteUserRequest): Promise<InviteUserResponse> {
-    const exists = await this.userRepo.existsByEmail(request.email);
-    if (exists) {
-      throw new EmailAlreadyUsedError(request.email.toLowerCase());
+    let token;
+
+    let user = await this.userRepo.findByEmail(request.email);
+    if (user) {
+      token = user.reinvite();
+    } else {
+      const result = User.invite(request.email);
+      user = result.user;
+      token = result.token;
     }
 
-    const { user, token } = User.invite(request.email);
     await this.userRepo.commit(user);
 
     const url = `${process.env.ORIGIN}/invite?token=${token}`;
