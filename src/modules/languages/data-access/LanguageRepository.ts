@@ -10,6 +10,22 @@ const languageRepository = {
     return result.rows.length > 0;
   },
 
+  async findByCode(code: string): Promise<Language | undefined> {
+    const result = await query<Language>(
+      `
+        select
+          id, code, name, font,
+          text_direction as "textDirection",
+          translation_ids as "translationIds"
+        from language
+        where code = $1
+      `,
+      [code],
+    );
+
+    return result.rows[0];
+  },
+
   async create(language: Language): Promise<void> {
     await query(
       `

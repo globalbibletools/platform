@@ -4,7 +4,10 @@ import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
 import { UserStatusRaw } from "@/modules/users/model/UserStatus";
 import { Client } from "pg";
 import { afterAll, beforeAll, beforeEach } from "vitest";
-import { TextDirectionRaw } from "@/modules/languages/model";
+import {
+  LanguageMemberRoleRaw,
+  TextDirectionRaw,
+} from "@/modules/languages/model";
 
 // We have to hoist this so the database url env var is available when "@/db" is imported
 const { DATABASE_NAME, DATABASE_URL } = vi.hoisted(() => {
@@ -100,6 +103,12 @@ interface DbLanguage {
   font: string;
   textDirection: TextDirectionRaw;
   translationIds: string[];
+}
+
+interface DbLanguageMember {
+  languageId: string;
+  userId: string;
+  role: LanguageMemberRoleRaw;
 }
 
 interface DatabaseSeed {
@@ -306,6 +315,17 @@ export async function findLanguages(): Promise<DbLanguage[]> {
           text_direction as "textDirection",
           coalesce(translation_ids, '{}') as "translationIds"
         from language
+    `,
+    [],
+  );
+  return result.rows;
+}
+
+export async function findLanguageMembers(): Promise<DbLanguageMember[]> {
+  const result = await query<DbLanguageMember>(
+    `
+        select language_id as "languageId", user_id as "userId", role
+        from language_member_role
     `,
     [],
   );

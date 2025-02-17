@@ -7,7 +7,7 @@ import ViewTitle from "@/components/ViewTitle";
 import MultiselectInput from "@/components/MultiselectInput";
 import { Metadata, ResolvingMetadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { inviteUser } from "./actions";
+import { inviteLanguageMember } from "@/modules/languages/actions/inviteLanguageMember";
 import Form from "@/components/Form";
 
 interface InviteLanguageUserPageProps {
@@ -34,7 +34,7 @@ export default function InviteLanguageUserPage({
   return (
     <div className="px-8 py-6">
       <ViewTitle>{t("title")}</ViewTitle>
-      <Form action={inviteUser}>
+      <Form action={inviteLanguageMember}>
         <input type="hidden" name="code" value={params.code} />
         <div className="mb-4">
           <FormLabel htmlFor="email">{t("form.email")}</FormLabel>

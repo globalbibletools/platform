@@ -8,6 +8,10 @@ const mockLanguageRepo = {
     return this.languages.some((l) => l.code === code);
   },
 
+  async findByCode(code: string): Promise<Language | undefined> {
+    return this.languages.find((l) => l.code === code);
+  },
+
   async update(lang: Language): Promise<void> {
     const index = this.languages.findIndex((l) => l.code === lang.code);
     this.languages[index] = {
