@@ -1,4 +1,3 @@
-import Invitation from "../model/Invitation";
 import User from "../model/User";
 
 export interface UserRepository {
@@ -9,4 +8,12 @@ export interface UserRepository {
   findByEmailVerificationToken(token: string): Promise<User | undefined>;
   findByInvitationToken(token: string): Promise<User | undefined>;
   commit(user: User): Promise<void>;
+}
+
+export interface SimpleUserView {
+  id: string;
+}
+
+export interface UserQueryService {
+  findByEmail(email: string): Promise<SimpleUserView | undefined>;
 }
