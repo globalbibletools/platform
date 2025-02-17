@@ -8,6 +8,12 @@ const mockLanguageMemberRepo = {
     this.members = [];
   },
 
+  async exists(languageId: string, userId: string): Promise<boolean> {
+    return this.members.some(
+      (m) => m.languageId === languageId || m.userId === userId,
+    );
+  },
+
   async create(member: LanguageMember): Promise<void> {
     const exists = this.members.some(
       (m) => m.languageId === member.languageId && m.userId === member.userId,
@@ -15,6 +21,15 @@ const mockLanguageMemberRepo = {
     if (exists) return;
 
     this.members.push(member);
+  },
+
+  async update(member: LanguageMember): Promise<void> {
+    const dbMember = this.members.find(
+      (m) => m.languageId === member.languageId && m.userId === member.userId,
+    );
+    if (!dbMember) return;
+
+    dbMember.roles = member.roles;
   },
 
   async delete(languageId: string, userId: string): Promise<void> {

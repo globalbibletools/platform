@@ -8,6 +8,8 @@ export interface LanguageRepository {
 }
 
 export interface LanguageMemberRepository {
+  exists(languageId: string, memberId: string): Promise<boolean>;
   create(member: LanguageMember): Promise<void>;
+  update(member: LanguageMember): Promise<void>;
   delete(languageId: string, memberId: string): Promise<void>;
 }

@@ -14,7 +14,7 @@ import { getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
 import MultiselectInput from "@/components/MultiselectInput";
 import Form from "@/components/Form";
-import { changeUserLanguageRole } from "./actions";
+import { changeLanguageMemberRoles } from "@/modules/languages/actions/changeLanguageMemberRoles";
 import { removeLanguageMember } from "@/modules/languages/actions/removeLanguageMember";
 import ServerAction from "@/components/ServerAction";
 import { resendUserInvite } from "../../../../(main)/users/actions";
@@ -70,7 +70,7 @@ export default async function LanguageUsersPage({
                   <div className="font-normal text-sm">{user.email}</div>
                 </ListCell>
                 <ListCell className="ps-4 py-2">
-                  <Form action={changeUserLanguageRole}>
+                  <Form action={changeLanguageMemberRoles}>
                     <input type="hidden" name="code" value={params.code} />
                     <input type="hidden" name="userId" value={user.id} />
                     <MultiselectInput
