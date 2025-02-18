@@ -8,6 +8,7 @@ import { Scrypt } from "oslo/password";
 import { NotFoundError } from "@/shared/errors";
 import mockUserRepo from "../data-access/MockUserRepository";
 import Password from "../model/Password";
+import UserStatus from "../model/UserStatus";
 
 const logIn = new LogIn(mockUserRepo);
 
@@ -31,6 +32,7 @@ test("returns error if password does not match", async () => {
     password: new Password({ hash: await new Scrypt().hash("asdf1234") }),
     passwordResets: [],
     invitations: [],
+    status: UserStatus.Active,
   });
   mockUserRepo.users = [user];
 
@@ -53,6 +55,7 @@ test("returns user id if password matches", async () => {
     password: new Password({ hash: await new Scrypt().hash("pa$$word") }),
     passwordResets: [],
     invitations: [],
+    status: UserStatus.Active,
   });
   mockUserRepo.users = [user];
 

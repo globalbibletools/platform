@@ -6,7 +6,7 @@ export enum UserStatusRaw {
 export default class UserStatus {
   private constructor(readonly value: UserStatusRaw) {}
 
-  fromRaw(raw: string): UserStatus {
+  static fromRaw(raw: string): UserStatus {
     switch (raw) {
       case UserStatusRaw.Active:
         return UserStatus.Active;

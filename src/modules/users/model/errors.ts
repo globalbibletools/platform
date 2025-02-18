@@ -27,3 +27,9 @@ export class UserAlreadyActiveError extends Error {
     super();
   }
 }
+
+export class UserDisabledError extends Error {
+  constructor() {
+    super();
+  }
+}

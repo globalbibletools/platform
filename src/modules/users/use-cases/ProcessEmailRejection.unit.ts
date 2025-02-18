@@ -6,6 +6,7 @@ import UserEmail from "../model/UserEmail";
 import Password from "../model/Password";
 import PasswordReset from "../model/PasswordReset";
 import User from "../model/User";
+import UserStatus from "../model/UserStatus";
 
 const processEmailRejection = new ProcessEmailRejection(mockUserRepo);
 
@@ -27,6 +28,7 @@ test("marks user's email as bounced", async () => {
     password: new Password({ hash: "asdf" }),
     passwordResets: [PasswordReset.generate()],
     invitations: [],
+    status: UserStatus.Active,
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];

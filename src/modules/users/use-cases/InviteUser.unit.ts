@@ -9,6 +9,7 @@ import Invitation from "../model/Invitation";
 import { ulid } from "@/shared/ulid";
 import { UserAlreadyActiveError } from "../model/errors";
 import Password from "../model/Password";
+import UserStatus from "../model/UserStatus";
 
 const inviteUser = new InviteUser(mockUserRepo);
 
@@ -23,6 +24,7 @@ test("throws error if user is already active", async () => {
     password: await Password.create("pa$$word"),
     invitations: [],
     passwordResets: [],
+    status: UserStatus.Active,
   });
   mockUserRepo.users = [user];
 
@@ -40,6 +42,7 @@ test("recreates and resends invite for pending user", async () => {
     }),
     invitations: [Invitation.generate()],
     passwordResets: [],
+    status: UserStatus.Active,
   };
   const invitations = [Invitation.generate()];
   const user = new User({
@@ -92,6 +95,7 @@ test("creates user and sends invite email", async () => {
         }),
       ],
       passwordResets: [],
+      status: UserStatus.Active,
     }),
   ]);
 

@@ -6,6 +6,7 @@ import EmailVerification from "../model/EmailVerification";
 import EmailStatus, { EmailStatusRaw } from "../model/EmailStatus";
 import Password from "../model/Password";
 import Invitation from "../model/Invitation";
+import UserStatus, { UserStatusRaw } from "../model/UserStatus";
 
 interface DbUser {
   id: string;
@@ -16,6 +17,7 @@ interface DbUser {
   password_resets: { token: string; expiresAt: Date }[] | null;
   email_verification: { email: string; token: string; expiresAt: Date } | null;
   invitations: { token: string; expiresAt: Date }[] | null;
+  status: UserStatusRaw;
 }
 
 function dbToUser(dbModel: DbUser): User {
@@ -53,6 +55,7 @@ function dbToUser(dbModel: DbUser): User {
             expiresAt: new Date(invite.expiresAt),
           }),
       ) ?? [],
+    status: UserStatus.fromRaw(dbModel.status),
   });
 }
 
@@ -259,6 +262,7 @@ const USER_SELECT = `
         u.hashed_password,
         u.email,
         u.email_status,
+        u.status,
         (
             select json_agg(json_build_object(
                 'token', token,

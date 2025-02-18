@@ -5,12 +5,14 @@ import {
   InvalidInvitationTokenError,
   InvalidPasswordResetToken,
   UserAlreadyActiveError,
+  UserDisabledError,
 } from "./errors";
 import Invitation from "./Invitation";
 import Password from "./Password";
 import PasswordReset from "./PasswordReset";
 import UserEmail from "./UserEmail";
 import { ulid } from "@/shared/ulid";
+import UserStatus from "./UserStatus";
 
 export interface UserProps {
   id: string;
@@ -20,6 +22,7 @@ export interface UserProps {
   passwordResets: PasswordReset[];
   emailVerification?: EmailVerification;
   invitations: Invitation[];
+  status: UserStatus;
 }
 
 export interface AcceptInviteOptions {
@@ -39,6 +42,7 @@ export default class User {
       email: UserEmail.createForNewUser(email),
       invitations: [invite],
       passwordResets: [],
+      status: UserStatus.Active,
     });
 
     return { user, token: invite.token };
@@ -81,6 +85,8 @@ export default class User {
   }
 
   reinvite(): string {
+    if (this.props.status === UserStatus.Disabled)
+      throw new UserDisabledError();
     if (this.props.password) throw new UserAlreadyActiveError();
 
     const invite = Invitation.generate();
@@ -104,6 +110,9 @@ export default class User {
   }
 
   startPasswordReset(): PasswordReset {
+    if (this.props.status === UserStatus.Disabled)
+      throw new UserDisabledError();
+
     const reset = PasswordReset.generate();
     this.props.passwordResets.push(reset);
     return reset;
@@ -121,6 +130,9 @@ export default class User {
   }
 
   startEmailChange(email: string): EmailVerification {
+    if (this.props.status === UserStatus.Disabled)
+      throw new UserDisabledError();
+
     const verification = EmailVerification.createForEmail(email);
     this.props.emailVerification = verification;
     return verification;
@@ -140,5 +152,13 @@ export default class User {
 
   rejectEmail(reason: EmailStatus) {
     this.props.email = this.props.email.updateStatus(reason);
+  }
+
+  disable() {
+    this.props.status = UserStatus.Disabled;
+    this.props.invitations = [];
+    this.props.passwordResets = [];
+    delete this.props.password;
+    delete this.props.emailVerification;
   }
 }

@@ -9,10 +9,12 @@ import {
   InvalidInvitationTokenError,
   InvalidPasswordResetToken,
   UserAlreadyActiveError,
+  UserDisabledError,
 } from "./errors";
 import EmailVerification from "./EmailVerification";
 import { addDays } from "date-fns";
 import Invitation from "./Invitation";
+import UserStatus from "./UserStatus";
 
 const scrypt = new Scrypt();
 
@@ -35,6 +37,7 @@ describe("invite", () => {
           }),
         ],
         passwordResets: [],
+        status: UserStatus.Active,
       }),
     );
   });
@@ -51,10 +54,28 @@ describe("reinvite", () => {
       password: await Password.create("pa$$word"),
       passwordResets: [],
       invitations: [],
+      status: UserStatus.Active,
     };
     const user = new User({ ...props });
 
     expect(() => user.reinvite()).toThrow(new UserAlreadyActiveError());
+  });
+
+  test("throws error if user is disabled", () => {
+    const props = {
+      id: "user-id-asdf",
+      email: new UserEmail({
+        address: "test@example.com",
+        status: EmailStatus.Unverified,
+      }),
+      passwordResets: [],
+      invitations: [],
+      status: UserStatus.Disabled,
+    };
+    const user = new User({ ...props });
+
+    expect(() => user.reinvite()).toThrow(new UserDisabledError());
+    expect(user).toEqual(new User(props));
   });
 
   test("creates new invite for user", () => {
@@ -72,6 +93,7 @@ describe("reinvite", () => {
       }),
       passwordResets: [],
       invitations: invitations.slice(),
+      status: UserStatus.Active,
     };
     const user = new User({ ...props });
 
@@ -102,6 +124,7 @@ describe("acceptInvite", () => {
       }),
       passwordResets: [],
       invitations: [],
+      status: UserStatus.Active,
     };
     const user = new User({ ...props });
     const result = user.acceptInvite({
@@ -129,6 +152,7 @@ describe("acceptInvite", () => {
           expiresAt: addDays(new Date(), -1),
         }),
       ],
+      status: UserStatus.Active,
     };
     const user = new User({ ...props });
     const result = user.acceptInvite({
@@ -156,6 +180,7 @@ describe("acceptInvite", () => {
           expiresAt: addDays(new Date(), 1),
         }),
       ],
+      status: UserStatus.Active,
     };
     const user = new User({ ...props });
     const request = {
@@ -182,6 +207,22 @@ describe("acceptInvite", () => {
 });
 
 describe("startPasswordReset", () => {
+  test("throws error if user is disabled", async () => {
+    const props = {
+      id: "user-id-asdf",
+      email: new UserEmail({
+        address: "test@example.com",
+        status: EmailStatus.Verified,
+      }),
+      passwordResets: [],
+      invitations: [],
+      status: UserStatus.Disabled,
+    };
+    const user = new User({ ...props });
+    expect(() => user.startPasswordReset()).toThrow(new UserDisabledError());
+    expect(user).toEqual(new User(props));
+  });
+
   test("returns token with new reset", async () => {
     const props = {
       id: "user-id-asdf",
@@ -192,6 +233,7 @@ describe("startPasswordReset", () => {
       password: await Password.create("pa$$word"),
       passwordResets: [],
       invitations: [],
+      status: UserStatus.Active,
     };
     const user = new User({ ...props });
     const reset = user.startPasswordReset();
@@ -202,11 +244,7 @@ describe("startPasswordReset", () => {
       }),
     );
 
-    // @ts-ignore
-    expect(user.props).toEqual({
-      ...props,
-      passwordResets: [reset],
-    });
+    expect(user).toEqual(new User(props));
   });
 });
 
@@ -221,6 +259,7 @@ describe("completePasswordReset", () => {
       password: await Password.create("pa$$word"),
       passwordResets: [],
       invitations: [],
+      status: UserStatus.Active,
     };
     const user = new User({ ...props });
     await expect(
@@ -238,6 +277,7 @@ describe("completePasswordReset", () => {
       password: await Password.create("pa$$word"),
       passwordResets: [PasswordReset.generate(), PasswordReset.generate()],
       invitations: [],
+      status: UserStatus.Active,
     };
     const user = new User({ ...props });
     const newPassword = "pa$$word";
@@ -262,6 +302,25 @@ describe("completePasswordReset", () => {
 });
 
 describe("startEmailChange", () => {
+  test("throws error if user is disabled", async () => {
+    const props = {
+      id: "user-id-asdf",
+      email: new UserEmail({
+        address: "test@example.com",
+        status: EmailStatus.Verified,
+      }),
+      passwordResets: [],
+      invitations: [],
+      status: UserStatus.Disabled,
+    };
+    const user = new User({ ...props });
+    const newAddress = "new@example.com";
+    expect(() => user.startEmailChange(newAddress)).toThrow(
+      new UserDisabledError(),
+    );
+    expect(user).toEqual(new User(props));
+  });
+
   test("sets up pending verification", async () => {
     const props = {
       id: "user-id-asdf",
@@ -272,25 +331,27 @@ describe("startEmailChange", () => {
       password: await Password.create("pa$$word"),
       passwordResets: [],
       invitations: [],
+      status: UserStatus.Active,
     };
     const user = new User({ ...props });
     const newAddress = "new@example.com";
     const verification = user.startEmailChange(newAddress);
     expect(verification).toStrictEqual(user.emailVerification);
-    // @ts-ignore
-    expect(user.props).toEqual({
-      ...props,
-      emailVerification: new EmailVerification({
-        email: newAddress,
-        token: expect.any(String),
-        expiresAt: expect.any(Date),
+    expect(user).toEqual(
+      new User({
+        ...props,
+        emailVerification: new EmailVerification({
+          email: newAddress,
+          token: expect.toBeToken(24),
+          expiresAt: expect.toBeDaysIntoFuture(7),
+        }),
       }),
-    });
+    );
   });
 });
 
 describe("confirmEmailChange", () => {
-  test("returns UserEmail with pending verification", async () => {
+  test("completes email change", async () => {
     const props = {
       id: "user-id-asdf",
       email: new UserEmail({
@@ -305,18 +366,20 @@ describe("confirmEmailChange", () => {
         expiresAt: addDays(new Date(), 2),
       }),
       invitations: [],
+      status: UserStatus.Active,
     };
     const user = new User({ ...props });
     user.confirmEmailChange(props.emailVerification.token);
-    // @ts-ignore
-    expect(user.props).toEqual({
-      ...props,
-      email: new UserEmail({
-        address: props.emailVerification.email,
-        status: EmailStatus.Verified,
+    expect(user).toEqual(
+      new User({
+        ...props,
+        email: new UserEmail({
+          address: props.emailVerification.email,
+          status: EmailStatus.Verified,
+        }),
+        emailVerification: undefined,
       }),
-      emailVerification: undefined,
-    });
+    );
   });
 
   test("throws error if no pending verification", async () => {
@@ -329,6 +392,7 @@ describe("confirmEmailChange", () => {
       password: await Password.create("pa$$word"),
       passwordResets: [],
       invitations: [],
+      status: UserStatus.Active,
     };
     const user = new User({ ...props });
     expect(() => user.confirmEmailChange("asdf")).toThrow();
@@ -349,6 +413,7 @@ describe("confirmEmailChange", () => {
         expiresAt: addDays(new Date(), 2),
       }),
       invitations: [],
+      status: UserStatus.Active,
     };
     const user = new User({ ...props });
     expect(() => user.confirmEmailChange("garbage")).toThrow();
@@ -369,6 +434,7 @@ describe("confirmEmailChange", () => {
         expiresAt: addDays(new Date(), -1),
       }),
       invitations: [],
+      status: UserStatus.Active,
     };
     const user = new User({ ...props });
     expect(() =>
@@ -388,16 +454,70 @@ describe("rejectEmail", () => {
       password: await Password.create("pa$$word"),
       passwordResets: [],
       invitations: [],
+      status: UserStatus.Active,
     };
     const user = new User({ ...props });
     user.rejectEmail(EmailStatus.Complained);
-    // @ts-ignore
-    expect(user.props).toEqual({
-      ...props,
-      email: new UserEmail({
-        address: props.email.address,
-        status: EmailStatus.Complained,
+    expect(user).toEqual(
+      new User({
+        ...props,
+        email: new UserEmail({
+          address: props.email.address,
+          status: EmailStatus.Complained,
+        }),
       }),
-    });
+    );
+  });
+});
+
+describe("disable", () => {
+  test("disables active user and clears out related data", () => {
+    const props = {
+      id: "user-id-asdf",
+      email: new UserEmail({
+        address: "test@example.com",
+        status: EmailStatus.Verified,
+      }),
+      password: new Password({ hash: "password-hash" }),
+      passwordResets: [PasswordReset.generate()],
+      invitations: [],
+      emailVerification: EmailVerification.createForEmail(
+        "changed@example.com",
+      ),
+      status: UserStatus.Active,
+    };
+    const user = new User({ ...props });
+    user.disable();
+    expect(user).toEqual(
+      new User({
+        ...props,
+        password: undefined,
+        passwordResets: [],
+        emailVerification: undefined,
+        status: UserStatus.Disabled,
+      }),
+    );
+  });
+
+  test("disables invited user and clears out related data", () => {
+    const props = {
+      id: "user-id-asdf",
+      email: new UserEmail({
+        address: "test@example.com",
+        status: EmailStatus.Verified,
+      }),
+      passwordResets: [],
+      invitations: [Invitation.generate()],
+      status: UserStatus.Active,
+    };
+    const user = new User({ ...props });
+    user.disable();
+    expect(user).toEqual(
+      new User({
+        ...props,
+        invitations: [],
+        status: UserStatus.Disabled,
+      }),
+    );
   });
 });

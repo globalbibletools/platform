@@ -9,6 +9,7 @@ import Password from "../model/Password";
 import EmailVerification from "../model/EmailVerification";
 import { addDays } from "date-fns";
 import User from "../model/User";
+import UserStatus from "../model/UserStatus";
 
 const verifyEmail = new VerifyEmail(mockUserRepo);
 
@@ -33,6 +34,7 @@ test("verfies the email and sends message to user", async () => {
     password: new Password({ hash: "asdf" }),
     passwordResets: [],
     invitations: [],
+    status: UserStatus.Active,
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];

@@ -2,13 +2,13 @@ import { test, expect } from "vitest";
 import AcceptInvite from "./AcceptInvite";
 import mockUserRepo from "../data-access/MockUserRepository";
 import User from "../model/User";
-import { NotFoundError } from "@/shared/errors";
 import UserEmail from "../model/UserEmail";
 import EmailStatus from "../model/EmailStatus";
 import Password from "../model/Password";
 import Invitation from "../model/Invitation";
 import { addDays } from "date-fns";
 import { InvalidInvitationTokenError } from "../model/errors";
+import UserStatus from "../model/UserStatus";
 
 const acceptInvite = new AcceptInvite(mockUserRepo);
 
@@ -37,6 +37,7 @@ test("throws error if invite is expired", async () => {
         expiresAt: addDays(new Date(), -1),
       }),
     ],
+    status: UserStatus.Active,
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];
@@ -65,6 +66,7 @@ test("processes invite and sets up user", async () => {
         expiresAt: addDays(new Date(), 1),
       }),
     ],
+    status: UserStatus.Active,
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];

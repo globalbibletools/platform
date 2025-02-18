@@ -8,6 +8,7 @@ import EmailStatus from "../model/EmailStatus";
 import Password from "../model/Password";
 import User from "../model/User";
 import PasswordReset from "../model/PasswordReset";
+import UserStatus from "../model/UserStatus";
 
 const resetPassword = new ResetPassword(mockUserRepo);
 
@@ -27,6 +28,7 @@ test("changes password and sends email", async () => {
     password: new Password({ hash: "asdf" }),
     passwordResets: [PasswordReset.generate()],
     invitations: [],
+    status: UserStatus.Active,
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];

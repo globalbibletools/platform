@@ -9,6 +9,7 @@ import EmailStatus from "../model/EmailStatus";
 import { Scrypt } from "oslo/password";
 import EmailVerification from "../model/EmailVerification";
 import Password from "../model/Password";
+import UserStatus from "../model/UserStatus";
 
 const updateProfile = new UpdateProfile(mockUserRepo);
 
@@ -34,6 +35,7 @@ test("updates name for the user", async () => {
     password: new Password({ hash: await new Scrypt().hash("asdf1234") }),
     passwordResets: [],
     invitations: [],
+    status: UserStatus.Active,
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];
@@ -65,6 +67,7 @@ test("updates email for the user if it changes", async () => {
     password: new Password({ hash: await new Scrypt().hash("asdf1234") }),
     passwordResets: [],
     invitations: [],
+    status: UserStatus.Active,
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];
@@ -111,6 +114,7 @@ test("updates password for the user if it changes", async () => {
     password: new Password({ hash: await new Scrypt().hash("asdf1234") }),
     passwordResets: [],
     invitations: [],
+    status: UserStatus.Active,
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];
