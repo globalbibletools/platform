@@ -76,6 +76,10 @@ export default class User {
     return this.props.invitations;
   }
 
+  get status() {
+    return this.props.status;
+  }
+
   updateName(name: string) {
     this.props.name = name;
   }

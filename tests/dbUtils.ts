@@ -119,6 +119,7 @@ interface DatabaseSeed {
   invitations?: DbInvitation[];
   languages?: DbLanguage[];
   languageMemberRoles?: DbLanguageMember[];
+  emailVerifications?: DbEmailVerification[];
 }
 
 export async function seedDatabase(seed: DatabaseSeed) {
@@ -155,6 +156,11 @@ export async function seedDatabase(seed: DatabaseSeed) {
   if (seed.languageMemberRoles) {
     for (const role of seed.languageMemberRoles) {
       await insertLanguageMemberRole(role);
+    }
+  }
+  if (seed.emailVerifications) {
+    for (const verification of seed.emailVerifications) {
+      await insertEmailVerification(verification);
     }
   }
 }
@@ -247,6 +253,23 @@ export async function insertLanguageMemberRole(
   );
 }
 
+export async function insertEmailVerification(
+  verification: DbEmailVerification,
+): Promise<void> {
+  await query(
+    `
+      insert into user_email_verification (user_id, email, token, expires)
+      values ($1, $2, $3, $4)
+    `,
+    [
+      verification.userId,
+      verification.email,
+      verification.token,
+      verification.expiresAt.valueOf(),
+    ],
+  );
+}
+
 export async function findUser(id: string): Promise<DbUser | undefined> {
   const result = await query<DbUser>(
     `
@@ -311,6 +334,18 @@ export async function findEmailVerification(
   );
 
   return result.rows[0];
+}
+
+export async function findEmailVerifications(): Promise<DbEmailVerification[]> {
+  const result = await query<DbEmailVerification>(
+    `
+        select user_id as "userId", email, token,
+            timestamp '1970-01-01' + make_interval(0, 0, 0, 0, 0, 0, expires / 1000) as "expiresAt"
+        from user_email_verification
+    `,
+    [],
+  );
+  return result.rows;
 }
 
 export async function findPasswordResets(): Promise<DbPasswordReset[]> {

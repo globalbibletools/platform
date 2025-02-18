@@ -156,13 +156,14 @@ const userRepository = {
     await transaction(async (query) => {
       await query(
         `
-          insert into users (id, name, email, email_status, hashed_password)
-          values ($1, $2, $3, $4, $5)
+          insert into users (id, name, email, email_status, hashed_password, status)
+          values ($1, $2, $3, $4, $5, $6)
           on conflict (id) do update set
             name = excluded.name,
             email = excluded.email,
             email_status = excluded.email_status,
-            hashed_password = excluded.hashed_password
+            hashed_password = excluded.hashed_password,
+            status = excluded.status
         `,
         [
           user.id,
@@ -170,6 +171,7 @@ const userRepository = {
           user.email.address,
           user.email.status.value,
           user.password?.hash,
+          user.status.value,
         ],
       );
 

@@ -50,5 +50,15 @@ const languageMemberRepository = {
       [languageId, userId],
     );
   },
+
+  async deleteAll(userId: string): Promise<void> {
+    await query(
+      `
+        delete from language_member_role
+        where user_id = $1
+      `,
+      [userId],
+    );
+  },
 };
 export default languageMemberRepository;

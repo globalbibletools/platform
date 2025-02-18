@@ -12,4 +12,5 @@ export interface LanguageMemberRepository {
   create(member: LanguageMember): Promise<void>;
   update(member: LanguageMember): Promise<void>;
   delete(languageId: string, memberId: string): Promise<void>;
+  deleteAll(memberId: string): Promise<void>;
 }
