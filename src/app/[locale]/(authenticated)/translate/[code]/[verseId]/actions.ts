@@ -109,7 +109,7 @@ export async function updateTranslatorNote(formData: FormData): Promise<any> {
     `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
         FROM language_member_role AS r
-        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
+        WHERE r.language_id = (SELECT language_id FROM phrase WHERE id = $1) 
             AND r.user_id = $2`,
     [request.data.phraseId, session.user.id],
   );
@@ -183,7 +183,7 @@ export async function updateFootnote(formData: FormData): Promise<any> {
     `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
         FROM language_member_role AS r
-        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
+        WHERE r.language_id = (SELECT language_id FROM phrase WHERE id = $1) 
             AND r.user_id = $2`,
     [request.data.phraseId, session.user.id],
   );
