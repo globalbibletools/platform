@@ -36,6 +36,7 @@ test("updates name for the user", async () => {
     passwordResets: [],
     invitations: [],
     status: UserStatus.Active,
+    systemRoles: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];
@@ -68,6 +69,7 @@ test("updates email for the user if it changes", async () => {
     passwordResets: [],
     invitations: [],
     status: UserStatus.Active,
+    systemRoles: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];
@@ -115,6 +117,7 @@ test("updates password for the user if it changes", async () => {
     passwordResets: [],
     invitations: [],
     status: UserStatus.Active,
+    systemRoles: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];

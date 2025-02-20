@@ -28,6 +28,7 @@ test("sends password reset email", async () => {
     passwordResets: [],
     invitations: [],
     status: UserStatus.Active,
+    systemRoles: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];

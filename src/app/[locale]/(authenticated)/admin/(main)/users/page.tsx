@@ -12,7 +12,7 @@ import ViewTitle from "@/components/ViewTitle";
 import { query } from "@/db";
 import { getMessages, getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
-import { changeUserRole } from "./actions";
+import { changeUserRoles } from "@/modules/users/actions/changeUserRoles";
 import { disableUser } from "@/modules/users/actions/disableUser";
 import MultiselectInput from "@/components/MultiselectInput";
 import Form from "@/components/Form";
@@ -96,7 +96,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPage) {
                   )}
                 </ListCell>
                 <ListCell className="py-2 ps-2">
-                  <Form action={changeUserRole}>
+                  <Form action={changeUserRoles}>
                     <input type="hidden" name="userId" value={user.id} />
                     <MultiselectInput
                       className="w-28"

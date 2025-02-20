@@ -25,6 +25,7 @@ test("throws error if user is already active", async () => {
     invitations: [],
     passwordResets: [],
     status: UserStatus.Active,
+    systemRoles: [],
   });
   mockUserRepo.users = [user];
 
@@ -43,6 +44,7 @@ test("recreates and resends invite for pending user", async () => {
     invitations: [Invitation.generate()],
     passwordResets: [],
     status: UserStatus.Active,
+    systemRoles: [],
   };
   const invitations = [Invitation.generate()];
   const user = new User({
@@ -96,6 +98,7 @@ test("creates user and sends invite email", async () => {
       ],
       passwordResets: [],
       status: UserStatus.Active,
+      systemRoles: [],
     }),
   ]);
 

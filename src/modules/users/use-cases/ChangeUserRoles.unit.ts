@@ -1,6 +1,4 @@
-import fakeLanguageClient from "@/modules/languages/public/FakeLanguageClient";
 import mockUserRepo from "../data-access/MockUserRepository";
-import DisableUser from "./DisableUser";
 import { ulid } from "@/shared/ulid";
 import { expect, test } from "vitest";
 import { NotFoundError } from "@/shared/errors";
@@ -10,15 +8,17 @@ import Invitation from "../model/Invitation";
 import { addDays } from "date-fns";
 import UserStatus from "../model/UserStatus";
 import User from "../model/User";
+import SystemRole, { SystemRoleRaw } from "../model/SystemRole";
+import ChangeUserRoles from "./ChangeUserRoles";
 
-const disableUser = new DisableUser(mockUserRepo, fakeLanguageClient);
+const changeUserRoles = new ChangeUserRoles(mockUserRepo);
 
 test("throws error if user does not exist", async () => {
-  const result = disableUser.execute({ userId: ulid() });
+  const result = changeUserRoles.execute({ userId: ulid(), roles: [] });
   await expect(result).rejects.toThrow(new NotFoundError("User"));
 });
 
-test("disables users and removes from langauges", async () => {
+test("replaces user system roles", async () => {
   const props = {
     id: "user-id",
     email: new UserEmail({
@@ -38,36 +38,15 @@ test("disables users and removes from langauges", async () => {
   const user = new User({ ...props });
   mockUserRepo.users = [user];
 
-  const languageMembers = [
-    {
-      userId: props.id,
-      roles: [],
-    },
-    {
-      userId: ulid(),
-      roles: [],
-    },
-  ];
-  const language = {
-    id: ulid(),
-    members: languageMembers.slice(),
-  };
-  fakeLanguageClient.languages = [language];
-
-  await disableUser.execute({ userId: props.id });
+  await changeUserRoles.execute({
+    userId: props.id,
+    roles: [SystemRoleRaw.Admin],
+  });
 
   expect(mockUserRepo.users).toEqual([
     new User({
       ...props,
-      invitations: [],
-      status: UserStatus.Disabled,
+      systemRoles: [SystemRole.Admin],
     }),
-  ]);
-
-  expect(fakeLanguageClient.languages).toEqual([
-    {
-      id: language.id,
-      members: [languageMembers[1]],
-    },
   ]);
 });

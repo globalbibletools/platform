@@ -29,6 +29,7 @@ test("changes password and sends email", async () => {
     passwordResets: [PasswordReset.generate()],
     invitations: [],
     status: UserStatus.Active,
+    systemRoles: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];

@@ -29,6 +29,7 @@ test("marks user's email as bounced", async () => {
     passwordResets: [PasswordReset.generate()],
     invitations: [],
     status: UserStatus.Active,
+    systemRoles: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];

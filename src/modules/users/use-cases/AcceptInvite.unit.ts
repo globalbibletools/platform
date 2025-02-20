@@ -38,6 +38,7 @@ test("throws error if invite is expired", async () => {
       }),
     ],
     status: UserStatus.Active,
+    systemRoles: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];
@@ -67,6 +68,7 @@ test("processes invite and sets up user", async () => {
       }),
     ],
     status: UserStatus.Active,
+    systemRoles: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];

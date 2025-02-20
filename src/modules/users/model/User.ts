@@ -13,6 +13,7 @@ import PasswordReset from "./PasswordReset";
 import UserEmail from "./UserEmail";
 import { ulid } from "@/shared/ulid";
 import UserStatus from "./UserStatus";
+import SystemRole from "./SystemRole";
 
 export interface UserProps {
   id: string;
@@ -23,6 +24,7 @@ export interface UserProps {
   emailVerification?: EmailVerification;
   invitations: Invitation[];
   status: UserStatus;
+  systemRoles: SystemRole[];
 }
 
 export interface AcceptInviteOptions {
@@ -43,6 +45,7 @@ export default class User {
       invitations: [invite],
       passwordResets: [],
       status: UserStatus.Active,
+      systemRoles: [],
     });
 
     return { user, token: invite.token };
@@ -78,6 +81,10 @@ export default class User {
 
   get status() {
     return this.props.status;
+  }
+
+  get systemRoles() {
+    return this.props.systemRoles;
   }
 
   updateName(name: string) {
@@ -164,5 +171,12 @@ export default class User {
     this.props.passwordResets = [];
     delete this.props.password;
     delete this.props.emailVerification;
+  }
+
+  changeSystemRoles(roles: SystemRole[]) {
+    if (this.props.status === UserStatus.Disabled)
+      throw new UserDisabledError();
+
+    this.props.systemRoles = roles.slice();
   }
 }

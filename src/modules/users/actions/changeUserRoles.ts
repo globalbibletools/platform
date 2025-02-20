@@ -2,19 +2,24 @@
 
 import * as z from "zod";
 import { getTranslations } from "next-intl/server";
-import { query, transaction } from "@/db";
 import { parseForm } from "@/form-parser";
 import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
+import ChangeUserRoles from "../use-cases/ChangeUserRoles";
+import userRepository from "../data-access/UserRepository";
+import { SystemRoleRaw } from "../model/SystemRole";
+import { NotFoundError } from "@/shared/errors";
 
 const requestSchema = z.object({
   userId: z.string().min(1),
-  roles: z.array(z.string()).optional().default([]),
+  roles: z.array(z.nativeEnum(SystemRoleRaw)).optional().default([]),
 });
 
-export async function changeUserRole(
+const changeUserRolesUseCase = new ChangeUserRoles(userRepository);
+
+export async function changeUserRoles(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
@@ -37,31 +42,16 @@ export async function changeUserRole(
     };
   }
 
-  const usersQuery = await query<{ id: string }>(
-    `SELECT id FROM users WHERE id = $1 AND status <> 'disabled'`,
-    [request.data.userId],
-  );
-  if (usersQuery.rows.length === 0) {
-    logger.error("user not found");
-    notFound();
-  }
-
-  await transaction(async (query) => {
-    await query(
-      `DELETE FROM user_system_role AS r WHERE r.user_id = $1 AND r.role != ALL($2::system_role[])`,
-      [request.data.userId, request.data.roles],
-    );
-
-    if (request.data.roles && request.data.roles.length > 0) {
-      await query(
-        `
-                INSERT INTO user_system_role (user_id, role)
-                SELECT $1, UNNEST($2::system_role[])
-                ON CONFLICT DO NOTHING`,
-        [request.data.userId, request.data.roles],
-      );
+  try {
+    await changeUserRolesUseCase.execute(request.data);
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      logger.error("user not found");
+      notFound();
+    } else {
+      throw error;
     }
-  });
+  }
 
   return { state: "success" };
 }

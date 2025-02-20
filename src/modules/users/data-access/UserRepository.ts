@@ -7,6 +7,7 @@ import EmailStatus, { EmailStatusRaw } from "../model/EmailStatus";
 import Password from "../model/Password";
 import Invitation from "../model/Invitation";
 import UserStatus, { UserStatusRaw } from "../model/UserStatus";
+import SystemRole, { SystemRoleRaw } from "../model/SystemRole";
 
 interface DbUser {
   id: string;
@@ -18,6 +19,7 @@ interface DbUser {
   email_verification: { email: string; token: string; expiresAt: Date } | null;
   invitations: { token: string; expiresAt: Date }[] | null;
   status: UserStatusRaw;
+  system_roles: SystemRoleRaw[] | null;
 }
 
 function dbToUser(dbModel: DbUser): User {
@@ -56,6 +58,8 @@ function dbToUser(dbModel: DbUser): User {
           }),
       ) ?? [],
     status: UserStatus.fromRaw(dbModel.status),
+    systemRoles:
+      dbModel.system_roles?.map((role) => SystemRole.fromRaw(role)) ?? [],
   });
 }
 
@@ -252,6 +256,26 @@ const userRepository = {
           user.passwordResets.map((reset) => reset.expiresAt.valueOf()),
         ],
       );
+
+      await query(
+        `
+            with data as (
+                select unnest($2::system_role[]) as role
+            ),
+            del as (
+                delete from user_system_role r
+                where user_id = $1
+                    and not exists (
+                        select 1 from data
+                        where data.role = r.role
+                    )
+            )
+            insert into user_system_role (user_id, role)
+            select $1, data.role from data
+            on conflict do nothing
+        `,
+        [user.id, user.systemRoles.map((role) => role.value)],
+      );
     });
   },
 };
@@ -289,6 +313,11 @@ const USER_SELECT = `
             ))
             from user_invitation
             where user_id = u.id
-        ) as invitations
+        ) as invitations,
+        (
+            select json_agg(role)
+            from user_system_role
+            where user_id = u.id
+        ) as system_roles
     from users u
 `;

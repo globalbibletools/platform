@@ -15,6 +15,7 @@ import EmailVerification from "./EmailVerification";
 import { addDays } from "date-fns";
 import Invitation from "./Invitation";
 import UserStatus from "./UserStatus";
+import SystemRole from "./SystemRole";
 
 const scrypt = new Scrypt();
 
@@ -38,6 +39,7 @@ describe("invite", () => {
         ],
         passwordResets: [],
         status: UserStatus.Active,
+        systemRoles: [],
       }),
     );
   });
@@ -55,6 +57,7 @@ describe("reinvite", () => {
       passwordResets: [],
       invitations: [],
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
 
@@ -71,6 +74,7 @@ describe("reinvite", () => {
       passwordResets: [],
       invitations: [],
       status: UserStatus.Disabled,
+      systemRoles: [],
     };
     const user = new User({ ...props });
 
@@ -94,6 +98,7 @@ describe("reinvite", () => {
       passwordResets: [],
       invitations: invitations.slice(),
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
 
@@ -125,6 +130,7 @@ describe("acceptInvite", () => {
       passwordResets: [],
       invitations: [],
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     const result = user.acceptInvite({
@@ -153,6 +159,7 @@ describe("acceptInvite", () => {
         }),
       ],
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     const result = user.acceptInvite({
@@ -181,6 +188,7 @@ describe("acceptInvite", () => {
         }),
       ],
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     const request = {
@@ -217,6 +225,7 @@ describe("startPasswordReset", () => {
       passwordResets: [],
       invitations: [],
       status: UserStatus.Disabled,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     expect(() => user.startPasswordReset()).toThrow(new UserDisabledError());
@@ -234,6 +243,7 @@ describe("startPasswordReset", () => {
       passwordResets: [],
       invitations: [],
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     const reset = user.startPasswordReset();
@@ -260,6 +270,7 @@ describe("completePasswordReset", () => {
       passwordResets: [],
       invitations: [],
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     await expect(
@@ -278,6 +289,7 @@ describe("completePasswordReset", () => {
       passwordResets: [PasswordReset.generate(), PasswordReset.generate()],
       invitations: [],
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     const newPassword = "pa$$word";
@@ -293,6 +305,7 @@ describe("completePasswordReset", () => {
         }),
         passwordResets: [],
         invitations: [],
+        systemRoles: [],
       }),
     );
     await expect(
@@ -312,6 +325,7 @@ describe("startEmailChange", () => {
       passwordResets: [],
       invitations: [],
       status: UserStatus.Disabled,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     const newAddress = "new@example.com";
@@ -332,6 +346,7 @@ describe("startEmailChange", () => {
       passwordResets: [],
       invitations: [],
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     const newAddress = "new@example.com";
@@ -367,6 +382,7 @@ describe("confirmEmailChange", () => {
       }),
       invitations: [],
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     user.confirmEmailChange(props.emailVerification.token);
@@ -393,6 +409,7 @@ describe("confirmEmailChange", () => {
       passwordResets: [],
       invitations: [],
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     expect(() => user.confirmEmailChange("asdf")).toThrow();
@@ -414,6 +431,7 @@ describe("confirmEmailChange", () => {
       }),
       invitations: [],
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     expect(() => user.confirmEmailChange("garbage")).toThrow();
@@ -435,6 +453,7 @@ describe("confirmEmailChange", () => {
       }),
       invitations: [],
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     expect(() =>
@@ -455,6 +474,7 @@ describe("rejectEmail", () => {
       passwordResets: [],
       invitations: [],
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     user.rejectEmail(EmailStatus.Complained);
@@ -485,6 +505,7 @@ describe("disable", () => {
         "changed@example.com",
       ),
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     user.disable();
@@ -509,6 +530,7 @@ describe("disable", () => {
       passwordResets: [],
       invitations: [Invitation.generate()],
       status: UserStatus.Active,
+      systemRoles: [],
     };
     const user = new User({ ...props });
     user.disable();
@@ -517,6 +539,52 @@ describe("disable", () => {
         ...props,
         invitations: [],
         status: UserStatus.Disabled,
+      }),
+    );
+  });
+});
+
+describe("changeSystemRoles", () => {
+  test("throws error if user is disabled", async () => {
+    const props = {
+      id: "user-id-asdf",
+      email: new UserEmail({
+        address: "test@example.com",
+        status: EmailStatus.Verified,
+      }),
+      passwordResets: [],
+      invitations: [],
+      status: UserStatus.Disabled,
+      systemRoles: [],
+    };
+    const user = new User({ ...props });
+    expect(() => user.changeSystemRoles([SystemRole.Admin])).toThrow(
+      new UserDisabledError(),
+    );
+    expect(user).toEqual(new User(props));
+  });
+
+  test("replaces system roles list", async () => {
+    const props = {
+      id: "user-id-asdf",
+      email: new UserEmail({
+        address: "test@example.com",
+        status: EmailStatus.Verified,
+      }),
+      password: new Password({
+        hash: "password hash",
+      }),
+      passwordResets: [],
+      invitations: [],
+      status: UserStatus.Active,
+      systemRoles: [],
+    };
+    const user = new User({ ...props });
+    user.changeSystemRoles([SystemRole.Admin]);
+    expect(user).toEqual(
+      new User({
+        ...props,
+        systemRoles: [SystemRole.Admin],
       }),
     );
   });

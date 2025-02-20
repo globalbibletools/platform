@@ -33,6 +33,7 @@ test("returns error if password does not match", async () => {
     passwordResets: [],
     invitations: [],
     status: UserStatus.Active,
+    systemRoles: [],
   });
   mockUserRepo.users = [user];
 
@@ -56,6 +57,7 @@ test("returns user id if password matches", async () => {
     passwordResets: [],
     invitations: [],
     status: UserStatus.Active,
+    systemRoles: [],
   });
   mockUserRepo.users = [user];
 

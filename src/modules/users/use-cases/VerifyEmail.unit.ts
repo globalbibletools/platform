@@ -35,6 +35,7 @@ test("verfies the email and sends message to user", async () => {
     passwordResets: [],
     invitations: [],
     status: UserStatus.Active,
+    systemRoles: [],
   };
   const user = new User({ ...props });
   mockUserRepo.users = [user];

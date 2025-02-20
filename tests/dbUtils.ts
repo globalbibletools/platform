@@ -361,6 +361,17 @@ export async function findPasswordResets(): Promise<DbPasswordReset[]> {
   return result.rows;
 }
 
+export async function findSystemRoles(): Promise<DbSystemRole[]> {
+  const result = await query<DbSystemRole>(
+    `
+        select user_id as "userId", role
+        from user_system_role
+    `,
+    [],
+  );
+  return result.rows;
+}
+
 export async function findLanguages(): Promise<DbLanguage[]> {
   const result = await query<DbLanguage>(
     `
