@@ -14,9 +14,10 @@ import { getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
 import MultiselectInput from "@/components/MultiselectInput";
 import Form from "@/components/Form";
-import { changeUserLanguageRole, removeLanguageUser } from "./actions";
+import { changeLanguageMemberRoles } from "@/modules/languages/actions/changeLanguageMemberRoles";
+import { removeLanguageMember } from "@/modules/languages/actions/removeLanguageMember";
 import ServerAction from "@/components/ServerAction";
-import { resendUserInvite } from "../../../../(main)/users/actions";
+import { inviteUser } from "@/modules/users/actions/inviteUser";
 
 interface LanguageUsersPageProps {
   params: { code: string };
@@ -69,7 +70,7 @@ export default async function LanguageUsersPage({
                   <div className="font-normal text-sm">{user.email}</div>
                 </ListCell>
                 <ListCell className="ps-4 py-2">
-                  <Form action={changeUserLanguageRole}>
+                  <Form action={changeLanguageMemberRoles}>
                     <input type="hidden" name="code" value={params.code} />
                     <input type="hidden" name="userId" value={user.id} />
                     <MultiselectInput
@@ -100,8 +101,8 @@ export default async function LanguageUsersPage({
                     <ServerAction
                       variant="tertiary"
                       className="ms-4"
-                      actionData={{ userId: user.id }}
-                      action={resendUserInvite}
+                      actionData={{ email: user.email }}
+                      action={inviteUser}
                     >
                       {t("links.resend_invite")}
                     </ServerAction>
@@ -114,7 +115,7 @@ export default async function LanguageUsersPage({
                       userId: user.id,
                       code: params.code,
                     }}
-                    action={removeLanguageUser}
+                    action={removeLanguageMember}
                   >
                     <Icon icon="xmark" />
                     <span className="sr-only">{t("links.remove")}</span>

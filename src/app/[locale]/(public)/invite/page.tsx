@@ -7,7 +7,7 @@ import { getTranslations } from "next-intl/server";
 import { query } from "@/db";
 import { notFound } from "next/navigation";
 import { Metadata, ResolvingMetadata } from "next";
-import { acceptInvite } from "./actions";
+import { acceptInvite } from "@/modules/users/actions/acceptInvite";
 import Form from "@/components/Form";
 
 interface Props {

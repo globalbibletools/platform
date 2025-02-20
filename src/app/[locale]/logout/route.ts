@@ -1,9 +1,1 @@
-import { clearSession } from "@/session";
-import { getLocale } from "next-intl/server";
-import { redirect } from "next/navigation";
-
-export async function GET() {
-  await clearSession();
-  const locale = await getLocale();
-  redirect(`/${locale}/login`);
-}
+export { default as GET } from "@/modules/users/route-handlers/logout";

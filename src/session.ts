@@ -40,6 +40,10 @@ export async function createSession(userId?: string) {
   return session;
 }
 
+export async function clearSessionsForUser(userId: string) {
+  await query(`delete from session where user_id = $1`, [userId]);
+}
+
 export async function clearSession() {
   const sessionId = cookies().get("session")?.value;
   if (!sessionId) return;

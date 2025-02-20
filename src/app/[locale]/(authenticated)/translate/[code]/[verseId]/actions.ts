@@ -91,13 +91,17 @@ const updateTranslatorNoteSchema = z.object({
 });
 
 export async function updateTranslatorNote(formData: FormData): Promise<any> {
+  const logger = serverActionLogger("updateTranslatorNote");
+
   const session = await verifySession();
   if (!session?.user) {
+    logger.error("unauthorized");
     notFound();
   }
 
   const request = updateTranslatorNoteSchema.safeParse(parseForm(formData));
   if (!request.success) {
+    logger.error("request parse error");
     return;
   }
 
@@ -105,16 +109,20 @@ export async function updateTranslatorNote(formData: FormData): Promise<any> {
     `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
         FROM language_member_role AS r
-        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
+        WHERE r.language_id = (SELECT language_id FROM phrase WHERE id = $1) 
             AND r.user_id = $2`,
     [request.data.phraseId, session.user.id],
   );
   const language = languageQuery.rows[0];
+  if (!language) {
+    logger.error("language not found");
+    notFound();
+  }
   if (
-    !language ||
-    (!session?.user.roles.includes("ADMIN") &&
-      !language.roles.includes("TRANSLATOR"))
+    !session?.user.roles.includes("ADMIN") &&
+    !language.roles.includes("TRANSLATOR")
   ) {
+    logger.error("unauthorized");
     notFound();
   }
 
@@ -129,6 +137,7 @@ export async function updateTranslatorNote(formData: FormData): Promise<any> {
     [request.data.phraseId, session.user.id, new Date(), request.data.note],
   );
   if (result.rowCount === 0) {
+    logger.error("phrase not found");
     notFound();
   }
 
@@ -156,13 +165,17 @@ const updateFootnoteSchema = z.object({
 });
 
 export async function updateFootnote(formData: FormData): Promise<any> {
+  const logger = serverActionLogger("updateFootnote");
+
   const session = await verifySession();
   if (!session?.user) {
+    logger.error("unauthorized");
     notFound();
   }
 
   const request = updateFootnoteSchema.safeParse(parseForm(formData));
   if (!request.success) {
+    logger.error("request parse error");
     return;
   }
 
@@ -170,16 +183,20 @@ export async function updateFootnote(formData: FormData): Promise<any> {
     `SELECT 
             COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
         FROM language_member_role AS r
-        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
+        WHERE r.language_id = (SELECT language_id FROM phrase WHERE id = $1) 
             AND r.user_id = $2`,
     [request.data.phraseId, session.user.id],
   );
   const language = languageQuery.rows[0];
+  if (!language) {
+    logger.error("language not found");
+    notFound();
+  }
   if (
-    !language ||
-    (!session?.user.roles.includes("ADMIN") &&
-      !language.roles.includes("TRANSLATOR"))
+    !session?.user.roles.includes("ADMIN") &&
+    !language.roles.includes("TRANSLATOR")
   ) {
+    logger.error("unauthorized");
     notFound();
   }
 
@@ -194,6 +211,7 @@ export async function updateFootnote(formData: FormData): Promise<any> {
     [request.data.phraseId, session.user.id, new Date(), request.data.note],
   );
   if (result.rowCount === 0) {
+    logger.error("phrase not found");
     notFound();
   }
 

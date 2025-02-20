@@ -8,7 +8,7 @@ import { redirect, RedirectType } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
 import Form from "@/components/Form";
-import { forgotPassword } from "./actions";
+import { startPasswordReset } from "@/modules/users/actions/startPasswordReset";
 import homeRedirect from "@/home-redirect";
 
 export async function generateMetadata(
@@ -42,7 +42,10 @@ export default async function LoginPage() {
       }
     >
       <ModalViewTitle>{t("title")}</ModalViewTitle>
-      <Form className="max-w-[300px] w-full mx-auto" action={forgotPassword}>
+      <Form
+        className="max-w-[300px] w-full mx-auto"
+        action={startPasswordReset}
+      >
         <div className="mb-6">
           <FormLabel htmlFor="email">{t("form.email")}</FormLabel>
           <TextInput

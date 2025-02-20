@@ -8,7 +8,7 @@ import { redirect, RedirectType } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
 import Form from "@/components/Form";
-import { login } from "./actions";
+import { login } from "@/modules/users/actions/login";
 import homeRedirect from "@/home-redirect";
 
 export async function generateMetadata(
