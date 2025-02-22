@@ -1,5 +1,5 @@
 import { query } from "@/db";
-import { InviteView, SimpleUserView } from "./types";
+import { InviteView, SimpleUserView, UserProfileView } from "./types";
 
 const userQueryService = {
   async resetPasswordTokenExists(token: string): Promise<boolean> {
@@ -35,6 +35,18 @@ const userQueryService = {
       [email.toLowerCase()],
     );
 
+    return result.rows[0];
+  },
+
+  async findProfileById(id: string): Promise<UserProfileView> {
+    const result = await query<UserProfileView>(
+      `
+        select id, name, email
+        from users
+        where id = $1
+      `,
+      [id],
+    );
     return result.rows[0];
   },
 };

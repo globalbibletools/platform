@@ -14,6 +14,12 @@ export interface SimpleUserView {
   id: string;
 }
 
+export interface UserProfileView {
+  id: string;
+  email: string;
+  name?: string;
+}
+
 export interface InviteView {
   token: string;
   email: string;
@@ -24,4 +30,5 @@ export interface UserQueryService {
   findInviteByToken(token: string): Promise<InviteView | undefined>;
 
   findByEmail(email: string): Promise<SimpleUserView | undefined>;
+  findProfileById(id: string): Promise<UserProfileView | undefined>;
 }

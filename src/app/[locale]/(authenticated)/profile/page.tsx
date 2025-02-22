@@ -9,7 +9,7 @@ import Button from "@/components/Button";
 import { notFound } from "next/navigation";
 import Form from "@/components/Form";
 import { updateProfile } from "@/modules/users/actions/updateProfile";
-import { query } from "@/db";
+import userQueryService from "@/modules/users/data-access/UserQueryService";
 
 export async function generateMetadata(
   _: any,
@@ -27,11 +27,7 @@ export default async function ProfileView() {
   const session = await verifySession();
   if (!session) notFound();
 
-  const result = await query<{ name?: string; email: string }>(
-    `SELECT name, email FROM users WHERE id = $1`,
-    [session.user.id],
-  );
-  const user = result?.rows[0];
+  const user = await userQueryService.findProfileById(session.user.id);
 
   const t = await getTranslations("ProfileView");
 
