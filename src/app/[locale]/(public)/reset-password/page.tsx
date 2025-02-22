@@ -7,10 +7,10 @@ import { verifySession } from "@/session";
 import { notFound, redirect, RedirectType } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
-import { query } from "@/db";
 import { resetPassword } from "@/modules/users/actions/resetPassword";
 import Form from "@/components/Form";
 import homeRedirect from "@/home-redirect";
+import userQueryService from "@/modules/users/data-access/UserQueryService";
 
 export async function generateMetadata(
   _: any,
@@ -41,13 +41,8 @@ export default async function ResetPasswordPage({
     notFound();
   }
 
-  const tokenQuery = await query(
-    `SELECT FROM reset_password_token WHERE token = $1
-            AND expires > (EXTRACT(EPOCH FROM CURRENT_TIMESTAMP)::bigint * 1000::bigint)
-        `,
-    [searchParams.token],
-  );
-  if (tokenQuery.rows.length === 0) {
+  const tokenExists = await userQueryService.resetPasswordTokenExists(searchParams.token)
+  if (!tokenExists) {
     notFound();
   }
 
