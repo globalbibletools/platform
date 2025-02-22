@@ -4,11 +4,11 @@ import FormLabel from "@/components/FormLabel";
 import TextInput from "@/components/TextInput";
 import FieldError from "@/components/FieldError";
 import { getTranslations } from "next-intl/server";
-import { query } from "@/db";
 import { notFound } from "next/navigation";
 import { Metadata, ResolvingMetadata } from "next";
 import { acceptInvite } from "@/modules/users/actions/acceptInvite";
 import Form from "@/components/Form";
+import userQueryService from "@/modules/users/data-access/UserQueryService";
 
 interface Props {
   params: { locale: string };
@@ -34,11 +34,7 @@ export default async function LoginPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  const inviteQuery = await query<{ email: string }>(
-    `SELECT email FROM user_invitation AS i JOIN users AS u ON u.id = i.user_id WHERE i.token = $1`,
-    [searchParams.token],
-  );
-  const invite = inviteQuery.rows[0];
+  const invite = await userQueryService.findInviteByToken(searchParams.token);
   if (!invite) {
     notFound();
   }
@@ -61,7 +57,7 @@ export default async function LoginPage({ params, searchParams }: Props) {
             id="email"
             className="w-full bg-gray-200"
             readOnly
-            defaultValue={inviteQuery.rows[0].email}
+            defaultValue={invite.email}
           />
         </div>
         <div className="flex gap-4 mb-4">

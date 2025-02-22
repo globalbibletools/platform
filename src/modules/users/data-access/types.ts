@@ -14,6 +14,14 @@ export interface SimpleUserView {
   id: string;
 }
 
+export interface InviteView {
+  token: string;
+  email: string;
+}
+
 export interface UserQueryService {
+  resetPasswordTokenExists(token: string): Promise<boolean>;
+  findInviteByToken(token: string): Promise<InviteView | undefined>;
+
   findByEmail(email: string): Promise<SimpleUserView | undefined>;
 }
