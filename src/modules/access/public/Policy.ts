@@ -7,7 +7,7 @@ export interface PolicyOptions {
 }
 
 export interface AuthorizationContext {
-  userId?: string;
+  actorId?: string;
   languageCode?: string;
 }
 
@@ -15,23 +15,23 @@ export default class Policy {
   constructor(private readonly options: PolicyOptions) {}
 
   async authorize(context: AuthorizationContext): Promise<boolean> {
-    if (!context.userId) return false;
+    if (!context.actorId) return false;
 
-    let claims;
-    if (context.languageCode) {
-      claims = await claimsRepository.findUserClaimsWithLanguage(
-        context.userId,
-        context.languageCode,
-      );
-    } else {
-      claims = await claimsRepository.findUserClaims(context.userId);
-    }
+    const [actor, language] = await Promise.all([
+      claimsRepository.findActorClaims(context.actorId),
+      context.languageCode ?
+        claimsRepository.findLanguageClaims(
+          context.languageCode,
+          context.actorId,
+        )
+      : undefined,
+    ]);
 
     const systemRoleMatches = this.options.systemRoles?.some((role) =>
-      claims.systemRoles.includes(role),
+      actor.systemRoles.includes(role),
     );
     const languageRoleMatches = this.options.languageRoles?.some((role) =>
-      claims.languageRoles?.includes(role),
+      language?.roles.includes(role),
     );
 
     return (systemRoleMatches || languageRoleMatches) ?? false;

@@ -1,6 +1,7 @@
 export enum LanguageRole {
   Admin = "ADMIN",
   Translator = "TRANSLATOR",
+  Viewer = "VIEWER",
 }
 
 export enum SystemRole {
@@ -8,8 +9,12 @@ export enum SystemRole {
   User = "USER",
 }
 
-export interface UserClaims {
+export interface ActorClaims {
   id: string;
   systemRoles: SystemRole[];
-  languageRoles?: LanguageRole[];
+}
+
+export interface LanguageClaims {
+  code: string;
+  roles: LanguageRole[];
 }
