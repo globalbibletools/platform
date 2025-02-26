@@ -9,9 +9,14 @@ import { serverActionLogger } from "@/server-action";
 import InviteUser from "../use-cases/InviteUser";
 import userRepository from "../data-access/UserRepository";
 import { UserAlreadyActiveError } from "../model/errors";
+import Policy from "@/modules/access/public/Policy";
 
 const requestSchema = z.object({
   email: z.string().email().min(1),
+});
+
+const policy = new Policy({
+  systemRoles: [Policy.SystemRole.Admin],
 });
 
 const inviteUserUseCase = new InviteUser(userRepository);
@@ -23,13 +28,6 @@ export async function inviteUser(
   const logger = serverActionLogger("inviteUser");
 
   const t = await getTranslations("InviteUserPage");
-  const locale = await getLocale();
-
-  const session = await verifySession();
-  if (!session?.user.roles.includes("ADMIN")) {
-    logger.error("unauthorized");
-    notFound();
-  }
 
   const request = requestSchema.safeParse(
     {
@@ -57,6 +55,15 @@ export async function inviteUser(
     };
   }
 
+  const session = await verifySession();
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+  });
+  if (!authorized) {
+    logger.error("unauthorized");
+    notFound();
+  }
+
   try {
     await inviteUserUseCase.execute({ email: request.data.email });
   } catch (error) {
@@ -71,5 +78,6 @@ export async function inviteUser(
     }
   }
 
+  const locale = await getLocale();
   redirect(`/${locale}/admin/users`);
 }

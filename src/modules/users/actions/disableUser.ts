@@ -2,7 +2,6 @@
 
 import * as z from "zod";
 import { getLocale, getTranslations } from "next-intl/server";
-import { query } from "@/db";
 import { parseForm } from "@/form-parser";
 import { clearSessionsForUser, verifySession } from "@/session";
 import { notFound } from "next/navigation";
@@ -13,9 +12,14 @@ import DisableUser from "../use-cases/DisableUser";
 import userRepository from "../data-access/UserRepository";
 import { languageClient } from "@/modules/languages/public/LanguageClient";
 import { NotFoundError } from "@/shared/errors";
+import Policy from "@/modules/access/public/Policy";
 
 const requestSchema = z.object({
   userId: z.string().min(1),
+});
+
+const policy = new Policy({
+  systemRoles: [Policy.SystemRole.Admin],
 });
 
 const disableUserUseCase = new DisableUser(userRepository, languageClient);
@@ -28,12 +32,6 @@ export async function disableUser(
 
   const t = await getTranslations("AdminUsersPage");
 
-  const session = await verifySession();
-  if (!session) {
-    logger.error("unauthorized");
-    notFound();
-  }
-
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
     logger.error("request parse error");
@@ -43,7 +41,11 @@ export async function disableUser(
     };
   }
 
-  if (!session?.user.roles.includes("ADMIN")) {
+  const session = await verifySession();
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+  });
+  if (!authorized) {
     logger.error("unauthorized");
     notFound();
   }

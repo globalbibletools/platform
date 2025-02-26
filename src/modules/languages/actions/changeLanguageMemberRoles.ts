@@ -39,21 +39,6 @@ export async function changeLanguageMemberRoles(
 
   const t = await getTranslations("AdminUsersPage");
 
-  const session = await verifySession();
-  if (!session) {
-    logger.error("unauthorized");
-    notFound();
-  }
-
-  const authorized = await policy.authorize({
-    userId: session.user.id,
-    languageCode: formData.get("code")?.toString(),
-  });
-  if (!authorized) {
-    logger.error("unauthorized");
-    notFound();
-  }
-
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
     logger.error("request parser error");
@@ -61,6 +46,16 @@ export async function changeLanguageMemberRoles(
       state: "error",
       error: t("errors.invalid_request"),
     };
+  }
+
+  const session = await verifySession();
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+    languageCode: request.data.code,
+  });
+  if (!authorized) {
+    logger.error("unauthorized");
+    notFound();
   }
 
   try {
