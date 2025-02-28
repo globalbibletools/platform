@@ -10,6 +10,8 @@ import { createPortal } from "react-dom";
 import { parseReferenceRange } from "@/verse-utils";
 import { VersesPreview } from "@/components/VersesPreview";
 import { isRichTextEmpty } from "@/components/RichTextInput";
+import useSWR from "swr";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export interface Word {
   id: string;
@@ -25,6 +27,13 @@ export interface ReadingSidebarProps {
   language: { font: string; textDirection: string; code: string };
   onClose?(): void;
 }
+
+export interface LemmaResource {
+  lemmaId: string;
+  name: string;
+  entry: string;
+}
+
 export interface ReadingSidebarRef {
   openNotes(): void;
 }
@@ -36,6 +45,14 @@ const ReadingSidebar = forwardRef<ReadingSidebarRef, ReadingSidebarProps>(
     const [tabIndex, setTabIndex] = useState(0);
 
     const hasNotes = !isRichTextEmpty(word.footnote ?? "");
+
+    const { data, isLoading } = useSWR(
+      ["lemma-resource", word.lemma],
+      async ([, lemmaId]) => {
+        const response = await fetch(`/api/lemma-resources/${lemmaId}`);
+        return (await response.json()) as Promise<LemmaResource | undefined>;
+      },
+    );
 
     const lexiconEntryRef = useRef<HTMLDivElement>(null);
     const [previewElement, setPreviewElement] = useState<HTMLDivElement | null>(
@@ -104,12 +121,12 @@ const ReadingSidebar = forwardRef<ReadingSidebarRef, ReadingSidebarProps>(
             </Tab.List>
             <Tab.Panels className="overflow-y-auto grow px-4 pt-4 mb-4">
               <Tab.Panel unmount={false}>
-                {/*
                 <div>
-                  {word.resource && (
+                  {isLoading && <LoadingSpinner />}
+                  {!isLoading && data && (
                     <>
                       <div className="text-lg mb-3 font-bold me-2">
-                        {word.resource.name}
+                        {data.name}
                       </div>
                       <div
                         className="leading-relaxed text-sm font-mixed"
@@ -124,7 +141,7 @@ const ReadingSidebar = forwardRef<ReadingSidebarRef, ReadingSidebarProps>(
                           }
                         }}
                       >
-                        <LexiconText content={word.resource.entry} />
+                        <LexiconText content={data.entry} />
                       </div>
                       {previewElement !== null &&
                         createPortal(
@@ -142,7 +159,6 @@ const ReadingSidebar = forwardRef<ReadingSidebarRef, ReadingSidebarProps>(
                     </>
                   )}
                 </div>
-                */}
               </Tab.Panel>
               <Tab.Panel unmount={false}>
                 <RichText className="pb-2" content={word.footnote ?? ""} />
