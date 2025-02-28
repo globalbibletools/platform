@@ -14,6 +14,12 @@ interface Verse {
   }[];
 }
 
+export interface LemmaResource {
+  lemmaId: string;
+  name: string;
+  entry: string;
+}
+
 const readingQueryService = {
   async fetchChapterVerses(
     bookId: number,
@@ -62,6 +68,25 @@ const readingQueryService = {
       [bookId, chapterId, code],
     );
     return result.rows;
+  },
+
+  async fetchResourceForLemmaId(
+    lemmaId: string,
+  ): Promise<LemmaResource | undefined> {
+    const result = await query<LemmaResource>(
+      `
+        select
+          lr.lemma_id as "lemmaId",
+          lr.resource_code as name,
+          lr.content as entry
+        from lemma_resource AS lr
+        where lr.lemma_id = $1
+        limit 1
+      `,
+      [lemmaId],
+    );
+
+    return result.rows[0];
   },
 };
 export default readingQueryService;
