@@ -11,10 +11,15 @@ import ChangeUserRoles from "../use-cases/ChangeUserRoles";
 import userRepository from "../data-access/UserRepository";
 import { SystemRoleRaw } from "../model/SystemRole";
 import { NotFoundError } from "@/shared/errors";
+import Policy from "@/modules/access/public/Policy";
 
 const requestSchema = z.object({
   userId: z.string().min(1),
   roles: z.array(z.nativeEnum(SystemRoleRaw)).optional().default([]),
+});
+
+const policy = new Policy({
+  systemRoles: [Policy.SystemRole.Admin],
 });
 
 const changeUserRolesUseCase = new ChangeUserRoles(userRepository);
@@ -27,12 +32,6 @@ export async function changeUserRoles(
 
   const t = await getTranslations("AdminUsersPage");
 
-  const session = await verifySession();
-  if (!session?.user.roles.includes("ADMIN")) {
-    logger.error("unauthorized");
-    notFound();
-  }
-
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
     logger.error("request parse error");
@@ -40,6 +39,15 @@ export async function changeUserRoles(
       state: "error",
       error: t("errors.invalid_request"),
     };
+  }
+
+  const session = await verifySession();
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+  });
+  if (!authorized) {
+    logger.error("unauthorized");
+    notFound();
   }
 
   try {

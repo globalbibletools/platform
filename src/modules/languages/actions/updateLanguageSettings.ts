@@ -3,7 +3,6 @@
 import * as z from "zod";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { query } from "@/db";
 import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
@@ -11,6 +10,7 @@ import UpdateLanguageSettings from "../use-cases/UpdateLanguageSettings";
 import languageRepository from "../data-access/LanguageRepository";
 import { TextDirectionRaw } from "../model";
 import { NotFoundError } from "@/shared/errors";
+import Policy from "@/modules/access/public/Policy";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -18,6 +18,11 @@ const requestSchema = z.object({
   font: z.string().min(1),
   textDirection: z.nativeEnum(TextDirectionRaw),
   translationIds: z.array(z.string()).optional(),
+});
+
+const policy = new Policy({
+  systemRoles: [Policy.SystemRole.Admin],
+  languageRoles: [Policy.LanguageRole.Admin],
 });
 
 const updateLanguageSettingsUseCase = new UpdateLanguageSettings(
@@ -31,12 +36,6 @@ export async function updateLanguageSettings(
   const logger = serverActionLogger("updateLanguageSettings");
 
   const t = await getTranslations("LanguageSettingsPage");
-
-  const session = await verifySession();
-  if (!session) {
-    logger.error("unauthorized");
-    notFound();
-  }
 
   const request = requestSchema.safeParse(
     {
@@ -72,20 +71,12 @@ export async function updateLanguageSettings(
     };
   }
 
-  const languageQuery = await query<{ roles: string[] }>(
-    `SELECT 
-            (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-            FROM language_member_role AS r WHERE r.language_id = l.id AND r.user_id = $2)
-        FROM language AS l WHERE l.code = $1`,
-    [request.data.code, session.user.id],
-  );
-  const language = languageQuery.rows[0];
-
-  if (
-    !language ||
-    (!session?.user.roles.includes("ADMIN") &&
-      !language.roles.includes("ADMIN"))
-  ) {
+  const session = await verifySession();
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+    languageCode: request.data.code,
+  });
+  if (!authorized) {
     logger.error("unauthorized");
     notFound();
   }

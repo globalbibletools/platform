@@ -9,10 +9,15 @@ import { serverActionLogger } from "@/server-action";
 import CreateLanguage from "../use-cases/CreateLanguage";
 import { LanguageAlreadyExistsError } from "../model";
 import languageRepository from "../data-access/LanguageRepository";
+import Policy from "@/modules/access/public/Policy";
 
 const requestSchema = z.object({
   code: z.string().length(3),
   name: z.string().min(1),
+});
+
+const policy = new Policy({
+  systemRoles: [Policy.SystemRole.Admin],
 });
 
 const createLanguageUseCase = new CreateLanguage(languageRepository);
@@ -24,13 +29,6 @@ export async function createLanguage(
   const logger = serverActionLogger("createLanguage");
 
   const t = await getTranslations("NewLanguagePage");
-  const locale = await getLocale();
-
-  const session = await verifySession();
-  if (!session?.user.roles.includes("ADMIN")) {
-    logger.error("unauthorized");
-    notFound();
-  }
 
   const request = requestSchema.safeParse(
     {
@@ -57,6 +55,16 @@ export async function createLanguage(
     };
   }
 
+  const session = await verifySession();
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+    languageCode: formData.get("code")?.toString(),
+  });
+  if (!authorized) {
+    logger.error("unauthorized");
+    notFound();
+  }
+
   try {
     await createLanguageUseCase.execute(request.data);
   } catch (error) {
@@ -71,5 +79,6 @@ export async function createLanguage(
     }
   }
 
+  const locale = await getLocale();
   redirect(`/${locale}/admin/languages/${request.data.code}/settings`);
 }

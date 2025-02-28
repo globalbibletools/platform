@@ -3,7 +3,6 @@
 import * as z from "zod";
 import { getTranslations, getLocale } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
-import { query } from "@/db";
 import { parseForm } from "@/form-parser";
 import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
@@ -14,11 +13,17 @@ import languageMemberRepository from "../data-access/LanguageMemberRepository";
 import { userClient } from "@/modules/users/public/UserClient";
 import { LanguageMemberRoleRaw } from "../model";
 import { NotFoundError } from "@/shared/errors";
+import Policy from "@/modules/access/public/Policy";
 
 const requestSchema = z.object({
   code: z.string(),
   email: z.string().email().min(1),
   roles: z.array(z.nativeEnum(LanguageMemberRoleRaw)),
+});
+
+const policy = new Policy({
+  systemRoles: [Policy.SystemRole.Admin],
+  languageRoles: [Policy.LanguageRole.Admin],
 });
 
 const inviteLanguageMemberUseCase = new InviteLanguageMember(
@@ -34,13 +39,6 @@ export async function inviteLanguageMember(
   const logger = serverActionLogger("inviteUser");
 
   const t = await getTranslations("InviteUserPage");
-  const locale = await getLocale();
-
-  const session = await verifySession();
-  if (!session) {
-    logger.error("unauthorized");
-    notFound();
-  }
 
   const request = requestSchema.safeParse(parseForm(formData), {
     errorMap: (error) => {
@@ -63,20 +61,12 @@ export async function inviteLanguageMember(
     };
   }
 
-  const languageQuery = await query<{ roles: string[] }>(
-    `SELECT 
-            (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-            FROM language_member_role AS r WHERE r.language_id = l.id AND r.user_id = $2)
-        FROM language AS l WHERE l.code = $1`,
-    [request.data.code, session.user.id],
-  );
-  const language = languageQuery.rows[0];
-
-  if (
-    !language ||
-    (!session?.user.roles.includes("ADMIN") &&
-      !language.roles.includes("ADMIN"))
-  ) {
+  const session = await verifySession();
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+    languageCode: request.data.code,
+  });
+  if (!authorized) {
     logger.error("unauthorized");
     notFound();
   }
@@ -92,5 +82,6 @@ export async function inviteLanguageMember(
     }
   }
 
+  const locale = await getLocale();
   redirect(`/${locale}/admin/languages/${request.data.code}/users`);
 }

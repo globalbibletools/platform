@@ -63,7 +63,7 @@ expect.extend({
         received?.message === "NEXT_REDIRECT" &&
         received?.digest === `NEXT_REDIRECT;replace;${path};307;`,
       message: () =>
-        `${received} is${this.isNot ? "" : " not"} a Next.js redirect to ${path}`,
+        `${received instanceof Error ? received.stack : received} is${this.isNot ? "" : " not"} a Next.js redirect to ${path}`,
     };
   },
   async toBeNextjsNotFound(receivedPromise: any) {
@@ -77,7 +77,7 @@ expect.extend({
     return {
       pass: received?.message === "NEXT_NOT_FOUND",
       message: () =>
-        `${received} is${this.isNot ? "" : " not"} a Next.js not found redirect`,
+        `${received instanceof Error ? received.stack : received} is${this.isNot ? "" : " not"} a Next.js not found redirect`,
     };
   },
 });

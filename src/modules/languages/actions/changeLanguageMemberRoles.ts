@@ -2,7 +2,6 @@
 
 import * as z from "zod";
 import { getLocale, getTranslations } from "next-intl/server";
-import { query } from "@/db";
 import { parseForm } from "@/form-parser";
 import { revalidatePath } from "next/cache";
 import { verifySession } from "@/session";
@@ -14,11 +13,17 @@ import languageRepository from "../data-access/LanguageRepository";
 import languageMemberRepository from "../data-access/LanguageMemberRepository";
 import { LanguageMemberRoleRaw } from "../model";
 import { NotFoundError } from "@/shared/errors";
+import Policy from "@/modules/access/public/Policy";
 
 const requestSchema = z.object({
   code: z.string(),
   userId: z.string(),
   roles: z.array(z.nativeEnum(LanguageMemberRoleRaw)).optional().default([]),
+});
+
+const policy = new Policy({
+  systemRoles: [Policy.SystemRole.Admin],
+  languageRoles: [Policy.LanguageRole.Admin],
 });
 
 const changeLanguageMemberRolesUseCase = new ChangeLanguageMemberRoles(
@@ -34,12 +39,6 @@ export async function changeLanguageMemberRoles(
 
   const t = await getTranslations("AdminUsersPage");
 
-  const session = await verifySession();
-  if (!session) {
-    logger.error("unauthorized");
-    notFound();
-  }
-
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
     logger.error("request parser error");
@@ -49,20 +48,12 @@ export async function changeLanguageMemberRoles(
     };
   }
 
-  const languageQuery = await query<{ roles: string[] }>(
-    `SELECT 
-            (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-            FROM language_member_role AS r WHERE r.language_id = l.id AND r.user_id = $2)
-        FROM language AS l WHERE l.code = $1`,
-    [request.data.code, session.user.id],
-  );
-  const language = languageQuery.rows[0];
-
-  if (
-    !language ||
-    (!session?.user.roles.includes("ADMIN") &&
-      !language.roles.includes("ADMIN"))
-  ) {
+  const session = await verifySession();
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+    languageCode: request.data.code,
+  });
+  if (!authorized) {
     logger.error("unauthorized");
     notFound();
   }
