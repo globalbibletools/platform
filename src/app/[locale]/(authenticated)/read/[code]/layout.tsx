@@ -2,7 +2,7 @@ import { query } from "@/db";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ReactNode } from "react";
-import ReadingToolbar from "./ReadingToolbar";
+import ReadingToolbar from "@/modules/study/components/ReadingToolbar";
 import { NextIntlClientProvider } from "next-intl";
 
 interface Props {

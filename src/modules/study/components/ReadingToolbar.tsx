@@ -19,7 +19,7 @@ import {
   decrementChapterId,
   incrementChapterId,
 } from "@/verse-utils";
-import { changeChapter } from "./actions";
+import { changeChapter } from "../actions/changeChapter";
 import AudioDialog from "./AudioDialog";
 import SettingsMenu from "./SettingsMenu";
 

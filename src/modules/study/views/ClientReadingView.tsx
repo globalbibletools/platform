@@ -4,8 +4,10 @@ import { isOldTestament } from "@/verse-utils";
 import { Fragment, MouseEvent, useEffect, useRef, useState } from "react";
 import { useFloating, autoUpdate } from "@floating-ui/react-dom";
 import { createPortal } from "react-dom";
-import ReadingSidebar, { ReadingSidebarRef } from "./ReadingSidebar";
-import { useReadingContext } from "../ReadingToolbar";
+import ReadingSidebar, {
+  ReadingSidebarRef,
+} from "../components/ReadingSidebar";
+import { useReadingContext } from "../components/ReadingToolbar";
 
 interface VerseWord {
   id: string;
