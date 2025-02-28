@@ -16,10 +16,6 @@ interface VerseWord {
   linkedWords?: string[];
   lemma: string;
   grammar: string;
-  resource?: {
-    name: string;
-    entry: string;
-  };
   footnote?: string;
 }
 

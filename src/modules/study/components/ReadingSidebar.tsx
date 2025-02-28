@@ -16,10 +16,6 @@ export interface Word {
   text: string;
   lemma: string;
   grammar: string;
-  resource?: {
-    name: string;
-    entry: string;
-  };
   footnote?: string;
 }
 
@@ -108,6 +104,7 @@ const ReadingSidebar = forwardRef<ReadingSidebarRef, ReadingSidebarProps>(
             </Tab.List>
             <Tab.Panels className="overflow-y-auto grow px-4 pt-4 mb-4">
               <Tab.Panel unmount={false}>
+                {/*
                 <div>
                   {word.resource && (
                     <>
@@ -145,6 +142,7 @@ const ReadingSidebar = forwardRef<ReadingSidebarRef, ReadingSidebarProps>(
                     </>
                   )}
                 </div>
+                */}
               </Tab.Panel>
               <Tab.Panel unmount={false}>
                 <RichText className="pb-2" content={word.footnote ?? ""} />
