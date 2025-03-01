@@ -305,6 +305,7 @@ const USER_SELECT = `
             )
             from user_email_verification
             where user_id = u.id
+            limit 1
         ) as email_verification,
         (
             select json_agg(json_build_object(
