@@ -8,15 +8,13 @@ import TextInput from "@/components/TextInput";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import {
-  approveAll,
-  changeInterlinearLocation,
-  linkWords,
-  predictGlosses,
-  redirectToUnapproved,
-  sanityCheck,
-  unlinkPhrase,
-} from "./actions";
+import { approveAll } from "../actions/approveAll";
+import { changeInterlinearLocation } from "../actions/changeInterlinearLocation";
+import { linkWords } from "../actions/linkWords";
+import { predictGlosses } from "../actions/predictGlosses";
+import { redirectToUnapproved } from "../actions/redirectToUnapproved";
+import { sanityCheck } from "../actions/sanityCheck";
+import { unlinkPhrase } from "../actions/unlinkPhrase";
 import {
   bookFirstVerseId,
   bookLastVerseId,

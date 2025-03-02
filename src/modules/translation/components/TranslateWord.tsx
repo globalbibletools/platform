@@ -7,7 +7,7 @@ import { Icon } from "@/components/Icon";
 import { useTextWidth } from "@/utils/text-width";
 import { useTranslations } from "next-intl";
 import { MouseEvent, useLayoutEffect, useRef, useState } from "react";
-import { updateGloss } from "./actions";
+import { updateGloss } from "../actions/updateGloss";
 import { fontMap } from "@/fonts";
 import { isRichTextEmpty } from "@/components/RichTextInput";
 import { useSWRConfig } from "swr";

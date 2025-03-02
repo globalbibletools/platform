@@ -18,7 +18,8 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { updateFootnote, updateTranslatorNote } from "./actions";
+import { updateFootnote } from "../actions/updateFootnote";
+import { updateTranslatorNote } from "../actions/updateTranslatorNote";
 import { parseReferenceRange } from "@/verse-utils";
 import { VersesPreview } from "@/components/VersesPreview";
 
