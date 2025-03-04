@@ -45,8 +45,9 @@ export default async function LanguageSettingsPage({
     font: string;
     textDirection: string;
     bibleTranslationIds: string[];
+    gtSourceLanguage: string;
   }>(
-    `SELECT name, code, font, text_direction AS "textDirection", translation_ids AS "bibleTranslationIds"
+    `SELECT name, code, font, text_direction AS "textDirection", translation_ids AS "bibleTranslationIds", gt_source_lang AS "gtSourceLanguage"
         FROM language
         WHERE code = $1`,
     [params.code],
@@ -171,7 +172,7 @@ export default async function LanguageSettingsPage({
             </div>
           </div>
         </section>
-        <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 px-10">
+        <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 px-10 border-b border-b-green-300 dark:border-b-blue-800">
           <div className="flex-grow">
             <h3 className="font-bold text-lg mb-2">
               {t("headings.bible_translation")}
@@ -192,6 +193,28 @@ export default async function LanguageSettingsPage({
             />
           </div>
           <FieldError id="bible-transations-error" name="bible_translations" />
+        </section>
+        <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 px-10">
+          <div className="flex-grow">
+            <h3 className="font-bold text-lg mb-2">
+              {t("headings.gloss_prediction")}
+            </h3>
+            <p className="text-sm">{t("gloss_prediction_description")}</p>
+          </div>
+          <div className="flex-shrink-0 w-80">
+            <FormLabel htmlFor="gt-source-language">
+              {t("form.gt_source_language").toUpperCase()}
+            </FormLabel>
+            <TextInput
+              id="gt-source-language"
+              name="gt_source_language"
+              className="block w-12"
+              defaultValue={languageQuery.rows[0].gtSourceLanguage}
+              autosubmit
+              aria-describedby="gt_source_language_error"
+            />
+          </div>
+          <FieldError id="gt_source_language_error" name="gt_source_language" />
         </section>
       </Form>
     </div>
