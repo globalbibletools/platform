@@ -8,6 +8,7 @@ export interface UpdateLanguageSettingsRequest {
   font: string;
   textDirection: TextDirectionRaw;
   translationIds: string[];
+  gtSourceLanguage: string;
 }
 
 export default class UpdateLanguageSettings {

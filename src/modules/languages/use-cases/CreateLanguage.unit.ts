@@ -14,6 +14,7 @@ test("throws error if language already exists with the same code", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
+    gtSourceLanguage: "en",
   };
   mockLanguageRepo.languages = [existingLanguage];
 
@@ -39,6 +40,7 @@ test("creates new language", async () => {
       font: "Noto Sans",
       textDirection: TextDirectionRaw.LTR,
       translationIds: [],
+      gtSourceLanguage: "en",
     },
   ]);
 });

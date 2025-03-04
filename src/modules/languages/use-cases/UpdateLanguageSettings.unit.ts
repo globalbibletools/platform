@@ -14,6 +14,7 @@ test("throws error if language does not exist", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
+    gtSourceLanguage: "en",
   });
   await expect(result).rejects.toThrow(new NotFoundError("Language"));
 });
@@ -26,6 +27,7 @@ test("updates language settings", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
+    gtSourceLanguage: "en",
   };
   mockLanguageRepo.languages = [language];
 
@@ -35,6 +37,7 @@ test("updates language settings", async () => {
     font: "Noto Sans Arabic",
     textDirection: TextDirectionRaw.RTL,
     translationIds: ["translation-id-1"],
+    gtSourceLanguage: "es",
   };
   await updateLanguageSettings.execute(request);
 

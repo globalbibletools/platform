@@ -95,6 +95,7 @@ test("does nothing if user does not exist", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
+    gtSourceLanguage: "en",
   };
   await seedDatabase({
     users: [admin],
@@ -122,6 +123,7 @@ test("removes user from language", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
+    gtSourceLanguage: "en",
   };
   const user = {
     id: ulid(),

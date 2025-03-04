@@ -15,7 +15,7 @@ export interface Language {
   font?: string;
   textDirection: TextDirectionRaw;
   translationIds: string[];
-  gtSourceLanguage?: string;
+  gtSourceLanguage: string;
 }
 
 export interface LanguageMember {

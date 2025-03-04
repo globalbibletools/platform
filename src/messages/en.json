@@ -185,7 +185,8 @@
     "errors": {
       "name_required": "Please enter the language name.",
       "font_required": "Please select a font.",
-      "text_direction_required": "Please select a text direction."
+      "text_direction_required": "Please select a text direction.",
+      "gt_source_language_required": "Please enter the source language code to use with Google Translate."
     },
     "headings": {
       "identification": "Identification",

@@ -23,6 +23,7 @@ export default class CreateLanguage {
       font: "Noto Sans",
       textDirection: TextDirectionRaw.LTR,
       translationIds: [],
+      gtSourceLanguage: "en",
     });
   }
 }
