@@ -4,6 +4,10 @@ import { Language } from "../model";
 const mockLanguageRepo = {
   languages: [] as Language[],
 
+  async existsById(id: string): Promise<boolean> {
+    return this.languages.some((l) => l.id === id);
+  },
+
   async existsByCode(code: string): Promise<boolean> {
     return this.languages.some((l) => l.code === code);
   },

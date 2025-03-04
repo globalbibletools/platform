@@ -18,6 +18,7 @@ const requestSchema = z.object({
   font: z.string().min(1),
   textDirection: z.nativeEnum(TextDirectionRaw),
   translationIds: z.array(z.string()).optional(),
+  referenceLanguageId: z.string().optional(),
 });
 
 const policy = new Policy({
@@ -48,6 +49,7 @@ export async function updateLanguageSettings(
         ?.toString()
         .split(",")
         .filter((id) => id !== ""),
+      referenceLanguageId: formData.get("reference_language_id") ?? undefined,
     },
     {
       errorMap: (error) => {

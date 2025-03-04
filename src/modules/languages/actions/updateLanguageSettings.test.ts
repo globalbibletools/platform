@@ -116,11 +116,20 @@ test("updates the language settings", async () => {
     font: "Noto Sans",
     translationIds: [],
   };
+  const referenceLanguage = {
+    id: ulid(),
+    code: "eng",
+    name: "English",
+    textDirection: TextDirectionRaw.LTR,
+    font: "Noto Sans",
+    translationIds: [],
+    referenceLanguageId: null,
+  };
   await seedDatabase({
     users: [admin],
     systemRoles: [adminRole],
     sessions: [session],
-    languages: [language],
+    languages: [language, referenceLanguage],
   });
   cookies.get.mockReturnValue({ value: session.id });
 
@@ -129,6 +138,7 @@ test("updates the language settings", async () => {
     textDirection: TextDirectionRaw.LTR,
     font: "Noto Sans Arabic",
     translationIds: ["asdf1234", "qwer1234"],
+    referenceLanguageId: referenceLanguage.id,
   };
   const formData = new FormData();
   formData.set("code", "spa");
@@ -136,11 +146,13 @@ test("updates the language settings", async () => {
   formData.set("text_direction", request.textDirection);
   formData.set("font", request.font);
   formData.set("bible_translations", request.translationIds.join(","));
+  formData.set("reference_language_id", request.referenceLanguageId);
   const response = await updateLanguageSettings({ state: "idle" }, formData);
   expect(response).toEqual({ state: "success" });
 
   const languages = await findLanguages();
   expect(languages).toEqual([
+    referenceLanguage,
     {
       ...language,
       ...request,

@@ -1,6 +1,7 @@
 import { Language, LanguageMember } from "../model";
 
 export interface LanguageRepository {
+  existsById(id: string): Promise<boolean>;
   existsByCode(code: string): Promise<boolean>;
   findByCode(code: string): Promise<Language | undefined>;
   update(language: Omit<Language, "id">): Promise<void>;

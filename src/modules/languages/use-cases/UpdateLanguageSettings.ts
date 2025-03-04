@@ -1,6 +1,6 @@
 import { NotFoundError } from "@/shared/errors";
 import { LanguageRepository } from "../data-access/types";
-import { TextDirectionRaw } from "../model";
+import { SourceLanguageMissingError, TextDirectionRaw } from "../model";
 
 export interface UpdateLanguageSettingsRequest {
   code: string;
@@ -8,6 +8,7 @@ export interface UpdateLanguageSettingsRequest {
   font: string;
   textDirection: TextDirectionRaw;
   translationIds: string[];
+  referenceLanguageId?: string;
 }
 
 export default class UpdateLanguageSettings {
@@ -16,6 +17,14 @@ export default class UpdateLanguageSettings {
   async execute(request: UpdateLanguageSettingsRequest): Promise<void> {
     const exists = await this.languageRepo.existsByCode(request.code);
     if (!exists) throw new NotFoundError("Language");
+
+    if (request.referenceLanguageId) {
+      const exists = await this.languageRepo.existsById(
+        request.referenceLanguageId,
+      );
+      if (!exists)
+        throw new SourceLanguageMissingError(request.referenceLanguageId);
+    }
 
     await this.languageRepo.update(request);
   }
