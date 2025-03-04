@@ -30,7 +30,6 @@ test("invites language member", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
-    gtSourceLanguage: "en",
   };
   mockLanguageRepo.languages = [language];
 

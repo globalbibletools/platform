@@ -2,6 +2,12 @@ import { query } from "@/db";
 import { Language } from "../model";
 
 const languageRepository = {
+  async existsById(id: string): Promise<boolean> {
+    const result = await query(`select 1 from language where id = $1`, [id]);
+
+    return result.rows.length > 0;
+  },
+
   async existsByCode(code: string): Promise<boolean> {
     const result = await query(`select 1 from language where code = $1`, [
       code,
@@ -17,7 +23,7 @@ const languageRepository = {
           id, code, name, font,
           text_direction as "textDirection",
           translation_ids as "translationIds",
-          gt_source_lang as "gtSourceLanguage"
+          reference_language_id as "referenceLanguage"
         from language
         where code = $1
       `,
@@ -47,7 +53,7 @@ const languageRepository = {
           font = $3,
           text_direction = $4,
           translation_ids = $5::text[],
-          gt_source_lang = $6
+          reference_language_id = $6
         where code = $1
       `,
       [
@@ -56,7 +62,7 @@ const languageRepository = {
         language.font,
         language.textDirection,
         language.translationIds,
-        language.gtSourceLanguage,
+        language.referenceLanguageId,
       ],
     );
   },

@@ -382,7 +382,7 @@ CREATE TABLE public.language (
     font text DEFAULT 'Noto Sans'::text NOT NULL,
     translation_ids text[],
     text_direction public.text_direction DEFAULT 'ltr'::public.text_direction NOT NULL,
-    gt_source_lang text DEFAULT 'en'::text
+    reference_language_id uuid
 );
 
 
@@ -1373,6 +1373,14 @@ ALTER TABLE ONLY public.language_member_role
 
 ALTER TABLE ONLY public.language_member_role
     ADD CONSTRAINT language_member_role_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: language language_reference_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.language
+    ADD CONSTRAINT language_reference_language_id_fkey FOREIGN KEY (reference_language_id) REFERENCES public.language(id);
 
 
 --

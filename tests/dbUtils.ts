@@ -103,7 +103,7 @@ interface DbLanguage {
   font: string;
   textDirection: TextDirectionRaw;
   translationIds: string[];
-  gtSourceLanguage?: string;
+  referenceLanguageId?: string;
 }
 
 interface DbLanguageMember {
@@ -228,7 +228,7 @@ export async function insertInvitation(invite: DbInvitation): Promise<void> {
 export async function insertLanguage(lang: DbLanguage): Promise<void> {
   await query(
     `
-        insert into language (id, code, name, font, text_direction, translation_ids, gt_source_lang)
+        insert into language (id, code, name, font, text_direction, translation_ids, reference_language_id)
         values ($1, $2, $3, $4, $5, $6, $7)
       `,
     [
@@ -238,7 +238,7 @@ export async function insertLanguage(lang: DbLanguage): Promise<void> {
       lang.font,
       lang.textDirection,
       lang.translationIds,
-      lang.gtSourceLanguage,
+      lang.referenceLanguageId,
     ],
   );
 }
@@ -380,7 +380,7 @@ export async function findLanguages(): Promise<DbLanguage[]> {
         select id, code, name, font,
           text_direction as "textDirection",
           coalesce(translation_ids, '{}') as "translationIds",
-          gt_source_lang as "gtSourceLanguage"
+          reference_language_id as "referenceLanguageId"
         from language
     `,
     [],

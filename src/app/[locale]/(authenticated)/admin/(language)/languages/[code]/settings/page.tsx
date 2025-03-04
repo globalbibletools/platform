@@ -45,12 +45,20 @@ export default async function LanguageSettingsPage({
     font: string;
     textDirection: string;
     bibleTranslationIds: string[];
-    gtSourceLanguage: string;
+    referenceLanguageId?: string;
   }>(
-    `SELECT name, code, font, text_direction AS "textDirection", translation_ids AS "bibleTranslationIds", gt_source_lang AS "gtSourceLanguage"
+    `SELECT name, code, font, text_direction AS "textDirection", translation_ids AS "bibleTranslationIds", reference_language_id AS "referenceLanguageId"
         FROM language
         WHERE code = $1`,
     [params.code],
+  );
+  const languages = await query<{
+    id: string;
+    name: string;
+  }>(
+    `SELECT id, name
+        FROM language`,
+    [],
   );
   const translations = await fetchTranslations(params.code);
 
@@ -202,19 +210,23 @@ export default async function LanguageSettingsPage({
             <p className="text-sm">{t("gloss_prediction_description")}</p>
           </div>
           <div className="flex-shrink-0 w-80">
-            <FormLabel htmlFor="gt-source-language">
-              {t("form.gt_source_language").toUpperCase()}
+            <FormLabel htmlFor="reference-language">
+              {t("form.reference_language").toUpperCase()}
             </FormLabel>
-            <TextInput
-              id="gt-source-language"
-              name="gt_source_language"
-              className="block w-12"
-              defaultValue={languageQuery.rows[0].gtSourceLanguage}
+            <ComboboxInput
+              id="reference-language"
+              name="reference_language_id"
+              items={languages.rows.map((language) => ({
+                label: language.name,
+                value: language.id,
+              }))}
+              className="block w-64"
+              defaultValue={languageQuery.rows[0].referenceLanguageId}
               autosubmit
-              aria-describedby="gt_source_language_error"
+              aria-describedby="reference_language_error"
             />
           </div>
-          <FieldError id="gt_source_language_error" name="gt_source_language" />
+          <FieldError id="reference_language_error" name="reference_language" />
         </section>
       </Form>
     </div>

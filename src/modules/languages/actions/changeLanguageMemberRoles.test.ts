@@ -97,7 +97,6 @@ test("returns not found if language member does not exist", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
-    gtSourceLanguage: "en",
   };
   await seedDatabase({
     users: [admin],
@@ -123,7 +122,6 @@ test("changes roles for language member", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
-    gtSourceLanguage: "en",
   };
   const user = {
     id: ulid(),

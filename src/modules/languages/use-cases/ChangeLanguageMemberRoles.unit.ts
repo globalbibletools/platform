@@ -28,7 +28,6 @@ test("throws error if member could not be found", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
-    gtSourceLanguage: "en",
   };
   mockLanguageRepo.languages = [language];
 
@@ -48,7 +47,6 @@ test("removes language member", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
-    gtSourceLanguage: "en",
   };
   const languageMember = {
     languageId: language.id,

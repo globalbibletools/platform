@@ -27,7 +27,6 @@ test("removes language member", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
-    gtSourceLanguage: "en",
   };
   const languageMember = {
     languageId: language.id,

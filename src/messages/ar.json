@@ -185,8 +185,7 @@
     "errors": {
       "name_required": "يرجى إدخال اسم اللغة.",
       "font_required": "يرجى اختيار خط.",
-      "text_direction_required": "يرجى اختيار اتجاه النص.",
-      "gt_source_language_required": "من فضلك أدخل رمز اللغة المصدر لاستخدامه مع ترجمة جوجل."
+      "text_direction_required": "يرجى اختيار اتجاه النص."
     },
     "headings": {
       "identification": "التعريف",

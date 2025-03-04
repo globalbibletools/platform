@@ -52,9 +52,6 @@ test("returns validation error if the request shape doesn't match the schema", a
         name: ["Please enter the language name."],
         font: ["Please select a font."],
         textDirection: ["Please select a text direction."],
-        gtSourceLanguage: [
-          "Please enter the source language code to use with Google Translate.",
-        ],
       },
     });
   }
@@ -64,7 +61,6 @@ test("returns validation error if the request shape doesn't match the schema", a
     formData.set("name", "");
     formData.set("font", "");
     formData.set("text_direction", TextDirectionRaw.LTR);
-    formData.set("gt_source_language", "en");
     const response = await updateLanguageSettings({ state: "idle" }, formData);
     expect(response).toEqual({
       state: "error",
@@ -90,7 +86,6 @@ test("returns not found if the user is not a platform or language admin", async 
   formData.set("name", "Spanish");
   formData.set("text_direction", TextDirectionRaw.LTR);
   formData.set("font", "Noto Sans");
-  formData.set("gt_source_language", "en");
   const response = updateLanguageSettings({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 });
@@ -108,7 +103,6 @@ test("returns not found if the language does not exist", async () => {
   formData.set("name", "Spanish");
   formData.set("text_direction", TextDirectionRaw.LTR);
   formData.set("font", "Noto Sans");
-  formData.set("gt_source_language", "en");
   const response = updateLanguageSettings({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 });
@@ -121,13 +115,21 @@ test("updates the language settings", async () => {
     textDirection: TextDirectionRaw.LTR,
     font: "Noto Sans",
     translationIds: [],
-    gtSourceLanguage: "en",
+  };
+  const referenceLanguage = {
+    id: ulid(),
+    code: "eng",
+    name: "English",
+    textDirection: TextDirectionRaw.LTR,
+    font: "Noto Sans",
+    translationIds: [],
+    referenceLanguageId: null,
   };
   await seedDatabase({
     users: [admin],
     systemRoles: [adminRole],
     sessions: [session],
-    languages: [language],
+    languages: [language, referenceLanguage],
   });
   cookies.get.mockReturnValue({ value: session.id });
 
@@ -136,7 +138,7 @@ test("updates the language settings", async () => {
     textDirection: TextDirectionRaw.LTR,
     font: "Noto Sans Arabic",
     translationIds: ["asdf1234", "qwer1234"],
-    gtSourceLanguage: "es",
+    referenceLanguageId: referenceLanguage.id,
   };
   const formData = new FormData();
   formData.set("code", "spa");
@@ -144,12 +146,13 @@ test("updates the language settings", async () => {
   formData.set("text_direction", request.textDirection);
   formData.set("font", request.font);
   formData.set("bible_translations", request.translationIds.join(","));
-  formData.set("gt_source_language", request.gtSourceLanguage);
+  formData.set("reference_language_id", request.referenceLanguageId);
   const response = await updateLanguageSettings({ state: "idle" }, formData);
   expect(response).toEqual({ state: "success" });
 
   const languages = await findLanguages();
   expect(languages).toEqual([
+    referenceLanguage,
     {
       ...language,
       ...request,

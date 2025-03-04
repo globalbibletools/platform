@@ -114,7 +114,6 @@ test("adds existing user to the language", async () => {
     textDirection: TextDirectionRaw.LTR,
     font: "Noto Sans",
     translationIds: [],
-    gtSourceLanguage: "en",
   };
   const user = {
     id: ulid(),
@@ -172,7 +171,6 @@ test("invites new user to the language", async () => {
     textDirection: TextDirectionRaw.LTR,
     font: "Noto Sans",
     translationIds: [],
-    gtSourceLanguage: "en",
   };
   await seedDatabase({
     users: [admin],

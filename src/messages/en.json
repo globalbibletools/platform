@@ -181,13 +181,12 @@
       "text_direction": "Text Direction",
       "text_direction_option": "{dir, select, ltr {Left to Right} rtl {Right to Left} other {}}",
       "translation_placeholder": "Select Translation",
-      "gt_source_language": "Source Language"
+      "reference_language": "Reference Language"
     },
     "errors": {
       "name_required": "Please enter the language name.",
       "font_required": "Please select a font.",
-      "text_direction_required": "Please select a text direction.",
-      "gt_source_language_required": "Please enter the source language code to use with Google Translate."
+      "text_direction_required": "Please select a text direction."
     },
     "headings": {
       "identification": "Identification",

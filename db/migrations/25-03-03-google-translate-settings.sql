@@ -1,6 +1,6 @@
 BEGIN;
 
 ALTER TABLE language
-    ADD COLUMN gt_source_lang TEXT DEFAULT 'en';
+    ADD COLUMN reference_language_id UUID REFERENCES language(id);
 
 COMMIT;

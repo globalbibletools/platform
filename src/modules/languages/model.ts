@@ -15,7 +15,7 @@ export interface Language {
   font?: string;
   textDirection: TextDirectionRaw;
   translationIds: string[];
-  gtSourceLanguage: string;
+  referenceLanguageId?: string;
 }
 
 export interface LanguageMember {
@@ -26,6 +26,12 @@ export interface LanguageMember {
 
 export class LanguageAlreadyExistsError extends Error {
   constructor(public code: string) {
+    super();
+  }
+}
+
+export class SourceLanguageMissingError extends Error {
+  constructor(public languageId: string) {
     super();
   }
 }

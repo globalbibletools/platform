@@ -18,7 +18,7 @@ const requestSchema = z.object({
   font: z.string().min(1),
   textDirection: z.nativeEnum(TextDirectionRaw),
   translationIds: z.array(z.string()).optional(),
-  gtSourceLanguage: z.string().min(1),
+  referenceLanguageId: z.string().optional(),
 });
 
 const policy = new Policy({
@@ -49,7 +49,7 @@ export async function updateLanguageSettings(
         ?.toString()
         .split(",")
         .filter((id) => id !== ""),
-      gtSourceLanguage: formData.get("gt_source_language"),
+      referenceLanguageId: formData.get("reference_language_id") ?? undefined,
     },
     {
       errorMap: (error) => {
@@ -59,8 +59,6 @@ export async function updateLanguageSettings(
           return { message: t("errors.font_required") };
         } else if (error.path.toString() === "textDirection") {
           return { message: t("errors.text_direction_required") };
-        } else if (error.path.toString() === "gtSourceLanguage") {
-          return { message: t("errors.gt_source_language_required") };
         } else {
           return { message: "Invalid" };
         }
