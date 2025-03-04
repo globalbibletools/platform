@@ -16,7 +16,8 @@ const languageRepository = {
         select
           id, code, name, font,
           text_direction as "textDirection",
-          translation_ids as "translationIds"
+          translation_ids as "translationIds",
+          gt_source_lang as "gtSourceLanguage"
         from language
         where code = $1
       `,
@@ -26,7 +27,9 @@ const languageRepository = {
     return result.rows[0];
   },
 
-  async create(language: Language): Promise<void> {
+  async create(
+    language: Pick<Language, "id" | "code" | "name">,
+  ): Promise<void> {
     await query(
       `
         INSERT INTO language (id, code, name)
@@ -43,7 +46,8 @@ const languageRepository = {
           name = $2,
           font = $3,
           text_direction = $4,
-          translation_ids = $5::text[]
+          translation_ids = $5::text[],
+          gt_source_lang = $6
         where code = $1
       `,
       [
@@ -52,6 +56,7 @@ const languageRepository = {
         language.font,
         language.textDirection,
         language.translationIds,
+        language.gtSourceLanguage,
       ],
     );
   },

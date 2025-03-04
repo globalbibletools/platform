@@ -2,12 +2,13 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.13 (Debian 14.13-1.pgdg120+1)
--- Dumped by pg_dump version 14.13 (Debian 14.13-1.pgdg120+1)
+-- Dumped from database version 17.2 (Debian 17.2-1.pgdg120+1)
+-- Dumped by pg_dump version 17.2
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -380,7 +381,8 @@ CREATE TABLE public.language (
     name text NOT NULL,
     font text DEFAULT 'Noto Sans'::text NOT NULL,
     translation_ids text[],
-    text_direction public.text_direction DEFAULT 'ltr'::public.text_direction NOT NULL
+    text_direction public.text_direction DEFAULT 'ltr'::public.text_direction NOT NULL,
+    gt_source_lang text DEFAULT 'en'::text
 );
 
 
