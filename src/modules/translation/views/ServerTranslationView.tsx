@@ -336,7 +336,8 @@ async function machineTranslate(
   code: string,
   sourceCode: string,
 ): Promise<Record<string, string>> {
-  const toCode = languageMap[code as keyof typeof languageMap];
+  const toCode =
+    code === "test" ? "en" : languageMap[code as keyof typeof languageMap];
   const fromCode = languageMap[sourceCode as keyof typeof languageMap];
   if (!fromCode || !translateClient || words.length === 0) return {};
 
