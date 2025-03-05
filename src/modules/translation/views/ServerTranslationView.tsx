@@ -21,7 +21,7 @@ export default async function InterlinearView({ params }: Props) {
   const [language, verse, phrases, suggestions, machineSuggestions] =
     await Promise.all([
       fetchCurrentLanguage(params.code, session?.user.id),
-      fetchVerse(params.verseId),
+      fetchVerse(params.verseId, params.code),
       fetchPhrases(params.verseId, params.code, session?.user.id),
       fetchSuggestions(params.verseId, params.code),
       fetchMachineSuggestions(params.verseId, params.code),
@@ -58,7 +58,11 @@ export default async function InterlinearView({ params }: Props) {
 
   const newMachineSuggestions =
     language.roles.includes("TRANSLATOR") ?
-      await machineTranslate(wordsToTranslate, params.code)
+      await machineTranslate(
+        wordsToTranslate,
+        params.code,
+        language.referenceLanguage,
+      )
     : {};
 
   const words = verse.words.map((w) => ({
@@ -264,7 +268,10 @@ interface Verse {
 }
 
 // TODO: cache this, it should almost never change
-async function fetchVerse(verseId: string): Promise<Verse | undefined> {
+async function fetchVerse(
+  verseId: string,
+  code: string,
+): Promise<Verse | undefined> {
   const result = await query<Verse>(
     `
         SELECT
@@ -286,7 +293,14 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
                     JOIN phrase AS ph ON ph.id = phw.phrase_id
                     JOIN gloss AS g ON g.phrase_id = ph.id
                     WHERE phw.word_id = w.id
-                        AND ph.language_id = (SELECT id FROM language WHERE code = 'eng')
+                        AND ph.language_id = (
+                            select
+                                case when reference_language_id is null then
+                                    (SELECT id FROM language WHERE code = 'eng')
+                                else reference_language_id
+                                end
+                            from language where code = $2
+                        )
                         AND ph.deleted_at IS NULL
                 ) AS ph ON true
 
@@ -311,7 +325,7 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
         FROM verse AS v
         WHERE v.id = $1
         `,
-    [verseId],
+    [verseId, code],
   );
 
   return result.rows[0];
@@ -320,12 +334,19 @@ async function fetchVerse(verseId: string): Promise<Verse | undefined> {
 async function machineTranslate(
   words: string[],
   code: string,
+  sourceCode: string,
 ): Promise<Record<string, string>> {
-  const languageCode = languageMap[code as keyof typeof languageMap];
-  if (!languageCode || !translateClient || words.length === 0) return {};
+  const toCode =
+    code === "test" ? "en" : languageMap[code as keyof typeof languageMap];
+  const fromCode = languageMap[sourceCode as keyof typeof languageMap];
+  if (!fromCode || !translateClient || words.length === 0) return {};
 
   const start = performance.now();
-  const machineGlosses = await translateClient.translate(words, languageCode);
+  const machineGlosses = await translateClient.translate(
+    words,
+    toCode,
+    fromCode,
+  );
   const duration = performance.now() - start;
   const wordMap = Object.fromEntries(
     words.map((word, i) => [word, machineGlosses[i]]),
@@ -381,6 +402,7 @@ interface CurrentLanguage {
   textDirection: string;
   translationIds: string[];
   roles: string[];
+  referenceLanguage: string;
 }
 
 async function fetchCurrentLanguage(
@@ -391,6 +413,7 @@ async function fetchCurrentLanguage(
     `
         SELECT
             code, name, font, text_direction AS "textDirection", translation_ids AS "translationIds",
+            ( select code from language where id = l.reference_language_id) as "referenceLanguage",
             (
                 SELECT COALESCE(JSON_AGG(r."role"), '[]') FROM language_member_role AS r
                 WHERE r.language_id = l.id

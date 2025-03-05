@@ -45,11 +45,20 @@ export default async function LanguageSettingsPage({
     font: string;
     textDirection: string;
     bibleTranslationIds: string[];
+    referenceLanguageId?: string;
   }>(
-    `SELECT name, code, font, text_direction AS "textDirection", translation_ids AS "bibleTranslationIds"
+    `SELECT name, code, font, text_direction AS "textDirection", translation_ids AS "bibleTranslationIds", reference_language_id AS "referenceLanguageId"
         FROM language
         WHERE code = $1`,
     [params.code],
+  );
+  const languages = await query<{
+    id: string;
+    name: string;
+  }>(
+    `SELECT id, name
+        FROM language`,
+    [],
   );
   const translations = await fetchTranslations(params.code);
 
@@ -171,7 +180,7 @@ export default async function LanguageSettingsPage({
             </div>
           </div>
         </section>
-        <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 px-10">
+        <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 px-10 border-b border-b-green-300 dark:border-b-blue-800">
           <div className="flex-grow">
             <h3 className="font-bold text-lg mb-2">
               {t("headings.bible_translation")}
@@ -192,6 +201,32 @@ export default async function LanguageSettingsPage({
             />
           </div>
           <FieldError id="bible-transations-error" name="bible_translations" />
+        </section>
+        <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 px-10">
+          <div className="flex-grow">
+            <h3 className="font-bold text-lg mb-2">
+              {t("headings.gloss_prediction")}
+            </h3>
+            <p className="text-sm">{t("gloss_prediction_description")}</p>
+          </div>
+          <div className="flex-shrink-0 w-80">
+            <FormLabel htmlFor="reference-language">
+              {t("form.reference_language").toUpperCase()}
+            </FormLabel>
+            <ComboboxInput
+              id="reference-language"
+              name="reference_language_id"
+              items={languages.rows.map((language) => ({
+                label: language.name,
+                value: language.id,
+              }))}
+              className="block w-64"
+              defaultValue={languageQuery.rows[0].referenceLanguageId}
+              autosubmit
+              aria-describedby="reference_language_error"
+            />
+          </div>
+          <FieldError id="reference_language_error" name="reference_language" />
         </section>
       </Form>
     </div>

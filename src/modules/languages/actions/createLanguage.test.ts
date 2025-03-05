@@ -140,6 +140,7 @@ test("creates language and redirects to its settings", async () => {
       font: "Noto Sans",
       textDirection: TextDirectionRaw.LTR,
       translationIds: [],
+      referenceLanguageId: null,
     },
   ]);
 });
