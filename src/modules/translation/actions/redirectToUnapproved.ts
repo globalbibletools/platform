@@ -1,10 +1,11 @@
 "use server";
 
 import * as z from "zod";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { parseForm } from "@/form-parser";
 import { query } from "@/db";
 import { serverActionLogger } from "@/server-action";
+import { redirect } from "next/navigation";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -68,4 +69,9 @@ export async function redirectToUnapproved(
       return t("errors.all_approved");
     }
   }
+
+  const locale = await getLocale();
+  redirect(
+    `/${locale}/translate/${request.data.code}/${result.rows[0].nextUnapprovedVerseId}`,
+  );
 }
