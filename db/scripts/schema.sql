@@ -237,6 +237,118 @@ CREATE FUNCTION public.generate_ulid() RETURNS uuid
 
 
 --
+-- Name: generate_weekly_contribution_stats(timestamp without time zone); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.generate_weekly_contribution_stats(d timestamp without time zone) RETURNS void
+    LANGUAGE sql
+    AS $_$
+    insert into weekly_contribution_statistics (
+        week,
+        language_id,
+        user_id,
+        approved_count,
+        revoked_count,
+        edited_approved_count,
+        edited_unapproved_count
+    )
+    select
+        date_bin('7 days', date_trunc('day', $1), timestamp '2024-12-15'),
+        changed_phrase.language_id,
+        changed_phrase.updated_by,
+        coalesce(count(*) filter (
+            where changed_phrase.state = 'APPROVED'
+                and coalesce(prev_phrase.state, 'UNAPPROVED') = 'UNAPPROVED'
+        ), 0) as words_approved,
+        coalesce(count(*) filter (
+            where changed_phrase.state = 'UNAPPROVED'
+                and coalesce(prev_phrase.state, 'UNAPPROVED') = 'APPROVED'
+        ), 0) as words_revoked,
+        coalesce(count(*) filter (
+            where changed_phrase.gloss <> coalesce(prev_phrase.gloss, '')
+                and changed_phrase.state = 'APPROVED'
+                and coalesce(prev_phrase.state, 'UNAPPROVED') = 'APPROVED'
+        ), 0) as words_approved_edited,
+        coalesce(count(*) filter (
+            where changed_phrase.gloss <> coalesce(prev_phrase.gloss, '')
+                and changed_phrase.state = 'UNAPPROVED'
+                and coalesce(prev_phrase.state, 'UNAPPROVED') = 'UNAPPROVED'
+        ), 0) as words_unapproved_edited
+    from (
+        select
+            DISTINCT ON (ph.language_id, phw.word_id)
+            ph.language_id, phw.word_id,
+            log.*
+        from (
+            (
+                select phrase_id, updated_by, updated_at, gloss, state
+                from gloss
+            ) union all (
+                select phrase_id, updated_by, updated_at, gloss, state
+                from gloss_history
+            ) union all (
+                select
+                    id as phrase_id,
+                    deleted_by as updated_by,
+                    deleted_at as updated_at,
+                    '' as gloss,
+                    'UNAPPROVED' as state
+                from phrase
+                where deleted_by is not null and deleted_at is not null
+            )
+        ) log
+        join phrase_word phw on phw.phrase_id = log.phrase_id
+        join phrase ph on ph.id = log.phrase_id
+        where log.updated_at > date_bin('7 days', date_trunc('day', $1), timestamp '2024-12-15')
+            and log.updated_at < date_bin('7 days', date_trunc('day', $1 + interval '7 days'), timestamp '2024-12-15')
+        order by ph.language_id, phw.word_id, log.updated_at desc
+        ) changed_phrase
+    left join lateral (
+        select h.* from (
+            (
+                select phrase_id, updated_by, updated_at, gloss, state
+                from gloss
+                where exists (
+                        select 1 from phrase_word phw
+                        join phrase ph on ph.id = phw.phrase_id
+                        where ph.id = gloss.phrase_id
+                            and ph.language_id = changed_phrase.language_id
+                            and phw.word_id = changed_phrase.word_id
+                    )
+                    and gloss.updated_at < date_bin('7 days', date_trunc('day', $1 - interval '7 days'), timestamp '2024-12-15')
+            ) union all (
+                select
+                    id as phrase_id,
+                    deleted_by as updated_by,
+                    deleted_at as updated_at,
+                    '' as gloss,
+                    'UNAPPROVED' as state
+                from phrase
+                where deleted_by is not null and deleted_at is not null
+                    and phrase.language_id = changed_phrase.language_id
+                    and exists (
+                        select 1 from phrase_word phw
+                        where phw.phrase_id = phrase.id
+                            and phw.word_id = changed_phrase.word_id
+                    )
+                    and phrase.deleted_at < date_bin('7 days', date_trunc('day', $1 - interval '7 days'), timestamp '2024-12-15')
+            )
+        ) h
+        order by h.updated_at desc
+        limit 1
+    ) prev_phrase on true
+    where changed_phrase.updated_by is not null
+    group by changed_phrase.language_id, changed_phrase.updated_by
+    on conflict (language_id, user_id, week)
+    do update set
+        approved_count = excluded.approved_count,
+        revoked_count = excluded.revoked_count,
+        edited_approved_count = excluded.edited_approved_count,
+        edited_unapproved_count = excluded.edited_unapproved_count;
+$_$;
+
+
+--
 -- Name: gloss_audit(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -803,6 +915,42 @@ ALTER SEQUENCE public.verse_audio_timing_id_seq OWNED BY public.verse_audio_timi
 
 
 --
+-- Name: weekly_contribution_statistics; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.weekly_contribution_statistics (
+    id integer NOT NULL,
+    week timestamp without time zone NOT NULL,
+    language_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    approved_count integer NOT NULL,
+    revoked_count integer NOT NULL,
+    edited_approved_count integer NOT NULL,
+    edited_unapproved_count integer NOT NULL
+);
+
+
+--
+-- Name: weekly_contribution_statistics_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.weekly_contribution_statistics_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: weekly_contribution_statistics_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.weekly_contribution_statistics_id_seq OWNED BY public.weekly_contribution_statistics.id;
+
+
+--
 -- Name: weekly_gloss_statistics; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -884,6 +1032,13 @@ ALTER TABLE ONLY public.phrase ALTER COLUMN id SET DEFAULT nextval('public.phras
 --
 
 ALTER TABLE ONLY public.verse_audio_timing ALTER COLUMN id SET DEFAULT nextval('public.verse_audio_timing_id_seq'::regclass);
+
+
+--
+-- Name: weekly_contribution_statistics id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.weekly_contribution_statistics ALTER COLUMN id SET DEFAULT nextval('public.weekly_contribution_statistics_id_seq'::regclass);
 
 
 --
@@ -1123,6 +1278,22 @@ ALTER TABLE ONLY public.verse_audio_timing
 
 ALTER TABLE ONLY public.verse
     ADD CONSTRAINT verse_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: weekly_contribution_statistics weekly_contribution_statistics_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.weekly_contribution_statistics
+    ADD CONSTRAINT weekly_contribution_statistics_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: weekly_contribution_statistics weekly_contribution_statistics_week_language_id_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.weekly_contribution_statistics
+    ADD CONSTRAINT weekly_contribution_statistics_week_language_id_user_id_key UNIQUE (week, language_id, user_id);
 
 
 --
@@ -1581,6 +1752,22 @@ ALTER TABLE ONLY public.verse_audio_timing
 
 ALTER TABLE ONLY public.verse
     ADD CONSTRAINT verse_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.book(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: weekly_contribution_statistics weekly_contribution_statistics_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.weekly_contribution_statistics
+    ADD CONSTRAINT weekly_contribution_statistics_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id);
+
+
+--
+-- Name: weekly_contribution_statistics weekly_contribution_statistics_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.weekly_contribution_statistics
+    ADD CONSTRAINT weekly_contribution_statistics_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
