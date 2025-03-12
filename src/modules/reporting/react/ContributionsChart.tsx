@@ -5,26 +5,19 @@ import { Chart } from "chart.js/auto";
 import "chartjs-adapter-date-fns";
 import { format, addWeeks } from "date-fns";
 
-interface ContributionsChartProps {}
+interface ContributionRecord {
+  week: Date;
+  approvedCount: number;
+  revokedCount: number;
+  editedApprovedCount: number;
+  editedUnapprovedCount: number;
+}
 
-export default function ContributionsChart({}: ContributionsChartProps) {
-  const data = [
-    {
-      week: new Date(),
-      approvedCount: 12,
-      revokedCount: 1,
-      editedApprovedCount: 3,
-      editedUnapprovedCount: 4,
-    },
-    {
-      week: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
-      approvedCount: 53,
-      revokedCount: 4,
-      editedApprovedCount: 2,
-      editedUnapprovedCount: 6,
-    },
-  ];
+interface ContributionsChartProps {
+  data: ContributionRecord[];
+}
 
+export default function ContributionsChart({ data }: ContributionsChartProps) {
   const [isDarkMode, setDarkMode] = useState(false);
   useEffect(() => {
     const mediaMatch = window.matchMedia("(prefers-color-scheme: dark)");
