@@ -48,7 +48,8 @@
     "links": {
       "add_user": "Invite User",
       "resend_invite": "Resend Invite",
-      "disable": "Disable"
+      "disable": "Disable",
+      "reports": "Reports"
     },
     "headers": {
       "name": "Name",
