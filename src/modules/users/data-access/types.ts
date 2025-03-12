@@ -12,8 +12,11 @@ export interface UserRepository {
 
 export interface SimpleUserView {
   id: string;
+  name?: string;
+  email: string;
 }
 
 export interface UserQueryService {
   findByEmail(email: string): Promise<SimpleUserView | undefined>;
+  findById(id: string): Promise<SimpleUserView | undefined>;
 }

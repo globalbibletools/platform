@@ -1,8 +1,10 @@
 import { ulid } from "@/shared/ulid";
 import { beforeEach } from "vitest";
+import { PublicUserView } from "./types";
 
 interface User {
   id: string;
+  name?: string;
   email: string;
 }
 
@@ -23,6 +25,16 @@ const fakeUserClient = {
     };
     this.users.push(user);
     return user.id;
+  },
+
+  async findUserById(id: string): Promise<PublicUserView | undefined> {
+    let user = this.users.find((u) => u.id === id);
+    if (!user) return;
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    };
   },
 };
 export default fakeUserClient;
