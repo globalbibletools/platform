@@ -128,6 +128,10 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPage) {
                       <span className="mx-1">|</span>
                     </>
                   )}
+                  <Button variant="link" href={`./users/${user.id}/reports`}>
+                    {t("links.reports")}
+                  </Button>
+                  <span className="mx-1">|</span>
                   <ServerAction
                     variant="tertiary"
                     destructive
