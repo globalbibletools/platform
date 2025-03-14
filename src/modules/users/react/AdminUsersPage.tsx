@@ -21,6 +21,7 @@ import { redirect } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import Pagination from "@/components/Pagination";
 import { inviteUser } from "@/modules/users/actions/inviteUser";
+import userQueryService from "@/modules/users/data-access/UserQueryService";
 
 export async function generateMetadata(
   _: any,
@@ -49,8 +50,11 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPage) {
     redirect("./users?page=1");
   }
 
-  const { page: users, total } = await fetchUsers(page - 1, LIMIT);
-  if (users.length === 0) {
+  const { page: users, total } = await userQueryService.search({
+    page: page - 1,
+    limit: LIMIT,
+  });
+  if (users.length === 0 && page !== 1) {
     redirect("./users?page=1");
   }
 
@@ -152,72 +156,4 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPage) {
       </div>
     </div>
   );
-}
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  emailStatus: string;
-  roles: string[];
-  invite: null | {
-    token: string;
-    expires: number;
-  };
-}
-
-interface UserPage {
-  total: number;
-  page: User[];
-}
-
-async function fetchUsers(page: number, limit: number): Promise<UserPage> {
-  const usersQuery = await query<UserPage>(
-    `
-        SELECT
-            (
-                SELECT COUNT(*) FROM users u
-                WHERE u.status <> 'disabled'
-            ) AS total,
-            (
-                SELECT
-                    COALESCE(JSON_AGG(u.json), '[]')
-                FROM (
-                    SELECT
-                        JSON_BUILD_OBJECT(
-                            'id', id, 
-                            'name', name,
-                            'email', email,
-                            'emailStatus', email_status,
-                            'roles', roles.list,
-                            'invite', invitation.json
-                        ) AS json
-                    FROM users AS u
-                    JOIN LATERAL (
-                        SELECT
-                            COALESCE(json_agg(r.role), '[]') AS list
-                        FROM user_system_role AS r
-                        WHERE r.user_id = u.id
-                    ) AS roles ON true
-                    LEFT JOIN LATERAL (
-                        SELECT
-                            JSON_BUILD_OBJECT(
-                              'token', i.token,
-                              'expires', i.expires
-                            ) as json
-                        FROM user_invitation AS i
-                        WHERE i.user_id = u.id
-                        ORDER BY i.expires DESC
-                        LIMIT 1
-                    ) AS invitation ON true
-                    WHERE u.status <> 'disabled'
-                    ORDER BY u.name
-                    OFFSET $1
-                    LIMIT $2
-                ) AS u
-            ) AS page
-        `,
-    [page * limit, limit],
-  );
-  return usersQuery.rows[0];
 }

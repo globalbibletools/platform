@@ -16,7 +16,30 @@ export interface SimpleUserView {
   email: string;
 }
 
+export interface SearchUserView {
+  id: string;
+  name: string;
+  email: string;
+  emailStatus: string;
+  roles: string[];
+  invite: null | {
+    token: string;
+    expires: number;
+  };
+}
+
+export interface SearchUserPageView {
+  total: number;
+  page: SearchUserView[];
+}
+
+export interface SearchUserOptions {
+  page: number;
+  limit: number;
+}
+
 export interface UserQueryService {
   findByEmail(email: string): Promise<SimpleUserView | undefined>;
   findById(id: string): Promise<SimpleUserView | undefined>;
+  search(options: SearchUserOptions): Promise<SearchUserPageView>;
 }
