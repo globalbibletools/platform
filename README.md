@@ -75,7 +75,7 @@ When running database commands from the db container, use `/db/` instead of `pac
 Restore the database schema:
 
 ```bash
-psql DATABASE_URL packages/db/scripts/schema.sql
+psql DATABASE_URL -f db/scripts/schema.sql
 ```
 
 Restore the database seed data and rebuild materialized views:
