@@ -1,5 +1,5 @@
-import { cookies } from "@/tests/mocks/nextjs";
-import { initializeDatabase } from "@/tests/dbUtils";
+import { cookies } from "@/tests/vitest/mocks/nextjs";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
 import handleLogout from "./logout";
 

@@ -5,8 +5,8 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     include: ["**/*.{unit,test}.ts?(x)"],
-    globalSetup: ["./tests/dbSetup.ts"],
-    setupFiles: ["./tests/testSetup.ts"],
+    globalSetup: ["./tests/vitest/dbSetup.ts"],
+    setupFiles: ["./tests/vitest/testSetup.ts"],
     mockReset: true,
   },
 });

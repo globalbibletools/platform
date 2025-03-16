@@ -1,4 +1,4 @@
-import { sendEmailMock } from "@/tests/mocks/mailer";
+import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
@@ -7,7 +7,7 @@ import {
   findUsers,
   initializeDatabase,
   seedDatabase,
-} from "@/tests/dbUtils";
+} from "@/tests/vitest/dbUtils";
 import { userClient } from "./UserClient";
 import { ulid } from "@/shared/ulid";
 

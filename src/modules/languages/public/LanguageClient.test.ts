@@ -3,7 +3,7 @@ import {
   findLanguageMembers,
   initializeDatabase,
   seedDatabase,
-} from "@/tests/dbUtils";
+} from "@/tests/vitest/dbUtils";
 import { ulid } from "@/shared/ulid";
 import { LanguageMemberRoleRaw, TextDirectionRaw } from "../model";
 import { languageClient } from "./LanguageClient";

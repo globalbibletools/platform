@@ -1,4 +1,4 @@
-import { cookies } from "@/tests/mocks/nextjs";
+import { cookies } from "@/tests/vitest/mocks/nextjs";
 import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
 import { UserStatusRaw } from "@/modules/users/model/UserStatus";
 import { ulid } from "@/shared/ulid";
@@ -6,7 +6,7 @@ import {
   findLanguageMembers,
   initializeDatabase,
   seedDatabase,
-} from "@/tests/dbUtils";
+} from "@/tests/vitest/dbUtils";
 import { addDays } from "date-fns";
 import { expect, test } from "vitest";
 import { removeLanguageMember } from "./removeLanguageMember";

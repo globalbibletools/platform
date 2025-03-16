@@ -1,4 +1,4 @@
-import { sendEmailMock } from "@/tests/mocks/mailer";
+import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import mockUserRepo from "../data-access/MockUserRepository";
 import StartPasswordReset from "./StartPasswordReset";

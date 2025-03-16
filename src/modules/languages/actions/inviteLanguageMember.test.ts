@@ -1,5 +1,5 @@
-import { cookies } from "@/tests/mocks/nextjs";
-import { sendEmailMock } from "@/tests/mocks/mailer";
+import { cookies } from "@/tests/vitest/mocks/nextjs";
+import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import {
   findInvitations,
@@ -7,7 +7,7 @@ import {
   findUsers,
   initializeDatabase,
   seedDatabase,
-} from "@/tests/dbUtils";
+} from "@/tests/vitest/dbUtils";
 import { ulid } from "@/shared/ulid";
 import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
 import { UserStatusRaw } from "@/modules/users/model/UserStatus";

@@ -1,5 +1,9 @@
 import { expect, test } from "vitest";
-import { findUsers, initializeDatabase, seedDatabase } from "@/tests/dbUtils";
+import {
+  findUsers,
+  initializeDatabase,
+  seedDatabase,
+} from "@/tests/vitest/dbUtils";
 import postEmailNotification from "./emailNotifications";
 import { randomUUID } from "crypto";
 import { EmailStatusRaw } from "../model/EmailStatus";

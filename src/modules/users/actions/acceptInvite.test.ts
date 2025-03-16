@@ -1,18 +1,18 @@
-import "@/tests/mocks/nextjs";
+import "@/tests/vitest/mocks/nextjs";
 import {
   findInvitations,
   findSessions,
   findUsers,
   initializeDatabase,
   seedDatabase,
-} from "@/tests/dbUtils";
+} from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
 import { acceptInvite } from "./acceptInvite";
 import { ulid } from "@/shared/ulid";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
 import { addDays } from "date-fns";
-import { cookies } from "@/tests/mocks/nextjs";
+import { cookies } from "@/tests/vitest/mocks/nextjs";
 
 initializeDatabase();
 

@@ -1,4 +1,4 @@
-import { cookies } from "@/tests/mocks/nextjs";
+import { cookies } from "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
 import { Scrypt } from "oslo/password";
 import { EmailStatusRaw } from "../model/EmailStatus";
@@ -7,7 +7,7 @@ import {
   findSystemRoles,
   initializeDatabase,
   seedDatabase,
-} from "@/tests/dbUtils";
+} from "@/tests/vitest/dbUtils";
 import { addDays } from "date-fns";
 import { ulid } from "@/shared/ulid";
 import { changeUserRoles } from "./changeUserRoles";

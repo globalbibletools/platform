@@ -1,10 +1,10 @@
-import { cookies } from "@/tests/mocks/nextjs";
+import { cookies } from "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
 import {
   findLanguages,
   initializeDatabase,
   seedDatabase,
-} from "@/tests/dbUtils";
+} from "@/tests/vitest/dbUtils";
 import { ulid } from "@/shared/ulid";
 import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
 import { UserStatusRaw } from "@/modules/users/model/UserStatus";
