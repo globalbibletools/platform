@@ -98,6 +98,5 @@ jobs:
           secrets: |
             "database-url=${{ secrets.DATABASE_URL }}"
 
-# Uncomment after lambda is created
-#      - name: Update lambda image
-#        run: aws lambda update-function-code --function-name job_worker --image-uri ${{ steps.login-ecr.outputs.registry }}/globalbibletools-job-worker:latest
+      - name: Update lambda image
+        run: aws lambda update-function-code --function-name job_worker --image-uri ${{ steps.login-ecr.outputs.registry }}/globalbibletools-job-worker:latest
