@@ -15,6 +15,21 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  job_worker:
+    build:
+      context: .
+      target: runner
+      dockerfile: job-worker.Dockerfile
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
+    volumes:
+      - ./:/app
+    ports:
+      - 9000:8080
+    depends_on:
+      db:
+        condition: service_healthy
   db:
     build:
       dockerfile: db/Dockerfile
