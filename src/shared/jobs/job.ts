@@ -30,40 +30,19 @@ export async function createJob(job: Job<any>) {
   );
 }
 
-export async function startJob(jobId: string): Promise<void> {
+export async function updateJob(
+  jobId: string,
+  status: JobStatus,
+  data?: any,
+): Promise<void> {
   await query(
     `
       update job set
-        status = 'in-progress',
+        status = $2,
+        data = $3,
         updated_at = now()
       where id = $1
     `,
-    [jobId],
-  );
-}
-
-export async function completeJob(jobId: string, data?: any): Promise<void> {
-  await query(
-    `
-      update job set
-        status = 'complete',
-        data = $2,
-        updated_at = now()
-      where id = $1
-    `,
-    [jobId, data],
-  );
-}
-
-export async function failJob(jobId: string, data?: any): Promise<void> {
-  await query(
-    `
-      update job set
-        status = 'failed',
-        data = $2,
-        updated_at = now()
-      where id = $1
-    `,
-    [jobId, data],
+    [jobId, status, data],
   );
 }

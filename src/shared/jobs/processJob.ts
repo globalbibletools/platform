@@ -1,14 +1,5 @@
-import { completeJob, failJob, Job, startJob } from "./job";
-
-export type JobHandler<Payload, Data = unknown> = (
-  job: Job<Payload, Data>,
-) => Promise<Data>;
-
-const jobMap: Record<string, JobHandler<any>> = {
-  export_analytics: async (job: Job<void>) => {
-    console.log(job);
-  },
-};
+import { Job, JobStatus, updateJob } from "./job";
+import jobMap from "./jobMap";
 
 export async function processJob(job: Job<any>) {
   try {
@@ -17,13 +8,13 @@ export async function processJob(job: Job<any>) {
       throw new Error(`Job handler for ${job.type} not found.`);
     }
 
-    await startJob(job.id);
+    await updateJob(job.id, JobStatus.InProgress);
 
     const data = await handler(job);
 
-    await completeJob(job.id, data);
+    await updateJob(job.id, JobStatus.Complete, data);
   } catch (error) {
-    await failJob(job.id, {
+    await updateJob(job.id, JobStatus.Failed, {
       error: String(error),
     });
   }
