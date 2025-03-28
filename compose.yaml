@@ -3,7 +3,7 @@ services:
     build:
       context: .
       target: dev
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.server
     restart: always
     environment:
       DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
@@ -20,7 +20,7 @@ services:
     build:
       context: .
       target: runner
-      dockerfile: job-worker.Dockerfile
+      dockerfile: Dockerfile.job-worker
     restart: always
     environment:
       DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
