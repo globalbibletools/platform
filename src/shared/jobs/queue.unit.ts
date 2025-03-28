@@ -4,15 +4,15 @@ import {
   vitest,
   beforeAll,
   afterAll,
-  MockedFunction,
   MockInstance,
   beforeEach,
   expect,
+  MockedFunction,
 } from "vitest";
-import { SQSQueue } from "./queue";
+import { LocalQueue, SQSQueue } from "./queue";
 import { ulid } from "../ulid";
 import { Job, JobStatus } from "./job";
-import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
+import { SQSClient } from "@aws-sdk/client-sqs";
 
 describe("SQSQueue", () => {
   let clientSend: MockInstance<typeof SQSClient.prototype.send>;
@@ -47,8 +47,6 @@ describe("SQSQueue", () => {
     };
     await queue.add(job);
 
-    console.log(clientSend.mock.lastCall);
-
     expect(clientSend).toHaveBeenCalledExactlyOnceWith(
       // For some reason can't deep compare the SendMessageCommnd class
       expect.objectContaining({
@@ -62,5 +60,39 @@ describe("SQSQueue", () => {
 });
 
 describe("LocalQueue", () => {
-  test.todo("add invokes lambda on localhost port");
+  let mockedFetch: MockedFunction<typeof fetch>;
+  let originalFetch: typeof fetch;
+
+  beforeAll(() => {
+    originalFetch = globalThis.fetch;
+    globalThis.fetch = mockedFetch = vitest.fn();
+  });
+
+  beforeEach(() => {
+    mockedFetch.mockReset();
+  });
+
+  afterAll(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  test("add invokes lambda on localhost port", async () => {
+    const functionUrl = "https://function.com";
+    const queue = new LocalQueue(functionUrl);
+
+    const job: Job<string> = {
+      id: ulid(),
+      type: "test_job",
+      status: JobStatus.Pending,
+      payload: "payload",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    await queue.add(job);
+
+    expect(mockedFetch).toHaveBeenCalledExactlyOnceWith(functionUrl, {
+      method: "post",
+      body: JSON.stringify({ Records: [{ body: JSON.stringify(job) }] }),
+    });
+  });
 });

@@ -1,8 +1,8 @@
 begin;
 
 create table job_type (
-    id serial primary key;
-    name text unique;
+    id serial primary key,
+    name text unique
 );
 
 create type job_status as enum ('pending', 'in-progress', 'complete', 'error');

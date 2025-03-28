@@ -8,6 +8,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
       TEST_DATABASE_URL: postgresql://postgres:asdfasdf@test_db:5432/postgres
+      JOB_FUNCTION_URL: http://job_worker:8080/2015-03-31/functions/function/invocations
     volumes:
       - ./:/app
     ports:

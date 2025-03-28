@@ -30,10 +30,13 @@ export class SQSQueue implements Queue {
 }
 
 export class LocalQueue implements Queue {
+  constructor(private readonly functionUrl: string) {}
+
   async add(job: Job<any>) {
-    // TODO: figure out how to implement this locally.
-    // I think I can manually invoke the lambda running in the docker container
-    // And use nodemon to restart it when files change
+    await fetch(this.functionUrl, {
+      method: "post",
+      body: JSON.stringify({ Records: [{ body: JSON.stringify(job) }] }),
+    });
   }
 }
 
@@ -42,4 +45,4 @@ export default process.env.NODE_ENV === "production" ?
     accessKeyId: process.env.ACCESS_KEY_ID ?? "",
     secretAccessKey: process.env.SECRET_ACCESS_KEY ?? "",
   })
-: new LocalQueue();
+: new LocalQueue(process.env.JOB_FUNCTION_URL ?? "");
