@@ -8,6 +8,5 @@ export async function handler(event: SQSEvent) {
     return;
   }
 
-  const job = JSON.parse(firstRecord.body);
-  await processJob(job);
+  await processJob(firstRecord);
 }

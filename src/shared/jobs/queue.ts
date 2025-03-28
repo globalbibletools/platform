@@ -1,4 +1,5 @@
 import {
+  ChangeMessageVisibilityCommand,
   SendMessageCommand,
   SQSClient,
   SQSClientConfig,
@@ -7,6 +8,7 @@ import { type Job } from "./job";
 
 interface Queue {
   add(job: Job<any>): Promise<void>;
+  extendTimeout(handle: string, timeout: number): Promise<void>;
 }
 
 export class SQSQueue implements Queue {
@@ -27,6 +29,16 @@ export class SQSQueue implements Queue {
       }),
     );
   }
+
+  async extendTimeout(handle: string, timeout: number) {
+    await this.client.send(
+      new ChangeMessageVisibilityCommand({
+        QueueUrl: this.queueUrl,
+        ReceiptHandle: handle,
+        VisibilityTimeout: timeout,
+      }),
+    );
+  }
 }
 
 export class LocalQueue implements Queue {
@@ -37,6 +49,10 @@ export class LocalQueue implements Queue {
       method: "post",
       body: JSON.stringify({ Records: [{ body: JSON.stringify(job) }] }),
     });
+  }
+
+  async extendTimeout(_handle: string, _timeout: number) {
+    // Nothing to do since the local queue isn't really a queue.
   }
 }
 

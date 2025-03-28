@@ -57,6 +57,30 @@ describe("SQSQueue", () => {
       }),
     );
   });
+
+  test("extends visibility timeout", async () => {
+    const queueUrl = "https://queue.com";
+    const credentials = {
+      accessKeyId: "key id",
+      secretAccessKey: "secret key",
+    };
+    const queue = new SQSQueue(queueUrl, credentials);
+
+    const handle = "handle";
+    const timeout = 500;
+    await queue.extendTimeout(handle, timeout);
+
+    expect(clientSend).toHaveBeenCalledExactlyOnceWith(
+      // For some reason can't deep compare the ChangeMessageVisibilityCommand class
+      expect.objectContaining({
+        input: {
+          QueueUrl: queueUrl,
+          ReceiptHandle: handle,
+          VisibilityTimeout: timeout,
+        },
+      }),
+    );
+  });
 });
 
 describe("LocalQueue", () => {
