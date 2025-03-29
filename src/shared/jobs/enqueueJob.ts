@@ -1,3 +1,4 @@
+import { logger } from "@/logging";
 import { ulid } from "../ulid";
 import { createJob, Job, JobStatus } from "./job";
 import queue from "./queue";
@@ -11,6 +12,8 @@ export async function enqueueJob<Payload>(
   type: string,
   payload?: Payload,
 ): Promise<Job<Payload | void>> {
+  const jobLogger = logger.child({});
+
   const date = new Date();
   const job: Job<Payload | void> = {
     id: ulid(),
@@ -21,8 +24,21 @@ export async function enqueueJob<Payload>(
     updatedAt: date,
   };
 
-  await createJob(job);
-  await queue.add(job);
+  jobLogger.setBindings({
+    job: {
+      id: job.id,
+      type: job.type,
+    },
+  });
+
+  try {
+    await createJob(job);
+    await queue.add(job);
+    jobLogger.info("Queued job");
+  } catch (error) {
+    jobLogger.info({ err: error }, "Queuing job failed");
+    throw error;
+  }
 
   return job;
 }
