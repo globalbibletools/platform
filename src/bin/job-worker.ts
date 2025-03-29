@@ -1,7 +1,7 @@
 import { type SQSEvent } from "aws-lambda";
 import { trace } from "@opentelemetry/api";
-import { processJob } from "./shared/jobs/processJob";
-import { logger } from "./logging";
+import { processJob } from "@/shared/jobs/processJob";
+import { logger } from "@/logging";
 
 export async function handler(event: SQSEvent) {
   // We aren't doing anything with this trace yet,
