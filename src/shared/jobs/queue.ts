@@ -16,7 +16,7 @@ export class SQSQueue implements Queue {
 
   constructor(
     private readonly queueUrl: string,
-    credentials: SQSClientConfig["credentials"],
+    credentials?: SQSClientConfig["credentials"],
   ) {
     this.client = new SQSClient({ credentials });
   }
@@ -56,9 +56,14 @@ export class LocalQueue implements Queue {
   }
 }
 
+const sqsCredentials =
+  process.env.ACCESS_KEY_ID ?
+    {
+      accessKeyId: process.env.ACCESS_KEY_ID ?? "",
+      secretAccessKey: process.env.SECRET_ACCESS_KEY ?? "",
+    }
+  : undefined;
+
 export default process.env.NODE_ENV === "production" ?
-  new SQSQueue(process.env.LANGUAGE_IMPORT_QUEUE_URL ?? "", {
-    accessKeyId: process.env.ACCESS_KEY_ID ?? "",
-    secretAccessKey: process.env.SECRET_ACCESS_KEY ?? "",
-  })
+  new SQSQueue(process.env.JOB_QUEUE_URL ?? "", sqsCredentials)
 : new LocalQueue(process.env.JOB_FUNCTION_URL ?? "");
