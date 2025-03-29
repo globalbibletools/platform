@@ -1,5 +1,7 @@
 import { createTransport, SendMailOptions } from "nodemailer";
 import { query } from "@/db";
+import { Job } from "./shared/jobs/model";
+import { logger } from "./logging";
 
 const transporter =
   process.env["EMAIL_SERVER"] ?
@@ -57,39 +59,54 @@ const mailer = {
    * @throws `MissingEmailAddressError` - If the user does not have an email address.
    */
   async sendEmail({ subject, text, html, ...options }: EmailOptions) {
-    let email;
+    const childLogger = logger.child({ module: "mailer" });
 
-    if ("email" in options) {
-      email = options.email;
-    } else {
-      const userRequest = await query<{
-        email: string;
-        emailStatus: string;
-      }>(
-        `
+    try {
+      let email;
+      let verified;
+
+      if ("email" in options) {
+        email = options.email;
+        verified = false;
+      } else {
+        const userRequest = await query<{
+          email: string;
+          emailStatus: string;
+        }>(
+          `
         SELECT email, email_status AS "emailStatus" FROM users WHERE id = $1
         `,
-        [options.userId],
-      );
-      const user = userRequest.rows[0];
+          [options.userId],
+        );
+        const user = userRequest.rows[0];
 
-      if (!user) {
-        throw new MissingEmailUserError(options.userId);
+        if (!user) {
+          throw new MissingEmailUserError(options.userId);
+        }
+        if (user.emailStatus !== "VERIFIED") {
+          throw new EmailNotVerifiedError(user.email);
+        }
+        email = user.email;
+        verified = true;
       }
-      if (user.emailStatus !== "VERIFIED") {
-        throw new EmailNotVerifiedError(user.email);
-      }
-      email = user.email;
+
+      await this.transporter.sendMail({
+        from: process.env["EMAIL_FROM"],
+        subject,
+        text,
+        html,
+        to: email,
+      });
+      childLogger.info({ verified }, "Email sent");
+    } catch (error) {
+      childLogger.error({ err: error }, "Failed to send email");
+      throw error;
     }
-
-    await this.transporter.sendMail({
-      from: process.env["EMAIL_FROM"],
-      subject,
-      text,
-      html,
-      to: email,
-    });
   },
 };
 
 export default mailer;
+
+export async function sendEmailJob(job: Job<EmailOptions>) {
+  await mailer.sendEmail(job.payload);
+}

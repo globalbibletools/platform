@@ -1,5 +1,5 @@
+import { enqueueJob } from "@/shared/jobs/enqueueJob";
 import { UserRepository } from "../data-access/types";
-import mailer from "@/mailer";
 
 export interface StartPasswordResetRequest {
   email: string;
@@ -17,7 +17,7 @@ export default class StartPasswordReset {
     await this.userRepo.commit(user);
 
     const url = `${process.env.ORIGIN}/reset-password?token=${reset.token}`;
-    await mailer.sendEmail({
+    await enqueueJob("send_email", {
       email: user.email.address,
       subject: "Reset Password",
       text: `Please click the following link to reset your password\n\n${url}`,

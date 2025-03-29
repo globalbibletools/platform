@@ -1,4 +1,3 @@
-import os from "os";
 import { trace } from "@opentelemetry/api";
 import pino from "pino";
 
@@ -11,9 +10,8 @@ export const logger = pino({
   base:
     process.env.NODE_ENV === "production" ?
       {
-        service: "platform-server",
+        service: process.env.SERVICE_NAME || "platform-server",
         pid: process.pid,
-        hostname: os.hostname(),
       }
     : undefined,
   timestamp: pino.stdTimeFunctions.isoTime,
