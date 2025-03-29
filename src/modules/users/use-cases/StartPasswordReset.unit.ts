@@ -1,5 +1,5 @@
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
-import { test, expect } from "vitest";
+import { test, expect, vitest } from "vitest";
 import mockUserRepo from "../data-access/MockUserRepository";
 import StartPasswordReset from "./StartPasswordReset";
 import UserEmail from "../model/UserEmail";
@@ -8,6 +8,9 @@ import Password from "../model/Password";
 import User from "../model/User";
 import PasswordReset from "../model/PasswordReset";
 import UserStatus from "../model/UserStatus";
+import { enqueueJob } from "@/shared/jobs/enqueueJob";
+
+vitest.mock("@/shared/jobs/enqueueJob");
 
 const startPasswordReset = new StartPasswordReset(mockUserRepo);
 
@@ -46,7 +49,7 @@ test("sends password reset email", async () => {
   });
 
   const url = `${process.env.ORIGIN}/reset-password?token=${mockUserRepo.users[0].passwordResets[0].token}`;
-  expect(sendEmailMock).toHaveBeenCalledExactlyOnceWith({
+  expect(enqueueJob).toHaveBeenCalledExactlyOnceWith("send_email", {
     email: props.email.address,
     subject: "Reset Password",
     text: `Please click the following link to reset your password\n\n${url}`,

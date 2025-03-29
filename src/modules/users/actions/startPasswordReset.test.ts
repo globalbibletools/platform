@@ -5,11 +5,14 @@ import {
   initializeDatabase,
   seedDatabase,
 } from "@/tests/vitest/dbUtils";
-import { test, expect } from "vitest";
+import { test, expect, vitest } from "vitest";
 import { startPasswordReset } from "./startPasswordReset";
 import { randomUUID } from "crypto";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
+import { enqueueJob } from "@/shared/jobs/enqueueJob";
+
+vitest.mock("@/shared/jobs/enqueueJob");
 
 initializeDatabase();
 
@@ -47,7 +50,7 @@ test("returns successfully if user could not be found", async () => {
   expect(sendEmailMock).not.toHaveBeenCalled();
 });
 
-test("returns successfully after send the password reset email", async () => {
+test("returns successfully after sending the password reset email", async () => {
   const user = {
     id: randomUUID(),
     hashedPassword: "asdf",
@@ -71,7 +74,7 @@ test("returns successfully after send the password reset email", async () => {
     },
   ]);
   const url = `${process.env.ORIGIN}/reset-password?token=${dbResets[0].token}`;
-  expect(sendEmailMock).toHaveBeenCalledExactlyOnceWith({
+  expect(enqueueJob).toHaveBeenCalledExactlyOnceWith("send_email", {
     email: user.email,
     subject: "Reset Password",
     text: `Please click the following link to reset your password\n\n${url}`,

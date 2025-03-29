@@ -18,6 +18,11 @@ create table job (
 );
 
 insert into job_type (id, name)
-values (1, 'import_language'), (2, 'export_languages'), (3, 'export_language'), (4, 'export_analytics');
+values
+    (1, 'send_email'),
+    (2, 'import_language'),
+    (3, 'export_languages'),
+    (4, 'export_language'),
+    (5, 'export_analytics');
 
 commit;

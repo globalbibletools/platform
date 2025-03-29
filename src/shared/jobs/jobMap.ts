@@ -1,3 +1,4 @@
+import { sendEmailJob } from "@/mailer";
 import { Job } from "./model";
 
 export type JobHandler<Payload, Data = unknown> = (
@@ -12,10 +13,8 @@ type JobMapEntry<Payload, Data = unknown> =
   | JobHandler<Payload, Data>;
 
 const jobMap: Record<string, JobMapEntry<any>> = {
-  export_analytics: {
-    handler: async (job: Job<void>) => {
-      console.log(job);
-    },
+  send_email: {
+    handler: sendEmailJob,
     timeout: 60 * 5, // 5 minutes
   },
 };
