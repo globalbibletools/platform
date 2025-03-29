@@ -1,13 +1,14 @@
 import { beforeEach, expect, test, vitest } from "vitest";
-import { createJob, JobStatus } from "./job";
+import { JobStatus } from "./model";
 import { enqueueJob } from "./enqueueJob";
 import queue from "./queue";
+import jobRepository from "./JobRepository";
 
-vitest.mock(import("./job"), async (importOriginal) => {
-  const original = await importOriginal();
+vitest.mock("./JobRepository", () => {
   return {
-    ...original,
-    createJob: vitest.fn(),
+    default: {
+      create: vitest.fn(),
+    },
   };
 });
 vitest.mock("./queue", async () => ({
@@ -16,7 +17,7 @@ vitest.mock("./queue", async () => ({
   },
 }));
 
-const mockedCreateJob = vitest.mocked(createJob);
+const mockedCreateJob = vitest.mocked(jobRepository.create);
 const mockedQueueAdd = vitest.mocked(queue.add);
 
 beforeEach(() => {

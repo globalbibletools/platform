@@ -1,5 +1,6 @@
 import { SQSRecord } from "aws-lambda";
-import { Job, JobStatus, updateJob } from "./job";
+import { Job, JobStatus } from "./model";
+import jobRepo from "./JobRepository";
 import jobMap from "./jobMap";
 import queue from "./queue";
 import { logger } from "@/logging";
@@ -32,7 +33,7 @@ export async function processJob(message: SQSRecord) {
     }
 
     jobLogger.info("Job starting");
-    await updateJob(job.id, JobStatus.InProgress);
+    await jobRepo.update(job.id, JobStatus.InProgress);
 
     const timeout =
       "timeout" in handlerOrEntry ? handlerOrEntry.timeout : undefined;
@@ -45,11 +46,11 @@ export async function processJob(message: SQSRecord) {
       "handler" in handlerOrEntry ? handlerOrEntry.handler : handlerOrEntry;
     const data = await handler(job);
 
-    await updateJob(job.id, JobStatus.Complete, data);
+    await jobRepo.update(job.id, JobStatus.Complete, data);
     jobLogger.info("Job complete");
   } catch (error) {
     jobLogger.error({ err: error }, "Job failed");
-    await updateJob(job.id, JobStatus.Failed, {
+    await jobRepo.update(job.id, JobStatus.Failed, {
       error: String(error),
     });
   }

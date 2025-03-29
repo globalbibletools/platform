@@ -7,11 +7,12 @@ import {
   test,
   vitest,
 } from "vitest";
-import { Job, JobStatus, updateJob } from "./job";
+import { Job, JobStatus } from "./model";
 import { ulid } from "../ulid";
 import { processJob } from "./processJob";
 import jobMap, { JobHandler } from "./jobMap";
 import queue from "./queue";
+import jobRepository from "./JobRepository";
 
 vitest.mock("./jobMap", () => ({
   default: {
@@ -22,19 +23,17 @@ vitest.mock("./jobMap", () => ({
     },
   },
 }));
-vitest.mock(import("./job"), async (importOriginal) => {
-  const original = await importOriginal();
-  return {
-    ...original,
-    updateJob: vitest.fn(),
-  };
-});
+vitest.mock("./JobRepository", () => ({
+  default: {
+    update: vitest.fn(),
+  },
+}));
 
 const mockedJob = vitest.mocked<JobHandler<any>>(jobMap.test_job as any);
 const mockedJobWithTimeout = vitest.mocked<JobHandler<any>>(
   (jobMap.test_job_with_timeout as any).handler,
 );
-const mockedUpdateJob = vitest.mocked(updateJob);
+const mockedUpdateJob = vitest.mocked(jobRepository.update);
 let mockedExtendTimeout: MockInstance<typeof queue.extendTimeout>;
 
 beforeAll(() => {
@@ -67,9 +66,13 @@ test("fails job if handler is not found", async () => {
   expect(mockedJob).not.toHaveBeenCalled();
   expect(mockedJobWithTimeout).not.toHaveBeenCalled();
   expect(mockedExtendTimeout).not.toHaveBeenCalled();
-  expect(updateJob).toHaveBeenCalledExactlyOnceWith(job.id, JobStatus.Failed, {
-    error: String(new Error("Job handler for garbage_job not found.")),
-  });
+  expect(mockedUpdateJob).toHaveBeenCalledExactlyOnceWith(
+    job.id,
+    JobStatus.Failed,
+    {
+      error: String(new Error("Job handler for garbage_job not found.")),
+    },
+  );
 });
 
 test("handles successful job", async () => {

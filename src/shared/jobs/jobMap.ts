@@ -1,4 +1,4 @@
-import { Job } from "./job";
+import { Job } from "./model";
 
 export type JobHandler<Payload, Data = unknown> = (
   job: Job<Payload, Data>,

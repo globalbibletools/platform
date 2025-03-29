@@ -1,6 +1,7 @@
 import { logger } from "@/logging";
 import { ulid } from "../ulid";
-import { createJob, Job, JobStatus } from "./job";
+import { Job, JobStatus } from "./model";
+import jobRepo from "./JobRepository";
 import queue from "./queue";
 
 export async function enqueueJob(type: string): Promise<Job<void>>;
@@ -32,7 +33,7 @@ export async function enqueueJob<Payload>(
   });
 
   try {
-    await createJob(job);
+    await jobRepo.create(job);
     await queue.add(job);
     jobLogger.info("Queued job");
   } catch (error) {

@@ -11,7 +11,7 @@ import {
 } from "vitest";
 import { LocalQueue, SQSQueue } from "./queue";
 import { ulid } from "../ulid";
-import { Job, JobStatus } from "./job";
+import { Job, JobStatus } from "./model";
 import { SQSClient } from "@aws-sdk/client-sqs";
 
 describe("SQSQueue", () => {

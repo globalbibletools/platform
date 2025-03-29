@@ -4,7 +4,7 @@ import {
   SQSClient,
   SQSClientConfig,
 } from "@aws-sdk/client-sqs";
-import { type Job } from "./job";
+import { type Job } from "./model";
 
 interface Queue {
   add(job: Job<any>): Promise<void>;
