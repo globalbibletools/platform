@@ -3,7 +3,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:job-worker": "esbuild src/job-worker.ts --bundle --outfile=dist/job-worker.js --format=cjs --platform=node --target=node18",
+    "build:job-worker": "esbuild src/bin/job-worker.ts --bundle --outfile=dist/job-worker.js --format=cjs --platform=node --target=node18",
     "build:job-scheduler": "esbuild src/bin/job-scheduler.ts --bundle --outfile=dist/job-scheduler.js --format=cjs --platform=node --target=node18",
     "start": "next start",
     "lint": "next lint",
