@@ -19,7 +19,7 @@ export async function handler(event: EventBridgeEvent<any, any>) {
   const span = tracer.startSpan("lambda-handler");
   const childLogger = logger.child({});
 
-  const parseResult = eventSchema.safeParse(eventSchema);
+  const parseResult = eventSchema.safeParse(event);
   if (!parseResult.success) {
     childLogger.error(
       { event, err: parseResult.error },
