@@ -9,6 +9,11 @@ COPY . .
 RUN npm run build:job-scheduler
  
 FROM public.ecr.aws/lambda/nodejs:18 AS runner
+ENV NODE_ENV=production
+COPY --from=build /app/dist/job-scheduler.js ${LAMBDA_TASK_ROOT}
+CMD ["job-scheduler.handler"]
+ 
+FROM public.ecr.aws/lambda/nodejs:18 AS dev
 COPY --from=build /app/dist/job-scheduler.js ${LAMBDA_TASK_ROOT}
 CMD ["job-scheduler.handler"]
 

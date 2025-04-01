@@ -19,7 +19,7 @@ services:
   job_worker:
     build:
       context: .
-      target: runner
+      target: dev
       dockerfile: Dockerfile.job-worker
     restart: always
     environment:
