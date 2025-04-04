@@ -7,5 +7,5 @@ pg_ctl restart
 
 psql --dbname "$POSTGRES_DB" --username "$POSTGRES_USER" -f /db/scripts/init_extensions.sql
 psql --dbname "$POSTGRES_DB" --username "$POSTGRES_USER" -f /db/scripts/schema.sql
-pg_restore -Fc --dbname "$POSTGRES_DB" --username "$POSTGRES_USER" /db/scripts/data.dump
+pg_restore -Fc --disable-triggers --dbname "$POSTGRES_DB" --username "$POSTGRES_USER" /db/scripts/data.dump
 psql --dbname "$POSTGRES_DB" --username "$POSTGRES_USER" -f /db/scripts/refresh_views.sql
