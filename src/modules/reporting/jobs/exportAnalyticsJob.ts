@@ -94,7 +94,7 @@ async function updateContributionsSheet(logger: pino.Logger) {
 }
 
 async function updateUsersSheet(logger: pino.Logger) {
-  const users = await reportingQueryService.findLanguages();
+  const users = await reportingQueryService.findUsers();
   const data = users.map((record) => [record.id, record.name]);
   data.unshift(["ID", "Name"]);
   await sheets.spreadsheets.values.update({
@@ -109,7 +109,7 @@ async function updateUsersSheet(logger: pino.Logger) {
 }
 
 async function updateLanguagesSheet(logger: pino.Logger) {
-  const languages = await reportingQueryService.findUsers();
+  const languages = await reportingQueryService.findLanguages();
   const data = languages.map((record) => [record.id, record.name]);
   data.unshift(["ID", "Name"]);
   await sheets.spreadsheets.values.update({
