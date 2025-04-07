@@ -3,6 +3,7 @@ import ViewTitle from "@/components/ViewTitle";
 import ServerAction from "@/components/ServerAction";
 import { queueJobAction } from "./queueJobAction";
 import { REPORTING_JOB_TYPES } from "@/modules/reporting/jobs/jobTypes";
+import { TRANSLATION_JOB_TYPES } from "@/modules/translation/jobs/jobTypes";
 
 export async function generateMetadata(
   _: any,
@@ -25,6 +26,12 @@ export default async function AdminJobsView() {
           action={queueJobAction}
         >
           Export Analytics
+        </ServerAction>
+        <ServerAction
+          actionData={{ type: TRANSLATION_JOB_TYPES.EXPORT_LANGUAGES }}
+          action={queueJobAction}
+        >
+          Export Languages
         </ServerAction>
       </div>
     </div>
