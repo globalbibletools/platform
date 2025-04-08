@@ -28,6 +28,8 @@ const auth = new google.auth.GoogleAuth({
 const CONTRIBUTIONS_SHEET = "'[Raw] Contributions'";
 const USERS_SHEET = "'[Raw] Users'";
 const LANGUAGES_SHEET = "'[Raw] Languages'";
+const BOOKS_SHEET = "'[Raw] Books'";
+const PROGRESS_SNAPSHOTS_SHEET = "'[Raw] Progress Snapshots'";
 
 const sheets = google.sheets({
   version: "v4",
@@ -57,6 +59,8 @@ export async function exportAnalyticsJob(job: Job<void>) {
     updateContributionsSheet(jobLogger),
     updateUsersSheet(jobLogger),
     updateLanguagesSheet(jobLogger),
+    updateBooksSheet(jobLogger),
+    updateProgressSnapshots(jobLogger),
   ]);
 }
 
@@ -95,8 +99,13 @@ async function updateContributionsSheet(logger: pino.Logger) {
 
 async function updateUsersSheet(logger: pino.Logger) {
   const users = await reportingQueryService.findUsers();
-  const data = users.map((record) => [record.id, record.name]);
-  data.unshift(["ID", "Name"]);
+  const data = users.map((user) => [
+    user.id,
+    user.name,
+    user.email,
+    user.status,
+  ]);
+  data.unshift(["ID", "Name", "Email", "Status"]);
   await sheets.spreadsheets.values.update({
     spreadsheetId: ANALYTICS_SPREADSHEET_ID,
     range: `${USERS_SHEET}!A1`,
@@ -110,8 +119,8 @@ async function updateUsersSheet(logger: pino.Logger) {
 
 async function updateLanguagesSheet(logger: pino.Logger) {
   const languages = await reportingQueryService.findLanguages();
-  const data = languages.map((record) => [record.id, record.name]);
-  data.unshift(["ID", "Name"]);
+  const data = languages.map((lang) => [lang.id, lang.name, lang.code]);
+  data.unshift(["ID", "Name", "Code"]);
   await sheets.spreadsheets.values.update({
     spreadsheetId: ANALYTICS_SPREADSHEET_ID,
     range: `${LANGUAGES_SHEET}!A1`,
@@ -121,4 +130,50 @@ async function updateLanguagesSheet(logger: pino.Logger) {
     },
   });
   logger.info(`Updated ${languages.length} languages`);
+}
+
+async function updateBooksSheet(logger: pino.Logger) {
+  const books = await reportingQueryService.findBooks();
+  const data = books.map((book) => [book.id, book.name, book.wordCount]);
+  data.unshift(["ID", "Name", "Word Count"]);
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: ANALYTICS_SPREADSHEET_ID,
+    range: `${BOOKS_SHEET}!A1`,
+    valueInputOption: "RAW",
+    requestBody: {
+      values: data,
+    },
+  });
+  logger.info(`Updated ${books.length} books`);
+}
+
+async function updateProgressSnapshots(logger: pino.Logger) {
+  const snapshots = await reportingQueryService.findProgressSnapshots();
+  const data = snapshots.map((snapshot) => [
+    snapshot.id,
+    snapshot.week,
+    snapshot.languageId,
+    snapshot.bookId,
+    snapshot.userId,
+    snapshot.approvedCount,
+    snapshot.unapprovedCount,
+  ]);
+  data.unshift([
+    "ID",
+    "Week",
+    "Language ID",
+    "Book ID",
+    "User ID",
+    "Approved",
+    "Unapproved",
+  ]);
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: ANALYTICS_SPREADSHEET_ID,
+    range: `${PROGRESS_SNAPSHOTS_SHEET}!A1`,
+    valueInputOption: "RAW",
+    requestBody: {
+      values: data,
+    },
+  });
+  logger.info(`Updated ${snapshots.length} progress snapshots`);
 }
