@@ -80,7 +80,7 @@ export async function updateGloss(formData: FormData): Promise<any> {
   if (pathQuery.rows.length > 0) {
     const locale = await getLocale();
     revalidatePath(
-      `/${locale}/translate/${pathQuery.rows[0].code}/${pathQuery.rows[0].code}`,
+      `/${locale}/translate/${pathQuery.rows[0].code}/${pathQuery.rows[0].verseId}`,
     );
   }
 }

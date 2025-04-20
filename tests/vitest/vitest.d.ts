@@ -13,6 +13,7 @@ declare module "vitest" {
   }
   interface AsymmetricMatchersContaining {
     toBeUlid(): string;
+    toBeNow(): string;
     toBeDaysIntoFuture<T extends Date | string>(days: number): T;
     toBeHoursIntoFuture<T extends Date | string>(hours: number): T;
     toBeToken(length?: number): string;
