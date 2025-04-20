@@ -2,6 +2,7 @@
 
 import { query } from "@/db";
 import { parseForm } from "@/form-parser";
+import Policy from "@/modules/access/public/Policy";
 import { serverActionLogger } from "@/server-action";
 import { verifySession } from "@/session";
 import { getLocale } from "next-intl/server";
@@ -15,11 +16,19 @@ const requestSchema = z.object({
   gloss: z.string().optional(),
 });
 
+const policy = new Policy({
+  systemRoles: [Policy.SystemRole.Admin],
+  languageRoles: [Policy.LanguageRole.Admin],
+});
+
 export async function updateGloss(formData: FormData): Promise<any> {
   const logger = serverActionLogger("updateGloss");
 
   const session = await verifySession();
-  if (!session?.user) {
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+  });
+  if (!authorized) {
     logger.error("unauthorized");
     notFound();
   }
@@ -28,24 +37,6 @@ export async function updateGloss(formData: FormData): Promise<any> {
   if (!request.success) {
     logger.error("request parse error");
     return;
-  }
-
-  const languageQuery = await query<{ roles: string[] }>(
-    `SELECT 
-            COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM language_member_role AS r
-        WHERE r.language_id = (SELECT language_id FROM phrase WHERE id = $1) 
-            AND r.user_id = $2`,
-    [request.data.phraseId, session.user.id],
-  );
-  const language = languageQuery.rows[0];
-  if (
-    !language ||
-    (!session?.user.roles.includes("ADMIN") &&
-      !language.roles.includes("TRANSLATOR"))
-  ) {
-    logger.error("unauthorized");
-    notFound();
   }
 
   await query(
@@ -63,7 +54,7 @@ export async function updateGloss(formData: FormData): Promise<any> {
       request.data.phraseId,
       request.data.state,
       request.data.gloss,
-      session.user.id,
+      session?.user.id,
     ],
   );
 
