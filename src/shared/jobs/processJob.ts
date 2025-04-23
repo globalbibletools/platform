@@ -18,22 +18,36 @@ export async function processJob(message: SQSRecord) {
     throw error;
   }
 
-  jobLogger.setBindings({
-    job: {
-      id: job.id,
-      type: job.type,
-    },
-  });
-
   try {
+    jobLogger.setBindings({
+      job: {
+        id: job.id,
+        type: job.type,
+      },
+    });
+
+    // SQS delivers a message at least once, this prevents the same message from being processed twice.
+    const existingJob = await jobRepo.getById(job.id);
+    if (existingJob && existingJob.status !== JobStatus.Pending) {
+      jobLogger.info("Job already executed");
+      return;
+    }
+
+    jobLogger.info("Job starting");
+    if (existingJob) {
+      await jobRepo.update(job.id, JobStatus.InProgress);
+    } else {
+      await jobRepo.create({
+        ...job,
+        status: JobStatus.InProgress,
+      });
+    }
+
     const handlerOrEntry = jobMap[job.type];
     if (!handlerOrEntry) {
       jobLogger.error("Job handler not found");
       throw new Error(`Job handler for ${job.type} not found.`);
     }
-
-    jobLogger.info("Job starting");
-    await jobRepo.update(job.id, JobStatus.InProgress);
 
     const timeout =
       "timeout" in handlerOrEntry ? handlerOrEntry.timeout : undefined;

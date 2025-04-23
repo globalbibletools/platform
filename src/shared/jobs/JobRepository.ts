@@ -2,6 +2,28 @@ import { query } from "@/db";
 import { Job, JobStatus } from "./model";
 
 const jobRepository = {
+  async getById<Payload, Data = unknown>(
+    id: string,
+  ): Promise<Job<Payload, Data> | undefined> {
+    const result = await query<Job<Payload, Data>>(
+      `
+        select
+            id,
+            (select name from job_type where id = job.type_id) as type,
+            status,
+            payload,
+            data,
+            created_at as "createdAt",
+            updated_at as "updatedAt"
+        from job
+        where id = $1
+      `,
+      [id],
+    );
+
+    return result.rows[0];
+  },
+
   async create(job: Job<any>) {
     await query(
       `
