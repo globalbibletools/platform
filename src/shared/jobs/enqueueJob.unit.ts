@@ -35,9 +35,6 @@ test("creates job and pushes on to the queue", async () => {
     id: expect.toBeUlid(),
     type,
     payload,
-    status: JobStatus.Pending,
-    createdAt: expect.toBeHoursIntoFuture(0),
-    updatedAt: expect.toBeHoursIntoFuture(0),
   });
   expect(mockedCreateJob).toHaveBeenCalledExactlyOnceWith({
     id: expect.toBeUlid(),

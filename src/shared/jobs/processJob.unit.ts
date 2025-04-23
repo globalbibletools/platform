@@ -11,7 +11,7 @@ import { Job, JobStatus } from "./model";
 import { ulid } from "../ulid";
 import { processJob } from "./processJob";
 import jobMap, { JobHandler } from "./jobMap";
-import queue from "./queue";
+import queue, { QueuedJob } from "./queue";
 import jobRepository from "./JobRepository";
 
 vitest.mock("./jobMap", () => ({
@@ -66,9 +66,16 @@ test("fails if job has already been executed", async () => {
     createdAt: new Date(),
     updatedAt: new Date(),
   };
+  const queuedJob: QueuedJob<string> = {
+    id: job.id,
+    type: job.type,
+    payload: job.payload,
+  };
   mockedGetJobById.mockResolvedValue(job);
 
-  await processJob({ body: JSON.stringify(job) } as any);
+  await processJob({
+    body: JSON.stringify(queuedJob),
+  } as any);
 
   expect(mockedJob).not.toHaveBeenCalled();
   expect(mockedJobWithTimeout).not.toHaveBeenCalled();
@@ -86,9 +93,16 @@ test("fails job if handler is not found", async () => {
     createdAt: new Date(),
     updatedAt: new Date(),
   };
+  const queuedJob: QueuedJob<string> = {
+    id: job.id,
+    type: job.type,
+    payload: job.payload,
+  };
   mockedGetJobById.mockResolvedValue(job);
 
-  await processJob({ body: JSON.stringify(job) } as any);
+  await processJob({
+    body: JSON.stringify(queuedJob),
+  } as any);
 
   expect(mockedJob).not.toHaveBeenCalled();
   expect(mockedJobWithTimeout).not.toHaveBeenCalled();
@@ -105,28 +119,35 @@ test("fails job if handler is not found", async () => {
 });
 
 test("creates job if it does not already exist", async () => {
-  const job: Job<string> = {
-    id: ulid(),
+  const queuedJob: QueuedJob<string> = {
     type: "test_job",
     payload: "payload",
-    status: JobStatus.Pending,
-    createdAt: new Date(),
-    updatedAt: new Date(),
   };
 
   mockedJob.mockResolvedValue("result");
 
-  await processJob({ body: JSON.stringify(job) } as any);
+  await processJob({
+    body: JSON.stringify(queuedJob),
+  } as any);
 
-  expect(mockedJob).toHaveBeenCalledExactlyOnceWith(job);
+  expect(mockedJob).toHaveBeenCalledExactlyOnceWith({
+    ...queuedJob,
+    id: expect.toBeUlid(),
+    status: JobStatus.InProgress,
+    createdAt: expect.any(Date),
+    updatedAt: expect.any(Date),
+  });
   expect(mockedJobWithTimeout).not.toHaveBeenCalled();
 
   expect(mockedCreateJob).toHaveBeenCalledExactlyOnceWith({
-    ...job,
+    ...queuedJob,
+    id: expect.toBeUlid(),
     status: JobStatus.InProgress,
+    createdAt: expect.any(Date),
+    updatedAt: expect.any(Date),
   });
   expect(mockedUpdateJob).toHaveBeenCalledExactlyOnceWith(
-    job.id,
+    expect.toBeUlid(),
     JobStatus.Complete,
     "result",
   );
@@ -142,11 +163,18 @@ test("handles successful job", async () => {
     createdAt: new Date(),
     updatedAt: new Date(),
   };
+  const queuedJob: QueuedJob<string> = {
+    id: job.id,
+    type: job.type,
+    payload: job.payload,
+  };
   mockedGetJobById.mockResolvedValue(job);
 
   mockedJob.mockResolvedValue("result");
 
-  await processJob({ body: JSON.stringify(job) } as any);
+  await processJob({
+    body: JSON.stringify(queuedJob),
+  } as any);
 
   expect(mockedJob).toHaveBeenCalledExactlyOnceWith(job);
   expect(mockedJobWithTimeout).not.toHaveBeenCalled();
@@ -175,12 +203,19 @@ test("handles failed job", async () => {
     createdAt: new Date(),
     updatedAt: new Date(),
   };
+  const queuedJob: QueuedJob<string> = {
+    id: job.id,
+    type: job.type,
+    payload: job.payload,
+  };
   mockedGetJobById.mockResolvedValue(job);
 
   const error = new Error("job error");
   mockedJob.mockRejectedValue(error);
 
-  await processJob({ body: JSON.stringify(job) } as any);
+  await processJob({
+    body: JSON.stringify(queuedJob),
+  } as any);
 
   expect(mockedJob).toHaveBeenCalledExactlyOnceWith(job);
   expect(mockedJobWithTimeout).not.toHaveBeenCalled();
@@ -206,12 +241,20 @@ test("extends visibility timeout before starting job", async () => {
     createdAt: new Date(),
     updatedAt: new Date(),
   };
+  const queuedJob: QueuedJob<string> = {
+    id: job.id,
+    type: job.type,
+    payload: job.payload,
+  };
   mockedGetJobById.mockResolvedValue(job);
 
   mockedJobWithTimeout.mockResolvedValue("result");
 
   const handle = "handle";
-  await processJob({ body: JSON.stringify(job), receiptHandle: handle } as any);
+  await processJob({
+    body: JSON.stringify(queuedJob),
+    receiptHandle: handle,
+  } as any);
 
   expect(mockedJobWithTimeout).toHaveBeenCalledExactlyOnceWith(job);
   expect(mockedJob).not.toHaveBeenCalled();
