@@ -4,10 +4,18 @@ import {
   SQSClient,
   SQSClientConfig,
 } from "@aws-sdk/client-sqs";
-import { type Job } from "./model";
 
-interface Queue {
-  add(job: Job<any>): Promise<void>;
+export interface QueuedJob<Payload> {
+  // Id is optional because jobs can be created through Event Bridge Scheduler
+  // which does not allow its message to dynamically generate an ID.
+  // Instead we generate it when the job is processed.
+  id?: string;
+  type: string;
+  payload: Payload;
+}
+
+export interface Queue {
+  add(job: QueuedJob<any>): Promise<void>;
   extendTimeout(handle: string, timeout: number): Promise<void>;
 }
 
@@ -21,7 +29,7 @@ export class SQSQueue implements Queue {
     this.client = new SQSClient({ credentials });
   }
 
-  async add(job: Job<any>) {
+  async add(job: QueuedJob<any>) {
     await this.client.send(
       new SendMessageCommand({
         QueueUrl: this.queueUrl,
@@ -44,7 +52,7 @@ export class SQSQueue implements Queue {
 export class LocalQueue implements Queue {
   constructor(private readonly functionUrl: string) {}
 
-  async add(job: Job<any>) {
+  async add(job: QueuedJob<any>) {
     await fetch(this.functionUrl, {
       method: "post",
       body: JSON.stringify({ Records: [{ body: JSON.stringify(job) }] }),
