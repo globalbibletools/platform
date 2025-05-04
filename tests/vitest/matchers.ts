@@ -16,11 +16,20 @@ expect.extend({
       message,
     };
   },
+  toBeNow(received: any) {
+    const receivedDate = received && new Date(received);
+    const actualDifference = differenceInSeconds(receivedDate, new Date());
+    return {
+      pass: Math.abs(actualDifference) < 15,
+      message: () => {
+        return `${receivedDate} is ${this.isNot ? " not" : ""}about now`;
+      },
+    };
+  },
   toBeDaysIntoFuture(received: any, days: number) {
     const receivedDate = received && new Date(received);
     const actualDifference = differenceInSeconds(receivedDate, new Date());
     const expectedDifference = 60 * 60 * 24 * days;
-    console.log(receivedDate, new Date());
     return {
       pass: Math.abs(actualDifference - expectedDifference) < 15,
       message: () => {

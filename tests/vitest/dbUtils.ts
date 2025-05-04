@@ -57,7 +57,7 @@ export function initializeDatabase(destroyAfter = true) {
   });
 }
 
-interface DbUser {
+export interface DbUser {
   id: string;
   name?: string;
   hashedPassword?: string;
@@ -66,37 +66,37 @@ interface DbUser {
   status: UserStatusRaw;
 }
 
-interface DbSystemRole {
+export interface DbSystemRole {
   userId: string;
   role: string;
 }
 
-interface DbInvitation {
+export interface DbInvitation {
   userId: string;
   token: string;
   expiresAt: Date;
 }
 
-interface DbSession {
+export interface DbSession {
   id: string;
   userId: string;
   expiresAt: Date;
 }
 
-interface DbEmailVerification {
+export interface DbEmailVerification {
   userId: string;
   email: string;
   token: string;
   expiresAt: Date;
 }
 
-interface DbPasswordReset {
+export interface DbPasswordReset {
   userId: string;
   token: string;
   expiresAt: Date;
 }
 
-interface DbLanguage {
+export interface DbLanguage {
   id: string;
   code: string;
   name: string;
@@ -106,13 +106,31 @@ interface DbLanguage {
   referenceLanguageId?: string;
 }
 
-interface DbLanguageMember {
+export interface DbLanguageMember {
   languageId: string;
   userId: string;
   role: LanguageMemberRoleRaw | "VIEWER";
 }
 
-interface DatabaseSeed {
+export interface DbGloss {
+  phraseId: number;
+  state: string;
+  gloss?: string;
+  updatedAt: Date;
+  updatedBy?: string;
+  source: string;
+}
+
+export interface DbPhrase {
+  id: number;
+  languageId: string;
+  createdAt: Date;
+  createdBy?: string;
+  deletedAt?: Date;
+  deletedBy?: string;
+}
+
+export interface DatabaseSeed {
   users?: DbUser[];
   systemRoles?: DbSystemRole[];
   sessions?: DbSession[];
@@ -121,6 +139,8 @@ interface DatabaseSeed {
   languages?: DbLanguage[];
   languageMemberRoles?: DbLanguageMember[];
   emailVerifications?: DbEmailVerification[];
+  glosses?: DbGloss[];
+  phrases?: DbPhrase[];
 }
 
 export async function seedDatabase(seed: DatabaseSeed) {
@@ -164,6 +184,50 @@ export async function seedDatabase(seed: DatabaseSeed) {
       await insertEmailVerification(verification);
     }
   }
+  if (seed.phrases) {
+    for (const phrase of seed.phrases) {
+      await insertPhrase(phrase);
+    }
+  }
+  if (seed.glosses) {
+    for (const gloss of seed.glosses) {
+      await insertGloss(gloss);
+    }
+  }
+}
+
+export async function insertPhrase(phrase: DbPhrase): Promise<void> {
+  await query(
+    `
+      insert into phrase(id, language_id, created_at, created_by, deleted_at, deleted_by)
+      values ($1, $2, $3, $4, $5, $6)
+    `,
+    [
+      phrase.id,
+      phrase.languageId,
+      phrase.createdAt,
+      phrase.createdBy,
+      phrase.deletedAt,
+      phrase.deletedBy,
+    ],
+  );
+}
+
+export async function insertGloss(gloss: DbGloss): Promise<void> {
+  await query(
+    `
+      insert into gloss (phrase_id, gloss, state, source, updated_at, updated_by)
+      values ($1, $2, $3, $4, $5, $6)
+    `,
+    [
+      gloss.phraseId,
+      gloss.gloss,
+      gloss.state,
+      gloss.source,
+      gloss.updatedAt,
+      gloss.updatedBy,
+    ],
+  );
 }
 
 export async function insertUser(user: DbUser): Promise<void> {
@@ -270,6 +334,24 @@ export async function insertEmailVerification(
       verification.expiresAt.valueOf(),
     ],
   );
+}
+
+export async function findGlosses(): Promise<DbGloss[]> {
+  const result = await query<DbGloss>(
+    `
+      select 
+        phrase_id as "phraseId",
+        gloss,
+        state,
+        source,
+        updated_at as "updatedAt",
+        updated_by as "updatedBy"
+      from gloss
+    `,
+    [],
+  );
+
+  return result.rows;
 }
 
 export async function findUser(id: string): Promise<DbUser | undefined> {
