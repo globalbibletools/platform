@@ -9,6 +9,7 @@ import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import * as z from "zod";
+import phraseRepository from "../data-access/PhraseRepository";
 
 const requestSchema = z.object({
   phraseId: z.coerce.number().int(),
@@ -17,26 +18,32 @@ const requestSchema = z.object({
 });
 
 const policy = new Policy({
-  systemRoles: [Policy.SystemRole.Admin],
-  languageRoles: [Policy.LanguageRole.Admin],
+  languageRoles: [Policy.LanguageRole.Translator],
 });
 
 export async function updateGloss(formData: FormData): Promise<any> {
   const logger = serverActionLogger("updateGloss");
 
-  const session = await verifySession();
-  const authorized = await policy.authorize({
-    actorId: session?.user.id,
-  });
-  if (!authorized) {
-    logger.error("unauthorized");
-    notFound();
-  }
-
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
     logger.error("request parse error");
     return;
+  }
+
+  const phrase = await phraseRepository.findById(request.data.phraseId);
+  if (!phrase) {
+    logger.error("phrase not found");
+    notFound();
+  }
+
+  const session = await verifySession();
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+    languageCode: phrase.languageCode,
+  });
+  if (!authorized) {
+    logger.error("unauthorized");
+    notFound();
   }
 
   await query(

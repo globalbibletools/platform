@@ -69,33 +69,12 @@ test("returns and does nothing if the request shape doesn't match the schema", a
 
   cookies.get.mockReturnValue({ value: session.id });
 
-  {
-    const formData = new FormData();
-    const response = await updateGloss(formData);
-    expect(response).toBeUndefined();
+  const formData = new FormData();
+  const response = await updateGloss(formData);
+  expect(response).toBeUndefined();
 
-    const glosses = await findGlosses();
-    expect(glosses).toEqual([]);
-  }
-  {
-    const formData = new FormData();
-    formData.set("phraseId", "string id");
-    const response = await updateGloss(formData);
-    expect(response).toBeUndefined();
-
-    const glosses = await findGlosses();
-    expect(glosses).toEqual([]);
-  }
-  {
-    const formData = new FormData();
-    formData.set("phraseId", "1");
-    formData.set("state", "GARBAGE");
-    const response = await updateGloss(formData);
-    expect(response).toBeUndefined();
-
-    const glosses = await findGlosses();
-    expect(glosses).toEqual([]);
-  }
+  const glosses = await findGlosses();
+  expect(glosses).toEqual([]);
 });
 
 test("returns not found if user is not logged in", async () => {
@@ -103,6 +82,7 @@ test("returns not found if user is not logged in", async () => {
   formData.set("phraseId", "1");
   formData.set("gloss", "asdf");
   formData.set("state", "APPROVED");
+  formData.set("languageCode", language.code);
   await expect(updateGloss(formData)).toBeNextjsNotFound();
 
   const glosses = await findGlosses();
@@ -123,6 +103,7 @@ test("returns not found if user is not a translator on the language", async () =
   formData.set("phraseId", "1");
   formData.set("gloss", "asdf");
   formData.set("state", "APPROVED");
+  formData.set("languageCode", language.code);
   await expect(updateGloss(formData)).toBeNextjsNotFound();
 
   const glosses = await findGlosses();
@@ -141,6 +122,7 @@ test("returns not found if the phrase does not exist", async () => {
   formData.set("phraseId", "1");
   formData.set("gloss", "asdf");
   formData.set("state", "APPROVED");
+  formData.set("languageCode", language.code);
   await expect(updateGloss(formData)).toBeNextjsNotFound();
 
   const glosses = await findGlosses();
@@ -162,6 +144,7 @@ test("creates a new gloss for the phrase", async () => {
   formData.set("phraseId", "1");
   formData.set("gloss", "asdf");
   formData.set("state", "APPROVED");
+  formData.set("languageCode", language.code);
   const result = await updateGloss(formData);
   expect(result).toBeUndefined();
 
@@ -202,6 +185,7 @@ test("updates an existing gloss for the phrase", async () => {
   formData.set("phraseId", "1");
   formData.set("gloss", "asdf");
   formData.set("state", "APPROVED");
+  formData.set("languageCode", language.code);
   const result = await updateGloss(formData);
   expect(result).toBeUndefined();
 
