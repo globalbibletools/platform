@@ -52,6 +52,7 @@
   "devDependencies": {
     "@aws-sdk/client-s3": "3.662.0",
     "@aws-sdk/lib-storage": "3.658.1",
+    "@faker-js/faker": "9.7.0",
     "@floating-ui/react-dom": "2.1.2",
     "@fortawesome/fontawesome-svg-core": "6.6.0",
     "@fortawesome/free-brands-svg-icons": "6.6.0",
@@ -76,6 +77,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
     "eslint-config-prettier": "9.1.0",
+    "factory.ts": "1.4.2",
     "husky": "9.1.7",
     "lint-staged": "15.2.11",
     "lodash": "4.17.21",

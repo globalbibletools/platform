@@ -3,46 +3,47 @@ import User from "../model/User";
 import UserEmail from "../model/UserEmail";
 import PasswordReset from "../model/PasswordReset";
 import EmailVerification from "../model/EmailVerification";
-import EmailStatus, { EmailStatusRaw } from "../model/EmailStatus";
+import EmailStatus from "../model/EmailStatus";
 import Password from "../model/Password";
 import Invitation from "../model/Invitation";
-import UserStatus, { UserStatusRaw } from "../model/UserStatus";
-import SystemRole, { SystemRoleRaw } from "../model/SystemRole";
+import UserStatus from "../model/UserStatus";
+import SystemRole from "../model/SystemRole";
+import {
+  DbEmailVerification,
+  DbInvitation,
+  DbPasswordReset,
+  DbSystemRole,
+  DbUser,
+} from "./types";
 
-interface DbUser {
-  id: string;
-  name: string | null;
-  email: string;
-  email_status: EmailStatusRaw;
-  hashed_password: string | null;
-  password_resets: { token: string; expiresAt: Date }[] | null;
-  email_verification: { email: string; token: string; expiresAt: Date } | null;
-  invitations: { token: string; expiresAt: Date }[] | null;
-  status: UserStatusRaw;
-  system_roles: SystemRoleRaw[] | null;
-}
+type DbUserModel = DbUser & {
+  passwordResets: Omit<DbPasswordReset, "userId">[] | null;
+  emailVerification: Omit<DbEmailVerification, "userId"> | null;
+  invitations: Omit<DbInvitation, "userId">[] | null;
+  systemRoles: DbSystemRole["role"][] | null;
+};
 
-function dbToUser(dbModel: DbUser): User {
+function dbToUser(dbModel: DbUserModel): User {
   return new User({
     id: dbModel.id,
     name: dbModel.name ?? undefined,
     email: new UserEmail({
       address: dbModel.email,
-      status: EmailStatus.fromRaw(dbModel.email_status),
+      status: EmailStatus.fromRaw(dbModel.emailStatus),
     }),
     emailVerification:
-      dbModel.email_verification ?
+      dbModel.emailVerification ?
         new EmailVerification({
-          ...dbModel.email_verification,
-          expiresAt: new Date(dbModel.email_verification.expiresAt),
+          ...dbModel.emailVerification,
+          expiresAt: new Date(dbModel.emailVerification.expiresAt),
         })
       : undefined,
     password:
-      dbModel.hashed_password ?
-        new Password({ hash: dbModel.hashed_password })
+      dbModel.hashedPassword ?
+        new Password({ hash: dbModel.hashedPassword })
       : undefined,
     passwordResets:
-      dbModel.password_resets?.map(
+      dbModel.passwordResets?.map(
         (reset) =>
           new PasswordReset({
             ...reset,
@@ -59,7 +60,7 @@ function dbToUser(dbModel: DbUser): User {
       ) ?? [],
     status: UserStatus.fromRaw(dbModel.status),
     systemRoles:
-      dbModel.system_roles?.map((role) => SystemRole.fromRaw(role)) ?? [],
+      dbModel.systemRoles?.map((role) => SystemRole.fromRaw(role)) ?? [],
   });
 }
 
@@ -73,7 +74,7 @@ const userRepository = {
   },
 
   async findById(id: string) {
-    const result = await query<DbUser>(
+    const result = await query<DbUserModel>(
       `
         ${USER_SELECT}
         where u.id = $1
@@ -88,7 +89,7 @@ const userRepository = {
   },
 
   async findByEmail(email: string) {
-    const result = await query<DbUser>(
+    const result = await query<DbUserModel>(
       `
         ${USER_SELECT}
         where u.email = $1
@@ -103,7 +104,7 @@ const userRepository = {
   },
 
   async findByInvitationToken(token: string) {
-    const result = await query<DbUser>(
+    const result = await query<DbUserModel>(
       `
         ${USER_SELECT}
         where u.id = (
@@ -121,7 +122,7 @@ const userRepository = {
   },
 
   async findByResetPasswordToken(token: string) {
-    const result = await query<DbUser>(
+    const result = await query<DbUserModel>(
       `
         ${USER_SELECT}
         where u.id = (
@@ -139,7 +140,7 @@ const userRepository = {
   },
 
   async findByEmailVerificationToken(token: string) {
-    const result = await query<DbUser>(
+    const result = await query<DbUserModel>(
       `
         ${USER_SELECT}
         where u.id = (
@@ -285,9 +286,9 @@ const USER_SELECT = `
     select
         u.id,
         u.name,
-        u.hashed_password,
+        u.hashed_password as "hashedPassword",
         u.email,
-        u.email_status,
+        u.email_status as "emailStatus",
         u.status,
         (
             select json_agg(json_build_object(
@@ -296,7 +297,7 @@ const USER_SELECT = `
             ))
             from reset_password_token
             where user_id = u.id
-        ) as password_resets,
+        ) as passwordResets,
         (
             select json_build_object(
                 'email', email,
@@ -306,7 +307,7 @@ const USER_SELECT = `
             from user_email_verification
             where user_id = u.id
             limit 1
-        ) as email_verification,
+        ) as emailVerification,
         (
             select json_agg(json_build_object(
                 'token', token,
@@ -319,6 +320,6 @@ const USER_SELECT = `
             select json_agg(role)
             from user_system_role
             where user_id = u.id
-        ) as system_roles
+        ) as systemRoles
     from users u
 `;

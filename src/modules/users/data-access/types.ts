@@ -1,4 +1,46 @@
+import { EmailStatusRaw } from "../model/EmailStatus";
+import { SystemRoleRaw } from "../model/SystemRole";
 import User from "../model/User";
+import { UserStatusRaw } from "../model/UserStatus";
+
+export interface DbUser {
+  id: string;
+  name: string | null;
+  email: string;
+  emailStatus: EmailStatusRaw;
+  hashedPassword: string | null;
+  status: UserStatusRaw;
+}
+
+export interface DbPasswordReset {
+  userId: string;
+  token: string;
+  expiresAt: Date;
+}
+
+export interface DbEmailVerification {
+  userId: string;
+  email: string;
+  token: string;
+  expiresAt: Date;
+}
+
+export interface DbInvitation {
+  userId: string;
+  token: string;
+  expiresAt: Date;
+}
+
+export interface DbSystemRole {
+  userId: string;
+  role: SystemRoleRaw;
+}
+
+export interface DbSession {
+  id: string;
+  userId: string;
+  expiresAt: Date;
+}
 
 export interface UserRepository {
   existsByEmail(email: string): Promise<boolean>;
@@ -10,23 +52,14 @@ export interface UserRepository {
   commit(user: User): Promise<void>;
 }
 
-export interface SimpleUserView {
-  id: string;
-  name?: string;
-  email: string;
-}
-
-export interface SearchUserView {
-  id: string;
-  name: string;
-  email: string;
-  emailStatus: string;
-  roles: string[];
-  invite: null | {
-    token: string;
-    expires: number;
-  };
-}
+export type SimpleUserView = Pick<DbUser, "id" | "name" | "email">;
+export type SearchUserView = Pick<
+  DbUser,
+  "id" | "name" | "email" | "emailStatus"
+> & {
+  roles: DbSystemRole["role"][];
+  invite: null | Omit<DbInvitation, "userId">;
+};
 
 export interface SearchUserPageView {
   total: number;

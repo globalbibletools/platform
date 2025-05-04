@@ -1,6 +1,6 @@
 export interface PublicUserView {
   id: string;
-  name?: string;
+  name: string | null;
   email: string;
 }
 

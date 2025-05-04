@@ -4,7 +4,7 @@ import { PublicUserView } from "./types";
 
 interface User {
   id: string;
-  name?: string;
+  name: string | null;
   email: string;
 }
 
@@ -22,6 +22,7 @@ const fakeUserClient = {
     user = {
       id: ulid(),
       email: email.toLowerCase(),
+      name: null,
     };
     this.users.push(user);
     return user.id;
