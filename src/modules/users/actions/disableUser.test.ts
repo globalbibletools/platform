@@ -24,6 +24,10 @@ import {
   sessionFactory,
   userFactory,
 } from "../test-utils/factories";
+import {
+  languageFactory,
+  languageRoleFactory,
+} from "@/modules/languages/test-utils/factories";
 
 initializeDatabase();
 
@@ -68,29 +72,16 @@ test("disable active user and removes all related data", async () => {
   const session = await logIn(actor.id);
 
   const user = await userFactory.build();
+  const language = await languageFactory.build();
   await Promise.all([
     sessionFactory.build({ userId: user.id }),
     emailVerificationFactory.build({ userId: user.id }),
     passwordResetFactory.build({ userId: user.id }),
+    languageRoleFactory.build({
+      userId: user.id,
+      languageId: language.id,
+    }),
   ]);
-
-  const language = {
-    id: ulid(),
-    code: "spa",
-    name: "Spanish",
-    font: "Noto Sans",
-    textDirection: TextDirectionRaw.LTR,
-    translationIds: [],
-  };
-  const languageRole = {
-    languageId: language.id,
-    userId: user.id,
-    role: "VIEWER" as const,
-  };
-  await seedDatabase({
-    languages: [language],
-    languageMemberRoles: [languageRole],
-  });
 
   const formData = new FormData();
   formData.set("userId", user.id);

@@ -20,7 +20,7 @@ export const userClient = {
 
     return {
       id: user.id,
-      name: user.name,
+      name: user.name ?? undefined,
       email: user.email,
     };
   },

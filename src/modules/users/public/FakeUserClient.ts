@@ -33,7 +33,7 @@ const fakeUserClient = {
     if (!user) return;
     return {
       id: user.id,
-      name: user.name,
+      name: user.name ?? undefined,
       email: user.email,
     };
   },

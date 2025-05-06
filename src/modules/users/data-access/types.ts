@@ -5,10 +5,10 @@ import { UserStatusRaw } from "../model/UserStatus";
 
 export interface DbUser {
   id: string;
-  name: string | null;
+  name?: string | null;
   email: string;
   emailStatus: EmailStatusRaw;
-  hashedPassword: string | null;
+  hashedPassword?: string | null;
   status: UserStatusRaw;
 }
 
