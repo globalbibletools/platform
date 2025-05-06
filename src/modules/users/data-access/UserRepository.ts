@@ -297,7 +297,7 @@ const USER_SELECT = `
             ))
             from reset_password_token
             where user_id = u.id
-        ) as passwordResets,
+        ) as "passwordResets",
         (
             select json_build_object(
                 'email', email,
@@ -307,7 +307,7 @@ const USER_SELECT = `
             from user_email_verification
             where user_id = u.id
             limit 1
-        ) as emailVerification,
+        ) as "emailVerification",
         (
             select json_agg(json_build_object(
                 'token', token,
@@ -320,6 +320,6 @@ const USER_SELECT = `
             select json_agg(role)
             from user_system_role
             where user_id = u.id
-        ) as systemRoles
+        ) as "systemRoles"
     from users u
 `;

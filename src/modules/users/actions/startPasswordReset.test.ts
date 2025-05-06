@@ -1,16 +1,10 @@
 import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
-import {
-  findPasswordResets,
-  initializeDatabase,
-  seedDatabase,
-} from "@/tests/vitest/dbUtils";
+import { findPasswordResets, initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect, vitest } from "vitest";
 import { startPasswordReset } from "./startPasswordReset";
-import { randomUUID } from "crypto";
-import { EmailStatusRaw } from "../model/EmailStatus";
-import { UserStatusRaw } from "../model/UserStatus";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
+import { userFactory } from "../test-utils/factories";
 
 vitest.mock("@/shared/jobs/enqueueJob");
 
@@ -51,15 +45,7 @@ test("returns successfully if user could not be found", async () => {
 });
 
 test("returns successfully after sending the password reset email", async () => {
-  const user = {
-    id: randomUUID(),
-    hashedPassword: "asdf",
-    name: "Test User",
-    email: "test@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({ users: [user] });
+  const user = await userFactory.build({});
 
   const formData = new FormData();
   formData.set("email", user.email);

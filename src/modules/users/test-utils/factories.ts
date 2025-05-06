@@ -33,7 +33,7 @@ export const sessionFactory = Async.makeFactoryWithRequired<
 export const userFactory = Async.makeFactory<DbUser>({
   id: Async.each(() => ulid()),
   name: Async.each(() => faker.person.fullName()),
-  email: Async.each(() => faker.internet.email()),
+  email: Async.each(() => faker.internet.email().toLowerCase()),
   hashedPassword: "hashedpassword",
   emailStatus: EmailStatusRaw.Verified,
   status: UserStatusRaw.Active,
@@ -95,7 +95,7 @@ export const emailVerificationFactory = Async.makeFactoryWithRequired<
 >({
   token: Async.each(() => faker.string.alphanumeric(20)),
   expiresAt: Async.each(() => faker.date.soon()),
-  email: Async.each(() => faker.internet.email()),
+  email: Async.each(() => faker.internet.email().toLowerCase()),
 }).transform(async (verification) => {
   await query(
     `

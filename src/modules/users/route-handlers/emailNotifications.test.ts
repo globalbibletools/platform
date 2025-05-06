@@ -1,13 +1,8 @@
 import { expect, test } from "vitest";
-import {
-  findUsers,
-  initializeDatabase,
-  seedDatabase,
-} from "@/tests/vitest/dbUtils";
+import { findUsers, initializeDatabase } from "@/tests/vitest/dbUtils";
 import postEmailNotification from "./emailNotifications";
-import { randomUUID } from "crypto";
 import { EmailStatusRaw } from "../model/EmailStatus";
-import { UserStatusRaw } from "../model/UserStatus";
+import { userFactory } from "../test-utils/factories";
 
 initializeDatabase();
 
@@ -38,15 +33,10 @@ test("returns error if notification message is invalid", async () => {
 });
 
 test("handles permanent bounce rejections", async () => {
-  const user = {
-    id: randomUUID(),
-    hashedPassword: "asdf",
-    name: "Test User",
+  const user = await userFactory.build({
     email: "test@example.com",
     emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({ users: [user] });
+  });
 
   const response = await postEmailNotification({
     async json() {
@@ -78,15 +68,10 @@ test("handles permanent bounce rejections", async () => {
 });
 
 test("ignores non-permanent bounce rejections", async () => {
-  const user = {
-    id: randomUUID(),
-    hashedPassword: "asdf",
-    name: "Test User",
+  const user = await userFactory.build({
     email: "test@example.com",
     emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({ users: [user] });
+  });
 
   const response = await postEmailNotification({
     async json() {
@@ -113,15 +98,10 @@ test("ignores non-permanent bounce rejections", async () => {
 });
 
 test("handles complaint rejections", async () => {
-  const user = {
-    id: randomUUID(),
-    hashedPassword: "asdf",
-    name: "Test User",
+  const user = await userFactory.build({
     email: "test@example.com",
     emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({ users: [user] });
+  });
 
   const response = await postEmailNotification({
     async json() {
@@ -152,16 +132,6 @@ test("handles complaint rejections", async () => {
 });
 
 test("logs sns subscription url", async () => {
-  const user = {
-    id: randomUUID(),
-    hashedPassword: "asdf",
-    name: "Test User",
-    email: "test@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({ users: [user] });
-
   const response = await postEmailNotification({
     async json() {
       return {

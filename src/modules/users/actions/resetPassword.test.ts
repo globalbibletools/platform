@@ -1,20 +1,16 @@
 import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
-import { randomUUID } from "crypto";
 import {
   findPasswordResets,
   findSessions,
   findUsers,
   initializeDatabase,
-  seedDatabase,
 } from "@/tests/vitest/dbUtils";
 import { resetPassword } from "./resetPassword";
 import { Scrypt } from "oslo/password";
-import { EmailStatusRaw } from "../model/EmailStatus";
-import { UserStatusRaw } from "../model/UserStatus";
-import { addDays } from "date-fns";
 import { cookies } from "@/tests/vitest/mocks/nextjs";
+import { passwordResetFactory, userFactory } from "../test-utils/factories";
 
 initializeDatabase();
 
@@ -57,23 +53,15 @@ test("returns error if user could not be found", async () => {
 });
 
 test("returns new session after changing the password", async () => {
-  const user = {
-    id: randomUUID(),
+  const user = await userFactory.build({
     hashedPassword: await new Scrypt().hash("pa$$word"),
-    name: "Test User",
-    email: "test@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  const reset = {
+  });
+  const reset = await passwordResetFactory.build({
     userId: user.id,
-    token: "asdf",
-    expiresAt: addDays(new Date(), 3),
-  };
-  await seedDatabase({ users: [user], passwordResets: [reset] });
+  });
 
   const formData = new FormData();
-  formData.set("token", "asdf");
+  formData.set("token", reset.token);
   formData.set("password", "pa$$word");
   formData.set("confirm_password", "pa$$word");
   const response = resetPassword({ state: "idle" }, formData);

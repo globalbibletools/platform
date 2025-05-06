@@ -1,11 +1,8 @@
-import { cookies } from "@/tests/vitest/mocks/nextjs";
-import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
+import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
-import { Scrypt } from "oslo/password";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
 import {
-  findEmailVerification,
   findEmailVerifications,
   findInvitations,
   findLanguageMembers,
@@ -15,41 +12,24 @@ import {
   initializeDatabase,
   seedDatabase,
 } from "@/tests/vitest/dbUtils";
-import { addDays } from "date-fns";
 import { ulid } from "@/shared/ulid";
 import { disableUser } from "./disableUser";
 import { TextDirectionRaw } from "@/modules/languages/model";
+import * as scenarios from "@/tests/scenarios";
+import logIn from "@/tests/vitest/login";
+import {
+  emailVerificationFactory,
+  invitationFactory,
+  passwordResetFactory,
+  sessionFactory,
+  userFactory,
+} from "../test-utils/factories";
 
 initializeDatabase();
 
-const admin = {
-  id: ulid(),
-  hashedPassword: await new Scrypt().hash("pa$$word"),
-  name: "Test User",
-  email: "test@example.com",
-  emailStatus: EmailStatusRaw.Verified,
-  status: UserStatusRaw.Active,
-};
-
-const adminRole = {
-  userId: admin.id,
-  role: "ADMIN",
-};
-
-const session = {
-  id: ulid(),
-  userId: admin.id,
-  expiresAt: addDays(new Date(), 1),
-};
-
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  await seedDatabase({
-    users: [admin],
-    systemRoles: [adminRole],
-    sessions: [session],
-  });
-
-  cookies.get.mockReturnValue({ value: session.id });
+  const { user: actor } = await scenarios.createSystemAdmin();
+  await logIn(actor.id);
 
   const formData = new FormData();
   const response = await disableUser({ state: "idle" }, formData);
@@ -59,22 +39,10 @@ test("returns validation errors if the request shape doesn't match the schema", 
   });
 });
 
-test("returns not found if user is not a platform admin", async () => {
-  const user = {
-    id: ulid(),
-    hashedPassword: "password hash",
-    name: "Test User",
-    email: "user@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  // Don't set up the admin role on the user
-  await seedDatabase({
-    users: [admin, user],
-    sessions: [session],
-  });
-
-  cookies.get.mockReturnValue({ value: session.id });
+test("returns not found if actor is not a platform admin", async () => {
+  const actor = await userFactory.build();
+  const user = await userFactory.build();
+  await logIn(actor.id);
 
   const formData = new FormData();
   formData.set("userId", user.id);
@@ -82,17 +50,12 @@ test("returns not found if user is not a platform admin", async () => {
   await expect(response).toBeNextjsNotFound();
 
   const users = await findUsers();
-  expect(users).toEqual([admin, user]);
+  expect(users).toEqual([actor, user]);
 });
 
 test("returns not found if the user does not exist", async () => {
-  await seedDatabase({
-    users: [admin],
-    systemRoles: [adminRole],
-    sessions: [session],
-  });
-
-  cookies.get.mockReturnValue({ value: session.id });
+  const { user: actor } = await scenarios.createSystemAdmin();
+  await logIn(actor.id);
 
   const formData = new FormData();
   formData.set("userId", ulid());
@@ -101,30 +64,16 @@ test("returns not found if the user does not exist", async () => {
 });
 
 test("disable active user and removes all related data", async () => {
-  const user = {
-    id: ulid(),
-    hashedPassword: "password hash",
-    name: "Test User",
-    email: "user@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  const userSession = {
-    id: ulid(),
-    userId: user.id,
-    expiresAt: addDays(new Date(), 1),
-  };
-  const emailVerification = {
-    userId: user.id,
-    email: "changed@example.com",
-    token: "verification-token-asdf",
-    expiresAt: addDays(new Date(), 1),
-  };
-  const passwordReset = {
-    userId: user.id,
-    token: "reset-token-asdf",
-    expiresAt: addDays(new Date(), 1),
-  };
+  const { user: actor } = await scenarios.createSystemAdmin();
+  const session = await logIn(actor.id);
+
+  const user = await userFactory.build();
+  await Promise.all([
+    sessionFactory.build({ userId: user.id }),
+    emailVerificationFactory.build({ userId: user.id }),
+    passwordResetFactory.build({ userId: user.id }),
+  ]);
+
   const language = {
     id: ulid(),
     code: "spa",
@@ -138,18 +87,10 @@ test("disable active user and removes all related data", async () => {
     userId: user.id,
     role: "VIEWER" as const,
   };
-  // Don't set up the admin role on the user
   await seedDatabase({
-    users: [admin, user],
-    systemRoles: [adminRole],
-    sessions: [session, userSession],
-    passwordResets: [passwordReset],
-    emailVerifications: [emailVerification],
     languages: [language],
     languageMemberRoles: [languageRole],
   });
-
-  cookies.get.mockReturnValue({ value: session.id });
 
   const formData = new FormData();
   formData.set("userId", user.id);
@@ -161,7 +102,7 @@ test("disable active user and removes all related data", async () => {
 
   const users = await findUsers();
   expect(users).toEqual([
-    admin,
+    actor,
     {
       ...user,
       hashedPassword: null,
@@ -176,28 +117,14 @@ test("disable active user and removes all related data", async () => {
 });
 
 test("disables invited user and removes all related data", async () => {
-  const user = {
-    id: ulid(),
-    hashedPassword: "password hash",
-    name: "Test User",
-    email: "user@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  const invitation = {
-    userId: user.id,
-    token: "token-asdf",
-    expiresAt: addDays(new Date(), -1),
-  };
-  // Don't set up the admin role on the user
-  await seedDatabase({
-    users: [admin, user],
-    systemRoles: [adminRole],
-    sessions: [session],
-    invitations: [invitation],
-  });
+  const { user: actor } = await scenarios.createSystemAdmin();
+  await logIn(actor.id);
 
-  cookies.get.mockReturnValue({ value: session.id });
+  const user = await userFactory.build({
+    name: null,
+    emailStatus: EmailStatusRaw.Unverified,
+  });
+  await invitationFactory.build({ userId: user.id });
 
   const formData = new FormData();
   formData.set("userId", user.id);
@@ -209,7 +136,7 @@ test("disables invited user and removes all related data", async () => {
 
   const users = await findUsers();
   expect(users).toEqual([
-    admin,
+    actor,
     {
       ...user,
       hashedPassword: null,

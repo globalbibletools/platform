@@ -1,49 +1,23 @@
-import { cookies } from "@/tests/vitest/mocks/nextjs";
+import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
-import { Scrypt } from "oslo/password";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
 import {
   findInvitations,
   findUsers,
   initializeDatabase,
-  seedDatabase,
 } from "@/tests/vitest/dbUtils";
-import { addDays } from "date-fns";
 import { inviteUser } from "./inviteUser";
-import { ulid } from "@/shared/ulid";
+import * as scenarios from "@/tests/scenarios";
+import logIn from "@/tests/vitest/login";
+import { userFactory } from "../test-utils/factories";
 
 initializeDatabase();
 
-const admin = {
-  id: ulid(),
-  hashedPassword: await new Scrypt().hash("pa$$word"),
-  name: "Test User",
-  email: "test@example.com",
-  emailStatus: EmailStatusRaw.Verified,
-  status: UserStatusRaw.Active,
-};
-
-const adminRole = {
-  userId: admin.id,
-  role: "ADMIN",
-};
-
-const session = {
-  id: ulid(),
-  userId: admin.id,
-  expiresAt: addDays(new Date(), 1),
-};
-
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  await seedDatabase({
-    users: [admin],
-    systemRoles: [adminRole],
-    sessions: [session],
-  });
-
-  cookies.get.mockReturnValue({ value: session.id });
+  const { user: actor } = await scenarios.createSystemAdmin();
+  await logIn(actor.id);
 
   {
     const formData = new FormData();
@@ -80,13 +54,8 @@ test("returns validation errors if the request shape doesn't match the schema", 
 });
 
 test("returns not found if user is not a platform admin", async () => {
-  // Don't set up the admin role on the user
-  await seedDatabase({
-    users: [admin],
-    sessions: [session],
-  });
-
-  cookies.get.mockReturnValue({ value: session.id });
+  const actor = await userFactory.build();
+  await logIn(actor.id);
 
   const formData = new FormData();
   formData.set("email", "invite@example.com");
@@ -94,21 +63,10 @@ test("returns not found if user is not a platform admin", async () => {
   await expect(response).toBeNextjsNotFound();
 });
 
-test("returns error if user is already active", async () => {
-  const existingUser = {
-    id: ulid(),
-    email: "invite@example.com",
-    hashedPassword: "password hash",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({
-    users: [admin, existingUser],
-    systemRoles: [adminRole],
-    sessions: [session],
-  });
-
-  cookies.get.mockReturnValue({ value: session.id });
+test.only("returns error if user is already active", async () => {
+  const { user: actor } = await scenarios.createSystemAdmin();
+  await logIn(actor.id);
+  const existingUser = await userFactory.build();
 
   const formData = new FormData();
   formData.set("email", existingUser.email);
@@ -120,13 +78,8 @@ test("returns error if user is already active", async () => {
 });
 
 test("invites user and redirects back to users list", async () => {
-  await seedDatabase({
-    users: [admin],
-    systemRoles: [adminRole],
-    sessions: [session],
-  });
-
-  cookies.get.mockReturnValue({ value: session.id });
+  const { user: actor } = await scenarios.createSystemAdmin();
+  await logIn(actor.id);
 
   const email = "invite@example.com";
   const formData = new FormData();
@@ -136,7 +89,7 @@ test("invites user and redirects back to users list", async () => {
 
   const users = await findUsers();
   expect(users).toEqual([
-    admin,
+    actor,
     {
       id: expect.toBeUlid(),
       email,

@@ -4,13 +4,14 @@ import { findSystemRoles, initializeDatabase } from "@/tests/vitest/dbUtils";
 import { ulid } from "@/shared/ulid";
 import { changeUserRoles } from "./changeUserRoles";
 import { SystemRoleRaw } from "../model/SystemRole";
-import * as scenario from "@/tests/ScenarioBuilder";
+import * as scenarios from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
+import { userFactory } from "../test-utils/factories";
 
 initializeDatabase();
 
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  const { user } = await scenario.createSystemAdmin();
+  const { user } = await scenarios.createSystemAdmin();
   await logIn(user.id);
 
   const formData = new FormData();
@@ -22,7 +23,7 @@ test("returns validation errors if the request shape doesn't match the schema", 
 });
 
 test("returns not found if user is not a platform admin", async () => {
-  const { user } = await scenario.createTranslator();
+  const user = await userFactory.build();
   await logIn(user.id);
 
   const formData = new FormData();
@@ -36,7 +37,7 @@ test("returns not found if user is not a platform admin", async () => {
 });
 
 test("returns not found if the user does not exist", async () => {
-  const { user } = await scenario.createSystemAdmin();
+  const { user } = await scenarios.createSystemAdmin();
   await logIn(user.id);
 
   const formData = new FormData();
@@ -46,8 +47,8 @@ test("returns not found if the user does not exist", async () => {
 });
 
 test("replaces system roles for user", async () => {
-  const { user: admin, role } = await scenario.createSystemAdmin();
-  const { user } = await scenario.createTranslator();
+  const { user: admin, role } = await scenarios.createSystemAdmin();
+  const user = await userFactory.build();
   await logIn(admin.id);
 
   const formData = new FormData();

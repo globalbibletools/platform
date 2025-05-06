@@ -1,11 +1,9 @@
 import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
-import { initializeDatabase, seedDatabase } from "@/tests/vitest/dbUtils";
+import { findSessions, initializeDatabase } from "@/tests/vitest/dbUtils";
 import { login } from "./login";
-import { randomUUID } from "crypto";
-import { EmailStatusRaw } from "../model/EmailStatus";
-import { UserStatusRaw } from "../model/UserStatus";
 import { Scrypt } from "oslo/password";
+import { userFactory } from "../test-utils/factories";
 
 initializeDatabase();
 
@@ -48,14 +46,10 @@ test("returns error if no user is found", async () => {
 });
 
 test("returns error if password does not match", async () => {
-  const user = {
-    id: randomUUID(),
+  const user = await userFactory.build({
     hashedPassword: await new Scrypt().hash("pa$$word"),
-    email: "test@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({ users: [user] });
+  });
+
   const formData = new FormData();
   formData.set("email", user.email);
   formData.set("password", "garbage");
@@ -67,18 +61,23 @@ test("returns error if password does not match", async () => {
 });
 
 test("creates session for user if password matches", async () => {
-  const user = {
-    id: randomUUID(),
+  const user = await userFactory.build({
     hashedPassword: await new Scrypt().hash("pa$$word"),
-    email: "test@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({ users: [user] });
+  });
+
   const formData = new FormData();
   formData.set("email", user.email);
   formData.set("password", "pa$$word");
   await expect(login({ state: "idle" }, formData)).toBeNextjsRedirect(
     "/en/read/eng/01001",
   );
+
+  const sessions = await findSessions();
+  expect(sessions).toEqual([
+    {
+      id: expect.any(String),
+      userId: user.id,
+      expiresAt: expect.toBeDaysIntoFuture(30),
+    },
+  ]);
 });

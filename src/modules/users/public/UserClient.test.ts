@@ -6,24 +6,14 @@ import {
   findInvitations,
   findUsers,
   initializeDatabase,
-  seedDatabase,
 } from "@/tests/vitest/dbUtils";
 import { userClient } from "./UserClient";
-import { ulid } from "@/shared/ulid";
+import { userFactory } from "../test-utils/factories";
 
 initializeDatabase();
 
 test("returns existing user with matching email", async () => {
-  const user = {
-    id: ulid(),
-    email: "invite@example.com",
-    hashedPassword: "password hash",
-    name: "Test User",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-
-  await seedDatabase({ users: [user] });
+  const user = await userFactory.build();
 
   const userId = await userClient.findOrInviteUser(user.email);
   expect(userId).toBeUlid();
