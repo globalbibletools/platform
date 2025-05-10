@@ -1,203 +1,176 @@
 import "@/tests/vitest/mocks/nextjs";
-import {
-  DbGloss,
-  DbLanguage,
-  DbLanguageMember,
-  DbPhrase,
-  findGlosses,
-  initializeDatabase,
-  seedDatabase,
-} from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
 import { updateGloss } from "./updateGloss";
-import { ulid } from "@/shared/ulid";
-import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
-import { UserStatusRaw } from "@/modules/users/model/UserStatus";
-import { addDays } from "date-fns";
-import { cookies } from "@/tests/vitest/mocks/nextjs";
+import { LanguageMemberRoleRaw } from "@/modules/languages/model";
+import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
+import logIn from "@/tests/vitest/login";
+import { glossFactory, phraseFactory } from "../test-utils/factories";
 import {
-  LanguageMemberRoleRaw,
-  TextDirectionRaw,
-} from "@/modules/languages/model";
+  findGlossForPhrase,
+  findGlossHistoryForPhrase,
+  GlossSourceRaw,
+  GlossStateRaw,
+} from "../test-utils/dbUtils";
 
 initializeDatabase();
 
-const user = {
-  id: ulid(),
-  hashedPassword: "hashed password",
-  name: "Test User",
-  email: "test@example.com",
-  emailStatus: EmailStatusRaw.Verified,
-  status: UserStatusRaw.Active,
-};
-
-const language: DbLanguage = {
-  id: ulid(),
-  code: "en",
-  name: "English",
-  font: "Noto Sans",
-  textDirection: TextDirectionRaw.LTR,
-  translationIds: [],
-};
-
-const phrase: DbPhrase = {
-  id: 1,
-  languageId: language.id,
-  createdAt: new Date(),
-};
-
-const languageRole: DbLanguageMember = {
-  languageId: language.id,
-  userId: user.id,
-  role: LanguageMemberRoleRaw.Translator,
-};
-
-const session = {
-  id: ulid(),
-  userId: user.id,
-  expiresAt: addDays(new Date(), 1),
+const scenarioDefinition: ScenarioDefinition = {
+  users: {
+    translator: {},
+    admin: {},
+  },
+  languages: {
+    spanish: {
+      members: [
+        { userId: "translator", roles: [LanguageMemberRoleRaw.Translator] },
+        { userId: "admin", roles: [LanguageMemberRoleRaw.Admin] },
+      ],
+    },
+  },
 };
 
 test("returns and does nothing if the request shape doesn't match the schema", async () => {
-  await seedDatabase({
-    users: [user],
-    languages: [language],
-    languageMemberRoles: [languageRole],
-    sessions: [session],
-    phrases: [phrase],
-  });
-
-  cookies.get.mockReturnValue({ value: session.id });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.translator.id);
 
   const formData = new FormData();
   const response = await updateGloss(formData);
   expect(response).toBeUndefined();
-
-  const glosses = await findGlosses();
-  expect(glosses).toEqual([]);
 });
 
 test("returns not found if user is not logged in", async () => {
+  const scenario = await createScenario(scenarioDefinition);
+
+  const language = scenario.languages.spanish;
+
+  const phrase = await phraseFactory.build({
+    languageId: language.id,
+  });
+
   const formData = new FormData();
-  formData.set("phraseId", "1");
+  formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
   formData.set("state", "APPROVED");
   formData.set("languageCode", language.code);
   await expect(updateGloss(formData)).toBeNextjsNotFound();
 
-  const glosses = await findGlosses();
-  expect(glosses).toEqual([]);
+  const gloss = await findGlossForPhrase(phrase.id);
+  expect(gloss).toBeUndefined();
 });
 
 test("returns not found if user is not a translator on the language", async () => {
-  await seedDatabase({
-    users: [user],
-    languages: [language],
-    sessions: [session],
-    phrases: [phrase],
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
+
+  const language = scenario.languages.spanish;
+
+  const phrase = await phraseFactory.build({
+    languageId: language.id,
   });
 
-  cookies.get.mockReturnValue({ value: session.id });
-
   const formData = new FormData();
-  formData.set("phraseId", "1");
+  formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
   formData.set("state", "APPROVED");
   formData.set("languageCode", language.code);
   await expect(updateGloss(formData)).toBeNextjsNotFound();
 
-  const glosses = await findGlosses();
-  expect(glosses).toEqual([]);
+  const gloss = await findGlossForPhrase(phrase.id);
+  expect(gloss).toBeUndefined();
 });
 
 test("returns not found if the phrase does not exist", async () => {
-  await seedDatabase({
-    users: [user],
-    sessions: [session],
-  });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.translator.id);
 
-  cookies.get.mockReturnValue({ value: session.id });
+  const language = scenario.languages.spanish;
 
   const formData = new FormData();
-  formData.set("phraseId", "1");
+  formData.set("phraseId", "123456");
   formData.set("gloss", "asdf");
   formData.set("state", "APPROVED");
   formData.set("languageCode", language.code);
   await expect(updateGloss(formData)).toBeNextjsNotFound();
 
-  const glosses = await findGlosses();
-  expect(glosses).toEqual([]);
+  const gloss = await findGlossForPhrase(123456);
+  expect(gloss).toBeUndefined();
 });
 
 test("creates a new gloss for the phrase", async () => {
-  await seedDatabase({
-    users: [user],
-    languages: [language],
-    languageMemberRoles: [languageRole],
-    sessions: [session],
-    phrases: [phrase],
+  const scenario = await createScenario(scenarioDefinition);
+  const translator = scenario.users.translator;
+  await logIn(translator.id);
+
+  const language = scenario.languages.spanish;
+
+  const phrase = await phraseFactory.build({
+    languageId: language.id,
   });
 
-  cookies.get.mockReturnValue({ value: session.id });
-
   const formData = new FormData();
-  formData.set("phraseId", "1");
+  formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
-  formData.set("state", "APPROVED");
+  formData.set("state", GlossStateRaw.Approved);
   formData.set("languageCode", language.code);
   const result = await updateGloss(formData);
   expect(result).toBeUndefined();
 
-  const glosses = await findGlosses();
-  expect(glosses).toEqual([
-    {
-      phraseId: phrase.id,
-      gloss: "asdf",
-      state: "APPROVED",
-      updatedAt: expect.toBeNow(),
-      updatedBy: user.id,
-      source: "USER",
-    },
-  ]);
+  const gloss = await findGlossForPhrase(phrase.id);
+  expect(gloss).toEqual({
+    phraseId: phrase.id,
+    gloss: "asdf",
+    state: GlossStateRaw.Approved,
+    updatedAt: expect.toBeNow(),
+    updatedBy: translator.id,
+    source: GlossSourceRaw.User,
+  });
+
+  const glossHistory = await findGlossHistoryForPhrase(phrase.id);
+  expect(glossHistory).toEqual([]);
+
+  // TODO: verify cache validation
 });
 
 test("updates an existing gloss for the phrase", async () => {
-  const gloss: DbGloss = {
+  const scenario = await createScenario(scenarioDefinition);
+  const translator = scenario.users.translator;
+  await logIn(translator.id);
+
+  const language = scenario.languages.spanish;
+
+  const phrase = await phraseFactory.build({
+    languageId: language.id,
+  });
+  const gloss = await glossFactory.build({
     phraseId: phrase.id,
-    gloss: "previous gloss",
-    state: "UNAPPROVED",
-    source: "USER",
-    updatedBy: user.id,
-    updatedAt: addDays(new Date(), -1),
-  };
-  await seedDatabase({
-    users: [user],
-    languages: [language],
-    languageMemberRoles: [languageRole],
-    sessions: [session],
-    phrases: [phrase],
-    glosses: [gloss],
   });
 
-  cookies.get.mockReturnValue({ value: session.id });
-
   const formData = new FormData();
-  formData.set("phraseId", "1");
+  formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
-  formData.set("state", "APPROVED");
+  formData.set("state", GlossStateRaw.Approved);
   formData.set("languageCode", language.code);
   const result = await updateGloss(formData);
   expect(result).toBeUndefined();
 
-  const glosses = await findGlosses();
-  expect(glosses).toEqual([
+  const updatedGloss = await findGlossForPhrase(phrase.id);
+  expect(updatedGloss).toEqual({
+    phraseId: phrase.id,
+    gloss: "asdf",
+    state: GlossStateRaw.Approved,
+    updatedAt: expect.toBeNow(),
+    updatedBy: translator.id,
+    source: GlossSourceRaw.User,
+  });
+
+  const glossHistory = await findGlossHistoryForPhrase(phrase.id);
+  expect(glossHistory).toEqual([
     {
-      phraseId: phrase.id,
-      gloss: "asdf",
-      state: "APPROVED",
-      updatedAt: expect.toBeNow(),
-      updatedBy: user.id,
-      source: "USER",
+      id: expect.any(Number),
+      ...gloss,
     },
   ]);
+
+  // TODO: verify cache validation
 });
