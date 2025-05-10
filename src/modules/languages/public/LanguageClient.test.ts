@@ -1,80 +1,32 @@
 import { test, expect } from "vitest";
-import {
-  findLanguageMembers,
-  initializeDatabase,
-  seedDatabase,
-} from "@/tests/vitest/dbUtils";
-import { ulid } from "@/shared/ulid";
-import { LanguageMemberRoleRaw, TextDirectionRaw } from "../model";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
+import { LanguageMemberRoleRaw } from "../model";
 import { languageClient } from "./LanguageClient";
-import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
-import { UserStatusRaw } from "@/modules/users/model/UserStatus";
+import { createScenario } from "@/tests/scenarios";
+import { findLanguageRolesForUser } from "../test-utils/dbUtils";
 
 initializeDatabase();
 
 test("removes user from all languages", async () => {
-  const language1 = {
-    id: ulid(),
-    code: "spa",
-    name: "Spanish",
-    font: "Noto Sans",
-    textDirection: TextDirectionRaw.LTR,
-    translationIds: [],
-  };
-  const language2 = {
-    id: ulid(),
-    code: "eng",
-    name: "English",
-    font: "Noto Sans",
-    textDirection: TextDirectionRaw.LTR,
-    translationIds: [],
-  };
-  const user = {
-    id: ulid(),
-    hashedPassword: "password hash",
-    name: "Test User",
-    email: "translator@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  const user2 = {
-    id: ulid(),
-    hashedPassword: "password hash",
-    name: "Test User Two",
-    email: "another@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  const user2LanguageRole = {
-    languageId: language1.id,
-    userId: user2.id,
-    role: "VIEWER" as const,
-  };
-  await seedDatabase({
-    users: [user, user2],
-    languages: [language1, language2],
-    languageMemberRoles: [
-      {
-        languageId: language1.id,
-        userId: user.id,
-        role: "VIEWER" as const,
+  const scenario = await createScenario({
+    users: {
+      user: {},
+    },
+    languages: {
+      spanish: {
+        members: [
+          { userId: "user", roles: [LanguageMemberRoleRaw.Translator] },
+        ],
       },
-      {
-        languageId: language1.id,
-        userId: user.id,
-        role: LanguageMemberRoleRaw.Translator,
+      italian: {
+        members: [{ userId: "user" }],
       },
-      {
-        languageId: language2.id,
-        userId: user.id,
-        role: "VIEWER" as const,
-      },
-      user2LanguageRole,
-    ],
+    },
   });
+  const user = scenario.users.user;
 
   await languageClient.removeUserFromLanguages(user.id);
 
-  const languageMemberRoles = await findLanguageMembers();
-  expect(languageMemberRoles).toEqual([user2LanguageRole]);
+  const languageMemberRoles = await findLanguageRolesForUser(user.id);
+  expect(languageMemberRoles).toEqual([]);
 });
