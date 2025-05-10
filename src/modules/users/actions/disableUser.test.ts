@@ -2,20 +2,10 @@ import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
-import {
-  findEmailVerifications,
-  findInvitations,
-  findLanguageMembers,
-  findPasswordResets,
-  findSessions,
-  findUsers,
-  initializeDatabase,
-  seedDatabase,
-} from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { ulid } from "@/shared/ulid";
 import { disableUser } from "./disableUser";
-import { TextDirectionRaw } from "@/modules/languages/model";
-import * as scenarios from "@/tests/scenarios";
+import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
 import {
   emailVerificationFactory,
@@ -28,12 +18,29 @@ import {
   languageFactory,
   languageRoleFactory,
 } from "@/modules/languages/test-utils/factories";
+import { SystemRoleRaw } from "../model/SystemRole";
+import {
+  findEmailVerificationForUser,
+  findInvitationsForUser,
+  findPasswordResetsForUser,
+  findSessionsForUser,
+  findUserById,
+} from "../test-utils/dbUtils";
+import { findLanguageRolesForUser } from "@/modules/languages/test-utils/dbUtils";
 
 initializeDatabase();
 
+const scenarioDefinition: ScenarioDefinition = {
+  users: {
+    admin: {
+      systemRoles: [SystemRoleRaw.Admin],
+    },
+  },
+};
+
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  const { user: actor } = await scenarios.createSystemAdmin();
-  await logIn(actor.id);
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
   const formData = new FormData();
   const response = await disableUser({ state: "idle" }, formData);
@@ -44,22 +51,23 @@ test("returns validation errors if the request shape doesn't match the schema", 
 });
 
 test("returns not found if actor is not a platform admin", async () => {
-  const actor = await userFactory.build();
+  const scenario = await createScenario({ users: { user: {} } });
+  await logIn(scenario.users.user.id);
+
   const user = await userFactory.build();
-  await logIn(actor.id);
 
   const formData = new FormData();
   formData.set("userId", user.id);
   const response = disableUser({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 
-  const users = await findUsers();
-  expect(users).toEqual([actor, user]);
+  const updatedUser = await findUserById(user.id);
+  expect(updatedUser).toEqual(user);
 });
 
 test("returns not found if the user does not exist", async () => {
-  const { user: actor } = await scenarios.createSystemAdmin();
-  await logIn(actor.id);
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
   const formData = new FormData();
   formData.set("userId", ulid());
@@ -68,8 +76,8 @@ test("returns not found if the user does not exist", async () => {
 });
 
 test("disable active user and removes all related data", async () => {
-  const { user: actor } = await scenarios.createSystemAdmin();
-  const session = await logIn(actor.id);
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
   const user = await userFactory.build();
   const language = await languageFactory.build();
@@ -91,25 +99,22 @@ test("disable active user and removes all related data", async () => {
     message: "User disabled successfully",
   });
 
-  const users = await findUsers();
-  expect(users).toEqual([
-    actor,
-    {
-      ...user,
-      hashedPassword: null,
-      status: UserStatusRaw.Disabled,
-    },
-  ]);
+  const updatedUser = await findUserById(user.id);
+  expect(updatedUser).toEqual({
+    ...user,
+    hashedPassword: null,
+    status: UserStatusRaw.Disabled,
+  });
 
-  expect(await findPasswordResets()).toEqual([]);
-  expect(await findEmailVerifications()).toEqual([]);
-  expect(await findLanguageMembers()).toEqual([]);
-  expect(await findSessions()).toEqual([session]);
+  expect(await findPasswordResetsForUser(user.id)).toEqual([]);
+  expect(await findEmailVerificationForUser(user.id)).toBeUndefined();
+  expect(await findLanguageRolesForUser(user.id)).toEqual([]);
+  expect(await findSessionsForUser(user.id)).toEqual([]);
 });
 
 test("disables invited user and removes all related data", async () => {
-  const { user: actor } = await scenarios.createSystemAdmin();
-  await logIn(actor.id);
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
   const user = await userFactory.build({
     name: null,
@@ -125,15 +130,12 @@ test("disables invited user and removes all related data", async () => {
     message: "User disabled successfully",
   });
 
-  const users = await findUsers();
-  expect(users).toEqual([
-    actor,
-    {
-      ...user,
-      hashedPassword: null,
-      status: UserStatusRaw.Disabled,
-    },
-  ]);
+  const updatedUser = await findUserById(user.id);
+  expect(updatedUser).toEqual({
+    ...user,
+    hashedPassword: null,
+    status: UserStatusRaw.Disabled,
+  });
 
-  expect(await findInvitations()).toEqual([]);
+  expect(await findInvitationsForUser(user.id)).toEqual([]);
 });

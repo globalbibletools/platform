@@ -3,21 +3,27 @@ import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
-import {
-  findInvitations,
-  findUsers,
-  initializeDatabase,
-} from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { inviteUser } from "./inviteUser";
-import * as scenarios from "@/tests/scenarios";
+import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
 import { userFactory } from "../test-utils/factories";
+import { SystemRoleRaw } from "../model/SystemRole";
+import { findInvitationsForUser, findUserByEmail } from "../test-utils/dbUtils";
 
 initializeDatabase();
 
+const scenarioDefinition: ScenarioDefinition = {
+  users: {
+    admin: {
+      systemRoles: [SystemRoleRaw.Admin],
+    },
+  },
+};
+
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  const { user: actor } = await scenarios.createSystemAdmin();
-  await logIn(actor.id);
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
   {
     const formData = new FormData();
@@ -54,8 +60,8 @@ test("returns validation errors if the request shape doesn't match the schema", 
 });
 
 test("returns not found if user is not a platform admin", async () => {
-  const actor = await userFactory.build();
-  await logIn(actor.id);
+  const scenario = await createScenario({ users: { user: {} } });
+  await logIn(scenario.users.user.id);
 
   const formData = new FormData();
   formData.set("email", "invite@example.com");
@@ -63,9 +69,10 @@ test("returns not found if user is not a platform admin", async () => {
   await expect(response).toBeNextjsNotFound();
 });
 
-test.only("returns error if user is already active", async () => {
-  const { user: actor } = await scenarios.createSystemAdmin();
-  await logIn(actor.id);
+test("returns error if user is already active", async () => {
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
+
   const existingUser = await userFactory.build();
 
   const formData = new FormData();
@@ -78,8 +85,8 @@ test.only("returns error if user is already active", async () => {
 });
 
 test("invites user and redirects back to users list", async () => {
-  const { user: actor } = await scenarios.createSystemAdmin();
-  await logIn(actor.id);
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
   const email = "invite@example.com";
   const formData = new FormData();
@@ -87,23 +94,20 @@ test("invites user and redirects back to users list", async () => {
   const response = inviteUser({ state: "idle" }, formData);
   await expect(response).toBeNextjsRedirect("/en/admin/users");
 
-  const users = await findUsers();
-  expect(users).toEqual([
-    actor,
-    {
-      id: expect.toBeUlid(),
-      email,
-      emailStatus: EmailStatusRaw.Unverified,
-      status: UserStatusRaw.Active,
-      name: null,
-      hashedPassword: null,
-    },
-  ]);
+  const createdUser = await findUserByEmail(email);
+  expect(createdUser).toEqual({
+    id: expect.toBeUlid(),
+    email,
+    emailStatus: EmailStatusRaw.Unverified,
+    status: UserStatusRaw.Active,
+    name: null,
+    hashedPassword: null,
+  });
 
-  const invites = await findInvitations();
+  const invites = await findInvitationsForUser(createdUser!.id);
   expect(invites).toEqual([
     {
-      userId: users[1].id,
+      userId: createdUser!.id,
       token: expect.toBeToken(24),
       expiresAt: expect.toBeDaysIntoFuture(7),
     },
