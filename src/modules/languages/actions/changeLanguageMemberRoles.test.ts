@@ -1,15 +1,13 @@
 import "@/tests/vitest/mocks/nextjs";
 import { ulid } from "@/shared/ulid";
-import {
-  findLanguageMembers,
-  initializeDatabase,
-} from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { expect, test } from "vitest";
 import { LanguageMemberRoleRaw } from "../model";
 import { changeLanguageMemberRoles } from "./changeLanguageMemberRoles";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import logIn from "@/tests/vitest/login";
+import { findLanguageRolesForLanguage } from "../test-utils/dbUtils";
 
 initializeDatabase();
 
@@ -100,7 +98,7 @@ test("changes roles for language member", async () => {
   formData.set("roles[0]", LanguageMemberRoleRaw.Admin);
   await changeLanguageMemberRoles({ state: "idle" }, formData);
 
-  const languageMemberRoles = await findLanguageMembers();
+  const languageMemberRoles = await findLanguageRolesForLanguage(language.id);
   expect(languageMemberRoles).toEqual([
     {
       languageId: language.id,

@@ -2,13 +2,14 @@ import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
-import {
-  findInvitations,
-  findUsers,
-  initializeDatabase,
-} from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { userClient } from "./UserClient";
 import { userFactory } from "../test-utils/factories";
+import {
+  findInvitationsForUser,
+  findUserByEmail,
+  findUserById,
+} from "../test-utils/dbUtils";
 
 initializeDatabase();
 
@@ -18,10 +19,10 @@ test("returns existing user with matching email", async () => {
   const userId = await userClient.findOrInviteUser(user.email);
   expect(userId).toBeUlid();
 
-  const users = await findUsers();
-  expect(users).toEqual([user]);
+  const updatedUser = await findUserById(user.id);
+  expect(updatedUser).toEqual(user);
 
-  const invites = await findInvitations();
+  const invites = await findInvitationsForUser(user.id);
   expect(invites).toEqual([]);
 
   expect(sendEmailMock).not.toHaveBeenCalled();
@@ -32,19 +33,17 @@ test("invites user and redirects back to users list", async () => {
   const userId = await userClient.findOrInviteUser(email);
   expect(userId).toBeUlid();
 
-  const users = await findUsers();
-  expect(users).toEqual([
-    {
-      id: userId,
-      email: email.toLowerCase(),
-      emailStatus: EmailStatusRaw.Unverified,
-      status: UserStatusRaw.Active,
-      name: null,
-      hashedPassword: null,
-    },
-  ]);
+  const createdUser = await findUserByEmail(email);
+  expect(createdUser).toEqual({
+    id: userId,
+    email: email.toLowerCase(),
+    emailStatus: EmailStatusRaw.Unverified,
+    status: UserStatusRaw.Active,
+    name: null,
+    hashedPassword: null,
+  });
 
-  const invites = await findInvitations();
+  const invites = await findInvitationsForUser(createdUser!.id);
   expect(invites).toEqual([
     {
       userId,

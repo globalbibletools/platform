@@ -1,9 +1,10 @@
 import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
-import { findSessions, initializeDatabase } from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { login } from "./login";
 import { Scrypt } from "oslo/password";
 import { userFactory } from "../test-utils/factories";
+import { findSessionsForUser } from "../test-utils/dbUtils";
 
 initializeDatabase();
 
@@ -72,7 +73,7 @@ test("creates session for user if password matches", async () => {
     "/en/read/eng/01001",
   );
 
-  const sessions = await findSessions();
+  const sessions = await findSessionsForUser(user.id);
   expect(sessions).toEqual([
     {
       id: expect.any(String),

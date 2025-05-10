@@ -1,16 +1,16 @@
 import "@/tests/vitest/mocks/nextjs";
-import {
-  findInvitations,
-  findSessions,
-  findUsers,
-  initializeDatabase,
-} from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
 import { acceptInvite } from "./acceptInvite";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { cookies } from "@/tests/vitest/mocks/nextjs";
 import { invitationFactory, userFactory } from "../test-utils/factories";
 import { faker } from "@faker-js/faker/locale/en";
+import {
+  findInvitationsForUser,
+  findSessionsForUser,
+  findUserById,
+} from "../test-utils/dbUtils";
 
 initializeDatabase();
 
@@ -104,20 +104,18 @@ test("sets up user and logs them in", async () => {
 
   await expect(response).toBeNextjsRedirect("/en/read/eng/01001");
 
-  const users = await findUsers();
-  expect(users).toEqual([
-    {
-      ...user,
-      emailStatus: EmailStatusRaw.Verified,
-      name: "First Last",
-      hashedPassword: expect.any(String),
-    },
-  ]);
+  const updatedUser = await findUserById(user.id);
+  expect(updatedUser).toEqual({
+    ...user,
+    emailStatus: EmailStatusRaw.Verified,
+    name: "First Last",
+    hashedPassword: expect.any(String),
+  });
 
-  const invitations = await findInvitations();
+  const invitations = await findInvitationsForUser(user.id);
   expect(invitations).toEqual([]);
 
-  const dbSessions = await findSessions();
+  const dbSessions = await findSessionsForUser(user.id);
   expect(dbSessions).toEqual([
     {
       id: expect.any(String),

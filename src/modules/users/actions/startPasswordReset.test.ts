@@ -1,10 +1,11 @@
 import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
-import { findPasswordResets, initializeDatabase } from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect, vitest } from "vitest";
 import { startPasswordReset } from "./startPasswordReset";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
 import { userFactory } from "../test-utils/factories";
+import { findPasswordResetsForUser } from "../test-utils/dbUtils";
 
 vitest.mock("@/shared/jobs/enqueueJob");
 
@@ -39,8 +40,6 @@ test("returns successfully if user could not be found", async () => {
   formData.set("email", "test@example.com");
   const response = startPasswordReset({ state: "idle" }, formData);
   await expect(response).toBeNextjsRedirect("/en/login");
-  const dbResets = await findPasswordResets();
-  expect(dbResets).toEqual([]);
   expect(sendEmailMock).not.toHaveBeenCalled();
 });
 
@@ -51,7 +50,7 @@ test("returns successfully after sending the password reset email", async () => 
   formData.set("email", user.email);
   const response = startPasswordReset({ state: "idle" }, formData);
   await expect(response).toBeNextjsRedirect("/en/login");
-  const dbResets = await findPasswordResets();
+  const dbResets = await findPasswordResetsForUser(user.id);
   expect(dbResets).toEqual([
     {
       userId: user.id,

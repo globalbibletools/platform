@@ -1,6 +1,6 @@
 import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
-import { findSystemRoles, initializeDatabase } from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { ulid } from "@/shared/ulid";
 import { changeUserRoles } from "./changeUserRoles";
 import { SystemRoleRaw } from "../model/SystemRole";
@@ -43,7 +43,7 @@ test("returns not found if user is not a platform admin", async () => {
   const response = changeUserRoles({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 
-  const roles = await findSystemRoles();
+  const roles = await findSystemRolesForUser(user.id);
   expect(roles).toEqual([]);
 });
 

@@ -2,14 +2,14 @@ import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import { Scrypt } from "oslo/password";
-import {
-  findEmailVerification,
-  findUser,
-  initializeDatabase,
-} from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { updateProfile } from "./updateProfile";
 import { userFactory } from "../test-utils/factories";
 import logIn from "@/tests/vitest/login";
+import {
+  findEmailVerificationForUser,
+  findUserById,
+} from "../test-utils/dbUtils";
 
 initializeDatabase();
 
@@ -64,9 +64,9 @@ test("returns not found error if user is not logged in", async () => {
   formData.set("name", "new name");
 
   await expect(updateProfile({ state: "idle" }, formData)).toBeNextjsNotFound();
-  const updatedUser = await findUser(user.id);
+  const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual(user);
-  const emailVerification = await findEmailVerification(user.id);
+  const emailVerification = await findEmailVerificationForUser(user.id);
   expect(emailVerification).toBeUndefined();
 });
 
@@ -84,10 +84,10 @@ test("starts email verification process if email changed", async () => {
     state: "success",
     message: "Profile updated successfully!",
   });
-  const updatedUser = await findUser(user.id);
+  const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual(user);
 
-  const emailVerification = await findEmailVerification(user.id);
+  const emailVerification = await findEmailVerificationForUser(user.id);
   expect(emailVerification).toEqual({
     userId: user.id,
     email: newEmail,
@@ -121,7 +121,7 @@ test("rehashes password if it changed", async () => {
     state: "success",
     message: "Profile updated successfully!",
   });
-  const updatedUser = await findUser(user.id);
+  const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({
     ...user,
     hashedPassword: expect.any(String),
@@ -129,7 +129,7 @@ test("rehashes password if it changed", async () => {
   await expect(
     new Scrypt().verify(updatedUser?.hashedPassword ?? "", newPassword),
   ).resolves.toEqual(true);
-  const emailVerification = await findEmailVerification(user.id);
+  const emailVerification = await findEmailVerificationForUser(user.id);
   expect(emailVerification).toBeUndefined();
 
   expect(sendEmailMock).toHaveBeenCalledExactlyOnceWith({
@@ -154,11 +154,11 @@ test("update user's name if it changed", async () => {
     state: "success",
     message: "Profile updated successfully!",
   });
-  const updatedUser = await findUser(user.id);
+  const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({
     ...user,
     name: newName,
   });
-  const emailVerification = await findEmailVerification(user.id);
+  const emailVerification = await findEmailVerificationForUser(user.id);
   expect(emailVerification).toBeUndefined();
 });

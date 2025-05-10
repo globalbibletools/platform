@@ -1,8 +1,9 @@
 import { expect, test } from "vitest";
-import { findUsers, initializeDatabase } from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import postEmailNotification from "./emailNotifications";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { userFactory } from "../test-utils/factories";
+import { findUserById } from "../test-utils/dbUtils";
 
 initializeDatabase();
 
@@ -58,13 +59,11 @@ test("handles permanent bounce rejections", async () => {
     status: 200,
   });
 
-  const dbUsers = await findUsers();
-  expect(dbUsers).toEqual([
-    {
-      ...user,
-      emailStatus: EmailStatusRaw.Bounced,
-    },
-  ]);
+  const dbUser = await findUserById(user.id);
+  expect(dbUser).toEqual({
+    ...user,
+    emailStatus: EmailStatusRaw.Bounced,
+  });
 });
 
 test("ignores non-permanent bounce rejections", async () => {
@@ -93,8 +92,8 @@ test("ignores non-permanent bounce rejections", async () => {
     status: 200,
   });
 
-  const dbUsers = await findUsers();
-  expect(dbUsers).toEqual([user]);
+  const dbUser = await findUserById(user.id);
+  expect(dbUser).toEqual(user);
 });
 
 test("handles complaint rejections", async () => {
@@ -122,13 +121,11 @@ test("handles complaint rejections", async () => {
     status: 200,
   });
 
-  const dbUsers = await findUsers();
-  expect(dbUsers).toEqual([
-    {
-      ...user,
-      emailStatus: EmailStatusRaw.Complained,
-    },
-  ]);
+  const dbUser = await findUserById(user.id);
+  expect(dbUser).toEqual({
+    ...user,
+    emailStatus: EmailStatusRaw.Complained,
+  });
 });
 
 test("logs sns subscription url", async () => {

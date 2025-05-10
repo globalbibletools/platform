@@ -1,16 +1,16 @@
 import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
-import {
-  findPasswordResets,
-  findSessions,
-  findUsers,
-  initializeDatabase,
-} from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { resetPassword } from "./resetPassword";
 import { Scrypt } from "oslo/password";
 import { cookies } from "@/tests/vitest/mocks/nextjs";
 import { passwordResetFactory, userFactory } from "../test-utils/factories";
+import {
+  findPasswordResetsForUser,
+  findSessionsForUser,
+  findUserById,
+} from "../test-utils/dbUtils";
 
 initializeDatabase();
 
@@ -67,18 +67,16 @@ test("returns new session after changing the password", async () => {
   const response = resetPassword({ state: "idle" }, formData);
   await expect(response).toBeNextjsRedirect("/en/read/eng/01001");
 
-  const dbResets = await findPasswordResets();
+  const dbResets = await findPasswordResetsForUser(user.id);
   expect(dbResets).toEqual([]);
 
-  const dbUsers = await findUsers();
-  expect(dbUsers).toEqual([
-    {
-      ...user,
-      hashedPassword: expect.any(String),
-    },
-  ]);
+  const updatedUser = await findUserById(user.id);
+  expect(updatedUser).toEqual({
+    ...user,
+    hashedPassword: expect.any(String),
+  });
 
-  const dbSessions = await findSessions();
+  const dbSessions = await findSessionsForUser(user.id);
   expect(dbSessions).toEqual([
     {
       id: expect.any(String),
