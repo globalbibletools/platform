@@ -8,7 +8,7 @@ import { query } from "@/db";
 const locales = Object.keys(localeMap);
 
 export const languageFactory = Async.makeFactory<DbLanguage>({
-  id: ulid(),
+  id: Async.each(() => ulid()),
   code: Async.each(() => faker.helpers.arrayElement(locales)),
   name: Async.each(() => faker.lorem.word()),
   font: "Noto Sans",
