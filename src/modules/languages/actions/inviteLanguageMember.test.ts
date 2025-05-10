@@ -1,49 +1,39 @@
-import { cookies } from "@/tests/vitest/mocks/nextjs";
+import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
-import {
-  findInvitations,
-  findLanguageMembers,
-  findUsers,
-  initializeDatabase,
-  seedDatabase,
-} from "@/tests/vitest/dbUtils";
-import { ulid } from "@/shared/ulid";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
 import { UserStatusRaw } from "@/modules/users/model/UserStatus";
-import { addDays } from "date-fns";
-import { LanguageMemberRoleRaw, TextDirectionRaw } from "../model";
+import { LanguageMemberRoleRaw } from "../model";
 import { inviteLanguageMember } from "./inviteLanguageMember";
+import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
+import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
+import logIn from "@/tests/vitest/login";
+import {
+  findInvitationsForUser,
+  findUserByEmail,
+  findUserById,
+} from "@/modules/users/test-utils/dbUtils";
+import { userFactory } from "@/modules/users/test-utils/factories";
+import { findLanguageRolesForLanguage } from "../test-utils/dbUtils";
 
 initializeDatabase();
 
-const admin = {
-  id: ulid(),
-  hashedPassword: "password hash",
-  name: "Test User",
-  email: "test@example.com",
-  emailStatus: EmailStatusRaw.Verified,
-  status: UserStatusRaw.Active,
-};
-
-const adminRole = {
-  userId: admin.id,
-  role: "ADMIN",
-};
-
-const session = {
-  id: ulid(),
-  userId: admin.id,
-  expiresAt: addDays(new Date(), 1),
+const scenarioDefinition: ScenarioDefinition = {
+  users: {
+    admin: {
+      systemRoles: [SystemRoleRaw.Admin],
+    },
+    member: {},
+  },
+  languages: {
+    spanish: {},
+  },
 };
 
 test("returns validation error if the request shape doesn't match the schema", async () => {
-  await seedDatabase({
-    users: [admin],
-    systemRoles: [adminRole],
-    sessions: [session],
-  });
-  cookies.get.mockReturnValue({ value: session.id });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
   {
     const formData = new FormData();
@@ -73,33 +63,31 @@ test("returns validation error if the request shape doesn't match the schema", a
 });
 
 test("returns not found if not a language or platform admin", async () => {
-  // Don't set up the admin role on the user
-  await seedDatabase({
-    users: [admin],
-    sessions: [session],
+  const scenario = await createScenario({
+    users: { user: {} },
+    languages: { spanish: {} },
   });
+  await logIn(scenario.users.user.id);
 
-  cookies.get.mockReturnValue({ value: session.id });
+  const language = scenario.languages.spanish;
 
   const formData = new FormData();
-  formData.set("code", "spa");
+  formData.set("code", language.code);
   formData.set("email", "invite@example.com");
   formData.set("roles[0]", LanguageMemberRoleRaw.Translator);
   const response = inviteLanguageMember({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
+
+  const languageRoles = await findLanguageRolesForLanguage(language.id);
+  expect(languageRoles).toEqual([]);
 });
 
 test("returns not found if language does not exist", async () => {
-  await seedDatabase({
-    users: [admin],
-    systemRoles: [adminRole],
-    sessions: [session],
-  });
-
-  cookies.get.mockReturnValue({ value: session.id });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
   const formData = new FormData();
-  formData.set("code", "spa");
+  formData.set("code", "garbage");
   formData.set("email", "invite@example.com");
   formData.set("roles[0]", LanguageMemberRoleRaw.Translator);
   const response = inviteLanguageMember({ state: "idle" }, formData);
@@ -107,29 +95,11 @@ test("returns not found if language does not exist", async () => {
 });
 
 test("adds existing user to the language", async () => {
-  const language = {
-    id: ulid(),
-    code: "spa",
-    name: "Spanish",
-    textDirection: TextDirectionRaw.LTR,
-    font: "Noto Sans",
-    translationIds: [],
-  };
-  const user = {
-    id: ulid(),
-    hashedPassword: "password hash",
-    name: "Test Invite",
-    email: "invited@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({
-    users: [admin, user],
-    systemRoles: [adminRole],
-    sessions: [session],
-    languages: [language],
-  });
-  cookies.get.mockReturnValue({ value: session.id });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
+
+  const language = scenario.languages.spanish;
+  const user = await userFactory.build();
 
   const role = LanguageMemberRoleRaw.Translator;
 
@@ -143,19 +113,22 @@ test("adds existing user to the language", async () => {
     `/en/admin/languages/${language.code}/users`,
   );
 
-  const users = await findUsers();
-  expect(users).toEqual([admin, user]);
+  const updatedUser = await findUserById(user.id);
+  expect(updatedUser).toEqual(user);
 
-  const languageMembers = await findLanguageMembers();
-  expect(languageMembers).toEqual([
+  const invites = await findInvitationsForUser(updatedUser!.id);
+  expect(invites).toEqual([]);
+
+  const languageRoles = await findLanguageRolesForLanguage(language.id);
+  expect(languageRoles).toEqual([
     {
       languageId: language.id,
-      userId: user.id,
+      userId: updatedUser!.id,
       role: "VIEWER",
     },
     {
       languageId: language.id,
-      userId: user.id,
+      userId: updatedUser!.id,
       role,
     },
   ]);
@@ -164,24 +137,13 @@ test("adds existing user to the language", async () => {
 });
 
 test("invites new user to the language", async () => {
-  const language = {
-    id: ulid(),
-    code: "spa",
-    name: "Spanish",
-    textDirection: TextDirectionRaw.LTR,
-    font: "Noto Sans",
-    translationIds: [],
-  };
-  await seedDatabase({
-    users: [admin],
-    systemRoles: [adminRole],
-    sessions: [session],
-    languages: [language],
-  });
-  cookies.get.mockReturnValue({ value: session.id });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
+  const language = scenario.languages.spanish;
+
+  const email = "testinvite@example.com";
   const role = LanguageMemberRoleRaw.Translator;
-  const email = "invited@example.com";
 
   const formData = new FormData();
   formData.set("code", language.code);
@@ -193,39 +155,36 @@ test("invites new user to the language", async () => {
     `/en/admin/languages/${language.code}/users`,
   );
 
-  const users = await findUsers();
-  expect(users).toEqual([
-    admin,
+  const createdUser = await findUserByEmail(email);
+  expect(createdUser).toEqual({
+    id: expect.toBeUlid(),
+    name: null,
+    hashedPassword: null,
+    email,
+    emailStatus: EmailStatusRaw.Unverified,
+    status: UserStatusRaw.Active,
+  });
+
+  const invites = await findInvitationsForUser(createdUser!.id);
+  expect(invites).toEqual([
     {
-      id: expect.toBeUlid(),
-      email,
-      emailStatus: EmailStatusRaw.Unverified,
-      status: UserStatusRaw.Active,
-      hashedPassword: null,
-      name: null,
+      userId: createdUser!.id,
+      token: expect.toBeToken(24),
+      expiresAt: expect.toBeDaysIntoFuture(7),
     },
   ]);
 
-  const languageMembers = await findLanguageMembers();
-  expect(languageMembers).toEqual([
+  const languageRoles = await findLanguageRolesForLanguage(language.id);
+  expect(languageRoles).toEqual([
     {
       languageId: language.id,
-      userId: users[1].id,
+      userId: createdUser!.id,
       role: "VIEWER",
     },
     {
       languageId: language.id,
-      userId: users[1].id,
+      userId: createdUser!.id,
       role,
-    },
-  ]);
-
-  const invites = await findInvitations();
-  expect(invites).toEqual([
-    {
-      userId: users[1].id,
-      token: expect.toBeToken(24),
-      expiresAt: expect.toBeDaysIntoFuture(7),
     },
   ]);
 

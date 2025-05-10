@@ -1,46 +1,27 @@
-import { cookies } from "@/tests/vitest/mocks/nextjs";
+import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
-import {
-  findLanguages,
-  initializeDatabase,
-  seedDatabase,
-} from "@/tests/vitest/dbUtils";
-import { ulid } from "@/shared/ulid";
-import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
-import { UserStatusRaw } from "@/modules/users/model/UserStatus";
-import { addDays } from "date-fns";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { updateLanguageSettings } from "./updateLanguageSettings";
 import { TextDirectionRaw } from "../model";
+import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
+import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
+import logIn from "@/tests/vitest/login";
+import { languageFactory } from "../test-utils/factories";
+import { findLanguageByCode } from "../test-utils/dbUtils";
 
 initializeDatabase();
 
-const admin = {
-  id: ulid(),
-  hashedPassword: "password hash",
-  name: "Test User",
-  email: "test@example.com",
-  emailStatus: EmailStatusRaw.Verified,
-  status: UserStatusRaw.Active,
-};
-
-const adminRole = {
-  userId: admin.id,
-  role: "ADMIN",
-};
-
-const session = {
-  id: ulid(),
-  userId: admin.id,
-  expiresAt: addDays(new Date(), 1),
+const scenarioDefinition: ScenarioDefinition = {
+  users: {
+    admin: {
+      systemRoles: [SystemRoleRaw.Admin],
+    },
+  },
 };
 
 test("returns validation error if the request shape doesn't match the schema", async () => {
-  await seedDatabase({
-    users: [admin],
-    systemRoles: [adminRole],
-    sessions: [session],
-  });
-  cookies.get.mockReturnValue({ value: session.id });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
   {
     const formData = new FormData();
@@ -73,16 +54,13 @@ test("returns validation error if the request shape doesn't match the schema", a
 });
 
 test("returns not found if the user is not a platform or language admin", async () => {
-  // Don't set up the admin role on the user
-  await seedDatabase({
-    users: [admin],
-    sessions: [session],
-  });
+  const scenario = await createScenario({ users: { user: {} } });
+  await logIn(scenario.users.user.id);
 
-  cookies.get.mockReturnValue({ value: session.id });
+  const language = await languageFactory.build();
 
   const formData = new FormData();
-  formData.set("code", "spa");
+  formData.set("code", language.code);
   formData.set("name", "Spanish");
   formData.set("text_direction", TextDirectionRaw.LTR);
   formData.set("font", "Noto Sans");
@@ -91,15 +69,11 @@ test("returns not found if the user is not a platform or language admin", async 
 });
 
 test("returns not found if the language does not exist", async () => {
-  await seedDatabase({
-    users: [admin],
-    systemRoles: [adminRole],
-    sessions: [session],
-  });
-  cookies.get.mockReturnValue({ value: session.id });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
   const formData = new FormData();
-  formData.set("code", "spa");
+  formData.set("code", "random");
   formData.set("name", "Spanish");
   formData.set("text_direction", TextDirectionRaw.LTR);
   formData.set("font", "Noto Sans");
@@ -108,30 +82,16 @@ test("returns not found if the language does not exist", async () => {
 });
 
 test("updates the language settings", async () => {
-  const language = {
-    id: ulid(),
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
+
+  const language = await languageFactory.build({
     code: "spa",
     name: "Spanish",
     textDirection: TextDirectionRaw.LTR,
     font: "Noto Sans",
-    translationIds: [],
-  };
-  const referenceLanguage = {
-    id: ulid(),
-    code: "eng",
-    name: "English",
-    textDirection: TextDirectionRaw.LTR,
-    font: "Noto Sans",
-    translationIds: [],
-    referenceLanguageId: null,
-  };
-  await seedDatabase({
-    users: [admin],
-    systemRoles: [adminRole],
-    sessions: [session],
-    languages: [language, referenceLanguage],
   });
-  cookies.get.mockReturnValue({ value: session.id });
+  const referenceLanguage = await languageFactory.build();
 
   const request = {
     name: "Espanol",
@@ -141,7 +101,7 @@ test("updates the language settings", async () => {
     referenceLanguageId: referenceLanguage.id,
   };
   const formData = new FormData();
-  formData.set("code", "spa");
+  formData.set("code", language.code);
   formData.set("name", request.name);
   formData.set("text_direction", request.textDirection);
   formData.set("font", request.font);
@@ -150,12 +110,9 @@ test("updates the language settings", async () => {
   const response = await updateLanguageSettings({ state: "idle" }, formData);
   expect(response).toEqual({ state: "success" });
 
-  const languages = await findLanguages();
-  expect(languages).toEqual([
-    referenceLanguage,
-    {
-      ...language,
-      ...request,
-    },
-  ]);
+  const languages = await findLanguageByCode(language.code);
+  expect(languages).toEqual({
+    ...language,
+    ...request,
+  });
 });

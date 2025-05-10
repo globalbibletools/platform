@@ -1,18 +1,16 @@
 import "@/tests/vitest/mocks/nextjs";
-import {
-  findInvitations,
-  findSessions,
-  findUsers,
-  initializeDatabase,
-  seedDatabase,
-} from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
 import { acceptInvite } from "./acceptInvite";
-import { ulid } from "@/shared/ulid";
 import { EmailStatusRaw } from "../model/EmailStatus";
-import { UserStatusRaw } from "../model/UserStatus";
-import { addDays } from "date-fns";
 import { cookies } from "@/tests/vitest/mocks/nextjs";
+import { invitationFactory, userFactory } from "../test-utils/factories";
+import { faker } from "@faker-js/faker/locale/en";
+import {
+  findInvitationsForUser,
+  findSessionsForUser,
+  findUserById,
+} from "../test-utils/dbUtils";
 
 initializeDatabase();
 
@@ -67,18 +65,14 @@ test("returns validation error if the request shape doesn't match the schema", a
 });
 
 test("returns not found error if token is invalid", async () => {
-  const user = {
-    id: ulid(),
-    email: "test@example.com",
+  const user = await userFactory.build({
     emailStatus: EmailStatusRaw.Unverified,
-    status: UserStatusRaw.Active,
-  };
-  const invitation = {
+    hashedPassword: null,
+  });
+  const invitation = await invitationFactory.build({
     userId: user.id,
-    token: "token-asdf",
-    expiresAt: addDays(new Date(), -1),
-  };
-  await seedDatabase({ users: [user], invitations: [invitation] });
+    expiresAt: faker.date.past(),
+  });
 
   const formData = new FormData();
   formData.set("token", invitation.token);
@@ -92,18 +86,13 @@ test("returns not found error if token is invalid", async () => {
 });
 
 test("sets up user and logs them in", async () => {
-  const user = {
-    id: ulid(),
-    email: "test@example.com",
+  const user = await userFactory.build({
     emailStatus: EmailStatusRaw.Unverified,
-    status: UserStatusRaw.Active,
-  };
-  const invitation = {
+    hashedPassword: null,
+  });
+  const invitation = await invitationFactory.build({
     userId: user.id,
-    token: "token-asdf",
-    expiresAt: addDays(new Date(), 2),
-  };
-  await seedDatabase({ users: [user], invitations: [invitation] });
+  });
 
   const formData = new FormData();
   formData.set("token", invitation.token);
@@ -115,20 +104,18 @@ test("sets up user and logs them in", async () => {
 
   await expect(response).toBeNextjsRedirect("/en/read/eng/01001");
 
-  const users = await findUsers();
-  expect(users).toEqual([
-    {
-      ...user,
-      emailStatus: EmailStatusRaw.Verified,
-      name: "First Last",
-      hashedPassword: expect.any(String),
-    },
-  ]);
+  const updatedUser = await findUserById(user.id);
+  expect(updatedUser).toEqual({
+    ...user,
+    emailStatus: EmailStatusRaw.Verified,
+    name: "First Last",
+    hashedPassword: expect.any(String),
+  });
 
-  const invitations = await findInvitations();
+  const invitations = await findInvitationsForUser(user.id);
   expect(invitations).toEqual([]);
 
-  const dbSessions = await findSessions();
+  const dbSessions = await findSessionsForUser(user.id);
   expect(dbSessions).toEqual([
     {
       id: expect.any(String),
