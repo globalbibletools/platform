@@ -1,13 +1,9 @@
 import { expect, test } from "vitest";
-import {
-  findUsers,
-  initializeDatabase,
-  seedDatabase,
-} from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import postEmailNotification from "./emailNotifications";
-import { randomUUID } from "crypto";
 import { EmailStatusRaw } from "../model/EmailStatus";
-import { UserStatusRaw } from "../model/UserStatus";
+import { userFactory } from "../test-utils/factories";
+import { findUserById } from "../test-utils/dbUtils";
 
 initializeDatabase();
 
@@ -38,15 +34,10 @@ test("returns error if notification message is invalid", async () => {
 });
 
 test("handles permanent bounce rejections", async () => {
-  const user = {
-    id: randomUUID(),
-    hashedPassword: "asdf",
-    name: "Test User",
+  const user = await userFactory.build({
     email: "test@example.com",
     emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({ users: [user] });
+  });
 
   const response = await postEmailNotification({
     async json() {
@@ -68,25 +59,18 @@ test("handles permanent bounce rejections", async () => {
     status: 200,
   });
 
-  const dbUsers = await findUsers();
-  expect(dbUsers).toEqual([
-    {
-      ...user,
-      emailStatus: EmailStatusRaw.Bounced,
-    },
-  ]);
+  const dbUser = await findUserById(user.id);
+  expect(dbUser).toEqual({
+    ...user,
+    emailStatus: EmailStatusRaw.Bounced,
+  });
 });
 
 test("ignores non-permanent bounce rejections", async () => {
-  const user = {
-    id: randomUUID(),
-    hashedPassword: "asdf",
-    name: "Test User",
+  const user = await userFactory.build({
     email: "test@example.com",
     emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({ users: [user] });
+  });
 
   const response = await postEmailNotification({
     async json() {
@@ -108,20 +92,15 @@ test("ignores non-permanent bounce rejections", async () => {
     status: 200,
   });
 
-  const dbUsers = await findUsers();
-  expect(dbUsers).toEqual([user]);
+  const dbUser = await findUserById(user.id);
+  expect(dbUser).toEqual(user);
 });
 
 test("handles complaint rejections", async () => {
-  const user = {
-    id: randomUUID(),
-    hashedPassword: "asdf",
-    name: "Test User",
+  const user = await userFactory.build({
     email: "test@example.com",
     emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({ users: [user] });
+  });
 
   const response = await postEmailNotification({
     async json() {
@@ -142,26 +121,14 @@ test("handles complaint rejections", async () => {
     status: 200,
   });
 
-  const dbUsers = await findUsers();
-  expect(dbUsers).toEqual([
-    {
-      ...user,
-      emailStatus: EmailStatusRaw.Complained,
-    },
-  ]);
+  const dbUser = await findUserById(user.id);
+  expect(dbUser).toEqual({
+    ...user,
+    emailStatus: EmailStatusRaw.Complained,
+  });
 });
 
 test("logs sns subscription url", async () => {
-  const user = {
-    id: randomUUID(),
-    hashedPassword: "asdf",
-    name: "Test User",
-    email: "test@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({ users: [user] });
-
   const response = await postEmailNotification({
     async json() {
       return {

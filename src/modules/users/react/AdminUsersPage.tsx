@@ -9,7 +9,6 @@ import {
   ListRow,
 } from "@/components/List";
 import ViewTitle from "@/components/ViewTitle";
-import { query } from "@/db";
 import { getMessages, getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
 import { changeUserRoles } from "@/modules/users/actions/changeUserRoles";

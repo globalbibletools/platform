@@ -1,39 +1,73 @@
 import { SQSRecord } from "aws-lambda";
-import { Job, JobStatus } from "./model";
+import { JobStatus } from "./model";
 import jobRepo from "./JobRepository";
 import jobMap from "./jobMap";
-import queue from "./queue";
+import queue, { QueuedJob } from "./queue";
 import { logger } from "@/logging";
+import { ulid } from "../ulid";
 
 export async function processJob(message: SQSRecord) {
   const jobLogger = logger.child({});
 
-  let job: Job<any>;
+  let queuedJob: QueuedJob<any>;
   try {
-    job = JSON.parse(message.body);
-    job.createdAt = new Date(job.createdAt);
-    job.updatedAt = new Date(job.updatedAt);
+    queuedJob = JSON.parse(message.body);
+    jobLogger.debug({ parsedJob: queuedJob }, "Job parsed");
   } catch (error) {
     jobLogger.error({ err: error }, "Job failed to parse");
     throw error;
   }
 
-  jobLogger.setBindings({
-    job: {
-      id: job.id,
-      type: job.type,
-    },
-  });
-
   try {
-    const handlerOrEntry = jobMap[job.type];
-    if (!handlerOrEntry) {
-      jobLogger.error("Job handler not found");
-      throw new Error(`Job handler for ${job.type} not found.`);
+    jobLogger.setBindings({
+      job: {
+        id: queuedJob.id,
+        type: queuedJob.type,
+      },
+    });
+
+    // SQS delivers a message at least once, this prevents the same message from being processed twice.
+    let job =
+      typeof queuedJob.id === "string" ?
+        await jobRepo.getById(queuedJob.id)
+      : undefined;
+    if (job && job.status !== JobStatus.Pending) {
+      jobLogger.info("Job already executed");
+      return;
     }
 
     jobLogger.info("Job starting");
-    await jobRepo.update(job.id, JobStatus.InProgress);
+    if (job) {
+      await jobRepo.update(job.id, JobStatus.InProgress);
+      jobLogger.debug("Update job status to in progress");
+    }
+    // Jobs can be pushed on to the queue without creating a job record in the db.
+    // This supports scheduled events through Event Bridge Scheduler.
+    // In this case we need to generate an ID and create the job in the DB for reporting.
+    else {
+      job = {
+        id: ulid(),
+        ...queuedJob,
+        status: JobStatus.InProgress,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      jobLogger.setBindings({
+        job: {
+          id: queuedJob.id,
+          type: queuedJob.type,
+        },
+      });
+
+      await jobRepo.create(job);
+      jobLogger.debug("Created missing job");
+    }
+
+    const handlerOrEntry = jobMap[queuedJob.type];
+    if (!handlerOrEntry) {
+      jobLogger.error("Job handler not found");
+      throw new Error(`Job handler for ${queuedJob.type} not found.`);
+    }
 
     const timeout =
       "timeout" in handlerOrEntry ? handlerOrEntry.timeout : undefined;
@@ -50,8 +84,11 @@ export async function processJob(message: SQSRecord) {
     jobLogger.info("Job complete");
   } catch (error) {
     jobLogger.error({ err: error }, "Job failed");
-    await jobRepo.update(job.id, JobStatus.Failed, {
-      error: String(error),
-    });
+
+    if (queuedJob.id) {
+      await jobRepo.update(queuedJob.id, JobStatus.Failed, {
+        error: String(error),
+      });
+    }
   }
 }

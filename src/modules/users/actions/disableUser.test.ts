@@ -1,55 +1,46 @@
-import { cookies } from "@/tests/vitest/mocks/nextjs";
-import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
+import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
-import { Scrypt } from "oslo/password";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
-import {
-  findEmailVerification,
-  findEmailVerifications,
-  findInvitations,
-  findLanguageMembers,
-  findPasswordResets,
-  findSessions,
-  findUsers,
-  initializeDatabase,
-  seedDatabase,
-} from "@/tests/vitest/dbUtils";
-import { addDays } from "date-fns";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { ulid } from "@/shared/ulid";
 import { disableUser } from "./disableUser";
-import { TextDirectionRaw } from "@/modules/languages/model";
+import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
+import logIn from "@/tests/vitest/login";
+import {
+  emailVerificationFactory,
+  invitationFactory,
+  passwordResetFactory,
+  sessionFactory,
+  userFactory,
+} from "../test-utils/factories";
+import {
+  languageFactory,
+  languageRoleFactory,
+} from "@/modules/languages/test-utils/factories";
+import { SystemRoleRaw } from "../model/SystemRole";
+import {
+  findEmailVerificationForUser,
+  findInvitationsForUser,
+  findPasswordResetsForUser,
+  findSessionsForUser,
+  findUserById,
+} from "../test-utils/dbUtils";
+import { findLanguageRolesForUser } from "@/modules/languages/test-utils/dbUtils";
 
 initializeDatabase();
 
-const admin = {
-  id: ulid(),
-  hashedPassword: await new Scrypt().hash("pa$$word"),
-  name: "Test User",
-  email: "test@example.com",
-  emailStatus: EmailStatusRaw.Verified,
-  status: UserStatusRaw.Active,
-};
-
-const adminRole = {
-  userId: admin.id,
-  role: "ADMIN",
-};
-
-const session = {
-  id: ulid(),
-  userId: admin.id,
-  expiresAt: addDays(new Date(), 1),
+const scenarioDefinition: ScenarioDefinition = {
+  users: {
+    admin: {
+      systemRoles: [SystemRoleRaw.Admin],
+    },
+  },
 };
 
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  await seedDatabase({
-    users: [admin],
-    systemRoles: [adminRole],
-    sessions: [session],
-  });
-
-  cookies.get.mockReturnValue({ value: session.id });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
   const formData = new FormData();
   const response = await disableUser({ state: "idle" }, formData);
@@ -59,40 +50,24 @@ test("returns validation errors if the request shape doesn't match the schema", 
   });
 });
 
-test("returns not found if user is not a platform admin", async () => {
-  const user = {
-    id: ulid(),
-    hashedPassword: "password hash",
-    name: "Test User",
-    email: "user@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  // Don't set up the admin role on the user
-  await seedDatabase({
-    users: [admin, user],
-    sessions: [session],
-  });
+test("returns not found if actor is not a platform admin", async () => {
+  const scenario = await createScenario({ users: { user: {} } });
+  await logIn(scenario.users.user.id);
 
-  cookies.get.mockReturnValue({ value: session.id });
+  const user = await userFactory.build();
 
   const formData = new FormData();
   formData.set("userId", user.id);
   const response = disableUser({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 
-  const users = await findUsers();
-  expect(users).toEqual([admin, user]);
+  const updatedUser = await findUserById(user.id);
+  expect(updatedUser).toEqual(user);
 });
 
 test("returns not found if the user does not exist", async () => {
-  await seedDatabase({
-    users: [admin],
-    systemRoles: [adminRole],
-    sessions: [session],
-  });
-
-  cookies.get.mockReturnValue({ value: session.id });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
   const formData = new FormData();
   formData.set("userId", ulid());
@@ -101,55 +76,20 @@ test("returns not found if the user does not exist", async () => {
 });
 
 test("disable active user and removes all related data", async () => {
-  const user = {
-    id: ulid(),
-    hashedPassword: "password hash",
-    name: "Test User",
-    email: "user@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  const userSession = {
-    id: ulid(),
-    userId: user.id,
-    expiresAt: addDays(new Date(), 1),
-  };
-  const emailVerification = {
-    userId: user.id,
-    email: "changed@example.com",
-    token: "verification-token-asdf",
-    expiresAt: addDays(new Date(), 1),
-  };
-  const passwordReset = {
-    userId: user.id,
-    token: "reset-token-asdf",
-    expiresAt: addDays(new Date(), 1),
-  };
-  const language = {
-    id: ulid(),
-    code: "spa",
-    name: "Spanish",
-    font: "Noto Sans",
-    textDirection: TextDirectionRaw.LTR,
-    translationIds: [],
-  };
-  const languageRole = {
-    languageId: language.id,
-    userId: user.id,
-    role: "VIEWER" as const,
-  };
-  // Don't set up the admin role on the user
-  await seedDatabase({
-    users: [admin, user],
-    systemRoles: [adminRole],
-    sessions: [session, userSession],
-    passwordResets: [passwordReset],
-    emailVerifications: [emailVerification],
-    languages: [language],
-    languageMemberRoles: [languageRole],
-  });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
-  cookies.get.mockReturnValue({ value: session.id });
+  const user = await userFactory.build();
+  const language = await languageFactory.build();
+  await Promise.all([
+    sessionFactory.build({ userId: user.id }),
+    emailVerificationFactory.build({ userId: user.id }),
+    passwordResetFactory.build({ userId: user.id }),
+    languageRoleFactory.build({
+      userId: user.id,
+      languageId: language.id,
+    }),
+  ]);
 
   const formData = new FormData();
   formData.set("userId", user.id);
@@ -159,45 +99,28 @@ test("disable active user and removes all related data", async () => {
     message: "User disabled successfully",
   });
 
-  const users = await findUsers();
-  expect(users).toEqual([
-    admin,
-    {
-      ...user,
-      hashedPassword: null,
-      status: UserStatusRaw.Disabled,
-    },
-  ]);
+  const updatedUser = await findUserById(user.id);
+  expect(updatedUser).toEqual({
+    ...user,
+    hashedPassword: null,
+    status: UserStatusRaw.Disabled,
+  });
 
-  expect(await findPasswordResets()).toEqual([]);
-  expect(await findEmailVerifications()).toEqual([]);
-  expect(await findLanguageMembers()).toEqual([]);
-  expect(await findSessions()).toEqual([session]);
+  expect(await findPasswordResetsForUser(user.id)).toEqual([]);
+  expect(await findEmailVerificationForUser(user.id)).toBeUndefined();
+  expect(await findLanguageRolesForUser(user.id)).toEqual([]);
+  expect(await findSessionsForUser(user.id)).toEqual([]);
 });
 
 test("disables invited user and removes all related data", async () => {
-  const user = {
-    id: ulid(),
-    hashedPassword: "password hash",
-    name: "Test User",
-    email: "user@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  const invitation = {
-    userId: user.id,
-    token: "token-asdf",
-    expiresAt: addDays(new Date(), -1),
-  };
-  // Don't set up the admin role on the user
-  await seedDatabase({
-    users: [admin, user],
-    systemRoles: [adminRole],
-    sessions: [session],
-    invitations: [invitation],
-  });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
-  cookies.get.mockReturnValue({ value: session.id });
+  const user = await userFactory.build({
+    name: null,
+    emailStatus: EmailStatusRaw.Unverified,
+  });
+  await invitationFactory.build({ userId: user.id });
 
   const formData = new FormData();
   formData.set("userId", user.id);
@@ -207,15 +130,12 @@ test("disables invited user and removes all related data", async () => {
     message: "User disabled successfully",
   });
 
-  const users = await findUsers();
-  expect(users).toEqual([
-    admin,
-    {
-      ...user,
-      hashedPassword: null,
-      status: UserStatusRaw.Disabled,
-    },
-  ]);
+  const updatedUser = await findUserById(user.id);
+  expect(updatedUser).toEqual({
+    ...user,
+    hashedPassword: null,
+    status: UserStatusRaw.Disabled,
+  });
 
-  expect(await findInvitations()).toEqual([]);
+  expect(await findInvitationsForUser(user.id)).toEqual([]);
 });

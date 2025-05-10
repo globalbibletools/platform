@@ -1,11 +1,10 @@
 import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
-import { initializeDatabase, seedDatabase } from "@/tests/vitest/dbUtils";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { login } from "./login";
-import { randomUUID } from "crypto";
-import { EmailStatusRaw } from "../model/EmailStatus";
-import { UserStatusRaw } from "../model/UserStatus";
 import { Scrypt } from "oslo/password";
+import { userFactory } from "../test-utils/factories";
+import { findSessionsForUser } from "../test-utils/dbUtils";
 
 initializeDatabase();
 
@@ -48,14 +47,10 @@ test("returns error if no user is found", async () => {
 });
 
 test("returns error if password does not match", async () => {
-  const user = {
-    id: randomUUID(),
+  const user = await userFactory.build({
     hashedPassword: await new Scrypt().hash("pa$$word"),
-    email: "test@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({ users: [user] });
+  });
+
   const formData = new FormData();
   formData.set("email", user.email);
   formData.set("password", "garbage");
@@ -67,18 +62,23 @@ test("returns error if password does not match", async () => {
 });
 
 test("creates session for user if password matches", async () => {
-  const user = {
-    id: randomUUID(),
+  const user = await userFactory.build({
     hashedPassword: await new Scrypt().hash("pa$$word"),
-    email: "test@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({ users: [user] });
+  });
+
   const formData = new FormData();
   formData.set("email", user.email);
   formData.set("password", "pa$$word");
   await expect(login({ state: "idle" }, formData)).toBeNextjsRedirect(
     "/en/read/eng/01001",
   );
+
+  const sessions = await findSessionsForUser(user.id);
+  expect(sessions).toEqual([
+    {
+      id: expect.any(String),
+      userId: user.id,
+      expiresAt: expect.toBeDaysIntoFuture(30),
+    },
+  ]);
 });

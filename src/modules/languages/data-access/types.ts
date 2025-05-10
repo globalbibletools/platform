@@ -1,4 +1,26 @@
-import { Language, LanguageMember } from "../model";
+import { LanguageMemberRoleRaw, TextDirectionRaw } from "../model";
+
+export interface DbLanguage {
+  id: string;
+  code: string;
+  name: string;
+  font: string;
+  textDirection: TextDirectionRaw;
+  translationIds: string[];
+  referenceLanguageId?: string | null;
+}
+
+export interface DbLanguageRole {
+  languageId: string;
+  userId: string;
+  role: LanguageMemberRoleRaw | "VIEWER";
+}
+
+export type Language = DbLanguage;
+
+export type LanguageMember = Omit<DbLanguageRole, "role"> & {
+  roles: LanguageMemberRoleRaw[];
+};
 
 export interface LanguageRepository {
   existsById(id: string): Promise<boolean>;

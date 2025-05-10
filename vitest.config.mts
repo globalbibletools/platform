@@ -9,4 +9,9 @@ export default defineConfig({
     setupFiles: ["./tests/vitest/testSetup.ts"],
     mockReset: true,
   },
+  resolve: {
+    alias: {
+      react: "next/dist/compiled/react/cjs/react.development.js",
+    },
+  },
 });

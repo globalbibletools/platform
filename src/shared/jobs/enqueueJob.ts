@@ -34,7 +34,11 @@ export async function enqueueJob<Payload>(
 
   try {
     await jobRepo.create(job);
-    await queue.add(job);
+    await queue.add({
+      id: job.id,
+      type: job.type,
+      payload: job.payload,
+    });
     jobLogger.info("Queued job");
   } catch (error) {
     jobLogger.info({ err: error }, "Queuing job failed");

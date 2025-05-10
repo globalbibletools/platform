@@ -1,46 +1,38 @@
-import { cookies } from "@/tests/vitest/mocks/nextjs";
-import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
-import { UserStatusRaw } from "@/modules/users/model/UserStatus";
+import "@/tests/vitest/mocks/nextjs";
 import { ulid } from "@/shared/ulid";
-import {
-  findLanguageMembers,
-  initializeDatabase,
-  seedDatabase,
-} from "@/tests/vitest/dbUtils";
-import { addDays } from "date-fns";
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { expect, test } from "vitest";
-import { LanguageMemberRoleRaw, TextDirectionRaw } from "../model";
+import { LanguageMemberRoleRaw } from "../model";
 import { changeLanguageMemberRoles } from "./changeLanguageMemberRoles";
+import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
+import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
+import logIn from "@/tests/vitest/login";
+import { findLanguageRolesForLanguage } from "../test-utils/dbUtils";
 
 initializeDatabase();
 
-const admin = {
-  id: ulid(),
-  hashedPassword: "password hash",
-  name: "Test User",
-  email: "test@example.com",
-  emailStatus: EmailStatusRaw.Verified,
-  status: UserStatusRaw.Active,
-};
-
-const adminRole = {
-  userId: admin.id,
-  role: "ADMIN",
-};
-
-const session = {
-  id: ulid(),
-  userId: admin.id,
-  expiresAt: addDays(new Date(), 1),
+const scenarioDefinition: ScenarioDefinition = {
+  users: {
+    admin: {
+      systemRoles: [SystemRoleRaw.Admin],
+    },
+    member: {},
+  },
+  languages: {
+    spanish: {
+      members: [
+        {
+          userId: "member",
+          roles: [LanguageMemberRoleRaw.Translator],
+        },
+      ],
+    },
+  },
 };
 
 test("returns validation error if the request shape doesn't match the schema", async () => {
-  await seedDatabase({
-    users: [admin],
-    systemRoles: [adminRole],
-    sessions: [session],
-  });
-  cookies.get.mockReturnValue({ value: session.id });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
 
   const formData = new FormData();
   const response = await changeLanguageMemberRoles({ state: "idle" }, formData);
@@ -51,112 +43,62 @@ test("returns validation error if the request shape doesn't match the schema", a
 });
 
 test("returns not found if not a language or platform admin", async () => {
-  await seedDatabase({
-    users: [admin],
-    sessions: [session],
-  });
-  cookies.get.mockReturnValue({ value: session.id });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.member.id);
+
+  const language = scenario.languages.spanish;
+  const user = scenario.users.member;
 
   const formData = new FormData();
-  formData.set("code", "spa");
-  formData.set("userId", ulid());
-  formData.set("roles[0]", LanguageMemberRoleRaw.Translator);
+  formData.set("code", language.code);
+  formData.set("userId", user.id);
+  formData.set("roles[0]", LanguageMemberRoleRaw.Admin);
   const response = changeLanguageMemberRoles({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 });
 
 test("returns not found if the langauge does not exist", async () => {
-  const user = {
-    id: ulid(),
-    hashedPassword: "password hash",
-    name: "Test User",
-    email: "translator@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({
-    users: [admin, user],
-    systemRoles: [adminRole],
-    sessions: [session],
-  });
-  cookies.get.mockReturnValue({ value: session.id });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
+
+  const user = scenario.users.member;
 
   const formData = new FormData();
-  formData.set("code", "spa");
+  formData.set("code", "random");
   formData.set("userId", user.id);
-  formData.set("roles[0]", LanguageMemberRoleRaw.Translator);
+  formData.set("roles[0]", LanguageMemberRoleRaw.Admin);
   const response = changeLanguageMemberRoles({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 });
 
 test("returns not found if language member does not exist", async () => {
-  const language = {
-    id: ulid(),
-    code: "spa",
-    name: "Spanish",
-    font: "Noto Sans",
-    textDirection: TextDirectionRaw.LTR,
-    translationIds: [],
-  };
-  await seedDatabase({
-    users: [admin],
-    systemRoles: [adminRole],
-    sessions: [session],
-    languages: [language],
-  });
-  cookies.get.mockReturnValue({ value: session.id });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
+
+  const language = scenario.languages.spanish;
 
   const formData = new FormData();
   formData.set("code", language.code);
   formData.set("userId", ulid());
-  formData.set("roles[0]", LanguageMemberRoleRaw.Translator);
+  formData.set("roles[0]", LanguageMemberRoleRaw.Admin);
   const response = changeLanguageMemberRoles({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 });
 
 test("changes roles for language member", async () => {
-  const language = {
-    id: ulid(),
-    code: "spa",
-    name: "Spanish",
-    font: "Noto Sans",
-    textDirection: TextDirectionRaw.LTR,
-    translationIds: [],
-  };
-  const user = {
-    id: ulid(),
-    hashedPassword: "password hash",
-    name: "Test User",
-    email: "translator@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-    status: UserStatusRaw.Active,
-  };
-  await seedDatabase({
-    users: [admin, user],
-    systemRoles: [adminRole],
-    sessions: [session],
-    languages: [language],
-    languageMemberRoles: [
-      {
-        languageId: language.id,
-        userId: user.id,
-        role: "VIEWER" as const,
-      },
-      {
-        languageId: language.id,
-        userId: user.id,
-        role: LanguageMemberRoleRaw.Translator,
-      },
-    ],
-  });
-  cookies.get.mockReturnValue({ value: session.id });
+  const scenario = await createScenario(scenarioDefinition);
+  await logIn(scenario.users.admin.id);
+
+  const language = scenario.languages.spanish;
+  const user = scenario.users.member;
+
   const formData = new FormData();
   formData.set("code", language.code);
   formData.set("userId", user.id);
   formData.set("roles[0]", LanguageMemberRoleRaw.Admin);
   await changeLanguageMemberRoles({ state: "idle" }, formData);
 
-  const languageMemberRoles = await findLanguageMembers();
+  const languageMemberRoles = await findLanguageRolesForLanguage(language.id);
   expect(languageMemberRoles).toEqual([
     {
       languageId: language.id,
