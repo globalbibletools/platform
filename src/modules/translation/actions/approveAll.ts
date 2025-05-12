@@ -7,37 +7,33 @@ import { notFound } from "next/navigation";
 import { query } from "@/db";
 import { verifySession } from "@/session";
 import { revalidatePath } from "next/cache";
+import { serverActionLogger } from "@/server-action";
+import Policy from "@/modules/access/public/Policy";
 
 const requestSchema = z.object({
   code: z.string(),
   phrases: z.array(z.object({ id: z.coerce.number(), gloss: z.string() })),
 });
 
+const policy = new Policy({
+  languageRoles: [Policy.LanguageRole.Translator],
+});
+
 export async function approveAll(formData: FormData): Promise<void> {
-  const session = await verifySession();
-  if (!session?.user) {
-    notFound();
-  }
+  const logger = serverActionLogger("approveAll");
 
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
     return;
   }
 
-  const languageQuery = await query<{ roles: string[] }>(
-    `SELECT 
-            COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM language_member_role AS r
-        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
-            AND r.user_id = $2`,
-    [request.data.code, session.user.id],
-  );
-  const language = languageQuery.rows[0];
-  if (
-    !language ||
-    (!session?.user.roles.includes("ADMIN") &&
-      !language.roles.includes("TRANSLATOR"))
-  ) {
+  const session = await verifySession();
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+    languageCode: request.data.code,
+  });
+  if (!authorized) {
+    logger.error("unauthorized");
     notFound();
   }
 
@@ -60,7 +56,7 @@ export async function approveAll(formData: FormData): Promise<void> {
     [
       request.data.phrases.map((ph) => ph.id),
       request.data.phrases.map((ph) => ph.gloss),
-      session.user.id,
+      session!.user.id,
     ],
   );
 
@@ -75,8 +71,10 @@ export async function approveAll(formData: FormData): Promise<void> {
     [request.data.phrases[0].id],
   );
 
-  const locale = await getLocale();
-  revalidatePath(
-    `/${locale}/translate/${request.data.code}/${pathQuery.rows[0].verseId}`,
-  );
+  if (pathQuery.rows[0]) {
+    const locale = await getLocale();
+    revalidatePath(
+      `/${locale}/translate/${request.data.code}/${pathQuery.rows[0].verseId}`,
+    );
+  }
 }

@@ -9,9 +9,8 @@ import { glossFactory, phraseFactory } from "../test-utils/factories";
 import {
   findGlossForPhrase,
   findGlossHistoryForPhrase,
-  GlossSourceRaw,
-  GlossStateRaw,
 } from "../test-utils/dbUtils";
+import { GlossSourceRaw, GlossStateRaw } from "../data-access/GlossRepository";
 
 initializeDatabase();
 
