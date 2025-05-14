@@ -7,63 +7,59 @@ import { notFound } from "next/navigation";
 import { query } from "@/db";
 import { verifySession } from "@/session";
 import { revalidatePath } from "next/cache";
+import { serverActionLogger } from "@/server-action";
+import Policy from "@/modules/access/public/Policy";
+import glossRepository from "../data-access/GlossRepository";
+import phraseRepository from "../data-access/PhraseRepository";
 
 const requestSchema = z.object({
   code: z.string(),
   phrases: z.array(z.object({ id: z.coerce.number(), gloss: z.string() })),
 });
 
+const policy = new Policy({
+  languageRoles: [Policy.LanguageRole.Translator],
+});
+
 export async function approveAll(formData: FormData): Promise<void> {
-  const session = await verifySession();
-  if (!session?.user) {
-    notFound();
-  }
+  const logger = serverActionLogger("approveAll");
 
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
+    logger.error("request parse error");
     return;
   }
 
-  const languageQuery = await query<{ roles: string[] }>(
-    `SELECT 
-            COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM language_member_role AS r
-        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
-            AND r.user_id = $2`,
-    [request.data.code, session.user.id],
-  );
-  const language = languageQuery.rows[0];
-  if (
-    !language ||
-    (!session?.user.roles.includes("ADMIN") &&
-      !language.roles.includes("TRANSLATOR"))
-  ) {
+  const session = await verifySession();
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+    languageCode: request.data.code,
+  });
+  if (!authorized) {
+    logger.error("unauthorized");
     notFound();
   }
 
-  await query<{ phraseId: number; gloss: string; state: string }>(
-    `
-        INSERT INTO gloss (phrase_id, gloss, state, updated_at, updated_by, source)
-        SELECT ph.id, data.gloss, 'APPROVED', NOW(), $3, 'USER'
-        FROM UNNEST($1::integer[], $2::text[]) data (phrase_id, gloss)
-        JOIN phrase AS ph ON ph.id = data.phrase_id
-        WHERE ph.deleted_at IS NULL
-        ON CONFLICT (phrase_id)
-            DO UPDATE SET
-                gloss = COALESCE(EXCLUDED.gloss, gloss.gloss),
-                state = EXCLUDED.state,
-                updated_at = EXCLUDED.updated_at,
-                updated_by = EXCLUDED.updated_by, 
-                source = EXCLUDED.source
-                WHERE EXCLUDED.state <> gloss.state OR EXCLUDED.gloss <> gloss.gloss
-        `,
-    [
-      request.data.phrases.map((ph) => ph.id),
-      request.data.phrases.map((ph) => ph.gloss),
-      session.user.id,
-    ],
+  const phrasesExist = await phraseRepository.existsForLanguage(
+    request.data.code,
+    request.data.phrases.map((phrase) => phrase.id),
   );
+  if (!phrasesExist) {
+    logger.error("phrases not found");
+    notFound();
+  }
 
+  await glossRepository.approveMany({
+    phrases: request.data.phrases.map((phrase) => ({
+      phraseId: phrase.id,
+      gloss: phrase.gloss,
+    })),
+    updatedBy: session!.user.id,
+  });
+
+  // TODO: figure out how to replace this.
+  // Option 1: query the DB to get the verse ID
+  // Option 2: send the verse ID from the client
   const pathQuery = await query<{ verseId: string }>(
     `
         SELECT w.verse_id FROM phrase AS ph
@@ -75,8 +71,10 @@ export async function approveAll(formData: FormData): Promise<void> {
     [request.data.phrases[0].id],
   );
 
-  const locale = await getLocale();
-  revalidatePath(
-    `/${locale}/translate/${request.data.code}/${pathQuery.rows[0].verseId}`,
-  );
+  if (pathQuery.rows[0]) {
+    const locale = await getLocale();
+    revalidatePath(
+      `/${locale}/translate/${request.data.code}/${pathQuery.rows[0].verseId}`,
+    );
+  }
 }
