@@ -94,9 +94,82 @@ test("returns not found if user is not a translator on the language", async () =
   expect(updatedGloss3).toBeUndefined();
 });
 
-test.todo("returns not found if a phrase does not exist");
+test("returns not found if a phrase does not exist", async () => {
+  const scenario = await createScenario(scenarioDefinition);
+  const translator = scenario.users.translator;
+  await logIn(translator.id);
 
-test.todo("returns not found if a phrase is for a different language");
+  const language = scenario.languages.spanish;
+
+  const phrases = await phraseFactory.buildList(2, {
+    languageId: language.id,
+  });
+  const missingPhraseId = 9999999;
+
+  const formData = new FormData();
+  formData.set("code", language.code);
+  formData.set(`phrases[0][id]`, String(phrases[0].id));
+  formData.set(`phrases[0][gloss]`, faker.lorem.word());
+  formData.set(`phrases[1][id]`, String(phrases[1].id));
+  formData.set(`phrases[1][gloss]`, faker.lorem.word());
+  formData.set(`phrases[2][id]`, String(missingPhraseId));
+  formData.set(`phrases[2][gloss]`, faker.lorem.word());
+  await expect(approveAll(formData)).toBeNextjsNotFound();
+
+  const updatedGloss1 = await findGlossForPhrase(phrases[0].id);
+  expect(updatedGloss1).toBeUndefined();
+  const updatedGloss2 = await findGlossForPhrase(phrases[1].id);
+  expect(updatedGloss2).toBeUndefined();
+  const updatedGloss3 = await findGlossForPhrase(missingPhraseId);
+  expect(updatedGloss3).toBeUndefined();
+});
+
+test("returns not found if a phrase is for a different language", async () => {
+  const scenario = await createScenario({
+    users: {
+      translator: {},
+      admin: {},
+    },
+    languages: {
+      spanish: {
+        members: [
+          { userId: "translator", roles: [LanguageMemberRoleRaw.Translator] },
+          { userId: "admin", roles: [LanguageMemberRoleRaw.Admin] },
+        ],
+      },
+      italian: {
+        members: [
+          { userId: "translator", roles: [LanguageMemberRoleRaw.Translator] },
+        ],
+      },
+    },
+  });
+  const translator = scenario.users.translator;
+  await logIn(translator.id);
+
+  const language = scenario.languages.spanish;
+  const otherLanguage = scenario.languages.italian;
+
+  const phrase = await phraseFactory.build({
+    languageId: language.id,
+  });
+  const phraseInOtherLanguage = await phraseFactory.build({
+    languageId: otherLanguage.id,
+  });
+
+  const formData = new FormData();
+  formData.set("code", language.code);
+  formData.set(`phrases[0][id]`, String(phrase.id));
+  formData.set(`phrases[0][gloss]`, faker.lorem.word());
+  formData.set(`phrases[1][id]`, String(phraseInOtherLanguage.id));
+  formData.set(`phrases[1][gloss]`, faker.lorem.word());
+  await expect(approveAll(formData)).toBeNextjsNotFound();
+
+  const updatedGloss1 = await findGlossForPhrase(phrase.id);
+  expect(updatedGloss1).toBeUndefined();
+  const updatedGloss2 = await findGlossForPhrase(phraseInOtherLanguage.id);
+  expect(updatedGloss2).toBeUndefined();
+});
 
 test("creates a new glosses and updates existing glosses for each phrase", async () => {
   const scenario = await createScenario(scenarioDefinition);

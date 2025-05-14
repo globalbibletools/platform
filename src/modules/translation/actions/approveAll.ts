@@ -9,6 +9,8 @@ import { verifySession } from "@/session";
 import { revalidatePath } from "next/cache";
 import { serverActionLogger } from "@/server-action";
 import Policy from "@/modules/access/public/Policy";
+import glossRepository from "../data-access/GlossRepository";
+import phraseRepository from "../data-access/PhraseRepository";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -24,6 +26,7 @@ export async function approveAll(formData: FormData): Promise<void> {
 
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
+    logger.error("request parse error");
     return;
   }
 
@@ -37,29 +40,26 @@ export async function approveAll(formData: FormData): Promise<void> {
     notFound();
   }
 
-  await query<{ phraseId: number; gloss: string; state: string }>(
-    `
-        INSERT INTO gloss (phrase_id, gloss, state, updated_at, updated_by, source)
-        SELECT ph.id, data.gloss, 'APPROVED', NOW(), $3, 'USER'
-        FROM UNNEST($1::integer[], $2::text[]) data (phrase_id, gloss)
-        JOIN phrase AS ph ON ph.id = data.phrase_id
-        WHERE ph.deleted_at IS NULL
-        ON CONFLICT (phrase_id)
-            DO UPDATE SET
-                gloss = COALESCE(EXCLUDED.gloss, gloss.gloss),
-                state = EXCLUDED.state,
-                updated_at = EXCLUDED.updated_at,
-                updated_by = EXCLUDED.updated_by, 
-                source = EXCLUDED.source
-                WHERE EXCLUDED.state <> gloss.state OR EXCLUDED.gloss <> gloss.gloss
-        `,
-    [
-      request.data.phrases.map((ph) => ph.id),
-      request.data.phrases.map((ph) => ph.gloss),
-      session!.user.id,
-    ],
+  const phrasesExist = await phraseRepository.existsForLanguage(
+    request.data.code,
+    request.data.phrases.map((phrase) => phrase.id),
   );
+  if (!phrasesExist) {
+    logger.error("phrases not found");
+    notFound();
+  }
 
+  await glossRepository.approveMany({
+    phrases: request.data.phrases.map((phrase) => ({
+      phraseId: phrase.id,
+      gloss: phrase.gloss,
+    })),
+    updatedBy: session!.user.id,
+  });
+
+  // TODO: figure out how to replace this.
+  // Option 1: query the DB to get the verse ID
+  // Option 2: send the verse ID from the client
   const pathQuery = await query<{ verseId: string }>(
     `
         SELECT w.verse_id FROM phrase AS ph
