@@ -2,7 +2,7 @@
 
 import { isOldTestament } from "@/verse-utils";
 import { Fragment, MouseEvent, useEffect, useRef, useState } from "react";
-import { useFloating, autoUpdate } from "@floating-ui/react-dom";
+import { useFloating, autoUpdate, shift } from "@floating-ui/react-dom";
 import { createPortal } from "react-dom";
 import ReadingSidebar, {
   ReadingSidebarRef,
@@ -178,6 +178,7 @@ function usePopover(onClose?: () => void) {
     strategy: "fixed",
     placement: "top",
     whileElementsMounted: autoUpdate,
+    middleware: [shift()],
   });
 
   useEffect(() => {
