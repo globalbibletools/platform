@@ -10,11 +10,20 @@ import { revalidatePath } from "next/cache";
 import { serverActionLogger } from "@/server-action";
 import Policy from "@/modules/access/public/Policy";
 import glossRepository from "../data-access/GlossRepository";
+import { GlossApprovalMethodRaw, GlossStateRaw } from "../types";
 import phraseRepository from "../data-access/PhraseRepository";
+import trackingClient from "@/modules/reporting/public/trackingClient";
+import languageRepository from "@/modules/languages/data-access/LanguageRepository";
 
 const requestSchema = z.object({
   code: z.string(),
-  phrases: z.array(z.object({ id: z.coerce.number(), gloss: z.string() })),
+  phrases: z.array(
+    z.object({
+      id: z.coerce.number(),
+      gloss: z.string(),
+      method: z.nativeEnum(GlossApprovalMethodRaw).optional(),
+    }),
+  ),
 });
 
 const policy = new Policy({
@@ -49,6 +58,10 @@ export async function approveAll(formData: FormData): Promise<void> {
     notFound();
   }
 
+  const glosses = await glossRepository.findManyByPhraseId(
+    request.data.phrases.map((phrase) => phrase.id),
+  );
+
   await glossRepository.approveMany({
     phrases: request.data.phrases.map((phrase) => ({
       phraseId: phrase.id,
@@ -56,6 +69,23 @@ export async function approveAll(formData: FormData): Promise<void> {
     })),
     updatedBy: session!.user.id,
   });
+
+  const language = await languageRepository.findByCode(request.data.code);
+  await trackingClient.trackManyEvents(
+    request.data.phrases
+      .filter((phrase) => {
+        if (!phrase.method) return false;
+
+        const gloss = glosses.find((gloss) => gloss.phraseId === phrase.id);
+        return !gloss || gloss.state === GlossStateRaw.Unapproved;
+      })
+      .map((phrase) => ({
+        type: "approve_gloss",
+        userId: session!.user.id,
+        languageId: language?.id,
+        method: phrase.method,
+      })),
+  );
 
   // TODO: figure out how to replace this.
   // Option 1: query the DB to get the verse ID

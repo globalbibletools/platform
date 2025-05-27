@@ -1,6 +1,6 @@
 import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
-import { test, expect } from "vitest";
+import { test, expect, vitest } from "vitest";
 import { approveAll } from "./approveAll";
 import { LanguageMemberRoleRaw } from "@/modules/languages/model";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
@@ -10,10 +10,17 @@ import {
   findGlossForPhrase,
   findGlossHistoryForPhrase,
 } from "../test-utils/dbUtils";
-import { GlossSourceRaw, GlossStateRaw } from "../data-access/GlossRepository";
+import {
+  GlossApprovalMethodRaw,
+  GlossSourceRaw,
+  GlossStateRaw,
+} from "../types";
 import { faker } from "@faker-js/faker/locale/en";
+import trackingClient from "@/modules/reporting/public/trackingClient";
 
 initializeDatabase();
+
+vitest.mock("@/modules/reporting/public/trackingClient");
 
 const scenarioDefinition: ScenarioDefinition = {
   users: {
@@ -37,6 +44,8 @@ test("returns and does nothing if the request shape doesn't match the schema", a
   const formData = new FormData();
   const response = await approveAll(formData);
   expect(response).toBeUndefined();
+
+  expect(trackingClient.trackManyEvents).not.toHaveBeenCalled();
 });
 
 test("returns not found if user is not logged in", async () => {
@@ -64,6 +73,8 @@ test("returns not found if user is not logged in", async () => {
   expect(updatedGloss2).toBeUndefined();
   const updatedGloss3 = await findGlossForPhrase(phrases[2].id);
   expect(updatedGloss3).toBeUndefined();
+
+  expect(trackingClient.trackManyEvents).not.toHaveBeenCalled();
 });
 
 test("returns not found if user is not a translator on the language", async () => {
@@ -92,6 +103,8 @@ test("returns not found if user is not a translator on the language", async () =
   expect(updatedGloss2).toBeUndefined();
   const updatedGloss3 = await findGlossForPhrase(phrases[2].id);
   expect(updatedGloss3).toBeUndefined();
+
+  expect(trackingClient.trackManyEvents).not.toHaveBeenCalled();
 });
 
 test("returns not found if a phrase does not exist", async () => {
@@ -122,6 +135,8 @@ test("returns not found if a phrase does not exist", async () => {
   expect(updatedGloss2).toBeUndefined();
   const updatedGloss3 = await findGlossForPhrase(missingPhraseId);
   expect(updatedGloss3).toBeUndefined();
+
+  expect(trackingClient.trackManyEvents).not.toHaveBeenCalled();
 });
 
 test("returns not found if a phrase is for a different language", async () => {
@@ -169,6 +184,8 @@ test("returns not found if a phrase is for a different language", async () => {
   expect(updatedGloss1).toBeUndefined();
   const updatedGloss2 = await findGlossForPhrase(phraseInOtherLanguage.id);
   expect(updatedGloss2).toBeUndefined();
+
+  expect(trackingClient.trackManyEvents).not.toHaveBeenCalled();
 });
 
 test("creates a new glosses and updates existing glosses for each phrase", async () => {
@@ -181,8 +198,14 @@ test("creates a new glosses and updates existing glosses for each phrase", async
   const phrases = await phraseFactory.buildList(3, {
     languageId: language.id,
   });
-  const gloss = await glossFactory.build({
+  const gloss1 = await glossFactory.build({
     phraseId: phrases[0].id,
+    gloss: faker.lorem.word(),
+    state: GlossStateRaw.Approved,
+  });
+  const gloss2 = await glossFactory.build({
+    phraseId: phrases[1].id,
+    gloss: faker.lorem.word(),
   });
 
   const updatedGlosses = [
@@ -195,10 +218,13 @@ test("creates a new glosses and updates existing glosses for each phrase", async
   formData.set("code", language.code);
   formData.set(`phrases[0][id]`, String(phrases[0].id));
   formData.set(`phrases[0][gloss]`, updatedGlosses[0]);
+  formData.set(`phrases[0][method]`, GlossApprovalMethodRaw.UserInput);
   formData.set(`phrases[1][id]`, String(phrases[1].id));
   formData.set(`phrases[1][gloss]`, updatedGlosses[1]);
+  formData.set(`phrases[1][method]`, GlossApprovalMethodRaw.GoogleSuggestion);
   formData.set(`phrases[2][id]`, String(phrases[2].id));
   formData.set(`phrases[2][gloss]`, updatedGlosses[2]);
+  formData.set(`phrases[2][method]`, GlossApprovalMethodRaw.MachineSuggestion);
   const result = await approveAll(formData);
   expect(result).toBeUndefined();
 
@@ -215,7 +241,7 @@ test("creates a new glosses and updates existing glosses for each phrase", async
   expect(updatedGloss1History).toEqual([
     {
       id: expect.any(Number),
-      ...gloss,
+      ...gloss1,
     },
   ]);
 
@@ -229,7 +255,12 @@ test("creates a new glosses and updates existing glosses for each phrase", async
     source: GlossSourceRaw.User,
   });
   const updatedGloss2History = await findGlossHistoryForPhrase(phrases[1].id);
-  expect(updatedGloss2History).toEqual([]);
+  expect(updatedGloss2History).toEqual([
+    {
+      id: expect.any(Number),
+      ...gloss2,
+    },
+  ]);
 
   const updatedGloss3 = await findGlossForPhrase(phrases[2].id);
   expect(updatedGloss3).toEqual({
@@ -242,6 +273,21 @@ test("creates a new glosses and updates existing glosses for each phrase", async
   });
   const updatedGloss3History = await findGlossHistoryForPhrase(phrases[2].id);
   expect(updatedGloss3History).toEqual([]);
+
+  expect(trackingClient.trackManyEvents).toHaveBeenCalledExactlyOnceWith([
+    {
+      type: "approve_gloss",
+      userId: translator.id,
+      languageId: language.id,
+      method: GlossApprovalMethodRaw.GoogleSuggestion,
+    },
+    {
+      type: "approve_gloss",
+      userId: translator.id,
+      languageId: language.id,
+      method: GlossApprovalMethodRaw.MachineSuggestion,
+    },
+  ]);
 
   // TODO: verify cache validation
 });

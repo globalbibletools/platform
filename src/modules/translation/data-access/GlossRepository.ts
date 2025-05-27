@@ -1,14 +1,5 @@
 import { query } from "@/db";
-import { DbUser } from "@/modules/users/data-access/types";
-
-export enum GlossStateRaw {
-  Approved = "APPROVED",
-  Unapproved = "UNAPPROVED",
-}
-export enum GlossSourceRaw {
-  User = "USER",
-  Import = "IMPORT",
-}
+import { GlossSourceRaw, GlossStateRaw } from "../types";
 
 export interface DbGloss {
   gloss: string | null;
@@ -42,6 +33,42 @@ export interface ApproveManyGlossesOptions {
 }
 
 const glossRepository = {
+  async findByPhraseId(phraseId: number): Promise<DbGloss | undefined> {
+    const result = await query<DbGloss>(
+      `
+        select
+          phrase_id as "phraseId",
+          gloss,
+          state,
+          updated_at as "updatedAt",
+          updated_by as "updatedBy",
+          source
+        from gloss
+        where phrase_id = $1
+      `,
+      [phraseId],
+    );
+    return result.rows[0];
+  },
+
+  async findManyByPhraseId(phraseIds: number[]): Promise<DbGloss[]> {
+    const result = await query<DbGloss>(
+      `
+        select
+          phrase_id as "phraseId",
+          gloss,
+          state,
+          updated_at as "updatedAt",
+          updated_by as "updatedBy",
+          source
+        from gloss
+        where phrase_id = ANY($1)
+      `,
+      [phraseIds],
+    );
+    return result.rows;
+  },
+
   async update(options: UpdateGlossOptions) {
     await query(
       `insert into gloss (phrase_id, state, gloss, updated_at, updated_by, source)

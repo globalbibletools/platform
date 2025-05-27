@@ -10,15 +10,19 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import * as z from "zod";
 import phraseRepository from "../data-access/PhraseRepository";
-import glossRepository, {
+import glossRepository from "../data-access/GlossRepository";
+import {
+  GlossApprovalMethodRaw,
   GlossSourceRaw,
   GlossStateRaw,
-} from "../data-access/GlossRepository";
+} from "../types";
+import trackingClient from "@/modules/reporting/public/trackingClient";
 
 const requestSchema = z.object({
   phraseId: z.coerce.number().int(),
   state: z.nativeEnum(GlossStateRaw).optional(),
   gloss: z.string().optional(),
+  method: z.nativeEnum(GlossApprovalMethodRaw).optional(),
 });
 
 const policy = new Policy({
@@ -43,12 +47,16 @@ export async function updateGloss(formData: FormData): Promise<any> {
   const session = await verifySession();
   const authorized = await policy.authorize({
     actorId: session?.user.id,
-    languageCode: phrase.languageCode,
+    languageCode: phrase.language.code,
   });
   if (!authorized) {
     logger.error("unauthorized");
     notFound();
   }
+
+  const existingGloss = await glossRepository.findByPhraseId(phrase.id);
+  const wasUnapproved =
+    !existingGloss || existingGloss.state === GlossStateRaw.Unapproved;
 
   await glossRepository.update({
     phraseId: phrase.id,
@@ -57,6 +65,18 @@ export async function updateGloss(formData: FormData): Promise<any> {
     updatedBy: session!.user.id,
     source: GlossSourceRaw.User,
   });
+
+  if (
+    wasUnapproved &&
+    request.data.state === GlossStateRaw.Approved &&
+    request.data.method
+  ) {
+    await trackingClient.trackEvent("approved_gloss", {
+      languageId: phrase.language.id,
+      userId: session!.user.id,
+      method: request.data.method,
+    });
+  }
 
   // TODO: figure out how to replace this.
   // Option 1: query the DB to get the verse ID
@@ -73,7 +93,7 @@ export async function updateGloss(formData: FormData): Promise<any> {
   if (pathQuery.rows.length > 0) {
     const locale = await getLocale();
     revalidatePath(
-      `/${locale}/translate/${phrase.languageCode}/${pathQuery.rows[0].verseId}`,
+      `/${locale}/translate/${phrase.language.code}/${pathQuery.rows[0].verseId}`,
     );
   }
 }

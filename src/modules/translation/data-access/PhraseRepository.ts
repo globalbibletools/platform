@@ -16,7 +16,10 @@ export interface DbPhraseWord {
 }
 
 export type Phrase = Omit<DbPhrase, "languageId"> & {
-  languageCode: DbLanguage["code"];
+  language: {
+    id: DbLanguage["id"];
+    code: DbLanguage["code"];
+  };
   wordIds: DbPhraseWord["wordId"][];
 };
 
@@ -26,7 +29,10 @@ const phraseRepository = {
       `
         select
           id,
-          (select code from language where language.id = phrase.language_id) as "languageCode",
+          json_build_object(
+              'id', phrase.language_id,
+              'code', (select code from language where language.id = phrase.language_id)
+          ) as language,
           (select json_agg(phrase_word.word_id) from phrase_word where phrase_word.phrase_id = phrase.id) as "wordIds",
           created_at as "createdAt",
           created_by as "createdBy",

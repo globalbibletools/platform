@@ -1,6 +1,6 @@
 import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
-import { test, expect } from "vitest";
+import { vitest, test, expect } from "vitest";
 import { updateGloss } from "./updateGloss";
 import { LanguageMemberRoleRaw } from "@/modules/languages/model";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
@@ -10,9 +10,16 @@ import {
   findGlossForPhrase,
   findGlossHistoryForPhrase,
 } from "../test-utils/dbUtils";
-import { GlossSourceRaw, GlossStateRaw } from "../data-access/GlossRepository";
+import {
+  GlossApprovalMethodRaw,
+  GlossSourceRaw,
+  GlossStateRaw,
+} from "../types";
+import trackingClient from "@/modules/reporting/public/trackingClient";
 
 initializeDatabase();
+
+vitest.mock("@/modules/reporting/public/trackingClient");
 
 const scenarioDefinition: ScenarioDefinition = {
   users: {
@@ -36,6 +43,8 @@ test("returns and does nothing if the request shape doesn't match the schema", a
   const formData = new FormData();
   const response = await updateGloss(formData);
   expect(response).toBeUndefined();
+
+  expect(trackingClient.trackEvent).not.toHaveBeenCalled();
 });
 
 test("returns not found if user is not logged in", async () => {
@@ -56,6 +65,8 @@ test("returns not found if user is not logged in", async () => {
 
   const gloss = await findGlossForPhrase(phrase.id);
   expect(gloss).toBeUndefined();
+
+  expect(trackingClient.trackEvent).not.toHaveBeenCalled();
 });
 
 test("returns not found if user is not a translator on the language", async () => {
@@ -77,6 +88,8 @@ test("returns not found if user is not a translator on the language", async () =
 
   const gloss = await findGlossForPhrase(phrase.id);
   expect(gloss).toBeUndefined();
+
+  expect(trackingClient.trackEvent).not.toHaveBeenCalled();
 });
 
 test("returns not found if the phrase does not exist", async () => {
@@ -94,6 +107,8 @@ test("returns not found if the phrase does not exist", async () => {
 
   const gloss = await findGlossForPhrase(123456);
   expect(gloss).toBeUndefined();
+
+  expect(trackingClient.trackEvent).not.toHaveBeenCalled();
 });
 
 test("creates a new gloss for the phrase", async () => {
@@ -127,6 +142,53 @@ test("creates a new gloss for the phrase", async () => {
 
   const glossHistory = await findGlossHistoryForPhrase(phrase.id);
   expect(glossHistory).toEqual([]);
+
+  expect(trackingClient.trackEvent).not.toHaveBeenCalled();
+
+  // TODO: verify cache validation
+});
+
+test("creates a new gloss for the phrase and tracks approval", async () => {
+  const scenario = await createScenario(scenarioDefinition);
+  const translator = scenario.users.translator;
+  await logIn(translator.id);
+
+  const language = scenario.languages.spanish;
+
+  const phrase = await phraseFactory.build({
+    languageId: language.id,
+  });
+
+  const formData = new FormData();
+  formData.set("phraseId", String(phrase.id));
+  formData.set("gloss", "asdf");
+  formData.set("state", GlossStateRaw.Approved);
+  formData.set("languageCode", language.code);
+  formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
+  const result = await updateGloss(formData);
+  expect(result).toBeUndefined();
+
+  const gloss = await findGlossForPhrase(phrase.id);
+  expect(gloss).toEqual({
+    phraseId: phrase.id,
+    gloss: "asdf",
+    state: GlossStateRaw.Approved,
+    updatedAt: expect.toBeNow(),
+    updatedBy: translator.id,
+    source: GlossSourceRaw.User,
+  });
+
+  const glossHistory = await findGlossHistoryForPhrase(phrase.id);
+  expect(glossHistory).toEqual([]);
+
+  expect(trackingClient.trackEvent).toHaveBeenCalledExactlyOnceWith(
+    "approved_gloss",
+    {
+      languageId: language.id,
+      userId: translator.id,
+      method: GlossApprovalMethodRaw.MachineSuggestion,
+    },
+  );
 
   // TODO: verify cache validation
 });
@@ -170,6 +232,61 @@ test("updates an existing gloss for the phrase", async () => {
       ...gloss,
     },
   ]);
+
+  expect(trackingClient.trackEvent).not.toHaveBeenCalled();
+
+  // TODO: verify cache validation
+});
+
+test("updates an existing gloss for the phrase and tracks approval", async () => {
+  const scenario = await createScenario(scenarioDefinition);
+  const translator = scenario.users.translator;
+  await logIn(translator.id);
+
+  const language = scenario.languages.spanish;
+
+  const phrase = await phraseFactory.build({
+    languageId: language.id,
+  });
+  const gloss = await glossFactory.build({
+    phraseId: phrase.id,
+  });
+
+  const formData = new FormData();
+  formData.set("phraseId", String(phrase.id));
+  formData.set("gloss", "asdf");
+  formData.set("state", GlossStateRaw.Approved);
+  formData.set("languageCode", language.code);
+  formData.set("method", GlossApprovalMethodRaw.GoogleSuggestion);
+  const result = await updateGloss(formData);
+  expect(result).toBeUndefined();
+
+  const updatedGloss = await findGlossForPhrase(phrase.id);
+  expect(updatedGloss).toEqual({
+    phraseId: phrase.id,
+    gloss: "asdf",
+    state: GlossStateRaw.Approved,
+    updatedAt: expect.toBeNow(),
+    updatedBy: translator.id,
+    source: GlossSourceRaw.User,
+  });
+
+  const glossHistory = await findGlossHistoryForPhrase(phrase.id);
+  expect(glossHistory).toEqual([
+    {
+      id: expect.any(Number),
+      ...gloss,
+    },
+  ]);
+
+  expect(trackingClient.trackEvent).toHaveBeenCalledExactlyOnceWith(
+    "approved_gloss",
+    {
+      languageId: language.id,
+      userId: translator.id,
+      method: GlossApprovalMethodRaw.GoogleSuggestion,
+    },
+  );
 
   // TODO: verify cache validation
 });

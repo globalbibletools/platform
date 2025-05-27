@@ -2,13 +2,12 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 17.2 (Debian 17.2-1.pgdg120+1)
--- Dumped by pg_dump version 17.2
+-- Dumped from database version 14.13 (Debian 14.13-1.pgdg120+1)
+-- Dumped by pg_dump version 14.13 (Debian 14.13-1.pgdg120+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -60,6 +59,18 @@ CREATE TYPE public.gloss_source AS ENUM (
 CREATE TYPE public.gloss_state AS ENUM (
     'APPROVED',
     'UNAPPROVED'
+);
+
+
+--
+-- Name: job_status; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.job_status AS ENUM (
+    'pending',
+    'in-progress',
+    'complete',
+    'error'
 );
 
 
@@ -484,6 +495,51 @@ ALTER SEQUENCE public.gloss_history_id_seq OWNED BY public.gloss_history.id;
 
 
 --
+-- Name: job; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.job (
+    id uuid NOT NULL,
+    type_id integer NOT NULL,
+    status public.job_status NOT NULL,
+    payload jsonb,
+    data jsonb,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: job_type; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.job_type (
+    id integer NOT NULL,
+    name text
+);
+
+
+--
+-- Name: job_type_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.job_type_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: job_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.job_type_id_seq OWNED BY public.job_type.id;
+
+
+--
 -- Name: language; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -823,6 +879,20 @@ CREATE TABLE public.session (
 
 
 --
+-- Name: tracking_event; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tracking_event (
+    id uuid NOT NULL,
+    type text NOT NULL,
+    data jsonb NOT NULL,
+    user_id uuid,
+    language_id uuid,
+    created_at timestamp without time zone
+);
+
+
+--
 -- Name: translator_note; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -993,6 +1063,13 @@ ALTER TABLE ONLY public.gloss_history ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: job_type id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.job_type ALTER COLUMN id SET DEFAULT nextval('public.job_type_id_seq'::regclass);
+
+
+--
 -- Name: lemma_form_suggestion id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1078,6 +1155,30 @@ ALTER TABLE ONLY public.gloss_history
 
 ALTER TABLE ONLY public.gloss
     ADD CONSTRAINT gloss_pkey PRIMARY KEY (phrase_id);
+
+
+--
+-- Name: job job_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.job
+    ADD CONSTRAINT job_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: job_type job_type_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.job_type
+    ADD CONSTRAINT job_type_name_key UNIQUE (name);
+
+
+--
+-- Name: job_type job_type_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.job_type
+    ADD CONSTRAINT job_type_pkey PRIMARY KEY (id);
 
 
 --
@@ -1214,6 +1315,14 @@ ALTER TABLE ONLY public.reset_password_token
 
 ALTER TABLE ONLY public.session
     ADD CONSTRAINT session_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tracking_event tracking_event_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tracking_event
+    ADD CONSTRAINT tracking_event_pkey PRIMARY KEY (id);
 
 
 --
@@ -1512,6 +1621,14 @@ ALTER TABLE ONLY public.gloss
 
 ALTER TABLE ONLY public.gloss
     ADD CONSTRAINT gloss_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id);
+
+
+--
+-- Name: job job_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.job
+    ADD CONSTRAINT job_type_id_fkey FOREIGN KEY (type_id) REFERENCES public.job_type(id);
 
 
 --
