@@ -26,6 +26,7 @@ import TranslationProgressBar from "./TranslationProgressBar";
 import { useSWRConfig } from "swr";
 import { useFlash } from "@/flash";
 import { useFeatureFlag } from "@/feature-flags";
+import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 
 export interface TranslationToolbarProps {
   languages: { name: string; code: string }[];
@@ -182,7 +183,7 @@ export default function TranslationToolbar({
           case "n":
             return isTranslator && navigateToNextUnapprovedVerse();
         }
-      } else if (e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
+      } else if (hasShortcutModifier(e) && !e.shiftKey && !e.altKey) {
         switch (e.key) {
           case "l":
             return isTranslator && onLinkWords();
@@ -193,7 +194,7 @@ export default function TranslationToolbar({
           case "ArrowDown":
             return router.push(`./${incrementVerseId(verseId)}`);
         }
-      } else if (e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey) {
+      } else if (hasShortcutModifier(e) && e.shiftKey && !e.altKey) {
         switch (e.key) {
           case "Home":
             return router.push(

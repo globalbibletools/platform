@@ -13,6 +13,7 @@ import { isRichTextEmpty } from "@/components/RichTextInput";
 import { useSWRConfig } from "swr";
 import { useParams } from "next/navigation";
 import { GlossApprovalMethodRaw } from "../types";
+import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 
 export interface TranslateWordProps {
   word: {
@@ -379,14 +380,14 @@ export default function TranslateWord({
                     }
                   }}
                   onKeyDown={(e) => {
-                    if (e.metaKey || e.altKey) return;
+                    if (e.altKey) return;
                     switch (e.key) {
                       case "Enter": {
                         e.preventDefault();
                         if (e.shiftKey) {
                           const prev = root.current?.previousElementSibling;
                           prev?.querySelector("input")?.focus();
-                        } else if (e.ctrlKey) {
+                        } else if (hasShortcutModifier(e)) {
                           if (!isMultiWord) {
                             onSelect?.();
                           }

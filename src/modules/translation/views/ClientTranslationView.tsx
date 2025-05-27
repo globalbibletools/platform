@@ -11,6 +11,7 @@ import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import { incrementVerseId } from "@/verse-utils";
 import { useFeatureFlag } from "@/feature-flags";
+import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 
 interface MachineSuggestion {
   model: string;
@@ -96,7 +97,7 @@ export default function TranslateView({
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const keydownCallback = async (e: globalThis.KeyboardEvent) => {
-      if (e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
+      if (hasShortcutModifier(e) && !e.shiftKey && !e.altKey) {
         switch (e.key) {
           case "d":
             return setShowSidebar((show) => !show);

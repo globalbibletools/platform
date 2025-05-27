@@ -22,6 +22,7 @@ import {
 import { changeChapter } from "../actions/changeChapter";
 import AudioDialog from "./AudioDialog";
 import SettingsMenu from "./SettingsMenu";
+import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 
 export interface TranslationToolbarProps {
   languages: { name: string; code: string }[];
@@ -54,14 +55,14 @@ export default function ReadingToolbar({
     if (!chapterId) return;
 
     const keydownCallback = async (e: globalThis.KeyboardEvent) => {
-      if (e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
+      if (hasShortcutModifier(e) && !e.shiftKey && !e.altKey) {
         switch (e.key) {
           case "ArrowUp":
             return router.push(`./${decrementChapterId(chapterId)}`);
           case "ArrowDown":
             return router.push(`./${incrementChapterId(chapterId)}`);
         }
-      } else if (e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey) {
+      } else if (hasShortcutModifier(e) && e.shiftKey && !e.altKey) {
         switch (e.key) {
           case "Home":
             return router.push(
