@@ -134,6 +134,15 @@ export default function ReadingToolbar({
             <Icon icon="circle-play" size="xl" />
             <span className="sr-only">{t("audio")}</span>
           </Button>
+          <Button
+            variant="link"
+            href="https://chatgpt.com/g/g-67721a4d937c81918c7daf9e4ad7a803-biblical-hebrew-encyclopedia-and-grammar"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Icon icon="robot" size="xl" />
+            <span className="sr-only">{t("gpt")}</span>
+          </Button>
           <SettingsMenu
             textSize={textSize}
             languageCode={code}
