@@ -14,7 +14,7 @@ import {
   GlossApprovalMethodRaw,
   GlossSourceRaw,
   GlossStateRaw,
-} from "../data-access/GlossRepository";
+} from "../types";
 import { faker } from "@faker-js/faker/locale/en";
 import trackingClient from "@/modules/reporting/public/trackingClient";
 

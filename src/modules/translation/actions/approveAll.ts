@@ -9,10 +9,8 @@ import { verifySession } from "@/session";
 import { revalidatePath } from "next/cache";
 import { serverActionLogger } from "@/server-action";
 import Policy from "@/modules/access/public/Policy";
-import glossRepository, {
-  GlossApprovalMethodRaw,
-  GlossStateRaw,
-} from "../data-access/GlossRepository";
+import glossRepository from "../data-access/GlossRepository";
+import { GlossApprovalMethodRaw, GlossStateRaw } from "../types";
 import phraseRepository from "../data-access/PhraseRepository";
 import trackingClient from "@/modules/reporting/public/trackingClient";
 import languageRepository from "@/modules/languages/data-access/LanguageRepository";

@@ -2,7 +2,8 @@ import { Async } from "factory.ts";
 import { DbPhrase, DbPhraseWord } from "../data-access/PhraseRepository";
 import { query } from "@/db";
 import { faker } from "@faker-js/faker/locale/en";
-import { DbGloss, GlossStateRaw } from "./dbUtils";
+import { DbGloss } from "./dbUtils";
+import { GlossStateRaw } from "../types";
 
 export const phraseFactory = Async.makeFactoryWithRequired<
   DbPhrase,

@@ -91,10 +91,14 @@ export default function TranslationToolbar({
     inputs.forEach((input) => {
       const phraseId = (input as HTMLInputElement).dataset.phrase;
       const gloss = (input as HTMLInputElement).value;
+      const method = (input as HTMLInputElement).dataset.method;
 
       if (phraseId && gloss) {
         form.set(`phrases[${idx}][id]`, phraseId);
         form.set(`phrases[${idx}][gloss]`, gloss);
+        if (method) {
+          form.set(`phrases[${idx}][method]`, method);
+        }
         idx++;
       }
     });

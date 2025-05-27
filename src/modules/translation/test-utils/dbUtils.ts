@@ -1,13 +1,5 @@
 import { query } from "@/db";
-
-export enum GlossStateRaw {
-  Approved = "APPROVED",
-  Unapproved = "UNAPPROVED",
-}
-export enum GlossSourceRaw {
-  User = "USER",
-  Import = "IMPORT",
-}
+import { GlossSourceRaw, GlossStateRaw } from "../types";
 
 export interface DbGloss {
   gloss: string | null;

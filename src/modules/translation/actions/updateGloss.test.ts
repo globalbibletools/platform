@@ -14,7 +14,7 @@ import {
   GlossApprovalMethodRaw,
   GlossSourceRaw,
   GlossStateRaw,
-} from "../data-access/GlossRepository";
+} from "../types";
 import trackingClient from "@/modules/reporting/public/trackingClient";
 
 initializeDatabase();
@@ -164,7 +164,7 @@ test("creates a new gloss for the phrase and tracks approval", async () => {
   formData.set("gloss", "asdf");
   formData.set("state", GlossStateRaw.Approved);
   formData.set("languageCode", language.code);
-  formData.set("approvalMethod", GlossApprovalMethodRaw.MachineSuggestion);
+  formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
   const result = await updateGloss(formData);
   expect(result).toBeUndefined();
 
@@ -257,7 +257,7 @@ test("updates an existing gloss for the phrase and tracks approval", async () =>
   formData.set("gloss", "asdf");
   formData.set("state", GlossStateRaw.Approved);
   formData.set("languageCode", language.code);
-  formData.set("approvalMethod", GlossApprovalMethodRaw.GoogleSuggestion);
+  formData.set("method", GlossApprovalMethodRaw.GoogleSuggestion);
   const result = await updateGloss(formData);
   expect(result).toBeUndefined();
 

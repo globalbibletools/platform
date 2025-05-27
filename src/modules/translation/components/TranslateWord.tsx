@@ -12,6 +12,7 @@ import { fontMap } from "@/fonts";
 import { isRichTextEmpty } from "@/components/RichTextInput";
 import { useSWRConfig } from "swr";
 import { useParams } from "next/navigation";
+import { GlossApprovalMethodRaw } from "../types";
 
 export interface TranslateWordProps {
   word: {
@@ -100,6 +101,13 @@ export default function TranslateWord({
       word.suggestions[0] || googleTranslateSuggestion
     ));
 
+  let approvalMethod = GlossApprovalMethodRaw.UserInput;
+  if (glossValue === word.suggestions[0]) {
+    approvalMethod = GlossApprovalMethodRaw.MachineSuggestion;
+  } else if (glossValue === googleTranslateSuggestion) {
+    approvalMethod = GlossApprovalMethodRaw.GoogleSuggestion;
+  }
+
   const { locale, code } = useParams<{ locale: string; code: string }>();
   const [saving, setSaving] = useState(false);
   const autosaveQueued = useRef(false);
@@ -109,8 +117,19 @@ export default function TranslateWord({
 
     const formData = new FormData();
     formData.set("phraseId", phrase.id.toString());
-    formData.set("gloss", input.current?.value ?? "");
     formData.set("state", state);
+
+    const updatedGloss = input.current?.value ?? "";
+
+    formData.set("gloss", updatedGloss);
+
+    if (updatedGloss === word.suggestions[0]) {
+      formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
+    } else if (updatedGloss === googleTranslateSuggestion) {
+      formData.set("method", GlossApprovalMethodRaw.GoogleSuggestion);
+    } else {
+      formData.set("method", GlossApprovalMethodRaw.UserInput);
+    }
 
     // TODO: handle errors in this result
     const _result = await updateGloss(formData);
@@ -309,6 +328,7 @@ export default function TranslateWord({
                     fontFamily: fontMap[language.font],
                   }}
                   data-phrase={phrase.id}
+                  data-method={approvalMethod}
                   inputClassName={isHebrew ? "text-right" : "text-left"}
                   right={isHebrew}
                   renderOption={(item, i) => (

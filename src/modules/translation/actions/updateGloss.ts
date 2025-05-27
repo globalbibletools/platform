@@ -10,18 +10,19 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import * as z from "zod";
 import phraseRepository from "../data-access/PhraseRepository";
-import glossRepository, {
+import glossRepository from "../data-access/GlossRepository";
+import {
   GlossApprovalMethodRaw,
   GlossSourceRaw,
   GlossStateRaw,
-} from "../data-access/GlossRepository";
+} from "../types";
 import trackingClient from "@/modules/reporting/public/trackingClient";
 
 const requestSchema = z.object({
   phraseId: z.coerce.number().int(),
   state: z.nativeEnum(GlossStateRaw).optional(),
   gloss: z.string().optional(),
-  approvalMethod: z.nativeEnum(GlossApprovalMethodRaw).optional(),
+  method: z.nativeEnum(GlossApprovalMethodRaw).optional(),
 });
 
 const policy = new Policy({
@@ -68,12 +69,12 @@ export async function updateGloss(formData: FormData): Promise<any> {
   if (
     wasUnapproved &&
     request.data.state === GlossStateRaw.Approved &&
-    request.data.approvalMethod
+    request.data.method
   ) {
     await trackingClient.trackEvent("approved_gloss", {
       languageId: phrase.language.id,
       userId: session!.user.id,
-      method: request.data.approvalMethod,
+      method: request.data.method,
     });
   }
 
