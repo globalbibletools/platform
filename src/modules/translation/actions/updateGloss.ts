@@ -51,6 +51,7 @@ export async function updateGlossAction(formData: FormData): Promise<any> {
     });
   } catch (error) {
     if (error instanceof NotFoundError) {
+      logger.error("not found");
       notFound();
     } else {
       throw error;

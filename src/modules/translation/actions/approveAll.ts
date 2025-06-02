@@ -14,6 +14,8 @@ import { GlossApprovalMethodRaw, GlossStateRaw } from "../types";
 import phraseRepository from "../data-access/PhraseRepository";
 import trackingClient from "@/modules/reporting/public/trackingClient";
 import languageRepository from "@/modules/languages/data-access/LanguageRepository";
+import { approveAllUseCase } from "../use-cases/approveAll";
+import { NotFoundError } from "@/shared/errors";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -49,43 +51,20 @@ export async function approveAll(formData: FormData): Promise<void> {
     notFound();
   }
 
-  const phrasesExist = await phraseRepository.existsForLanguage(
-    request.data.code,
-    request.data.phrases.map((phrase) => phrase.id),
-  );
-  if (!phrasesExist) {
-    logger.error("phrases not found");
-    notFound();
+  try {
+    await approveAllUseCase({
+      languageCode: request.data.code,
+      phrases: request.data.phrases,
+      userId: session!.user.id,
+    });
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      logger.error("not found");
+      notFound();
+    } else {
+      throw error;
+    }
   }
-
-  const glosses = await glossRepository.findManyByPhraseId(
-    request.data.phrases.map((phrase) => phrase.id),
-  );
-
-  await glossRepository.approveMany({
-    phrases: request.data.phrases.map((phrase) => ({
-      phraseId: phrase.id,
-      gloss: phrase.gloss,
-    })),
-    updatedBy: session!.user.id,
-  });
-
-  const language = await languageRepository.findByCode(request.data.code);
-  await trackingClient.trackManyEvents(
-    request.data.phrases
-      .filter((phrase) => {
-        if (!phrase.method) return false;
-
-        const gloss = glosses.find((gloss) => gloss.phraseId === phrase.id);
-        return !gloss || gloss.state === GlossStateRaw.Unapproved;
-      })
-      .map((phrase) => ({
-        type: "approve_gloss",
-        userId: session!.user.id,
-        languageId: language?.id,
-        method: phrase.method,
-      })),
-  );
 
   // TODO: figure out how to replace this.
   // Option 1: query the DB to get the verse ID
