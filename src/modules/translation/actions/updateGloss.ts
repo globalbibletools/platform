@@ -9,16 +9,12 @@ import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import * as z from "zod";
-import phraseRepository from "../data-access/PhraseRepository";
-import glossRepository from "../data-access/GlossRepository";
-import {
-  GlossApprovalMethodRaw,
-  GlossSourceRaw,
-  GlossStateRaw,
-} from "../types";
-import trackingClient from "@/modules/reporting/public/trackingClient";
+import { GlossApprovalMethodRaw, GlossStateRaw } from "../types";
+import { updateGlossUseCase } from "../use-cases/updateGloss";
+import { NotFoundError } from "@/shared/errors";
 
 const requestSchema = z.object({
+  languageCode: z.string(),
   phraseId: z.coerce.number().int(),
   state: z.nativeEnum(GlossStateRaw).optional(),
   gloss: z.string().optional(),
@@ -29,7 +25,7 @@ const policy = new Policy({
   languageRoles: [Policy.LanguageRole.Translator],
 });
 
-export async function updateGloss(formData: FormData): Promise<any> {
+export async function updateGlossAction(formData: FormData): Promise<any> {
   const logger = serverActionLogger("updateGloss");
 
   const request = requestSchema.safeParse(parseForm(formData));
@@ -38,44 +34,27 @@ export async function updateGloss(formData: FormData): Promise<any> {
     return;
   }
 
-  const phrase = await phraseRepository.findById(request.data.phraseId);
-  if (!phrase) {
-    logger.error("phrase not found");
-    notFound();
-  }
-
   const session = await verifySession();
   const authorized = await policy.authorize({
     actorId: session?.user.id,
-    languageCode: phrase.language.code,
+    languageCode: request.data.languageCode,
   });
   if (!authorized) {
     logger.error("unauthorized");
     notFound();
   }
 
-  const existingGloss = await glossRepository.findByPhraseId(phrase.id);
-  const wasUnapproved =
-    !existingGloss || existingGloss.state === GlossStateRaw.Unapproved;
-
-  await glossRepository.update({
-    phraseId: phrase.id,
-    gloss: request.data.gloss,
-    state: request.data.state,
-    updatedBy: session!.user.id,
-    source: GlossSourceRaw.User,
-  });
-
-  if (
-    wasUnapproved &&
-    request.data.state === GlossStateRaw.Approved &&
-    request.data.method
-  ) {
-    await trackingClient.trackEvent("approved_gloss", {
-      languageId: phrase.language.id,
+  try {
+    await updateGlossUseCase({
+      ...request.data,
       userId: session!.user.id,
-      method: request.data.method,
     });
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      notFound();
+    } else {
+      throw error;
+    }
   }
 
   // TODO: figure out how to replace this.
@@ -93,7 +72,7 @@ export async function updateGloss(formData: FormData): Promise<any> {
   if (pathQuery.rows.length > 0) {
     const locale = await getLocale();
     revalidatePath(
-      `/${locale}/translate/${phrase.language.code}/${pathQuery.rows[0].verseId}`,
+      `/${locale}/translate/${request.data.languageCode}/${pathQuery.rows[0].verseId}`,
     );
   }
 }

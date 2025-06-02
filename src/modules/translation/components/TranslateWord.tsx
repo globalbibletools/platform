@@ -7,7 +7,7 @@ import { Icon } from "@/components/Icon";
 import { useTextWidth } from "@/utils/text-width";
 import { useTranslations } from "next-intl";
 import { MouseEvent, useLayoutEffect, useRef, useState } from "react";
-import { updateGloss } from "../actions/updateGloss";
+import { updateGlossAction } from "../actions/updateGloss";
 import { fontMap } from "@/fonts";
 import { isRichTextEmpty } from "@/components/RichTextInput";
 import { useSWRConfig } from "swr";
@@ -36,6 +36,7 @@ export interface TranslateWordProps {
   };
   backtranslation?: string;
   language: {
+    code: string;
     font: string;
     textDirection: string;
     roles: string[];
@@ -117,6 +118,7 @@ export default function TranslateWord({
     autosaveQueued.current = false;
 
     const formData = new FormData();
+    formData.set("languageCode", language.code);
     formData.set("phraseId", phrase.id.toString());
     formData.set("state", state);
 
@@ -133,7 +135,7 @@ export default function TranslateWord({
     }
 
     // TODO: handle errors in this result
-    const _result = await updateGloss(formData);
+    const _result = await updateGlossAction(formData);
 
     mutate({
       type: "book-progress",

@@ -1,7 +1,7 @@
 import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { vitest, test, expect } from "vitest";
-import { updateGloss } from "./updateGloss";
+import { updateGlossAction } from "./updateGloss";
 import { LanguageMemberRoleRaw } from "@/modules/languages/model";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
@@ -41,7 +41,7 @@ test("returns and does nothing if the request shape doesn't match the schema", a
   await logIn(scenario.users.translator.id);
 
   const formData = new FormData();
-  const response = await updateGloss(formData);
+  const response = await updateGlossAction(formData);
   expect(response).toBeUndefined();
 
   expect(trackingClient.trackEvent).not.toHaveBeenCalled();
@@ -57,11 +57,12 @@ test("returns not found if user is not logged in", async () => {
   });
 
   const formData = new FormData();
+  formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
   formData.set("state", "APPROVED");
   formData.set("languageCode", language.code);
-  await expect(updateGloss(formData)).toBeNextjsNotFound();
+  await expect(updateGlossAction(formData)).toBeNextjsNotFound();
 
   const gloss = await findGlossForPhrase(phrase.id);
   expect(gloss).toBeUndefined();
@@ -80,11 +81,12 @@ test("returns not found if user is not a translator on the language", async () =
   });
 
   const formData = new FormData();
+  formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
   formData.set("state", "APPROVED");
   formData.set("languageCode", language.code);
-  await expect(updateGloss(formData)).toBeNextjsNotFound();
+  await expect(updateGlossAction(formData)).toBeNextjsNotFound();
 
   const gloss = await findGlossForPhrase(phrase.id);
   expect(gloss).toBeUndefined();
@@ -99,11 +101,41 @@ test("returns not found if the phrase does not exist", async () => {
   const language = scenario.languages.spanish;
 
   const formData = new FormData();
+  formData.set("languageCode", language.code);
   formData.set("phraseId", "123456");
   formData.set("gloss", "asdf");
   formData.set("state", "APPROVED");
   formData.set("languageCode", language.code);
-  await expect(updateGloss(formData)).toBeNextjsNotFound();
+  await expect(updateGlossAction(formData)).toBeNextjsNotFound();
+
+  const gloss = await findGlossForPhrase(123456);
+  expect(gloss).toBeUndefined();
+
+  expect(trackingClient.trackEvent).not.toHaveBeenCalled();
+});
+
+test("returns not found if the phrase is in a different language", async () => {
+  const scenario = await createScenario(scenarioDefinition, {
+    languages: {
+      another: {
+        members: [
+          { userId: "translator", roles: [LanguageMemberRoleRaw.Translator] },
+        ],
+      },
+    },
+  });
+  await logIn(scenario.users.translator.id);
+
+  const language = scenario.languages.spanish;
+  const otherLanguage = scenario.languages.another;
+
+  const formData = new FormData();
+  formData.set("languageCode", otherLanguage.code);
+  formData.set("phraseId", "123456");
+  formData.set("gloss", "asdf");
+  formData.set("state", "APPROVED");
+  formData.set("languageCode", language.code);
+  await expect(updateGlossAction(formData)).toBeNextjsNotFound();
 
   const gloss = await findGlossForPhrase(123456);
   expect(gloss).toBeUndefined();
@@ -123,11 +155,12 @@ test("creates a new gloss for the phrase", async () => {
   });
 
   const formData = new FormData();
+  formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
   formData.set("state", GlossStateRaw.Approved);
   formData.set("languageCode", language.code);
-  const result = await updateGloss(formData);
+  const result = await updateGlossAction(formData);
   expect(result).toBeUndefined();
 
   const gloss = await findGlossForPhrase(phrase.id);
@@ -160,12 +193,13 @@ test("creates a new gloss for the phrase and tracks approval", async () => {
   });
 
   const formData = new FormData();
+  formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
   formData.set("state", GlossStateRaw.Approved);
   formData.set("languageCode", language.code);
   formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
-  const result = await updateGloss(formData);
+  const result = await updateGlossAction(formData);
   expect(result).toBeUndefined();
 
   const gloss = await findGlossForPhrase(phrase.id);
@@ -208,11 +242,12 @@ test("updates an existing gloss for the phrase", async () => {
   });
 
   const formData = new FormData();
+  formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
   formData.set("state", GlossStateRaw.Approved);
   formData.set("languageCode", language.code);
-  const result = await updateGloss(formData);
+  const result = await updateGlossAction(formData);
   expect(result).toBeUndefined();
 
   const updatedGloss = await findGlossForPhrase(phrase.id);
@@ -253,12 +288,13 @@ test("updates an existing gloss for the phrase and tracks approval", async () =>
   });
 
   const formData = new FormData();
+  formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
   formData.set("state", GlossStateRaw.Approved);
   formData.set("languageCode", language.code);
   formData.set("method", GlossApprovalMethodRaw.GoogleSuggestion);
-  const result = await updateGloss(formData);
+  const result = await updateGlossAction(formData);
   expect(result).toBeUndefined();
 
   const updatedGloss = await findGlossForPhrase(phrase.id);

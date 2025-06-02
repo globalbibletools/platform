@@ -24,6 +24,32 @@ export type Phrase = Omit<DbPhrase, "languageId"> & {
 };
 
 const phraseRepository = {
+  async findWithinLanguageById(
+    languageCode: string,
+    id: number,
+  ): Promise<Phrase | undefined> {
+    const result = await query<Phrase>(
+      `
+        select
+          id,
+          json_build_object(
+              'id', phrase.language_id,
+              'code', (select code from language where language.id = phrase.language_id)
+          ) as language,
+          (select json_agg(phrase_word.word_id) from phrase_word where phrase_word.phrase_id = phrase.id) as "wordIds",
+          created_at as "createdAt",
+          created_by as "createdBy",
+          deleted_at as "deletedAt",
+          deleted_by as "deletedBy"
+        from phrase
+        where id = $2
+          and language_id = (select id from language where code = $1)
+      `,
+      [languageCode, id],
+    );
+
+    return result.rows[0];
+  },
   async findById(id: number): Promise<Phrase | undefined> {
     const result = await query<Phrase>(
       `
