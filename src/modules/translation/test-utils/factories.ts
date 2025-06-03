@@ -2,7 +2,7 @@ import { Async } from "factory.ts";
 import { DbPhrase, DbPhraseWord } from "../data-access/PhraseRepository";
 import { query } from "@/db";
 import { faker } from "@faker-js/faker/locale/en";
-import { DbFootnote, DbGloss } from "./dbUtils";
+import { DbFootnote, DbGloss, DbTranslatorNote } from "./dbUtils";
 import { GlossStateRaw } from "../types";
 
 export const phraseFactory = Async.makeFactoryWithRequired<
@@ -90,4 +90,26 @@ export const footnoteFactory = Async.makeFactoryWithRequired<
     ],
   );
   return footnote;
+});
+
+export const translatorNoteFactory = Async.makeFactoryWithRequired<
+  DbTranslatorNote,
+  "phraseId" | "authorId"
+>({
+  content: Async.each(() => `<p>${faker.lorem.words()}</p>`),
+  timestamp: Async.each(() => faker.date.recent()),
+}).transform(async (translatorNote) => {
+  await query(
+    `
+      insert into translator_note (phrase_id, content, author_id, timestamp)
+      values ($1, $2, $3, $4)
+    `,
+    [
+      translatorNote.phraseId,
+      translatorNote.content,
+      translatorNote.authorId,
+      translatorNote.timestamp,
+    ],
+  );
+  return translatorNote;
 });

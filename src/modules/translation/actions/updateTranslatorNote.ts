@@ -2,26 +2,29 @@
 
 import { query } from "@/db";
 import { parseForm } from "@/form-parser";
+import Policy from "@/modules/access/public/Policy";
 import { serverActionLogger } from "@/server-action";
 import { verifySession } from "@/session";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import * as z from "zod";
+import phraseRepository from "../data-access/PhraseRepository";
 
 const requestSchema = z.object({
+  languageCode: z.string(),
   phraseId: z.coerce.number().int(),
   note: z.string(),
 });
 
-export async function updateTranslatorNote(formData: FormData): Promise<any> {
-  const logger = serverActionLogger("updateTranslatorNote");
+const policy = new Policy({
+  languageRoles: [Policy.LanguageRole.Translator],
+});
 
-  const session = await verifySession();
-  if (!session?.user) {
-    logger.error("unauthorized");
-    notFound();
-  }
+export async function updateTranslatorNoteAction(
+  formData: FormData,
+): Promise<any> {
+  const logger = serverActionLogger("updateTranslatorNote");
 
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
@@ -29,24 +32,22 @@ export async function updateTranslatorNote(formData: FormData): Promise<any> {
     return;
   }
 
-  const languageQuery = await query<{ roles: string[] }>(
-    `SELECT 
-            COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM language_member_role AS r
-        WHERE r.language_id = (SELECT language_id FROM phrase WHERE id = $1) 
-            AND r.user_id = $2`,
-    [request.data.phraseId, session.user.id],
-  );
-  const language = languageQuery.rows[0];
-  if (!language) {
-    logger.error("language not found");
+  const session = await verifySession();
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+    languageCode: request.data.languageCode,
+  });
+  if (!authorized) {
+    logger.error("unauthorized");
     notFound();
   }
-  if (
-    !session?.user.roles.includes("ADMIN") &&
-    !language.roles.includes("TRANSLATOR")
-  ) {
-    logger.error("unauthorized");
+
+  const phraseExists = await phraseRepository.existsForLanguage(
+    request.data.languageCode,
+    [request.data.phraseId],
+  );
+  if (!phraseExists) {
+    logger.error("phrase not found");
     notFound();
   }
 
@@ -58,13 +59,14 @@ export async function updateTranslatorNote(formData: FormData): Promise<any> {
             timestamp = EXCLUDED.timestamp,
             content = EXCLUDED.content
         `,
-    [request.data.phraseId, session.user.id, new Date(), request.data.note],
+    [request.data.phraseId, session!.user.id, new Date(), request.data.note],
   );
   if (result.rowCount === 0) {
     logger.error("phrase not found");
     notFound();
   }
 
+  // TODO: eliminate this with a repo method or action arguments
   const pathQuery = await query<{ code: string; verseId: string }>(
     `SELECT l.code, w.verse_id FROM phrase AS ph
         JOIN language AS l ON l.id = ph.language_id

@@ -26,6 +26,13 @@ export interface DbFootnote {
   timestamp: Date;
 }
 
+export interface DbTranslatorNote {
+  phraseId: number;
+  content: string;
+  authorId: string;
+  timestamp: Date;
+}
+
 export async function findGlossForPhrase(
   phraseId: number,
 ): Promise<DbGloss | undefined> {
@@ -80,6 +87,25 @@ export async function findFootnoteForPhrase(
         author_id as "authorId",
         phrase_id as "phraseId"
       from footnote
+      where phrase_id = $1
+    `,
+    [phraseId],
+  );
+
+  return result.rows[0];
+}
+
+export async function findTranslatorNoteForPhrase(
+  phraseId: number,
+): Promise<DbTranslatorNote | undefined> {
+  const result = await query<DbTranslatorNote>(
+    `
+      select 
+        content,
+        timestamp,
+        author_id as "authorId",
+        phrase_id as "phraseId"
+      from translator_note
       where phrase_id = $1
     `,
     [phraseId],
