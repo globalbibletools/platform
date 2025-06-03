@@ -19,6 +19,13 @@ export interface DbGlossHistoryEntry {
   source: GlossSourceRaw | null;
 }
 
+export interface DbFootnote {
+  phraseId: number;
+  content: string;
+  authorId: string;
+  timestamp: Date;
+}
+
 export async function findGlossForPhrase(
   phraseId: number,
 ): Promise<DbGloss | undefined> {
@@ -60,4 +67,23 @@ export async function findGlossHistoryForPhrase(
   );
 
   return result.rows;
+}
+
+export async function findFootnoteForPhrase(
+  phraseId: number,
+): Promise<DbFootnote | undefined> {
+  const result = await query<DbFootnote>(
+    `
+      select 
+        content,
+        timestamp,
+        author_id as "authorId",
+        phrase_id as "phraseId"
+      from footnote
+      where phrase_id = $1
+    `,
+    [phraseId],
+  );
+
+  return result.rows[0];
 }

@@ -18,7 +18,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { updateFootnote } from "../actions/updateFootnote";
+import { updateFootnoteAction } from "../actions/updateFootnote";
 import { updateTranslatorNote } from "../actions/updateTranslatorNote";
 import { parseReferenceRange } from "@/verse-utils";
 import { VersesPreview } from "@/components/VersesPreview";
@@ -106,14 +106,15 @@ const TranslationSidebar = forwardRef<
             const form = new FormData();
             form.set("phraseId", phrase.id.toString());
             form.set("note", note);
-            await updateFootnote(form);
+            form.set("languageCode", language.code);
+            await updateFootnoteAction(form);
             setSavingFootnote(false);
           }
         },
         5000,
         { leading: false, trailing: true },
       ),
-    [phrase.id],
+    [phrase.id, language.code],
   );
 
   const [isSavingTranslatorNote, setSavingTranslatorNote] = useState(false);

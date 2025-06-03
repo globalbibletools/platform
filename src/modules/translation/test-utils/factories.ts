@@ -2,7 +2,7 @@ import { Async } from "factory.ts";
 import { DbPhrase, DbPhraseWord } from "../data-access/PhraseRepository";
 import { query } from "@/db";
 import { faker } from "@faker-js/faker/locale/en";
-import { DbGloss } from "./dbUtils";
+import { DbFootnote, DbGloss } from "./dbUtils";
 import { GlossStateRaw } from "../types";
 
 export const phraseFactory = Async.makeFactoryWithRequired<
@@ -68,4 +68,26 @@ export const glossFactory = Async.makeFactoryWithRequired<DbGloss, "phraseId">({
     ],
   );
   return gloss;
+});
+
+export const footnoteFactory = Async.makeFactoryWithRequired<
+  DbFootnote,
+  "phraseId" | "authorId"
+>({
+  content: Async.each(() => `<p>${faker.lorem.words()}</p>`),
+  timestamp: Async.each(() => faker.date.recent()),
+}).transform(async (footnote) => {
+  await query(
+    `
+      insert into footnote (phrase_id, content, author_id, timestamp)
+      values ($1, $2, $3, $4)
+    `,
+    [
+      footnote.phraseId,
+      footnote.content,
+      footnote.authorId,
+      footnote.timestamp,
+    ],
+  );
+  return footnote;
 });
