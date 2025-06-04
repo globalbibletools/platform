@@ -31,7 +31,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
   db:
     build:
       dockerfile: db/Dockerfile
