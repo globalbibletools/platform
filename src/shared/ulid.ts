@@ -21,8 +21,23 @@ function format(ulid: string): string {
   return `${ulid.slice(0, 8)}-${ulid.slice(8, 12)}-${ulid.slice(12, 16)}-${ulid.slice(16, 20)}-${ulid.slice(20, 32)}`.toLowerCase();
 }
 
+let generationState: { lastTimestamp: string; counter: string };
+
 export function ulid(seedTime: number = Date.now()): string {
   const timestamp = seedTime.toString(16).padStart(12, "0");
-  const random = randomBytes(10).toString("hex");
+
+  let random;
+  if (timestamp === generationState?.lastTimestamp) {
+    const n = BigInt(1) + BigInt(`0x${generationState.counter}`);
+    random = n.toString(16);
+    generationState.counter = random;
+  } else {
+    random = randomBytes(10).toString("hex");
+    generationState = {
+      lastTimestamp: timestamp,
+      counter: random,
+    };
+  }
+
   return format(timestamp + random);
 }

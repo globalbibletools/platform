@@ -45,22 +45,18 @@ const trackingClient = {
     const childLogger = logger.child({
       module: "trackingClient",
     });
-    for (const event of events) {
-      try {
-        const { type, userId = null, languageId = null, ...rest } = event ?? {};
-
-        await trackingEventRepository.createMany([
-          {
-            id: ulid(),
-            type,
-            data: rest,
-            userId,
-            languageId,
-          },
-        ]);
-      } catch (error) {
-        childLogger.error({ err: error }, "Failed to log event");
-      }
+    try {
+      await trackingEventRepository.createMany(
+        events.map(({ type, userId = null, languageId = null, ...rest }) => ({
+          id: ulid(),
+          type,
+          data: rest,
+          userId,
+          languageId,
+        })),
+      );
+    } catch (error) {
+      childLogger.error({ err: error }, "Failed to log event");
     }
   },
 } satisfies TrackingClient;

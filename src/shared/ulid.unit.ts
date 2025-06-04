@@ -1,11 +1,16 @@
 import { test, expect } from "vitest";
 import { decodeTime, ulid } from "./ulid";
 
-test("ulids for the same millesecond are not the same", async () => {
-  const now = new Date("2025-01-01").valueOf();
+test("ulids for the same millesecond are incremented by one", async () => {
+  const now = new Date().valueOf();
   const first = ulid(now);
   const second = ulid(now);
-  expect(first).not.toEqual(second);
+
+  const firstUnformatted = first.replaceAll("-", "");
+  const secondUnformatted = second.replaceAll("-", "");
+  expect(BigInt(`0x${secondUnformatted}`)).toEqual(
+    BigInt(1) + BigInt(`0x${firstUnformatted}`),
+  );
 });
 
 test("generates valid ulids", async () => {
