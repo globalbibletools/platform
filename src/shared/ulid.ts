@@ -29,7 +29,7 @@ export function ulid(seedTime: number = Date.now()): string {
   let random;
   if (timestamp === generationState?.lastTimestamp) {
     const n = BigInt(1) + BigInt(`0x${generationState.counter}`);
-    random = n.toString(16);
+    random = n.toString(16).padStart(20, "0");
     generationState.counter = random;
   } else {
     random = randomBytes(10).toString("hex");
