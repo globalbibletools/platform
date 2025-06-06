@@ -42,7 +42,7 @@ export interface ReportingProgressSnapshot {
   id: string;
   week: Date;
   languageId: string;
-  userId: string;
+  userId?: string;
   bookId: string;
   approvedCount: string;
   unapprovedCount: string;

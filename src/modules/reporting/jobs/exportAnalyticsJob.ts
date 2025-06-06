@@ -154,7 +154,7 @@ async function updateProgressSnapshots(logger: pino.Logger) {
     snapshot.week,
     snapshot.languageId,
     snapshot.bookId,
-    snapshot.userId,
+    snapshot.userId ?? "",
     snapshot.approvedCount,
     snapshot.unapprovedCount,
   ]);
