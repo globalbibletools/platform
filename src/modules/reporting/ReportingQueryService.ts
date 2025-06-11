@@ -175,7 +175,7 @@ const reportingQueryService = {
   async findApprovalStats(): Promise<ApprovalStats[]> {
     const result = await query<ApprovalStats>(
       `
-        select week, language_id, approval_method, user_id, count(*) from (
+        select week, language_id as "languageId", approval_method as method, user_id as "userId", count(*) from (
 	      select
 		    language_id,
 		    user_id,
