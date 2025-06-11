@@ -48,6 +48,14 @@ export interface ReportingProgressSnapshot {
   unapprovedCount: string;
 }
 
+export interface ApprovalStats {
+  week: Date;
+  languageId: string;
+  userId: string;
+  method: string;
+  count: number;
+}
+
 const reportingQueryService = {
   async findContributionsByUserId(
     userId: string,
@@ -161,6 +169,26 @@ const reportingQueryService = {
       `,
       [],
     );
+    return result.rows;
+  },
+
+  async findApprovalStats(): Promise<ApprovalStats[]> {
+    const result = await query<ApprovalStats>(
+      `
+        select week, language_id, approval_method, user_id, count(*) from (
+	      select
+		    language_id,
+		    user_id,
+		    data ->> 'method' as approval_method,
+		    date_bin('7 days', date_trunc('day', created_at), timestamp '2024-12-15') as week
+	      from tracking_event
+        ) as data
+        group by language_id, user_id, approval_method, week
+        order by week desc, language_id, approval_method, user_id
+      `,
+      [],
+    );
+
     return result.rows;
   },
 };
