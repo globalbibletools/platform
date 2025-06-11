@@ -30,6 +30,7 @@ const USERS_SHEET = "'[Raw] Users'";
 const LANGUAGES_SHEET = "'[Raw] Languages'";
 const BOOKS_SHEET = "'[Raw] Books'";
 const PROGRESS_SNAPSHOTS_SHEET = "'[Raw] Progress Snapshots'";
+const APPROVALS_SHEET = "'[Raw] Approvals'";
 
 const sheets = google.sheets({
   version: "v4",
@@ -55,13 +56,13 @@ export async function exportAnalyticsJob(job: Job<void>) {
     );
   }
 
-  await Promise.all([
-    updateContributionsSheet(jobLogger),
-    updateUsersSheet(jobLogger),
-    updateLanguagesSheet(jobLogger),
-    updateBooksSheet(jobLogger),
-    updateProgressSnapshots(jobLogger),
-  ]);
+  // We run these serially to control memory use.
+  await updateContributionsSheet(jobLogger);
+  await updateUsersSheet(jobLogger);
+  await updateLanguagesSheet(jobLogger);
+  await updateBooksSheet(jobLogger);
+  await updateProgressSnapshots(jobLogger);
+  await updateApprovalsSheet(jobLogger);
 }
 
 async function updateContributionsSheet(logger: pino.Logger) {
@@ -176,4 +177,25 @@ async function updateProgressSnapshots(logger: pino.Logger) {
     },
   });
   logger.info(`Updated ${snapshots.length} progress snapshots`);
+}
+
+async function updateApprovalsSheet(logger: pino.Logger) {
+  const approvals = await reportingQueryService.findApprovalStats();
+  const data = approvals.map((data) => [
+    data.week,
+    data.languageId,
+    data.method,
+    data.userId,
+    data.count,
+  ]);
+  data.unshift(["Week", "Language ID", "Method", "User ID", "Count"]);
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: ANALYTICS_SPREADSHEET_ID,
+    range: `${APPROVALS_SHEET}!A1`,
+    valueInputOption: "RAW",
+    requestBody: {
+      values: data,
+    },
+  });
+  logger.info(`Updated ${approvals.length} approvals`);
 }
