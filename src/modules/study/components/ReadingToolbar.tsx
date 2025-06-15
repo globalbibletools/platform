@@ -47,7 +47,7 @@ export default function ReadingToolbar({
       return 3;
     }
 
-    const stored = parseInt(localStorage.getItem("textSize") ?? "", 10);
+    const stored = parseInt(localStorage.getItem("ReadingToolbar-textSize") ?? "", 10);
     return Number.isNaN(stored) ? 3 : stored;
   };
 
@@ -55,7 +55,7 @@ export default function ReadingToolbar({
   const [textSize, setTextSize] = useState<number>(getInitialTextSize);
   useEffect(() => {
     if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
-      localStorage.setItem("textSize", textSize.toString());
+      localStorage.setItem("ReadingToolbar-textSize", textSize.toString());
     }
   }, [textSize]);
 
