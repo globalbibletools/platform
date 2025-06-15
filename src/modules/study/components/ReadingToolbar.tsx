@@ -40,7 +40,25 @@ export default function ReadingToolbar({
     chapterId: string;
   }>();
   const router = useRouter();
-  const [textSize, setTextSize] = useState(3);
+
+  // Fetch the textSize from local storage, if we're in a browser context
+  const getInitialTextSize = (): number => {
+    if (typeof window === "undefined" || typeof localStorage === "undefined") {
+      return 3;
+    }
+
+    const stored = parseInt(localStorage.getItem("textSize") ?? "", 10);
+    return Number.isNaN(stored) ? 3 : stored;
+  };
+
+  // Persist the textSize in localStorage on update
+  const [textSize, setTextSize] = useState<number>(getInitialTextSize);
+  useEffect(() => {
+    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+      localStorage.setItem("textSize", textSize.toString());
+    }
+  }, [textSize]);
+
   const [audioVerse, setAudioVerse] = useState<string>();
 
   const bookId = parseInt(chapterId.slice(0, 2)) || 1;
