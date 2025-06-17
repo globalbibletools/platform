@@ -458,6 +458,8 @@
   },
   "SettingsMenu": {
     "text_size": "Text Size",
+    "show-cantillation": "Show Cantillation",
+    "show-niqqud": "Show Niqqud",
     "language": "Language"
   },
   "TranslateWord": {
