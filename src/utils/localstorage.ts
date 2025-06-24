@@ -7,22 +7,15 @@ export default function useLocalStorageState<T extends Record<string, any>>(item
       return defaultValue;
     }
 
-    const stored: string | null = localStorage.getItem(item);
-    if (stored === null) {
+    let parsed: any = undefined;
+    try {
+      parsed = JSON.parse(localStorage.getItem(item) ?? '');
+    } catch (error: unknown) {
+      console.log(`Error parsing local storage for ${item}: ${error}`);
       return defaultValue;
     }
 
-    const parsed: any = JSON.parse(stored);
-    if (!(typeof parsed === "object" && parsed !== null)) {
-      return defaultValue;
-    }
-
-    const json: T = {} as T;
-    for (const key in defaultValue) {
-      json[key] = key in parsed ? parsed[key] : defaultValue[key];
-    }
-
-    return json as T;
+    return { ...defaultValue, ...parsed };
   };
 
   // Persist the settings in localStorage on update
