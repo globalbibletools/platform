@@ -31,8 +31,12 @@ export interface TranslationToolbarProps {
 }
 
 interface ReadingToolbarSettings {
-  textSize: number,
+  textSize: number;
 }
+
+const defaultSettings: ReadingToolbarSettings = {
+  textSize: 3,
+};
 
 export default function ReadingToolbar({
   languages,
@@ -46,7 +50,7 @@ export default function ReadingToolbar({
   }>();
   const router = useRouter();
 
-  const [settings, setSettings] = useLocalStorageState<ReadingToolbarSettings>("ReadingToolbarSettings");
+  const [settings, setSettings] = useLocalStorageState<ReadingToolbarSettings>("ReadingToolbarSettings", defaultSettings);
 
   const [audioVerse, setAudioVerse] = useState<string>();
 
@@ -152,14 +156,14 @@ export default function ReadingToolbar({
             <span className="sr-only">{t("gpt")}</span>
           </Button>
           <SettingsMenu
-            textSize={settings?.textSize ?? 3}
+            textSize={settings.textSize}
             languageCode={code}
             languages={languages}
             onTextSizeChange={(textSize) => { setSettings({ ...settings, textSize }); } }
           />
         </div>
       </div>
-      <ReadingContext.Provider value={{ textSize: settings?.textSize ?? 3, audioVerse }}>
+      <ReadingContext.Provider value={{ textSize: settings.textSize, audioVerse }}>
         {children}
       </ReadingContext.Provider>
       {showAudioPlayer && (
