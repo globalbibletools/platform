@@ -31,7 +31,7 @@ export default function useLocalStorageState<T extends Record<string, any>>(item
     if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
       localStorage.setItem(item, JSON.stringify(settings));
     }
-  }, [settings]);
+  }, [item, settings]);
 
   return [settings, setSettings];
 }
