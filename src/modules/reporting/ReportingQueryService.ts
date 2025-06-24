@@ -193,22 +193,22 @@ const reportingQueryService = {
         ),
         chunk_counts as (
           select
-            language_id,
-            chunk_id,
+            language_id as "languageId",
+            chunk_id as "chunkId",
             method,
             count(*) as "chunkCount"
           from bucketed_data
-          group by language_id, chunk_id, method
+          group by "languageId", "chunkId", method
         )
         select
           cc.*,
           sum("chunkCount") over (
-            partition by language_id, method
-            order by chunk_id
+            partition by "languageId", method
+            order by "chunkId"
             rows between unbounded preceding and current row
           ) as "cumulativeCount"
         from chunk_counts cc
-        order by language_id, chunk_id, method;
+        order by "languageId", "chunkId", method;
       `,
       [],
     );
