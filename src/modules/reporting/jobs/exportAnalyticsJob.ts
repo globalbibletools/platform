@@ -186,13 +186,21 @@ async function updateProgressSnapshots(logger: pino.Logger) {
 async function updateApprovalsSheet(logger: pino.Logger) {
   const approvals = await reportingQueryService.findApprovalStats();
   const data = approvals.map((data) => [
-    data.week,
+    data.chunkId,
     data.languageId,
+    "",
     data.method,
-    data.userId,
-    data.count,
+    data.chunkCount,
+    data.cumulativeCount,
   ]);
-  data.unshift(["Week", "Language ID", "Method", "User ID", "Count"]);
+  data.unshift([
+    "Chunk Index",
+    "Language ID",
+    "Testament",
+    "Method",
+    "Chunk Count",
+    "Cumulative Count",
+  ]);
   await sheets.spreadsheets.values.update({
     spreadsheetId: ANALYTICS_SPREADSHEET_ID,
     range: `${APPROVALS_SHEET}!A1`,

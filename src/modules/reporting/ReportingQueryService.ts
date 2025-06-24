@@ -49,11 +49,11 @@ export interface ReportingProgressSnapshot {
 }
 
 export interface ApprovalStats {
-  week: Date;
+  chunkId: number;
   languageId: string;
-  userId: string;
   method: string;
-  count: number;
+  chunkCount: number;
+  cumulativeCount: number;
 }
 
 const reportingQueryService = {
@@ -175,16 +175,40 @@ const reportingQueryService = {
   async findApprovalStats(): Promise<ApprovalStats[]> {
     const result = await query<ApprovalStats>(
       `
-        select week, language_id as "languageId", approval_method as method, user_id as "userId", count(*) from (
-	      select
-		    language_id,
-		    user_id,
-		    data ->> 'method' as approval_method,
-		    date_bin('7 days', date_trunc('day', created_at), timestamp '2024-12-15') as week
-	      from tracking_event
-        ) as data
-        group by language_id, user_id, approval_method, week
-        order by week desc, language_id, approval_method, user_id
+        with data as (
+          select
+            language_id,
+            data->>'method' as method,
+            created_at,
+            row_number() over (
+              partition by language_id
+              order by created_at
+            ) as rn
+          from tracking_event
+        ),
+        bucketed_data as (
+          select *,
+            (rn - 1) / 1000 as chunk_id
+          from data
+        ),
+        chunk_counts as (
+          select
+            language_id,
+            chunk_id,
+            method,
+            count(*) as "chunkCount"
+          from bucketed_data
+          group by language_id, chunk_id, method
+        )
+        select
+          cc.*,
+          sum("chunkCount") over (
+            partition by language_id, method
+            order by chunk_id
+            rows between unbounded preceding and current row
+          ) as "cumulativeCount"
+        from chunk_counts cc
+        order by language_id, chunk_id, method;
       `,
       [],
     );
