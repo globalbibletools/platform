@@ -111,7 +111,7 @@ const reportingQueryService = {
           end as status
         from users as u
         left join lateral (
-            select true as is_invited
+            select count(*) > 0 as is_invited
             from user_invitation i
             where i.user_id = u.id
         ) as invite on true

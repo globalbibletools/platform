@@ -107,6 +107,10 @@ async function updateUsersSheet(logger: pino.Logger) {
     user.status,
   ]);
   data.unshift(["ID", "Name", "Email", "Status"]);
+  await sheets.spreadsheets.values.clear({
+    spreadsheetId: ANALYTICS_SPREADSHEET_ID,
+    range: USERS_SHEET,
+  });
   await sheets.spreadsheets.values.update({
     spreadsheetId: ANALYTICS_SPREADSHEET_ID,
     range: `${USERS_SHEET}!A1`,
