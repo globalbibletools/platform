@@ -23,6 +23,7 @@ import { changeChapter } from "../actions/changeChapter";
 import AudioDialog from "./AudioDialog";
 import SettingsMenu from "./SettingsMenu";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
+import useLocalStorageState from "@/utils/localstorage";
 
 export interface TranslationToolbarProps {
   languages: { name: string; code: string }[];
@@ -41,23 +42,7 @@ export default function ReadingToolbar({
   }>();
   const router = useRouter();
 
-  // Fetch the textSize from local storage, if we're in a browser context
-  const getInitialTextSize = (): number => {
-    if (typeof window === "undefined" || typeof localStorage === "undefined") {
-      return 3;
-    }
-
-    const stored = parseInt(localStorage.getItem("ReadingToolbar-textSize") ?? "", 10);
-    return Number.isNaN(stored) ? 3 : stored;
-  };
-
-  // Persist the textSize in localStorage on update
-  const [textSize, setTextSize] = useState<number>(getInitialTextSize);
-  useEffect(() => {
-    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
-      localStorage.setItem("ReadingToolbar-textSize", textSize.toString());
-    }
-  }, [textSize]);
+  const [textSize, setTextSize] = useLocalStorageState("ReadingToolbar-textSize");
 
   const [audioVerse, setAudioVerse] = useState<string>();
 
