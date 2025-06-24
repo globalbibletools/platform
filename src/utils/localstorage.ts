@@ -1,23 +1,27 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-export default function useLocalStorageState(item: string): [number, Dispatch<SetStateAction<number>>] {
-  // Fetch the textSize from local storage, if we're in a browser context
-  const getInitialTextSize = (): number => {
+export default function useLocalStorageState<T>(item: string): [T | null, Dispatch<SetStateAction<T | null>>] {
+  // Fetch the settings from local storage if we're in a browser context
+  const getInitialState = (): T | null => {
     if (typeof window === "undefined" || typeof localStorage === "undefined") {
-      return 3;
+      return null;
     }
 
-    const stored = parseInt(localStorage.getItem(item) ?? "", 10);
-    return Number.isNaN(stored) ? 3 : stored;
+    const stored = localStorage.getItem(item);
+    if (stored === null) {
+      return null;
+    }
+
+    return JSON.parse(stored) as T;
   };
 
-  // Persist the textSize in localStorage on update
-  const [textSize, setTextSize] = useState<number>(getInitialTextSize);
+  // Persist the settings in localStorage on update
+  const [settings, setSettings] = useState<T | null>(getInitialState);
   useEffect(() => {
     if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
-      localStorage.setItem(item, textSize.toString());
+      localStorage.setItem(item, JSON.stringify(settings));
     }
-  }, [textSize]);
+  }, [settings]);
 
-  return [textSize, setTextSize];
+  return [settings, setSettings];
 }
