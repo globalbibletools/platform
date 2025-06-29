@@ -58,6 +58,7 @@ test("returns not found if user is not logged in", async () => {
   });
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("code", language.code);
   formData.set(`phrases[0][id]`, String(phrases[0].id));
   formData.set(`phrases[0][gloss]`, faker.lorem.word());
@@ -88,6 +89,7 @@ test("returns not found if user is not a translator on the language", async () =
   });
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("code", language.code);
   formData.set(`phrases[0][id]`, String(phrases[0].id));
   formData.set(`phrases[0][gloss]`, faker.lorem.word());
@@ -120,6 +122,7 @@ test("returns not found if a phrase does not exist", async () => {
   const missingPhraseId = 9999999;
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("code", language.code);
   formData.set(`phrases[0][id]`, String(phrases[0].id));
   formData.set(`phrases[0][gloss]`, faker.lorem.word());
@@ -173,6 +176,7 @@ test("returns not found if a phrase is for a different language", async () => {
   });
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("code", language.code);
   formData.set(`phrases[0][id]`, String(phrase.id));
   formData.set(`phrases[0][gloss]`, faker.lorem.word());
@@ -215,6 +219,7 @@ test("creates a new glosses and updates existing glosses for each phrase", async
   ];
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("code", language.code);
   formData.set(`phrases[0][id]`, String(phrases[0].id));
   formData.set(`phrases[0][gloss]`, updatedGlosses[0]);

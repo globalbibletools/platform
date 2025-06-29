@@ -44,6 +44,7 @@ test("returns not found if user is not logged in", async () => {
   });
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("note", "<p>Note text</p>");
@@ -64,6 +65,7 @@ test("returns not found if user is not a translator on the language", async () =
   });
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("note", "<p>Note text</p>");
@@ -80,6 +82,7 @@ test("returns not found if the phrase does not exist", async () => {
   const language = scenario.languages.spanish;
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("languageCode", language.code);
   formData.set("phraseId", "123456");
   formData.set("note", "<p>Note text</p>");
@@ -108,6 +111,7 @@ test("returns not found if phrase is not in the language", async () => {
   });
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("languageCode", scenario.languages.another.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("note", "<p>Note text</p>");
@@ -130,6 +134,7 @@ test("creates a new footnote for the phrase", async () => {
   const content = "<p>Note text</p>";
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("note", content);
@@ -164,6 +169,7 @@ test("updates an existing gloss for the phrase", async () => {
   const content = "<p>Note text</p>";
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("note", content);

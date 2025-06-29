@@ -4,13 +4,13 @@ import * as z from "zod";
 import { getLocale } from "next-intl/server";
 import { parseForm } from "@/form-parser";
 import { notFound } from "next/navigation";
-import { query } from "@/db";
 import { verifySession } from "@/session";
 import { revalidatePath } from "next/cache";
 import Policy from "@/modules/access/public/Policy";
 import phraseRepository from "../data-access/PhraseRepository";
 
 const requestSchema = z.object({
+  verseId: z.string(),
   code: z.string(),
   wordIds: z.array(z.string()),
 });
@@ -40,16 +40,8 @@ export async function linkWords(formData: FormData): Promise<void> {
     userId: session!.user.id,
   });
 
-  const pathQuery = await query<{ verseId: string }>(
-    `
-        SELECT w.verse_id FROM word AS w
-        WHERE w.id = $1
-        `,
-    [request.data.wordIds[0]],
-  );
-
   const locale = await getLocale();
   revalidatePath(
-    `/${locale}/translate/${request.data.code}/${pathQuery.rows[0].verseId}`,
+    `/${locale}/translate/${request.data.code}/${request.data.verseId}`,
   );
 }

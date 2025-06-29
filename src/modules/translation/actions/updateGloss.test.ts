@@ -57,6 +57,7 @@ test("returns not found if user is not logged in", async () => {
   });
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
@@ -81,6 +82,7 @@ test("returns not found if user is not a translator on the language", async () =
   });
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
@@ -101,6 +103,7 @@ test("returns not found if the phrase does not exist", async () => {
   const language = scenario.languages.spanish;
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("languageCode", language.code);
   formData.set("phraseId", "123456");
   formData.set("gloss", "asdf");
@@ -130,6 +133,7 @@ test("returns not found if the phrase is in a different language", async () => {
   const otherLanguage = scenario.languages.another;
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("languageCode", otherLanguage.code);
   formData.set("phraseId", "123456");
   formData.set("gloss", "asdf");
@@ -155,6 +159,7 @@ test("creates a new gloss for the phrase", async () => {
   });
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
@@ -193,6 +198,7 @@ test("creates a new gloss for the phrase and tracks approval", async () => {
   });
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
@@ -242,6 +248,7 @@ test("updates an existing gloss for the phrase", async () => {
   });
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");
@@ -288,6 +295,7 @@ test("updates an existing gloss for the phrase and tracks approval", async () =>
   });
 
   const formData = new FormData();
+  formData.set("verseId", "123");
   formData.set("languageCode", language.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("gloss", "asdf");

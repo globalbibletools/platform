@@ -12,6 +12,7 @@ import * as z from "zod";
 import phraseRepository from "../data-access/PhraseRepository";
 
 const requestSchema = z.object({
+  verseId: z.string(),
   languageCode: z.string(),
   phraseId: z.coerce.number().int(),
   note: z.string(),
@@ -64,21 +65,8 @@ export async function updateFootnoteAction(formData: FormData): Promise<any> {
     notFound();
   }
 
-  // TODO: eliminate this with a repo method or action arguments
-  const pathQuery = await query<{ code: string; verseId: string }>(
-    `SELECT l.code, w.verse_id FROM phrase AS ph
-        JOIN language AS l ON l.id = ph.language_id
-        JOIN phrase_word AS phw ON phw.phrase_id = ph.id
-        JOIN word AS w ON w.id = phw.word_id
-        WHERE ph.id = $1
-        LIMIT 1`,
-    [request.data.phraseId],
+  const locale = await getLocale();
+  revalidatePath(
+    `/${locale}/translate/${request.data.languageCode}/${request.data.verseId}`,
   );
-
-  if (pathQuery.rows.length > 0) {
-    const locale = await getLocale();
-    revalidatePath(
-      `/${locale}/translate/${request.data.languageCode}/${pathQuery.rows[0].verseId}`,
-    );
-  }
 }

@@ -143,6 +143,7 @@ export default function TranslateView({
             return (
               <TranslateWord
                 key={word.id}
+                verseId={verseId}
                 word={word}
                 wordSelected={selectedWords.includes(word.id)}
                 phrase={phrase}
@@ -193,6 +194,7 @@ export default function TranslateView({
       {showSidebar && (
         <TranslationSidebar
           ref={sidebarRef}
+          verseId={verseId}
           language={language}
           word={sidebarWord}
           phrase={sidebarPhrase!}

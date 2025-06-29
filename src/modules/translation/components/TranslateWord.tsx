@@ -16,6 +16,7 @@ import { GlossApprovalMethodRaw } from "../types";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 
 export interface TranslateWordProps {
+  verseId: string;
   word: {
     id: string;
     text: string;
@@ -54,6 +55,7 @@ export interface TranslateWordProps {
 export default function TranslateWord({
   word,
   phrase,
+  verseId,
   isHebrew,
   language,
   phraseFocused,
@@ -118,6 +120,7 @@ export default function TranslateWord({
     autosaveQueued.current = false;
 
     const formData = new FormData();
+    formData.set("verseId", verseId);
     formData.set("languageCode", language.code);
     formData.set("phraseId", phrase.id.toString());
     formData.set("state", state);

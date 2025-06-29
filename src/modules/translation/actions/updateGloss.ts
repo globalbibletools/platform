@@ -1,6 +1,5 @@
 "use server";
 
-import { query } from "@/db";
 import { parseForm } from "@/form-parser";
 import Policy from "@/modules/access/public/Policy";
 import { serverActionLogger } from "@/server-action";
@@ -14,6 +13,7 @@ import { updateGlossUseCase } from "../use-cases/updateGloss";
 import { NotFoundError } from "@/shared/errors";
 
 const requestSchema = z.object({
+  verseId: z.string(),
   languageCode: z.string(),
   phraseId: z.coerce.number().int(),
   state: z.nativeEnum(GlossStateRaw).optional(),
@@ -58,22 +58,8 @@ export async function updateGlossAction(formData: FormData): Promise<any> {
     }
   }
 
-  // TODO: figure out how to replace this.
-  // Option 1: query the DB to get the verse ID
-  // Option 2: send the verse ID from the client
-  const pathQuery = await query<{ code: string; verseId: string }>(
-    `SELECT w.verse_id FROM phrase AS ph
-        JOIN phrase_word AS phw ON phw.phrase_id = ph.id
-        JOIN word AS w ON w.id = phw.word_id
-        WHERE ph.id = $1
-        LIMIT 1`,
-    [request.data.phraseId],
+  const locale = await getLocale();
+  revalidatePath(
+    `/${locale}/translate/${request.data.languageCode}/${request.data.verseId}`,
   );
-
-  if (pathQuery.rows.length > 0) {
-    const locale = await getLocale();
-    revalidatePath(
-      `/${locale}/translate/${request.data.languageCode}/${pathQuery.rows[0].verseId}`,
-    );
-  }
 }

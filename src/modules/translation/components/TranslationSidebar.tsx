@@ -52,6 +52,7 @@ export interface TranslationSidebarProps {
   className?: string;
   word: Word;
   phrase: Phrase;
+  verseId: string;
   language: {
     code: string;
     font: string;
@@ -67,7 +68,7 @@ export interface TranslationSidebarRef {
 const TranslationSidebar = forwardRef<
   TranslationSidebarRef,
   TranslationSidebarProps
->(({ className = "", language, word, phrase, onClose }, ref) => {
+>(({ className = "", language, word, phrase, verseId, onClose }, ref) => {
   const t = useTranslations("TranslationSidebar");
 
   const canReadTranslatorNotes = language.roles.includes("VIEWER");
@@ -104,6 +105,7 @@ const TranslationSidebar = forwardRef<
           if (phrase.id) {
             setSavingFootnote(true);
             const form = new FormData();
+            form.set("verseId", verseId);
             form.set("phraseId", phrase.id.toString());
             form.set("note", note);
             form.set("languageCode", language.code);
@@ -114,7 +116,7 @@ const TranslationSidebar = forwardRef<
         5000,
         { leading: false, trailing: true },
       ),
-    [phrase.id, language.code],
+    [phrase.id, language.code, verseId],
   );
 
   const [isSavingTranslatorNote, setSavingTranslatorNote] = useState(false);
@@ -125,6 +127,7 @@ const TranslationSidebar = forwardRef<
           if (phrase.id) {
             setSavingTranslatorNote(true);
             const form = new FormData();
+            form.set("verseId", verseId);
             form.set("phraseId", phrase.id.toString());
             form.set("note", note);
             form.set("languageCode", language.code);
@@ -135,7 +138,7 @@ const TranslationSidebar = forwardRef<
         5000,
         { leading: false, trailing: true },
       ),
-    [phrase.id, language.code],
+    [phrase.id, language.code, verseId],
   );
 
   const lexiconEntryRef = useRef<HTMLDivElement>(null);

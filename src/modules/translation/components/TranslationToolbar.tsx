@@ -88,6 +88,7 @@ export default function TranslationToolbar({
     const inputs = document.querySelectorAll("[data-phrase]");
     const form = new FormData();
     form.set("code", code);
+    form.set("verseId", verseId);
     let idx = 0;
     inputs.forEach((input) => {
       const phraseId = (input as HTMLInputElement).dataset.phrase;
@@ -116,6 +117,7 @@ export default function TranslationToolbar({
   const onLinkWords = useCallback(async () => {
     const form = new FormData();
     form.set("code", code);
+    form.set("verseId", verseId);
     selectedWords.forEach((wordId, i) => {
       form.set(`wordIds[${i}]`, wordId);
     });
@@ -134,6 +136,7 @@ export default function TranslationToolbar({
       const form = new FormData();
       form.set("code", code);
       form.set("phraseId", focusedPhrase.id.toString());
+      form.set("verseId", verseId);
       unlinkPhrase(form);
       await mutate({
         type: "book-progress",
