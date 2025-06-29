@@ -9,7 +9,6 @@ library.add(
   FaBrands.faGithub,
   FaBrands.faGoogle,
   FaSolid.faRobot,
-  FaSolid.faMagicWandSparkles,
   FaSolid.faCirclePlay,
   FaSolid.faClipboardCheck,
   FaSolid.faPause,

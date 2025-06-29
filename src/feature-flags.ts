@@ -1,8 +1,8 @@
-import { useLayoutEffect, useMemo, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
-export type Feature = "llm-prediction";
+export type Feature = never; // string union of available flags
 
-export const features: Feature[] = ["llm-prediction"];
+export const features: Feature[] = [];
 
 export function isFeatureEnabled(feature: Feature) {
   const featureList = window.localStorage.getItem("features")?.split(",") ?? [];

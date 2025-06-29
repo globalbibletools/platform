@@ -10,7 +10,6 @@ import TranslationReference from "../components/TranslationReference";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import { incrementVerseId } from "@/verse-utils";
-import { useFeatureFlag } from "@/feature-flags";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 
 interface MachineSuggestion {
@@ -56,8 +55,6 @@ export default function TranslateView({
   phrases,
   language,
 }: TranslationViewProps) {
-  const isLlmPredictionEnabled = useFeatureFlag("llm-prediction");
-
   const isHebrew = parseInt(verseId.slice(0, 2)) < 40;
 
   const [showSidebar, setShowSidebar] = useState(false);
@@ -154,14 +151,6 @@ export default function TranslateView({
                 }
                 language={language}
                 isHebrew={isHebrew}
-                showLlmGloss={
-                  isLlmPredictionEnabled &&
-                  words.some((word) =>
-                    word.machineSuggestions.some(
-                      (sug) => sug.model === "gpt-4o-mini",
-                    ),
-                  )
-                }
                 onFocus={() => {
                   setSidebarWord(word);
                   focusPhrase(phrase);

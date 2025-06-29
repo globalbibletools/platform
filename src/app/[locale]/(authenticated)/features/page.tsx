@@ -10,7 +10,6 @@ export default function FeaturesPage() {
         dark:bg-gray-700 dark:border-gray-600 dark:shadow-none"
       >
         <ViewTitle>Features</ViewTitle>
-        <FeatureSwitch feature="llm-prediction" label="LLM Prediction" />
       </div>
     </div>
   );

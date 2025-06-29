@@ -11,7 +11,6 @@ import { useCallback, useEffect, useState } from "react";
 import { approveAll } from "../actions/approveAll";
 import { changeInterlinearLocation } from "../actions/changeInterlinearLocation";
 import { linkWords } from "../actions/linkWords";
-import { predictGlosses } from "../actions/predictGlosses";
 import { redirectToUnapproved } from "../actions/redirectToUnapproved";
 import { sanityCheck } from "../actions/sanityCheck";
 import { unlinkPhrase } from "../actions/unlinkPhrase";
@@ -25,7 +24,6 @@ import { useTranslationClientState } from "./TranslationClientState";
 import TranslationProgressBar from "./TranslationProgressBar";
 import { useSWRConfig } from "swr";
 import { useFlash } from "@/flash";
-import { useFeatureFlag } from "@/feature-flags";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 
 export interface TranslationToolbarProps {
@@ -39,8 +37,6 @@ export default function TranslationToolbar({
   currentLanguage,
   userRoles,
 }: TranslationToolbarProps) {
-  const isLlmPredictionEnabled = useFeatureFlag("llm-prediction");
-
   const t = useTranslations("TranslationToolbar");
   const { verseId, code, locale } = useParams<{
     locale: string;
@@ -160,19 +156,6 @@ export default function TranslationToolbar({
       setBacktranslations(result.data);
     }
     setRunningSanityCheck(false);
-  }, [code, verseId]);
-
-  const [runningGlossPrediction, setRunningGlossPrediction] = useState(false);
-  const onPredictGlosses = useCallback(async () => {
-    const form = new FormData();
-    form.set("code", code);
-    form.set("verseId", verseId);
-    setRunningGlossPrediction(true);
-    const result = await predictGlosses({ state: "idle" }, form);
-    if (result.state === "error" && result.error) {
-      flash.error(result.error);
-    }
-    setRunningGlossPrediction(false);
   }, [code, verseId]);
 
   useEffect(() => {
@@ -352,28 +335,6 @@ export default function TranslationToolbar({
                   className="me-1"
                 />
                 {t("sanity_check")}
-              </Button>
-            </>
-          )}
-          {isLlmPredictionEnabled && (
-            <>
-              <span className="mx-1 dark:text-gray-300" aria-hidden="true">
-                |
-              </span>
-              <Button
-                variant="tertiary"
-                disabled={!verseId}
-                onClick={onPredictGlosses}
-              >
-                <Icon
-                  icon={
-                    runningGlossPrediction ? "arrows-rotate" : (
-                      "wand-magic-sparkles"
-                    )
-                  }
-                  className="me-1"
-                />
-                Predict Glosses
               </Button>
             </>
           )}

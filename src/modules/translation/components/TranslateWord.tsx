@@ -43,7 +43,6 @@ export interface TranslateWordProps {
     roles: string[];
   };
   isHebrew: boolean;
-  showLlmGloss: boolean;
   wordSelected: boolean;
   phraseFocused: boolean;
   onSelect?(): void;
@@ -61,7 +60,6 @@ export default function TranslateWord({
   phraseFocused,
   wordSelected,
   backtranslation,
-  showLlmGloss,
   onSelect,
   onFocus,
   onShowDetail,
@@ -90,9 +88,6 @@ export default function TranslateWord({
   const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
   const googleTranslateSuggestion = word.machineSuggestions.find(
     (sug) => sug.model === "google-translate",
-  )?.gloss;
-  const llmSuggestion = word.machineSuggestions.find(
-    (sug) => sug.model === "gpt-4o-mini",
   )?.gloss;
   const hasMachineSuggestion =
     !isMultiWord &&
@@ -263,16 +258,6 @@ export default function TranslateWord({
           {word.referenceGloss}
         </span>
       </div>
-      {showLlmGloss && (
-        <div
-          className={`h-8 ${isHebrew ? "text-right pr-3" : "text-left pl-3"}`}
-          dir={language.textDirection}
-        >
-          <span className="inline-block italic" ref={llmGloss}>
-            {llmSuggestion}
-          </span>
-        </div>
-      )}
       {!editable ?
         <div
           className={`h-8 ${isHebrew ? "text-right pr-3" : "text-left pl-3"}`}

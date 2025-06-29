@@ -39,7 +39,6 @@
     "next": "14.2.23",
     "next-intl": "3.17.4",
     "nodemailer": "6.9.15",
-    "openai": "4.77.4",
     "oslo": "1.2.1",
     "patch-package": "8.0.0",
     "pg": "8.12.0",
