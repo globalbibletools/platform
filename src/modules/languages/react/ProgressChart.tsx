@@ -6,12 +6,11 @@ import { format } from "date-fns";
 import Checkbox from "@/components/Checkbox";
 import ComboboxInput from "@/components/ComboboxInput";
 import MultiselectInput from "@/components/MultiselectInput";
-import { La_Belle_Aurore } from "next/font/google";
 import FormLabel from "@/components/FormLabel";
 
 interface Contributor {
   id: string;
-  name: string;
+  name?: string | null;
 }
 
 interface UserContribution {
@@ -117,7 +116,7 @@ export default function ProgressChart({
                   fill: true,
                 },
                 ...contributors.map((contributor) => ({
-                  label: contributor.name,
+                  label: contributor.name ?? "???",
                   data: data.map((week) =>
                     week.books.reduce((sum, book) => {
                       if (!filter) {

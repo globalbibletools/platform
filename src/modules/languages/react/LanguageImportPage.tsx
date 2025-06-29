@@ -11,7 +11,6 @@ import { resetImport } from "../actions/resetImport";
 import { query } from "@/db";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Poller from "./Poller";
-import TextInput from "@/components/TextInput";
 
 const IMPORT_SERVER = "https://hebrewgreekbible.online";
 

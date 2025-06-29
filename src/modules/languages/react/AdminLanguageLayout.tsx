@@ -2,10 +2,11 @@ import { Icon } from "@/components/Icon";
 import { ReactNode } from "react";
 import { SidebarLink } from "@/components/NavLink";
 import { getTranslations } from "next-intl/server";
-import { query } from "@/db";
 import { notFound } from "next/navigation";
 import { verifySession } from "@/session";
 import { Metadata, ResolvingMetadata } from "next";
+import Policy from "@/modules/access/public/Policy";
+import { languageQueryService } from "../data-access/LanguageQueryService";
 
 interface LanguageLayoutProps {
   children: ReactNode;
@@ -15,19 +16,21 @@ interface LanguageLayoutProps {
   };
 }
 
+const policy = new Policy({
+  systemRoles: [Policy.SystemRole.Admin],
+  languageRoles: [Policy.LanguageRole.Admin],
+});
+
 export async function generateMetadata(
   { params }: LanguageLayoutProps,
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const { title } = await parent;
 
-  const languageQuery = await query<{ name: string }>(
-    `SELECT name FROM language WHERE code = $1`,
-    [params.code],
-  );
+  const language = await languageQueryService.findByCode(params.code);
 
   return {
-    title: `${languageQuery.rows[0].name} | ${title?.absolute}`,
+    title: `${language?.name ?? "Language"} | ${title?.absolute}`,
   };
 }
 
@@ -38,24 +41,16 @@ export default async function LanguageLayout({
   const t = await getTranslations("LanguageLayout");
 
   const session = await verifySession();
-  if (!session) {
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+    languageCode: params.code,
+  });
+  if (!authorized) {
     notFound();
   }
 
-  const languageQuery = await query<{ name: string; roles: string[] }>(
-    `SELECT l.name,
-            (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-            FROM language_member_role AS r WHERE r.language_id = l.id AND r.user_id = $2)
-        FROM language AS l WHERE l.code = $1`,
-    [params.code, session.user.id],
-  );
-  const language = languageQuery.rows[0];
-
-  if (
-    !language ||
-    (!session?.user.roles.includes("ADMIN") &&
-      !language.roles.includes("ADMIN"))
-  ) {
+  const language = await languageQueryService.findByCode(params.code);
+  if (!language) {
     notFound();
   }
 

@@ -1,6 +1,5 @@
 import ViewTitle from "@/components/ViewTitle";
 import { getTranslations } from "next-intl/server";
-import { query } from "@/db";
 import FormLabel from "@/components/FormLabel";
 import TextInput from "@/components/TextInput";
 import FieldError from "@/components/FieldError";
@@ -18,6 +17,8 @@ import { Metadata, ResolvingMetadata } from "next";
 import { fontMap } from "@/fonts";
 import { updateLanguageSettings } from "@/modules/languages/actions/updateLanguageSettings";
 import Form from "@/components/Form";
+import { languageQueryService } from "../data-access/LanguageQueryService";
+import { notFound } from "next/navigation";
 
 interface LanguageSettingsPageProps {
   params: { code: string };
@@ -39,28 +40,15 @@ export default async function LanguageSettingsPage({
   params,
 }: LanguageSettingsPageProps) {
   const t = await getTranslations("LanguageSettingsPage");
-  const languageQuery = await query<{
-    name: string;
-    code: string;
-    font: string;
-    textDirection: string;
-    bibleTranslationIds: string[];
-    referenceLanguageId?: string;
-  }>(
-    `SELECT name, code, font, text_direction AS "textDirection", translation_ids AS "bibleTranslationIds", reference_language_id AS "referenceLanguageId"
-        FROM language
-        WHERE code = $1`,
-    [params.code],
-  );
-  const languages = await query<{
-    id: string;
-    name: string;
-  }>(
-    `SELECT id, name
-        FROM language`,
-    [],
-  );
-  const translations = await fetchTranslations(params.code);
+
+  const [languageSettings, languages, translations] = await Promise.all([
+    languageQueryService.findSettingsByCode(params.code),
+    languageQueryService.findAll(),
+    fetchTranslations(params.code),
+  ]);
+  if (!languageSettings) {
+    notFound();
+  }
 
   return (
     <div className="px-8 py-6 w-fit overflow-y-auto h-full">
@@ -103,7 +91,7 @@ export default async function LanguageSettingsPage({
                 id="language-name"
                 name="name"
                 className="block w-56"
-                defaultValue={languageQuery.rows[0]?.name ?? ""}
+                defaultValue={languageSettings?.name ?? ""}
                 autoComplete="off"
                 aria-describedby="name-error"
                 autosubmit
@@ -115,7 +103,7 @@ export default async function LanguageSettingsPage({
                 {t("form.code").toUpperCase()}
               </FormLabel>
               <TextInput
-                defaultValue={languageQuery.rows[0]?.code}
+                defaultValue={languageSettings.code}
                 id="code"
                 name="code"
                 className="block w-20"
@@ -137,7 +125,7 @@ export default async function LanguageSettingsPage({
                 {t("form.font").toUpperCase()}
               </FormLabel>
               <ComboboxInput
-                defaultValue={languageQuery.rows[0].font}
+                defaultValue={languageSettings.font}
                 id="font"
                 name="font"
                 className="w-full h-10"
@@ -156,7 +144,7 @@ export default async function LanguageSettingsPage({
               </FormLabel>
               <div>
                 <ButtonSelectorInput
-                  defaultValue={languageQuery.rows[0].textDirection}
+                  defaultValue={languageSettings.textDirection}
                   name="text_direction"
                   aria-labelledby="text-direction-label"
                   aria-describedby="text-direction-error"
@@ -191,7 +179,7 @@ export default async function LanguageSettingsPage({
             <SortableMultiselectInput
               name="bible_translations"
               className="w-full"
-              defaultValue={languageQuery.rows[0].bibleTranslationIds}
+              defaultValue={languageSettings.translationIds}
               items={translations.map((t) => ({
                 label: t.name,
                 value: t.id,
@@ -216,12 +204,12 @@ export default async function LanguageSettingsPage({
             <ComboboxInput
               id="reference-language"
               name="reference_language_id"
-              items={languages.rows.map((language) => ({
+              items={languages.map((language) => ({
                 label: language.name,
                 value: language.id,
               }))}
               className="block w-64"
-              defaultValue={languageQuery.rows[0].referenceLanguageId}
+              defaultValue={languageSettings.referenceLanguageId ?? undefined}
               autosubmit
               aria-describedby="reference_language_error"
             />

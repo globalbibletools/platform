@@ -10,11 +10,11 @@ import {
 import ViewTitle from "@/components/ViewTitle";
 import Button from "@/components/Button";
 import { getMessages, getTranslations } from "next-intl/server";
-import { query } from "@/db";
 import { Metadata, ResolvingMetadata } from "next";
 import { redirect } from "next/navigation";
 import Pagination from "@/components/Pagination";
 import { NextIntlClientProvider } from "next-intl";
+import { languageQueryService } from "../data-access/LanguageQueryService";
 
 interface AdminLanguagePageProps {
   params: { locale: string };
@@ -47,7 +47,10 @@ export default async function AdminLanguagesPage({
     redirect("./languages?page=1");
   }
 
-  const { page: languages, total } = await fetchLanguagePage(page - 1, LIMIT);
+  const { page: languages, total } = await languageQueryService.search({
+    page: page - 1,
+    limit: LIMIT,
+  });
   if (languages.length === 0 && page !== 1) {
     redirect("./languages?page=1");
   }
@@ -105,50 +108,4 @@ export default async function AdminLanguagesPage({
       </div>
     </div>
   );
-}
-
-interface Language {
-  code: string;
-  name: string;
-  otProgress: number;
-  ntProgress: number;
-}
-
-interface LanguagePage {
-  total: number;
-  page: Language[];
-}
-
-async function fetchLanguagePage(
-  page: number,
-  limit: number,
-): Promise<LanguagePage> {
-  const languagesQuery = await query<LanguagePage>(
-    `
-        SELECT
-            (
-                SELECT COUNT(*) FROM language
-            ) AS total,
-            (
-                SELECT
-                    COALESCE(JSON_AGG(l.json), '[]')
-                FROM (
-                    SELECT
-                        JSON_BUILD_OBJECT(
-                            'name', l.name, 
-                            'code', l.code,
-                            'otProgress', COALESCE(p.ot_progress, 0),
-                            'ntProgress', COALESCE(p.nt_progress, 0)
-                        ) AS json
-                    FROM language AS l
-                    LEFT JOIN language_progress AS p ON p.code = l.code
-                    ORDER BY l.name
-                    OFFSET $1
-                    LIMIT $2
-                ) AS l
-            ) as page
-        `,
-    [page * limit, limit],
-  );
-  return languagesQuery.rows[0];
 }
