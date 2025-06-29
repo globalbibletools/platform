@@ -7,51 +7,38 @@ import { notFound } from "next/navigation";
 import { query } from "@/db";
 import { verifySession } from "@/session";
 import { revalidatePath } from "next/cache";
+import phraseRepository from "../data-access/PhraseRepository";
+import Policy from "@/modules/access/public/Policy";
 
 const unlinkPhraseSchema = z.object({
   code: z.string(),
   phraseId: z.coerce.number(),
 });
 
-export async function unlinkPhrase(formData: FormData): Promise<void> {
-  const session = await verifySession();
-  if (!session?.user) {
-    notFound();
-  }
+const policy = new Policy({
+  languageRoles: [Policy.LanguageRole.Translator],
+});
 
+export async function unlinkPhrase(formData: FormData): Promise<void> {
   const request = unlinkPhraseSchema.safeParse(parseForm(formData));
   if (!request.success) {
     return;
   }
 
-  const languageQuery = await query<{ roles: string[] }>(
-    `SELECT 
-            COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-        FROM language_member_role AS r
-        WHERE r.language_id = (SELECT id FROM language WHERE code = $1) 
-            AND r.user_id = $2`,
-    [request.data.code, session.user.id],
-  );
-  const language = languageQuery.rows[0];
-  if (
-    !language ||
-    (!session?.user.roles.includes("ADMIN") &&
-      !language.roles.includes("TRANSLATOR"))
-  ) {
+  const session = await verifySession();
+  const authorized = await policy.authorize({
+    actorId: session?.user.id,
+    languageCode: request.data.code,
+  });
+  if (!authorized) {
     notFound();
   }
 
-  await query(
-    `
-        UPDATE phrase AS ph
-            SET
-                deleted_at = NOW(),
-                deleted_by = $3
-        WHERE ph.language_id = (SELECT id FROM language WHERE code = $1)
-            AND ph.id = $2
-        `,
-    [request.data.code, request.data.phraseId, session.user.id],
-  );
+  await phraseRepository.unlink({
+    code: request.data.code,
+    phraseId: request.data.phraseId,
+    userId: session!.user.id,
+  });
 
   const pathQuery = await query<{ verseId: string }>(
     `

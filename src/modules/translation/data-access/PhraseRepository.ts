@@ -1,4 +1,4 @@
-import { query } from "@/db";
+import { query, transaction } from "@/db";
 import { DbLanguage } from "@/modules/languages/data-access/types";
 
 export interface DbPhrase {
@@ -93,6 +93,86 @@ const phraseRepository = {
     );
 
     return result.rows[0].exists;
+  },
+
+  async linkWords({
+    code,
+    wordIds,
+    userId,
+  }: {
+    code: string;
+    wordIds: string[];
+    userId: string;
+  }) {
+    await transaction(async (query) => {
+      const phrasesQuery = await query(
+        `
+          select from phrase as ph
+          join phrase_word as phw on phw.phrase_id = ph.id
+          join lateral (
+            select count(*) as count from phrase_word as phw
+            where phw.phrase_id = ph.id
+          ) as words on true
+          where ph.language_id = (select id from language where code = $1)
+            and ph.deleted_at is null
+            and phw.word_id = any($2::text[])
+            and words.count > 1
+          `,
+        [code, wordIds],
+      );
+      if (phrasesQuery.rows.length > 0) {
+        throw new Error("Words already linked");
+      }
+
+      await query(
+        `
+          update phrase as ph
+            set deleted_at = now(),
+              deleted_by = $3
+          from phrase_word as phw
+          where phw.phrase_id = ph.id
+            and phw.word_id = any($2::text[])
+            and ph.deleted_at is null
+            and ph.language_id = (select id from language where code = $1)
+          `,
+        [code, wordIds, userId],
+      );
+
+      await query(
+        `
+          with phrase as (
+            insert into phrase (language_id, created_by, created_at)
+            values ((select id from language where code = $1), $3, now())
+            returning id
+          )
+          insert into phrase_word (phrase_id, word_id)
+          select phrase.id, unnest($2::text[]) from phrase
+        `,
+        [code, wordIds, userId],
+      );
+    });
+  },
+
+  async unlink({
+    code,
+    phraseId,
+    userId,
+  }: {
+    code: string;
+    phraseId: number;
+    userId: string;
+  }) {
+    await query(
+      `
+        update phrase as ph
+          set
+            deleted_at = now(),
+            deleted_by = $3
+        where ph.language_id = (select id from language where code = $1)
+          and ph.id = $2
+      `,
+      [code, phraseId, userId],
+    );
   },
 };
 export default phraseRepository;
