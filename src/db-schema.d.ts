@@ -5,24 +5,66 @@
 
 import type { ColumnType } from "kysely";
 
-export type EmailStatus = "BOUNCED" | "COMPLAINED" | "UNVERIFIED" | "VERIFIED";
+export enum EmailStatus {
+  Bounced = "BOUNCED",
+  Complained = "COMPLAINED",
+  Unverified = "UNVERIFIED",
+  Verified = "VERIFIED",
+}
+
+export enum GlossSource {
+  Import = "IMPORT",
+  User = "USER",
+}
+
+export enum GlossState {
+  Approved = "APPROVED",
+  Unapproved = "UNAPPROVED",
+}
+
+export enum JobStatus {
+  Complete = "complete",
+  Error = "error",
+  InProgress = "in-progress",
+  Pending = "pending",
+}
+
+export enum LanguageRole {
+  Admin = "ADMIN",
+  Translator = "TRANSLATOR",
+  Viewer = "VIEWER",
+}
+
+export enum ResourceCode {
+  Bdb = "BDB",
+  Lsj = "LSJ",
+  Strongs = "STRONGS",
+}
+
+export enum SystemRole {
+  Admin = "ADMIN",
+}
+
+export enum TextDirection {
+  Ltr = "ltr",
+  Rtl = "rtl",
+}
+
+export enum UserStatus {
+  Active = "active",
+  Disabled = "disabled",
+}
 
 export type Generated<T> =
   T extends ColumnType<infer S, infer I, infer U> ?
     ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
-export type GlossSource = "IMPORT" | "USER";
-
-export type GlossState = "APPROVED" | "UNAPPROVED";
-
 export type Int8 = ColumnType<
   string,
   bigint | number | string,
   bigint | number | string
 >;
-
-export type JobStatus = "complete" | "error" | "in-progress" | "pending";
 
 export type Json = JsonValue;
 
@@ -36,17 +78,7 @@ export type JsonPrimitive = boolean | number | string | null;
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
-export type LanguageRole = "ADMIN" | "TRANSLATOR" | "VIEWER";
-
-export type ResourceCode = "BDB" | "LSJ" | "STRONGS";
-
-export type SystemRole = "ADMIN";
-
-export type TextDirection = "ltr" | "rtl";
-
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
-
-export type UserStatus = "active" | "disabled";
 
 export interface Book {
   id: number;
@@ -65,7 +97,7 @@ export interface CronJob {
   username: Generated<string>;
 }
 
-export interface CronJobRunDetails {
+export interface CronJobRunDetail {
   command: string | null;
   database: string | null;
   end_time: Timestamp | null;
@@ -250,7 +282,7 @@ export interface UserInvitation {
   user_id: string;
 }
 
-export interface Users {
+export interface User {
   email: string;
   email_status: Generated<EmailStatus>;
   hashed_password: string | null;
@@ -279,7 +311,7 @@ export interface VerseAudioTiming {
   verse_id: string;
 }
 
-export interface WeeklyContributionStatistics {
+export interface WeeklyContributionStatistic {
   approved_count: number;
   edited_approved_count: number;
   edited_unapproved_count: number;
@@ -290,7 +322,7 @@ export interface WeeklyContributionStatistics {
   week: Timestamp;
 }
 
-export interface WeeklyGlossStatistics {
+export interface WeeklyGlossStatistic {
   approved_count: number;
   book_id: number;
   id: Generated<number>;
@@ -310,7 +342,7 @@ export interface Word {
 export interface DB {
   book: Book;
   "cron.job": CronJob;
-  "cron.job_run_details": CronJobRunDetails;
+  "cron.job_run_details": CronJobRunDetail;
   footnote: Footnote;
   gloss: Gloss;
   gloss_history: GlossHistory;
@@ -336,10 +368,10 @@ export interface DB {
   user_email_verification: UserEmailVerification;
   user_invitation: UserInvitation;
   user_system_role: UserSystemRole;
-  users: Users;
+  users: User;
   verse: Verse;
   verse_audio_timing: VerseAudioTiming;
-  weekly_contribution_statistics: WeeklyContributionStatistics;
-  weekly_gloss_statistics: WeeklyGlossStatistics;
+  weekly_contribution_statistics: WeeklyContributionStatistic;
+  weekly_gloss_statistics: WeeklyGlossStatistic;
   word: Word;
 }

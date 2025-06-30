@@ -11,7 +11,7 @@
     "prepare": "husky || true",
     "postinstall": "patch-package",
     "test": "vitest",
-    "generate-schema": "kysely-codegen --out-file ./src/db-schema.d.ts"
+    "generate-schema": "kysely-codegen --out-file ./src/db-schema.d.ts --runtime-enums=pascal-case --singularize"
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.678.0",
