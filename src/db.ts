@@ -1,11 +1,17 @@
 import pg, { type QueryResult, type QueryResultRow } from "pg";
 import { logger } from "./logging";
+import { Kysely, PostgresDialect } from "kysely";
+import { DB } from "./db-schema";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL env var missing");
 }
 
 let pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 20 });
+
+export const db = new Kysely<DB>({
+  dialect: new PostgresDialect({ pool }),
+});
 
 function onError(error: unknown) {
   logger.error(error);

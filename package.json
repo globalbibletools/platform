@@ -10,7 +10,8 @@
     "check-types": "tsc --noEmit",
     "prepare": "husky || true",
     "postinstall": "patch-package",
-    "test": "vitest"
+    "test": "vitest",
+    "generate-schema": "kysely-codegen --out-file ./src/db-schema.d.ts"
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.678.0",
@@ -36,6 +37,7 @@
     "googleapis": "148.0.0",
     "install": "0.13.0",
     "isomorphic-dompurify": "2.15.0",
+    "kysely": "0.28.2",
     "next": "14.2.23",
     "next-intl": "3.17.4",
     "nodemailer": "6.9.15",
@@ -78,6 +80,7 @@
     "eslint-config-prettier": "9.1.0",
     "factory.ts": "1.4.2",
     "husky": "9.1.7",
+    "kysely-codegen": "0.18.5",
     "lint-staged": "15.2.11",
     "lodash": "4.17.21",
     "playwright": "1.51.0",

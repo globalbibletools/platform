@@ -106,6 +106,12 @@ We will run these manually in production as needed.
 psql DATABASE_URL -f db/migrations/{migration}.sql
 ```
 
+If you change the database schema, make sure you run the following command to update the database types.
+
+```bash
+docker compose exec server npm run generate-schema
+```
+
 ### Entity Relationship Diagram
 
 Export an entity relationship diagram for the entire database using the following command. We use this to build the (Database Model page)[https://github.com/globalbibletools/platform/wiki/Database-Model] in the wiki.
