@@ -5,7 +5,7 @@ import { getMessages } from "next-intl/server";
 import { verifySession } from "@/session";
 import ClientTranslateView from "./ClientTranslationView";
 import { translateClient } from "@/google-translate";
-import languageMap from "@/data/locale-mapping.json";
+import { logger } from "@/logging";
 
 interface Props {
   params: { code: string; verseId: string };
@@ -336,10 +336,12 @@ async function machineTranslate(
   code: string,
   sourceCode: string,
 ): Promise<Record<string, string>> {
-  const toCode =
-    code === "test" ? "en" : languageMap[code as keyof typeof languageMap];
-  const fromCode = languageMap[sourceCode as keyof typeof languageMap];
-  if (!fromCode || !translateClient || words.length === 0) return {};
+  if (!translateClient || words.length === 0) return {};
+
+  const toCode = code === "test" ? "en" : translateClient.convertISOCode(code);
+  const fromCode = translateClient.convertISOCode(sourceCode);
+  logger.info({ toCode, fromCode });
+  if (!fromCode || !toCode) return {};
 
   const start = performance.now();
   const machineGlosses = await translateClient.translate(

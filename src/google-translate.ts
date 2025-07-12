@@ -1,4 +1,9 @@
 import { TranslationServiceClient } from "@google-cloud/translate";
+import languages from "@/data/gt-languages.json";
+
+const languageMap = Object.fromEntries(
+  languages.map((lang) => [lang.iso639_3code, lang.gtCode]),
+);
 
 export interface MachineTranslationClientOptions {
   key: string;
@@ -29,6 +34,9 @@ const client =
   });
 
 export const translateClient = client && {
+  convertISOCode(code: string): string | undefined {
+    return languageMap[code];
+  },
   async translate(
     strings: string[],
     targetLanguage: string,

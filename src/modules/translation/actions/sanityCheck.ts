@@ -6,7 +6,6 @@ import { notFound } from "next/navigation";
 import { query } from "@/db";
 import { verifySession } from "@/session";
 import { translateClient } from "@/google-translate";
-import languageMap from "@/data/locale-mapping.json";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -66,14 +65,10 @@ async function backtranslate(
   code: string,
   glosses: { gloss: string; phraseId: number }[],
 ): Promise<{ translation: string; phraseId: number }[]> {
-  const languageCode = languageMap[code as keyof typeof languageMap];
-  if (
-    !languageCode ||
-    languageCode === "en" ||
-    !translateClient ||
-    glosses.length === 0
-  )
-    return [];
+  if (!translateClient || glosses.length === 0) return [];
+
+  const languageCode = translateClient?.convertISOCode(code);
+  if (!languageCode || languageCode === "en") return [];
 
   const translations = await translateClient.translate(
     glosses.map((g) => g.gloss),
