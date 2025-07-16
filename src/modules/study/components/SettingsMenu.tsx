@@ -2,6 +2,7 @@ import ComboboxInput from "@/components/ComboboxInput";
 import FormLabel from "@/components/FormLabel";
 import { Icon } from "@/components/Icon";
 import SliderInput from "@/components/SliderInput";
+import Checkbox from "@/components/Checkbox";
 import { Popover } from "@headlessui/react";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
@@ -57,6 +58,26 @@ export default function SettingsMenu({
               step={1}
               value={textSize}
               onChange={(e) => onTextSizeChange?.(e.target.valueAsNumber)}
+            />
+          </div>
+        </div>
+        <div>
+          <FormLabel htmlFor="show-niqqud">{t("show-niqqud")}</FormLabel>
+          <div className="w-full">
+            <Checkbox
+              id="show-niqqud"
+              defaultChecked
+              className="w-full"
+            />
+          </div>
+        </div>
+        <div>
+          <FormLabel htmlFor="show-cantillation">{t("show-cantillation")}</FormLabel>
+          <div className="w-full">
+            <Checkbox
+              id="show-cantillation"
+              defaultChecked
+              className="w-full"
             />
           </div>
         </div>

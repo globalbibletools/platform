@@ -41,6 +41,7 @@ export default function ReadingToolbar({
   }>();
   const router = useRouter();
   const [textSize, setTextSize] = useState(3);
+  const [cantillation, setCantillation] = useState(true);
   const [audioVerse, setAudioVerse] = useState<string>();
 
   const bookId = parseInt(chapterId.slice(0, 2)) || 1;
@@ -149,10 +150,11 @@ export default function ReadingToolbar({
             languageCode={code}
             languages={languages}
             onTextSizeChange={setTextSize}
+            onCantillationChange={setCantillation}
           />
         </div>
       </div>
-      <ReadingContext.Provider value={{ textSize, audioVerse }}>
+      <ReadingContext.Provider value={{ cantillation, textSize, audioVerse }}>
         {children}
       </ReadingContext.Provider>
       {showAudioPlayer && (
@@ -168,6 +170,7 @@ export default function ReadingToolbar({
 }
 
 interface ReadingContextValue {
+  cantillation: bool;
   textSize: number;
   audioVerse?: string;
 }
