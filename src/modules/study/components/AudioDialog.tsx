@@ -127,7 +127,7 @@ export default function AudioDialog({
     }
   }, []);
 
-  const src = `https://gbt-audio.s3.amazonaws.com/${speaker}/${bookKeys[bookId - 1]}/${chapter.toString().padStart(3, "0")}.mp3`;
+  const src = `https://assets.globalbibletools.com/audio/${speaker}/${bookKeys[bookId - 1]}/${chapter.toString().padStart(3, "0")}.mp3`;
   const lastVerseId = useRef<string>();
 
   useEffect(() => {
