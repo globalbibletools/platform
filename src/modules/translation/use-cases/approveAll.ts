@@ -49,6 +49,7 @@ export async function approveAllUseCase(request: ApproveAllUseCaseRequest) {
         type: "approve_gloss",
         userId: request.userId,
         languageId: language?.id,
+        phraseId: phrase.id,
         method: phrase.method,
       })),
   );

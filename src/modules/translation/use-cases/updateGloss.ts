@@ -46,6 +46,7 @@ export async function updateGlossUseCase(request: UpdateGlossUseCaseRequest) {
     await trackingClient.trackEvent("approved_gloss", {
       languageId: phrase.language.id,
       userId: request.userId,
+      phraseId: request.phraseId,
       method: request.method,
     });
   }

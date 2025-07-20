@@ -284,12 +284,14 @@ test("creates a new glosses and updates existing glosses for each phrase", async
       type: "approve_gloss",
       userId: translator.id,
       languageId: language.id,
+      phraseId: phrases[1].id,
       method: GlossApprovalMethodRaw.GoogleSuggestion,
     },
     {
       type: "approve_gloss",
       userId: translator.id,
       languageId: language.id,
+      phraseId: phrases[2].id,
       method: GlossApprovalMethodRaw.MachineSuggestion,
     },
   ]);

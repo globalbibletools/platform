@@ -226,6 +226,7 @@ test("creates a new gloss for the phrase and tracks approval", async () => {
     {
       languageId: language.id,
       userId: translator.id,
+      phraseId: phrase.id,
       method: GlossApprovalMethodRaw.MachineSuggestion,
     },
   );
@@ -328,6 +329,7 @@ test("updates an existing gloss for the phrase and tracks approval", async () =>
     {
       languageId: language.id,
       userId: translator.id,
+      phraseId: phrase.id,
       method: GlossApprovalMethodRaw.GoogleSuggestion,
     },
   );
