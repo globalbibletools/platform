@@ -54,6 +54,7 @@ export interface ApprovalStats {
   method: string;
   chunkCount: number;
   cumulativeCount: number;
+  language: string;
 }
 
 const reportingQueryService = {
@@ -179,12 +180,20 @@ const reportingQueryService = {
           select
             language_id,
             data->>'method' as method,
+			case when book.book_id < 40 then 'hebrew' else 'greek' end as language,
             created_at,
             row_number() over (
               partition by language_id
               order by created_at
             ) as rn
           from tracking_event
+		  join lateral (
+			select verse.book_id from phrase_word
+			join word on phrase_word.word_id = word.id
+			join verse on verse.id = word.verse_id
+			where phrase_word.phrase_id = (data->>'phraseId')::integer
+			limit 1
+		  ) as book on true
         ),
         bucketed_data as (
           select *,
@@ -196,9 +205,10 @@ const reportingQueryService = {
             language_id as "languageId",
             chunk_id as "chunkId",
             method,
+			language,
             count(*) as "chunkCount"
           from bucketed_data
-          group by "languageId", "chunkId", method
+          group by "languageId", "chunkId", method, language
         )
         select
           cc.*,
@@ -208,7 +218,7 @@ const reportingQueryService = {
             rows between unbounded preceding and current row
           ) as "cumulativeCount"
         from chunk_counts cc
-        order by "languageId", "chunkId", method;
+        order by "languageId", "chunkId", language desc, method;
       `,
       [],
     );

@@ -188,7 +188,7 @@ async function updateApprovalsSheet(logger: pino.Logger) {
   const data = approvals.map((data) => [
     data.chunkId,
     data.languageId,
-    "",
+    data.language,
     data.method,
     data.chunkCount,
     data.cumulativeCount,
@@ -196,7 +196,7 @@ async function updateApprovalsSheet(logger: pino.Logger) {
   data.unshift([
     "Chunk Index",
     "Language ID",
-    "Testament",
+    "Language",
     "Method",
     "Chunk Count",
     "Cumulative Count",
