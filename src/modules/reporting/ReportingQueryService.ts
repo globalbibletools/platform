@@ -183,7 +183,7 @@ const reportingQueryService = {
 			case when book.book_id < 40 then 'hebrew' else 'greek' end as language,
             created_at,
             row_number() over (
-              partition by language_id
+              partition by language_id, book_id < 40
               order by created_at
             ) as rn
           from tracking_event
@@ -213,7 +213,7 @@ const reportingQueryService = {
         select
           cc.*,
           sum("chunkCount") over (
-            partition by "languageId", method
+            partition by "languageId", method, language
             order by "chunkId"
             rows between unbounded preceding and current row
           ) as "cumulativeCount"
