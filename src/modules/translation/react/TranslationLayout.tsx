@@ -2,9 +2,9 @@ import { query } from "@/db";
 import { getLocale, getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ReactNode } from "react";
-import TranslationToolbar from "../components/TranslationToolbar";
+import TranslationToolbar from "./TranslationToolbar";
 import { NextIntlClientProvider } from "next-intl";
-import { TranslationClientStateProvider } from "../components/TranslationClientState";
+import { TranslationClientStateProvider } from "./TranslationClientState";
 import { verifySession } from "@/session";
 
 interface Props {

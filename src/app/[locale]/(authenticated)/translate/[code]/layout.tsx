@@ -1,1 +1,1 @@
-export { default } from "@/modules/translation/views/TranslationLayout";
+export { default } from "@/modules/translation/react/TranslationLayout";

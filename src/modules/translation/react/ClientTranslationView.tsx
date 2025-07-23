@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import TranslateWord from "../components/TranslateWord";
+import TranslateWord from "./TranslateWord";
 import TranslationSidebar, {
   TranslationSidebarRef,
-} from "../components/TranslationSidebar";
-import { useTranslationClientState } from "../components/TranslationClientState";
-import TranslationReference from "../components/TranslationReference";
+} from "./TranslationSidebar";
+import { useTranslationClientState } from "./TranslationClientState";
+import TranslationReference from "./TranslationReference";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import { incrementVerseId } from "@/verse-utils";
