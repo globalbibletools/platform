@@ -2,8 +2,17 @@ import { query } from "@/db";
 import ProgressChart from "./ProgressChart";
 import { Icon } from "@/components/Icon";
 import ReadersBibleButton from "./ReadersBibleButton";
+import { verifySession } from "@/session";
+import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 
 export default async function LandingPage() {
+  const session = await verifySession();
+  if (session) {
+    const locale = await getLocale();
+    redirect(`/${locale}/dashboard`);
+  }
+
   const stats = await fetchLanguageProgressStats();
 
   return (
