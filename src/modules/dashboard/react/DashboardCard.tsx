@@ -10,7 +10,7 @@ export default function DashboardCard({
   return (
     <div
       className={`
-        rounded dark:bg-gray-700
+        rounded dark:bg-gray-700 flex flex-col
         ${className}
       `}
     >
@@ -18,3 +18,29 @@ export default function DashboardCard({
     </div>
   );
 }
+
+function Heading({ children }: { children: ReactNode }) {
+  return (
+    <h2 className="font-bold p-6 sm:p-7 pb-0 sm:pb-0 sm:text-lg md:text-xl">
+      {children}
+    </h2>
+  );
+}
+Heading.displayName = "DashboardCard.Heading";
+DashboardCard.Heading = Heading;
+
+function Body({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`p-6 sm:p-7 pt-3 sm:pt-4 flex-grow ${className}`}>
+      {children}
+    </div>
+  );
+}
+Body.displayName = "DashboardCard.Body";
+DashboardCard.Body = Body;
