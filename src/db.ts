@@ -5,6 +5,11 @@ if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL env var missing");
 }
 
+// Convert BigInts to Javascript numbers.
+pg.types.setTypeParser(pg.types.builtins.INT8, function (val) {
+  return parseInt(val, 10);
+});
+
 let pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 20 });
 
 function onError(error: unknown) {

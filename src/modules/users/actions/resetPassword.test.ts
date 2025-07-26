@@ -65,7 +65,7 @@ test("returns new session after changing the password", async () => {
   formData.set("password", "pa$$word");
   formData.set("confirm_password", "pa$$word");
   const response = resetPassword({ state: "idle" }, formData);
-  await expect(response).toBeNextjsRedirect("/en/read/eng/01001");
+  await expect(response).toBeNextjsRedirect("/en/dashboard");
 
   const dbResets = await findPasswordResetsForUser(user.id);
   expect(dbResets).toEqual([]);

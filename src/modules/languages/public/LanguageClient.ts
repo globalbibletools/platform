@@ -1,5 +1,7 @@
 import languageMemberRepository from "../data-access/LanguageMemberRepository";
+import { languageQueryService } from "../data-access/LanguageQueryService";
 import RemoveUserFromLanguages from "../use-cases/RemoveUserFromLanguages";
+import { PublicLanguageView } from "./types";
 
 const removeUserFromLanguagesUseCase = new RemoveUserFromLanguages(
   languageMemberRepository,
@@ -10,5 +12,15 @@ export const languageClient = {
   // rather than a direct call.
   async removeUserFromLanguages(userId: string): Promise<void> {
     await removeUserFromLanguagesUseCase.execute({ userId });
+  },
+
+  async findAllForUser(userId: string): Promise<PublicLanguageView[]> {
+    const languages = await languageQueryService.findForMember(userId);
+
+    return languages.map((lang) => ({
+      id: lang.id,
+      name: lang.name,
+      code: lang.code,
+    }));
   },
 };

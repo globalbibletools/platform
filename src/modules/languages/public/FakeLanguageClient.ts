@@ -1,5 +1,6 @@
 import { beforeEach } from "vitest";
 import { LanguageMemberRoleRaw } from "../model";
+import { PublicLanguageView } from "./types";
 
 interface LanguageMember {
   userId: string;
@@ -8,6 +9,8 @@ interface LanguageMember {
 
 interface Language {
   id: string;
+  code: string;
+  name: string;
   members: LanguageMember[];
 }
 
@@ -24,6 +27,16 @@ const fakeLanguageClient = {
         (member) => member.userId !== userId,
       );
     }
+  },
+
+  async findAllForUser(userId: string): Promise<PublicLanguageView[]> {
+    return this.languages
+      .filter((lang) => lang.members.some((member) => member.userId === userId))
+      .map((lang) => ({
+        id: lang.id,
+        name: lang.name,
+        code: lang.code,
+      }));
   },
 };
 export default fakeLanguageClient;

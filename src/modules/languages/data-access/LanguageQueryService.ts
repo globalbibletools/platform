@@ -23,6 +23,7 @@ interface LanguagePageQueryResult {
 type LanguageProgressQueryResult = Pick<DbLanguage, "name"> & {
   wordCount: number;
   approvedCount: number;
+  nextVerse: string | null;
 };
 
 interface LanguageTimeseriesProgressQueryResult {
@@ -135,20 +136,26 @@ export const languageQueryService = {
     code: string,
   ): Promise<LanguageProgressQueryResult[]> {
     const request = await query<LanguageProgressQueryResult>(
-      `select b.name, count(*) as "wordCount", count(*) filter (where ph.word_id is not null) as "approvedCount" from book as b
-          join verse as v on v.book_id = b.id
-          join word as w on w.verse_id = v.id
-          left join (
-            select phw.word_id from phrase_word as phw
-            join phrase as ph on ph.id = phw.phrase_id
-            join gloss as g on g.phrase_id = ph.id
-            join language as l on l.id = ph.language_id
-            where l.code = $1
-              and ph.deleted_at is null
-              and g.state = 'APPROVED'
-          ) as ph on ph.word_id = w.id
-          group by b.id
-          order by b.id`,
+      `
+        select
+          b.name,
+          count(*) as "wordCount",
+          count(*) filter (where ph.word_id is not null) as "approvedCount",
+          min(v.id) filter (where ph.word_id is null) as "nextVerse"
+        from book as b
+        join verse as v on v.book_id = b.id
+        join word as w on w.verse_id = v.id
+        left join (
+          select phw.word_id from phrase_word as phw
+          join phrase as ph on ph.id = phw.phrase_id
+          join gloss as g on g.phrase_id = ph.id
+          where ph.deleted_at is null
+            and g.state = 'APPROVED'
+            and ph.language_id = (select id from language where code = $1)
+        ) as ph on ph.word_id = w.id
+        group by b.id
+        order by b.id
+      `,
       [code],
     );
     return request.rows;
@@ -197,5 +204,22 @@ export const languageQueryService = {
       [code],
     );
     return request.rows[0];
+  },
+
+  async findForMember(userId: string): Promise<LanguageQueryResult[]> {
+    const result = await query<LanguageQueryResult>(
+      `
+        select id, code, name
+        from language
+        where exists (
+            select * from language_member_role
+            where language_id = language.id
+              and user_id = $1
+        )
+        order by name
+      `,
+      [userId],
+    );
+    return result.rows;
   },
 };

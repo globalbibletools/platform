@@ -50,6 +50,8 @@ test("disables users and removes from langauges", async () => {
   ];
   const language = {
     id: ulid(),
+    name: "Spanish",
+    code: "spa",
     members: languageMembers.slice(),
   };
   fakeLanguageClient.languages = [language];
@@ -66,7 +68,7 @@ test("disables users and removes from langauges", async () => {
 
   expect(fakeLanguageClient.languages).toEqual([
     {
-      id: language.id,
+      ...language,
       members: [languageMembers[1]],
     },
   ]);
