@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { languageClient } from "@/modules/languages/public/LanguageClient";
 import { verifySession } from "@/session";
 import { redirect } from "next/navigation";
+import reportingQueryService from "@/modules/reporting/ReportingQueryService";
 
 export default async function DashboardView({
   params,
@@ -24,21 +25,18 @@ export default async function DashboardView({
   }
 
   const currentLanguage = languages[0];
-  const [currentProgressData] = await Promise.all([
+  const [currentProgressData, contributionData] = await Promise.all([
     languageQueryService.findProgressByCode(currentLanguage.code),
+    reportingQueryService.findContributionsByUserId(session.user.id),
   ]);
 
-  const contributionData = [
-    { week: new Date(), wordCount: 342 },
-    { week: new Date(), wordCount: 362 },
-    { week: new Date(), wordCount: 623 },
-    { week: new Date(), wordCount: 120 },
-  ];
-
-  const max = contributionData.reduce(
-    (max, week) => Math.max(max, week.wordCount),
-    0,
+  const max = roundMax(
+    contributionData.reduce(
+      (max, week) => Math.max(max, week.approvedCount),
+      0,
+    ),
   );
+  const lastContribution = contributionData.at(-1)?.approvedCount ?? 0;
 
   return (
     <div className="absolute w-full h-[calc(100%-48px)] flex items-stretch overflow-auto">
@@ -53,71 +51,87 @@ export default async function DashboardView({
             </DashboardCard.Heading>
             <DashboardCard.Body>
               <table className="w-full">
-                {currentProgressData
-                  .filter(
-                    (book) =>
-                      book.approvedCount !== 0 &&
-                      book.approvedCount !== book.wordCount,
-                  )
-                  .map((book) => (
-                    <tr className="h-10" key={book.name}>
-                      <td>
-                        <span className="hidden sm:inline">{book.name}</span>
-                        <Button variant="link" className="sm:hidden">
-                          {book.name}
-                        </Button>
-                      </td>
-                      <td className="w-full relative">
-                        <div className="absolute inset-x-0 top-3 bottom-3 ml-4 lg:ml-8 bg-gray-600">
-                          <div
-                            className="bg-green-400 h-full"
-                            style={{
-                              width: `${(100 * book.approvedCount) / book.wordCount}%`,
-                            }}
-                          />
-                        </div>
-                      </td>
-                      <td className="hidden sm:table-cell">
-                        <Button
-                          variant="link"
-                          className="ml-4 lg:ml-8 whitespace-nowrap"
-                        >
-                          Continue <Icon icon="arrow-right" className="ml-2" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
+                <tbody>
+                  {currentProgressData
+                    .filter(
+                      (book) =>
+                        book.approvedCount !== 0 &&
+                        book.approvedCount !== book.wordCount,
+                    )
+                    .map((book) => (
+                      <tr className="h-10" key={book.name}>
+                        <td>
+                          <span className="hidden sm:inline">{book.name}</span>
+                          <Button variant="link" className="sm:hidden">
+                            {book.name}
+                          </Button>
+                        </td>
+                        <td className="w-full relative">
+                          <div className="absolute inset-x-0 top-3 bottom-3 ml-4 lg:ml-8 bg-gray-600">
+                            <div
+                              className="bg-green-400 h-full"
+                              style={{
+                                width: `${(100 * book.approvedCount) / book.wordCount}%`,
+                              }}
+                            />
+                          </div>
+                        </td>
+                        <td className="hidden sm:table-cell">
+                          <Button
+                            variant="link"
+                            className="ml-4 lg:ml-8 whitespace-nowrap"
+                          >
+                            Continue{" "}
+                            <Icon icon="arrow-right" className="ml-2" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
               </table>
             </DashboardCard.Body>
           </DashboardCard>
           <DashboardCard className="md:col-span-3 lg:col-span-2 h-60">
             <DashboardCard.Heading>
-              You&apos;ve glossed 253 words this week!
+              Last week, you contributed {lastContribution} glosses
             </DashboardCard.Heading>
-            <DashboardCard.Body>
-              <table className="h-full">
-                <tr className="h-full border-b-2 border-gray-500">
-                  {contributionData.map((week, i) => (
-                    <td className="w-12 relative" key={i}>
-                      <div className="absolute inset-0 mx-2 mt-2">
-                        <div
-                          className="absolute bg-green-400 bottom-0 inset-x-0"
-                          style={{
-                            height: `${(100 * week.wordCount) / max}%`,
-                          }}
-                        />
-                      </div>
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  {contributionData.map((week, i) => (
-                    <td className="w-12 text-center text-xs pt-2" key={i}>
-                      {format(week.week, "M/dd")}
-                    </td>
-                  ))}
-                </tr>
-              </table>
+            <DashboardCard.Body className="flex items-stretch gap-2">
+              {contributionData.length > 0 && (
+                <>
+                  <table className="h-full flex-grow mt-2">
+                    <tbody>
+                      <tr className="h-full border-b-2 border-t border-gray-500">
+                        {contributionData.map((week) => (
+                          <td
+                            className="w-12 relative"
+                            key={week.week.toString()}
+                          >
+                            <div className="absolute inset-0 mx-2">
+                              <div
+                                className="absolute bg-green-400 bottom-0 inset-x-0"
+                                style={{
+                                  height: `${(100 * week.approvedCount) / max}%`,
+                                }}
+                              />
+                            </div>
+                          </td>
+                        ))}
+                      </tr>
+                      <tr>
+                        {contributionData.map((week) => (
+                          <td
+                            className="w-12 text-center text-xs pt-2"
+                            key={week.week.toString()}
+                          >
+                            {format(week.week, "M/dd")}
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div className="flex-shrink-0 text-xs">{max}</div>
+                </>
+              )}
             </DashboardCard.Body>
           </DashboardCard>
           <DashboardCard className="md:col-span-full">
@@ -146,4 +160,9 @@ export default async function DashboardView({
       </div>
     </div>
   );
+}
+
+function roundMax(max: number): number {
+  const scale = Math.pow(10, max.toString().length - 1);
+  return Math.ceil(max / scale) * scale;
 }

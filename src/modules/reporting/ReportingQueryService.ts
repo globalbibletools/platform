@@ -63,15 +63,22 @@ const reportingQueryService = {
   ): Promise<ContributionRecord[]> {
     const result = await query<ContributionRecord>(
       `
-        select
-          week,
-          sum(approved_count) as "approvedCount",
-          sum(revoked_count) as "revokedCount",
-          sum(edited_approved_count) as "editedApprovedCount", 
-          sum(edited_unapproved_count) as "editedUnapprovedCount"
-        from weekly_contribution_statistics
-        where user_id = $1
-        group by week;
+        with week as (
+		    select
+				min(week) + interval '7 days' * generate_series(0, floor(extract(day from(now() - min(week) + interval '7 days') / 7) - 1)) as date
+			from weekly_contribution_statistics
+			where user_id = $1
+		)
+		select
+		  week.date as week,
+		  sum(coalesce(approved_count, 0)) as "approvedCount",
+		  sum(coalesce(revoked_count, 0)) as "revokedCount",
+		  sum(coalesce(edited_approved_count, 0)) as "editedApprovedCount", 
+		  sum(coalesce(edited_unapproved_count, 0)) as "editedUnapprovedCount"
+		from week
+		left join weekly_contribution_statistics s on s.week = week.date
+		where user_id = $1 or user_id is null
+		group by week.date
       `,
       [userId],
     );
