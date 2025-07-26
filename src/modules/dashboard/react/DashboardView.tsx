@@ -110,7 +110,7 @@ export default async function DashboardView() {
                   <table className="h-full flex-grow mt-2">
                     <tbody>
                       <tr className="h-full border-b-2 border-t border-gray-500">
-                        {contributionData.map((week) => (
+                        {contributionData.slice(-8).map((week) => (
                           <td
                             className="w-12 relative"
                             key={week.week.toString()}
