@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import reportingQueryService from "@/modules/reporting/ReportingQueryService";
 import DashboardLanguageSelector from "./DashboardLanguageSelector";
 import { cookies } from "next/headers";
+import { getLocale } from "next-intl/server";
 
 export default async function DashboardView() {
   const session = await verifySession();
@@ -41,6 +42,8 @@ export default async function DashboardView() {
   );
   const lastContribution = contributionData.at(-1)?.approvedCount ?? 0;
 
+  const locale = await getLocale();
+
   return (
     <div className="absolute w-full h-[calc(100%-48px)] flex items-stretch overflow-auto">
       <div className="px-4 lg:px-8 w-full">
@@ -71,7 +74,11 @@ export default async function DashboardView() {
                       <tr className="h-10" key={book.name}>
                         <td>
                           <span className="hidden sm:inline">{book.name}</span>
-                          <Button variant="link" className="sm:hidden">
+                          <Button
+                            variant="link"
+                            className="sm:hidden"
+                            href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
+                          >
                             {book.name}
                           </Button>
                         </td>
@@ -89,6 +96,7 @@ export default async function DashboardView() {
                           <Button
                             variant="link"
                             className="ml-4 lg:ml-8 whitespace-nowrap"
+                            href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
                           >
                             Continue{" "}
                             <Icon icon="arrow-right" className="ml-2" />
@@ -146,13 +154,14 @@ export default async function DashboardView() {
           <DashboardCard className="md:col-span-full">
             <DashboardCard.Heading>Total progress</DashboardCard.Heading>
             <DashboardCard.Body className="grid gap-2 grid-cols-[repeat(auto-fill,minmax(40px,1fr))]">
-              {currentProgressData.map((book) => (
-                <div
+              {currentProgressData.map((book, i) => (
+                <a
                   className={`
                     aspect-square rounded flex flex-col items-center justify-center
                     ${book.approvedCount === book.wordCount ? "text-gray-800 bg-green-400" : "bg-gray-600"}
                   `}
                   key={book.name}
+                  href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
                 >
                   <Icon
                     icon={
@@ -161,7 +170,7 @@ export default async function DashboardView() {
                     size="sm"
                   />
                   <div className="text-xs font-bold">{book.name}</div>
-                </div>
+                </a>
               ))}
             </DashboardCard.Body>
           </DashboardCard>
