@@ -50,6 +50,8 @@ test("disables users and removes from langauges", async () => {
   ];
   const language = {
     id: ulid(),
+    name: "Spanish",
+    code: "spa",
     members: languageMembers.slice(),
   };
   fakeLanguageClient.languages = [language];

@@ -3,21 +3,30 @@ import DashboardCard from "./DashboardCard";
 import { languageQueryService } from "@/modules/languages/data-access/LanguageQueryService";
 import { Icon } from "@/components/Icon";
 import { format } from "date-fns";
+import { languageClient } from "@/modules/languages/public/LanguageClient";
+import { verifySession } from "@/session";
+import { redirect } from "next/navigation";
 
 export default async function DashboardView({
   params,
 }: {
   params: { code: string };
 }) {
-  const [currentProgressData] = await Promise.all([
-    languageQueryService.findProgressByCode(params.code),
-  ]);
+  const session = await verifySession();
+  if (!session) {
+    redirect("/");
+  }
 
-  currentProgressData[0].approvedCount = 400;
-  currentProgressData[1].approvedCount = 1423;
-  currentProgressData[23].approvedCount = currentProgressData[23].wordCount;
-  currentProgressData[12].approvedCount = currentProgressData[12].wordCount;
-  currentProgressData[13].approvedCount = currentProgressData[13].wordCount;
+  const languages = await languageClient.findAllForUser(session.user.id);
+  if (languages.length === 0) {
+    // TODO: no languages view
+    return <div></div>;
+  }
+
+  const currentLanguage = languages[0];
+  const [currentProgressData] = await Promise.all([
+    languageQueryService.findProgressByCode(currentLanguage.code),
+  ]);
 
   const contributionData = [
     { week: new Date(), wordCount: 342 },
@@ -35,7 +44,7 @@ export default async function DashboardView({
     <div className="absolute w-full h-[calc(100%-48px)] flex items-stretch overflow-auto">
       <div className="px-4 lg:px-8 w-full">
         <h1 className="text-xl md:text-2xl font-bold mb-6 mt-8">
-          Welcome back, Translator!
+          Welcome back, {session.user.name}!
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-5 gap-4 w-full auto-rows-max">
           <DashboardCard className="md:col-span-3 md:h-60">
