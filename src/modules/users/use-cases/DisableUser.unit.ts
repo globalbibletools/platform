@@ -68,7 +68,7 @@ test("disables users and removes from langauges", async () => {
 
   expect(fakeLanguageClient.languages).toEqual([
     {
-      id: language.id,
+      ...language,
       members: [languageMembers[1]],
     },
   ]);
