@@ -10,7 +10,7 @@ export default function DashboardCard({
   return (
     <div
       className={`
-        rounded dark:bg-gray-700 flex flex-col
+        rounded bg-brown-100 dark:bg-gray-700 flex flex-col
         ${className}
       `}
     >

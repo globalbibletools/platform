@@ -83,9 +83,9 @@ export default async function DashboardView() {
                           </Button>
                         </td>
                         <td className="w-full relative">
-                          <div className="absolute inset-x-0 top-3 bottom-3 ml-4 lg:ml-8 bg-gray-600">
+                          <div className="absolute inset-x-0 top-3 bottom-3 ml-4 lg:ml-8 bg-brown-50 dark:bg-gray-600">
                             <div
-                              className="bg-green-400 h-full"
+                              className="bg-blue-800 dark:bg-green-400 h-full"
                               style={{
                                 width: `${(100 * book.approvedCount) / book.wordCount}%`,
                               }}
@@ -117,7 +117,7 @@ export default async function DashboardView() {
                 <>
                   <table className="h-full flex-grow mt-2">
                     <tbody>
-                      <tr className="h-full border-b-2 border-t border-gray-500">
+                      <tr className="h-full border-b-2 border-t border-gray-400 dark:border-gray-500">
                         {contributionData.slice(-8).map((week) => (
                           <td
                             className="w-12 relative"
@@ -125,7 +125,7 @@ export default async function DashboardView() {
                           >
                             <div className="absolute inset-0 mx-2">
                               <div
-                                className="absolute bg-green-400 bottom-0 inset-x-0"
+                                className="absolute bg-blue-800 dark:bg-green-400 bottom-0 inset-x-0"
                                 style={{
                                   height: `${(100 * week.approvedCount) / max}%`,
                                 }}
@@ -158,7 +158,11 @@ export default async function DashboardView() {
                 <a
                   className={`
                     aspect-square rounded flex flex-col items-center justify-center
-                    ${book.approvedCount === book.wordCount ? "text-gray-800 bg-green-400" : "bg-gray-600"}
+                    ${
+                      book.approvedCount === book.wordCount ?
+                        "text-gray-800 bg-blue-800 dark:bg-green-400"
+                      : "bg-gray-300 dark:bg-gray-600"
+                    }
                   `}
                   key={book.name}
                   href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
