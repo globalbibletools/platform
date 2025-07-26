@@ -61,51 +61,55 @@ export default async function DashboardView() {
             <DashboardCard.Heading>
               Continue were you left off
             </DashboardCard.Heading>
-            <DashboardCard.Body>
-              <table className="w-full">
-                <tbody>
-                  {currentProgressData
-                    .filter(
-                      (book) =>
-                        book.approvedCount !== 0 &&
-                        book.approvedCount !== book.wordCount,
-                    )
-                    .map((book) => (
-                      <tr className="h-10" key={book.name}>
-                        <td>
-                          <span className="hidden sm:inline">{book.name}</span>
-                          <Button
-                            variant="link"
-                            className="sm:hidden"
-                            href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
-                          >
-                            {book.name}
-                          </Button>
-                        </td>
-                        <td className="w-full relative">
-                          <div className="absolute inset-x-0 top-3 bottom-3 ml-4 lg:ml-8 bg-brown-50 dark:bg-gray-600">
-                            <div
-                              className="bg-blue-800 dark:bg-green-400 h-full"
-                              style={{
-                                width: `${(100 * book.approvedCount) / book.wordCount}%`,
-                              }}
-                            />
-                          </div>
-                        </td>
-                        <td className="hidden sm:table-cell">
-                          <Button
-                            variant="link"
-                            className="ml-4 lg:ml-8 whitespace-nowrap"
-                            href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
-                          >
-                            Continue{" "}
-                            <Icon icon="arrow-right" className="ml-2" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
+            <DashboardCard.Body className="relative overflow-hidden">
+              <div className="p-6 sm:p-7 pt-3 sm:pt-4 inset-0 w-full absolute overflow-y-auto">
+                <table className="w-full max-h-full">
+                  <tbody>
+                    {currentProgressData
+                      .filter(
+                        (book) =>
+                          book.approvedCount !== 0 &&
+                          book.approvedCount !== book.wordCount,
+                      )
+                      .map((book) => (
+                        <tr className="h-10" key={book.name}>
+                          <td>
+                            <span className="hidden sm:inline">
+                              {book.name}
+                            </span>
+                            <Button
+                              variant="link"
+                              className="sm:hidden"
+                              href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
+                            >
+                              {book.name}
+                            </Button>
+                          </td>
+                          <td className="w-full relative">
+                            <div className="absolute inset-x-0 top-3 bottom-3 ml-4 lg:ml-8 bg-brown-50 dark:bg-gray-600">
+                              <div
+                                className="bg-blue-800 dark:bg-green-400 h-full"
+                                style={{
+                                  width: `${(100 * book.approvedCount) / book.wordCount}%`,
+                                }}
+                              />
+                            </div>
+                          </td>
+                          <td className="hidden sm:table-cell">
+                            <Button
+                              variant="link"
+                              className="ml-4 lg:ml-8 whitespace-nowrap"
+                              href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
+                            >
+                              Continue{" "}
+                              <Icon icon="arrow-right" className="ml-2" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
             </DashboardCard.Body>
           </DashboardCard>
           <DashboardCard className="md:col-span-3 lg:col-span-2 h-60">
