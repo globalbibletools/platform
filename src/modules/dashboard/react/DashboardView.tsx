@@ -7,16 +7,16 @@ import { languageClient } from "@/modules/languages/public/LanguageClient";
 import { verifySession } from "@/session";
 import { redirect } from "next/navigation";
 import reportingQueryService from "@/modules/reporting/ReportingQueryService";
+import DashboardLanguageSelector from "./DashboardLanguageSelector";
+import { cookies } from "next/headers";
 
-export default async function DashboardView({
-  params,
-}: {
-  params: { code: string };
-}) {
+export default async function DashboardView() {
   const session = await verifySession();
   if (!session) {
     redirect("/");
   }
+
+  const browserCookies = cookies();
 
   const languages = await languageClient.findAllForUser(session.user.id);
   if (languages.length === 0) {
@@ -24,7 +24,10 @@ export default async function DashboardView({
     return <div></div>;
   }
 
-  const currentLanguage = languages[0];
+  const cookieLanguageCode = browserCookies.get("lang")?.value;
+  const currentLanguage =
+    languages.find((lang) => lang.code === cookieLanguageCode) ?? languages[0];
+
   const [currentProgressData, contributionData] = await Promise.all([
     languageQueryService.findProgressByCode(currentLanguage.code),
     reportingQueryService.findContributionsByUserId(session.user.id),
@@ -41,9 +44,15 @@ export default async function DashboardView({
   return (
     <div className="absolute w-full h-[calc(100%-48px)] flex items-stretch overflow-auto">
       <div className="px-4 lg:px-8 w-full">
-        <h1 className="text-xl md:text-2xl font-bold mb-6 mt-8">
-          Welcome back, {session.user.name}!
-        </h1>
+        <div className="flex items-center flex-col sm:flex-row mb-6 mt-8">
+          <h1 className="text-xl md:text-2xl font-bold flex-grow mb-2 sm:mb-0">
+            Welcome back, {session.user.name}!
+          </h1>
+          <DashboardLanguageSelector
+            languages={languages}
+            code={currentLanguage.code}
+          />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-5 gap-4 w-full auto-rows-max">
           <DashboardCard className="md:col-span-3 md:h-60">
             <DashboardCard.Heading>
