@@ -70,7 +70,7 @@ test("creates session for user if password matches", async () => {
   formData.set("email", user.email);
   formData.set("password", "pa$$word");
   await expect(login({ state: "idle" }, formData)).toBeNextjsRedirect(
-    "/en/read/eng/01001",
+    "/en/dashboard",
   );
 
   const sessions = await findSessionsForUser(user.id);

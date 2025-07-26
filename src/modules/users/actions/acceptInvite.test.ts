@@ -102,7 +102,7 @@ test("sets up user and logs them in", async () => {
   formData.set("confirm_password", "pa$$word");
   const response = acceptInvite({ state: "idle" }, formData);
 
-  await expect(response).toBeNextjsRedirect("/en/read/eng/01001");
+  await expect(response).toBeNextjsRedirect("/en/dashboard");
 
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({

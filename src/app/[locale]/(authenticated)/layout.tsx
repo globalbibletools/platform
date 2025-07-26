@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import DropdownMenu, { DropdownMenuItem } from "@/components/DropdownMenu";
 import { Icon } from "@/components/Icon";
 import LanguageDialog from "@/components/LanguageDialog";
@@ -33,6 +33,8 @@ export default async function AuthenticatedLayout({
   const canTranslate =
     session ? await fetchCanTranslate(session.user.id) : false;
 
+  const locale = await getLocale();
+
   return (
     <div className="relative min-h-screen flex flex-col overflow-x-hidden">
       <nav
@@ -41,7 +43,10 @@ export default async function AuthenticatedLayout({
               dark:bg-gray-800 dark:border-gray-500
             "
       >
-        <Link href="/" className="flex items-center me-8">
+        <Link
+          href={session ? `/${locale}/dashboard` : "/"}
+          className="flex items-center me-8"
+        >
           <img
             src="/bet-scroll.png"
             className="w-10 h-10"
