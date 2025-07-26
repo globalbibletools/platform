@@ -1,11 +1,10 @@
 "use server";
 
 import * as z from "zod";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { createSession } from "@/session";
 import { redirect } from "next/navigation";
 import { FormState } from "@/components/Form";
-import homeRedirect from "@/home-redirect";
 import { serverActionLogger } from "@/server-action";
 import userRepository from "@/modules/users/data-access/UserRepository";
 import LogIn from "../use-cases/LogIn";
@@ -75,5 +74,6 @@ export async function login(
   }
 
   await createSession(userId);
-  redirect(await homeRedirect());
+  const locale = await getLocale();
+  redirect(`/${locale}/dashboard`);
 }

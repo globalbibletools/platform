@@ -1,13 +1,11 @@
 "use server";
 
 import * as z from "zod";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import { parseForm } from "@/form-parser";
-import mailer from "@/mailer";
 import { createSession } from "@/session";
 import { FormState } from "@/components/Form";
-import homeRedirect from "@/home-redirect";
 import { serverActionLogger } from "@/server-action";
 import ResetPassword from "../use-cases/ResetPassword";
 import userRepository from "../data-access/UserRepository";
@@ -74,5 +72,6 @@ export async function resetPassword(
   }
 
   await createSession(userId);
-  redirect(await homeRedirect());
+  const locale = await getLocale();
+  redirect(`/${locale}/dashboard`);
 }
