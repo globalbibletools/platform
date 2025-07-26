@@ -139,7 +139,7 @@ export default async function DashboardView() {
                         ))}
                       </tr>
                       <tr>
-                        {contributionData.map((week) => (
+                        {contributionData.slice(-8).map((week) => (
                           <td
                             className="w-12 text-center text-xs pt-2"
                             key={week.week.toString()}
