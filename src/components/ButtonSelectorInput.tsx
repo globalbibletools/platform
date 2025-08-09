@@ -92,7 +92,7 @@ export function ButtonSelectorOption({
         rtl:last:rounded-l-lg rtl:last:border-l rtl:first:rounded-r-lg
         text-blue-800 has-[:not(:checked)]:shadow-inner
         has-[:checked]:bg-blue-800 has-[:checked]:text-white
-        dark:text-green-400 dark:bg-gray-800 dark:has-[:checked]:bg-green-400 dark:has-[:checked]:text-gray-800 dark:shadow-none
+        dark:text-green-400 dark:bg-gray-900 dark:has-[:checked]:bg-green-400 dark:has-[:checked]:text-gray-900 dark:shadow-none
         ${
           selectorContext.hasErrors ?
             "border-red-700 shadow-red-100"

@@ -164,7 +164,7 @@ const TranslationSidebar = forwardRef<
     <div
       className={`
           relative flex flex-col gap-4 flex-shrink-0 shadow rounded-2xl bg-brown-100
-          dark:bg-gray-700 dark:shadow-none
+          dark:bg-gray-800 dark:shadow-none
           ${className}
       `}
     >

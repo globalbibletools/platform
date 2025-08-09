@@ -65,7 +65,7 @@ export function HeaderDropdown({ button, items }: HeaderDropdownProps) {
                 absolute -end-4 flex flex-col pt-3 pb-2 w-fit min-w-[calc(100%+32px)] bg-white z-10
                 focus:outline-none
                 rounded-b border border-gray-200 shadow-md
-                dark:bg-gray-700 dark:border-gray-600 dark:shadow-none
+                dark:bg-gray-800 dark:border-gray-700 dark:shadow-none
             "
       >
         {items}
@@ -156,7 +156,7 @@ export function HeaderMenuItems({
                 absolute bg-white h-full max-w-full min-w-[180px] w-fit end-0
                 flex flex-col items-stretch gap-2
                 ltr:border-l rtl:border-r border-gray-200 py-4 shadow-left rtl:shadow-right
-                dark:bg-gray-700 dark:shadow-none dark:border-gray-500
+                dark:bg-gray-800 dark:shadow-none dark:border-gray-700
             "
         onClick={(e) => e.stopPropagation()}
       >

@@ -56,7 +56,7 @@ export default async function LanguageLayout({
 
   return (
     <div className="absolute w-full h-full flex items-stretch">
-      <div className="w-56 flex-shrink-0 bg-brown-100 dark:bg-gray-700 p-6 pt-7">
+      <div className="w-56 flex-shrink-0 bg-brown-100 dark:bg-gray-800 p-6 pt-7">
         <div className="px-3 mb-4">
           <h2 className="font-bold text-lg">{language.name}</h2>
         </div>

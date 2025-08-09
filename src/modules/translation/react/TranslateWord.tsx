@@ -182,10 +182,10 @@ export default function TranslateWord({
       dir={isHebrew ? "rtl" : "ltr"}
       className={`
           group/word relative p-2 rounded
-          ${phraseFocused && !wordSelected ? "bg-brown-50 dark:bg-gray-700" : ""}
+          ${phraseFocused && !wordSelected ? "bg-brown-50 dark:bg-gray-800" : ""}
           ${
             wordSelected ?
-              "shadow-inner dark:shadow-none bg-brown-100 dark:bg-gray-600"
+              "shadow-inner dark:shadow-none bg-brown-100 dark:bg-gray-700"
             : ""
           }
         `}

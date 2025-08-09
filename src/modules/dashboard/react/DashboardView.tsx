@@ -86,7 +86,7 @@ export default async function DashboardView() {
                             </Button>
                           </td>
                           <td className="w-full relative">
-                            <div className="absolute inset-x-0 top-3 bottom-3 ml-4 lg:ml-8 bg-brown-50 dark:bg-gray-600">
+                            <div className="absolute inset-x-0 top-3 bottom-3 ml-4 lg:ml-8 bg-brown-50 dark:bg-gray-700">
                               <div
                                 className="bg-blue-800 dark:bg-green-400 h-full"
                                 style={{
@@ -121,7 +121,7 @@ export default async function DashboardView() {
                 <>
                   <table className="h-full flex-grow mt-2">
                     <tbody>
-                      <tr className="h-full border-b-2 border-t border-gray-400 dark:border-gray-500">
+                      <tr className="h-full border-b-2 border-t border-gray-400 dark:border-gray-700">
                         {contributionData.slice(-8).map((week) => (
                           <td
                             className="w-12 relative"
@@ -165,7 +165,7 @@ export default async function DashboardView() {
                     ${
                       book.approvedCount === book.wordCount ?
                         "text-gray-800 bg-blue-800 dark:bg-green-400"
-                      : "bg-gray-300 dark:bg-gray-600"
+                      : "bg-gray-300 dark:bg-gray-700"
                     }
                   `}
                   key={book.name}
