@@ -12,7 +12,13 @@ export default class StartPasswordReset {
     const user = await this.userRepo.findByEmail(request.email);
     if (!user) return;
 
-    const reset = user.startPasswordReset();
+    let reset;
+    try {
+      reset = user.startPasswordReset();
+    } catch {
+      // Swallow these errors to not leak user data to attackers.
+      return;
+    }
 
     await this.userRepo.commit(user);
 

@@ -16,7 +16,30 @@ const startPasswordReset = new StartPasswordReset(mockUserRepo);
 
 test("does nothing if user could not be found", async () => {
   await startPasswordReset.execute({ email: "test@example.com" });
-  expect(sendEmailMock).not.toHaveBeenCalled();
+  expect(enqueueJob).not.toHaveBeenCalled();
+});
+
+test("swallows errors from password reset", async () => {
+  const props = {
+    id: "user-id",
+    name: "Joe Translator",
+    email: new UserEmail({
+      address: "test@example.com",
+      status: EmailStatus.Verified,
+    }),
+    password: new Password({ hash: "asdf" }),
+    passwordResets: [],
+    invitations: [],
+    status: UserStatus.Disabled,
+    systemRoles: [],
+  };
+  const user = new User({ ...props });
+  mockUserRepo.users = [user];
+
+  await startPasswordReset.execute({ email: props.email.address });
+  // @ts-ignore
+  expect(mockUserRepo.users[0].props).toEqual(props);
+  expect(enqueueJob).not.toHaveBeenCalled();
 });
 
 test("sends password reset email", async () => {

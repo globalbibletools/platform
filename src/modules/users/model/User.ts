@@ -6,6 +6,7 @@ import {
   InvalidPasswordResetToken,
   UserAlreadyActiveError,
   UserDisabledError,
+  UserPendingInviteError,
 } from "./errors";
 import Invitation from "./Invitation";
 import Password from "./Password";
@@ -122,6 +123,7 @@ export default class User {
   startPasswordReset(): PasswordReset {
     if (this.props.status === UserStatus.Disabled)
       throw new UserDisabledError();
+    if (!this.props.password) throw new UserPendingInviteError();
 
     const reset = PasswordReset.generate();
     this.props.passwordResets.push(reset);

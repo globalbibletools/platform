@@ -33,3 +33,9 @@ export class UserDisabledError extends Error {
     super();
   }
 }
+
+export class UserPendingInviteError extends Error {
+  constructor() {
+    super();
+  }
+}
