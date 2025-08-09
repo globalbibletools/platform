@@ -164,7 +164,7 @@ export default async function DashboardView() {
                     aspect-square rounded flex flex-col items-center justify-center
                     ${
                       book.approvedCount === book.wordCount ?
-                        "text-gray-900 bg-blue-800 dark:bg-green-400"
+                        "text-gray-800 bg-blue-800 dark:bg-green-400"
                       : "bg-gray-300 dark:bg-gray-700"
                     }
                   `}

@@ -10,7 +10,7 @@ export default async function LandingPage() {
   ]);
 
   return (
-    <div className="flex flex-col h-screen text-gray-900">
+    <div className="flex flex-col h-screen text-gray-800">
       <nav className="bg-white flex items-center h-20 border-b border-gray-200 relative flex-shrink-0 px-4 md:px-8">
         <a href="#hero" className="flex items-center mr-2 md:mr-4 lg:mr-12">
           <img

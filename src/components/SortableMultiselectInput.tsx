@@ -70,7 +70,7 @@ const SortableMultiselectInput = forwardRef<
         className={`${className} group/multiselect relative flex flex-col gap-1`}
       >
         <input name={name} ref={input} type="hidden" value={internalValue} />
-        <div className="border rounded flex-col shadow-inner flex border-gray-400 min-h-20">
+        <div className="border rounded flex-col shadow-inner flex border-gray-400 dark:border-gray-700 min-h-20">
           {internalValue
             .map((v) => items.find((i) => i.value === v))
             .filter((item?: ItemType): item is ItemType => !!item)
