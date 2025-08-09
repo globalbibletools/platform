@@ -96,12 +96,11 @@ export default class User {
   }
 
   reinvite(): string {
-    if (this.props.status === UserStatus.Disabled)
-      throw new UserDisabledError();
     if (this.props.password) throw new UserAlreadyActiveError();
 
     const invite = Invitation.generate();
     this.props.invitations.push(invite);
+    this.props.status = UserStatus.Active;
     return invite.token;
   }
 

@@ -64,7 +64,7 @@ describe("reinvite", () => {
     expect(() => user.reinvite()).toThrow(new UserAlreadyActiveError());
   });
 
-  test("throws error if user is disabled", () => {
+  test("reinables user and sends invite for disabled user", () => {
     const props = {
       id: "user-id-asdf",
       email: new UserEmail({
@@ -78,8 +78,20 @@ describe("reinvite", () => {
     };
     const user = new User({ ...props });
 
-    expect(() => user.reinvite()).toThrow(new UserDisabledError());
-    expect(user).toEqual(new User(props));
+    const token = user.reinvite();
+    expect(token).toBeToken(24);
+    expect(user).toEqual(
+      new User({
+        ...props,
+        status: UserStatus.Active,
+        invitations: [
+          new Invitation({
+            token: expect.toBeToken(24),
+            expiresAt: expect.toBeDaysIntoFuture(7),
+          }),
+        ],
+      }),
+    );
   });
 
   test("creates new invite for user", () => {
