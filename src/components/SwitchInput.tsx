@@ -21,7 +21,7 @@ export function SwitchInput({
         {...props}
         className={`
                     ui-checked:bg-blue-800 ui-not-checked:bg-gray-300 shadow-inner
-                    dark:ui-checked:bg-green-400 dark:ui-not-checked:bg-gray-500 dark:shadow-none
+                    dark:ui-checked:bg-green-400 dark:ui-not-checked:bg-gray-700 dark:shadow-none
                     relative inline-flex h-6 w-11 items-center rounded-full
                 `}
       >

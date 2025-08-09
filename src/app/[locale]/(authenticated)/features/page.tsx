@@ -7,7 +7,7 @@ export default function FeaturesPage() {
       <div
         className="flex-shrink p-6 mx-4 mt-4 w-96
         border border-gray-300 rounded shadow-md
-        dark:bg-gray-700 dark:border-gray-600 dark:shadow-none"
+        dark:bg-gray-800 dark:border-gray-700 dark:shadow-none"
       >
         <ViewTitle>Features</ViewTitle>
       </div>

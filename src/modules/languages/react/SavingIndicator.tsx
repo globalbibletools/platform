@@ -14,7 +14,7 @@ export default function SavingIndicator({ labels }: SavingIndicatorProps) {
   const formStatus = useFormStatus();
 
   return (
-    <div className="ms-6 text-gray-700 dark:text-gray-400">
+    <div className="ms-6 text-gray-800 dark:text-gray-400">
       {formStatus.pending ?
         <>
           <Icon icon="arrows-rotate" className="me-1" />

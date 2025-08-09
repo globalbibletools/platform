@@ -65,11 +65,11 @@ const MultiselectInput = forwardRef<HTMLInputElement, MultiselectInputProps>(
             className={`
             border rounded shadow-inner flex h-9
             has-[:focus-visible]:outline outline-2
-            bg-white dark:bg-gray-800
+            bg-white dark:bg-gray-900
             ${
               hasErrors ?
                 "border-red-700 shadow-red-100 outline-red-700"
-              : "border-gray-400 dark:border-gray-500 outline-green-300"
+              : "border-gray-400 dark:border-gray-700 outline-green-300"
             }
           `}
           >
@@ -92,12 +92,12 @@ const MultiselectInput = forwardRef<HTMLInputElement, MultiselectInputProps>(
           <Combobox.Options
             className="
               absolute z-20 mt-1 max-h-80 w-full overflow-auto rounded border border-gray-400 bg-white shadow
-              dark:bg-gray-700 dark:border-gray-600
+              dark:bg-gray-800 dark:border-gray-700
             "
           >
             {items.map((item) => (
               <Combobox.Option
-                className="px-3 py-2 ui-active:bg-green-200 dark:ui-active:green-400 dark:ui-active:text-gray-800"
+                className="px-3 py-2 ui-active:bg-green-200 dark:ui-active:green-400 dark:ui-active:text-gray-900"
                 key={item.value}
                 value={item.value}
               >

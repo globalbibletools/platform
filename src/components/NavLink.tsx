@@ -43,7 +43,7 @@ export function SidebarLink({
       href={href}
       className={(isActive) => `
             block px-3 py-1 rounded-lg text-blue-800 dark:text-green-400 font-bold mb-2
-            ${isActive ? "bg-green-200 dark:bg-gray-600" : ""}
+            ${isActive ? "bg-green-200 dark:bg-gray-700" : ""}
         `}
     >
       {children}

@@ -98,11 +98,11 @@ const ComboboxInput = forwardRef<HTMLInputElement, BaseComboboxInputProps>(
           <div
             className={`
               h-9 border rounded shadow-inner flex outline-2 has-[:focus-visible]:outline bg-white
-              dark:shadow-none dark:bg-gray-800
+              dark:shadow-none dark:bg-gray-900
               ${
                 hasErrors ?
                   "border-red-700 shadow-red-100 outline-red-700"
-                : "border-gray-400 outline-green-300 dark:border-gray-500"
+                : "border-gray-400 outline-green-300 dark:border-gray-700"
               }
           `}
           >
@@ -130,13 +130,13 @@ const ComboboxInput = forwardRef<HTMLInputElement, BaseComboboxInputProps>(
           <Combobox.Options
             className={`
               z-10 absolute w-full max-h-80 bg-white overflow-auto mt-1 rounded border border-gray-400 shadow
-              dark:bg-gray-700 dark:border-gray-600
+              dark:bg-gray-800 dark:border-gray-700
               ${up ? "-mt-1 top-0 transform -translate-y-full" : "mt-1"}
             `}
           >
             {filteredItems.map((item) => (
               <Combobox.Option
-                className="px-3 py-2 ui-active:bg-green-200 dark:ui-active:green-400 dark:ui-active:text-gray-800"
+                className="px-3 py-2 ui-active:bg-green-200 dark:ui-active:green-400 dark:ui-active:text-gray-900"
                 key={item.value}
                 value={item.value}
               >

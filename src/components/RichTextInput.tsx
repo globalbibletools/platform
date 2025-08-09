@@ -71,7 +71,7 @@ const RichTextInput = forwardRef<RichTextInputRef, RichTextInputProps>(
       <div
         className="
         border rounded border-gray-400 has-[:focus-visible]:outline outline-2 outline-green-300 bg-white
-        dark:border-gray-500 dark:bg-gray-800
+        dark:border-gray-700 dark:bg-gray-900
       "
       >
         <div className="border-gray-400 border-b p-1 flex gap-3">

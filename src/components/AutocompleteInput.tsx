@@ -117,11 +117,11 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
             ${inputClassName}
             border rounded shadow-inner focus-visible:outline outline-2 outline-green-300
             w-full px-3 h-9 bg-white
-            dark:shadow-none dark:bg-gray-800
+            dark:shadow-none dark:bg-gray-900
             ${
               state === "success" ?
                 "border-green-600 dark:border-green-500"
-              : "border-gray-400 dark:border-gray-500"
+              : "border-gray-400 dark:border-gray-700"
             }
           `}
           autoComplete="off"
@@ -210,7 +210,7 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
           <ol
             className={`
               z-10 absolute min-w-full min-h-[24px] max-h-80 bg-white overflow-auto mt-1 rounded border border-gray-400 shadow
-              dark:bg-gray-700 dark:border-gray-600
+              dark:bg-gray-800 dark:border-gray-700
               ${right ? "right-0" : "left-0"}
             `}
           >
@@ -230,7 +230,7 @@ const AutocompleteInput = forwardRef<HTMLInputElement, AutocompleteInputProps>(
                   px-3 py-1 whitespace-nowrap cursor-pointer
                   ${
                     i === activeIndex ?
-                      "bg-green-200 dark:bg-green-400 dark:text-gray-800"
+                      "bg-green-200 dark:bg-green-400 dark:text-gray-900"
                     : ""
                   }
                 `}

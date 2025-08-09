@@ -24,7 +24,7 @@ export default function LanguageDialog() {
         ref={dialog}
         className="
             rounded-lg shadow-md border border-gray-200 bg-white mx-auto p-8 focus-visible:outline outline-green-300 outline-2 start-2 bottom-2 end-auto
-            dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200
+            dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200
           "
       >
         <h2 className="font-bold text-xl mb-6 text-center">

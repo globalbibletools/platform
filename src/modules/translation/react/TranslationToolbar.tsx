@@ -208,7 +208,7 @@ export default function TranslationToolbar({
 
   return (
     <div>
-      <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-500 px-6 md:px-8 py-4">
+      <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-700 px-6 md:px-8 py-4">
         <form action={changeInterlinearLocation}>
           <div className={isTranslator ? "me-2" : "me-16"}>
             <FormLabel htmlFor="verse-reference">{t("verse")}</FormLabel>

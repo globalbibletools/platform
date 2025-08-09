@@ -36,7 +36,7 @@ export default function RootLayout({
       dir={language.dir}
     >
       <AnalyticsProvider id={process.env.FATHOM_ID} />
-      <body className="dark:bg-gray-800 dark:text-gray-200">
+      <body className="dark:bg-gray-900 dark:text-gray-300">
         <NextIntlClientProvider
           messages={{
             DocumentTitle: messages.DocumentTitle,

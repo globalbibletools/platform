@@ -39,7 +39,7 @@ function buttonClasses(
       return `${sharedClasses} ${sizeClasses} ${
         destructive ?
           "bg-red-800 dark:bg-red-700 outline-red-300"
-        : "bg-blue-800 dark:bg-green-400 dark:text-gray-800 outline-green-300"
+        : "bg-blue-800 dark:bg-green-400 dark:text-gray-900 outline-green-300"
       } text-white shadow-md`;
     }
     case "secondary": {

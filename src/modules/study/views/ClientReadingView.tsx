@@ -90,19 +90,18 @@ export default function ReadingView({
               <Fragment key={word.id}>
                 <span
                   className={`
-                                    cursor-pointer
-                                    ${i === verse.words.length - 1 ? "me-1" : ""}
-                                    ${
-                                      (
-                                        (linkedWords.length > 0 &&
-                                          popover.selectedWord?.word.id ===
-                                            word.id) ||
-                                        linkedWords.includes(word.id)
-                                      ) ?
-                                        "bg-green-200 dark:bg-gray-600 rounded-sm"
-                                      : ""
-                                    }
-                                `}
+                    cursor-pointer
+                    ${i === verse.words.length - 1 ? "me-1" : ""}
+                    ${
+                      (
+                        (linkedWords.length > 0 &&
+                          popover.selectedWord?.word.id === word.id) ||
+                        linkedWords.includes(word.id)
+                      ) ?
+                        "bg-green-200 dark:bg-gray-700 rounded-sm"
+                      : ""
+                    }
+                  `}
                   onDoubleClick={(e) => {
                     setShowSidebar(true);
                   }}
@@ -119,7 +118,9 @@ export default function ReadingView({
             words.unshift(
               <span
                 key={`verse-${verse.number}`}
-                className={"font-sans text-xs cursor-pointer"}
+                className={
+                  "font-sans font-bold text-xs cursor-pointer text-blue-800 dark:text-green-400"
+                }
                 // Allows audio player to start playing at this verse when clicked
                 data-verse-number={verse.number}
               >
@@ -131,7 +132,7 @@ export default function ReadingView({
                 key={verse.id}
                 className={`
                             rounded
-                            ${audioVerse === verse.id ? "bg-green-200 dark:bg-gray-600" : ""}
+                            ${audioVerse === verse.id ? "bg-green-200 dark:bg-gray-700" : ""}
                         `}
               >
                 {words}
@@ -153,7 +154,7 @@ export default function ReadingView({
         createPortal(
           <div
             className={`
-                        bg-brown-100 dark:bg-gray-700 rounded-sm border border-gray-300 dark:border-gray-600 shadow-sm dark:shadow-none px-1 font-bold
+                        bg-brown-100 dark:bg-gray-800 rounded-sm border border-gray-300 dark:border-gray-700 shadow-sm dark:shadow-none px-1 font-bold
                         ${textSizeMap[textSize]}
                     `}
             dir={language.textDirection}

@@ -80,7 +80,7 @@ export default function ListboxInput({
         <Listbox.Options
           className={`
                   z-10 absolute w-full max-h-80 bg-white overflow-auto rounded border border-gray-400 shadow
-                  dark:bg-gray-700 dark:border-gray-600
+                  dark:bg-gray-800 dark:border-gray-700
                   ${up ? "mt-0 -top-1 transform -translate-y-full" : "mt-1"}
                   ${right ? "end-0" : "start-0"}
                   ${menuClassName}
@@ -88,7 +88,7 @@ export default function ListboxInput({
         >
           {items.map((item) => (
             <Listbox.Option
-              className="px-3 py-2 ui-active:bg-green-200 dark:ui-active:green-400 dark:ui-active:text-gray-800"
+              className="px-3 py-2 ui-active:bg-green-200 dark:ui-active:green-400 dark:ui-active:text-gray-900"
               key={item.value}
               value={item.value}
             >

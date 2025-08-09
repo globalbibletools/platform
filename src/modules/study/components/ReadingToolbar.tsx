@@ -84,7 +84,7 @@ export default function ReadingToolbar({
 
   return (
     <>
-      <div className="flex gap-4 items-center justify-between sm:justify-center shadow-md dark:shadow-none dark:border-b dark:border-gray-500 px-4 lg:px-8 py-4">
+      <div className="flex gap-4 items-center justify-between sm:justify-center shadow-md dark:shadow-none dark:border-b dark:border-gray-700 px-4 lg:px-8 py-4">
         <form action={changeChapter} className="relative w-56 flex-shrink">
           <input type="hidden" value={code} name="language" />
           <TextInput

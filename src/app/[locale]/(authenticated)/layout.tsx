@@ -15,8 +15,6 @@ import {
 } from "./HeaderLink";
 import { verifySession } from "@/session";
 import { query } from "@/db";
-import { Menu } from "@headlessui/react";
-import NavLink from "@/components/NavLink";
 
 export default async function AuthenticatedLayout({
   children,
@@ -40,7 +38,7 @@ export default async function AuthenticatedLayout({
       <nav
         className="
               bg-white flex items-center h-16 border-b border-gray-200 relative flex-shrink-0 px-4 lg:px-8
-              dark:bg-gray-800 dark:border-gray-500
+              dark:bg-gray-900 dark:border-gray-700
             "
       >
         <Link
@@ -138,7 +136,7 @@ export default async function AuthenticatedLayout({
                 <span className="font-bold">{t("links.log_in")}</span>
               </HeaderMenuItem>
             }
-            <div className="border-b border-gray-200 dark:border-gray-500 my-2" />
+            <div className="border-b border-gray-200 dark:border-gray-700 my-2" />
             <HeaderMenuItem href={`/${params.locale}/read`}>
               <Icon icon="book-open" className="me-2" fixedWidth />
               <span className="font-bold">{t("links.read")}</span>
@@ -162,7 +160,7 @@ export default async function AuthenticatedLayout({
             {session && (
               <>
                 <div className="flex-grow" />
-                <div className="border-b border-gray-200 dark:border-gray-500 mb-2" />
+                <div className="border-b border-gray-200 dark:border-gray-700 mb-2" />
                 <HeaderMenuItem
                   href={`/${params.locale}/logout`}
                   prefetch={false}
