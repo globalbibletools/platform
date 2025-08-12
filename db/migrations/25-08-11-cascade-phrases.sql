@@ -45,4 +45,16 @@ foreign key (phrase_id)
 references phrase(id)
 on delete cascade;
 
+CREATE OR REPLACE FUNCTION public.gloss_audit() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    INSERT INTO gloss_history AS c (phrase_id, gloss, state, source, updated_at, updated_by)
+    SELECT OLD.phrase_id, OLD.gloss, OLD.state, OLD.source, OLD.updated_at, OLD.updated_by
+    WHERE EXISTS (SELECT FROM phrase WHERE id = OLD.phrase_id);
+
+    RETURN NULL;
+END;
+$$;
+
 commit;
