@@ -76,9 +76,10 @@ const reportingQueryService = {
 		  sum(coalesce(edited_approved_count, 0)) as "editedApprovedCount", 
 		  sum(coalesce(edited_unapproved_count, 0)) as "editedUnapprovedCount"
 		from week
-		left join weekly_contribution_statistics s on s.week = week.date
-		where user_id = $1 or user_id is null
+		left join weekly_contribution_statistics s
+          on s.week = week.date and s.user_id = $1
 		group by week.date
+        order by week.date
       `,
       [userId],
     );

@@ -34,8 +34,9 @@ export default async function DashboardView() {
     reportingQueryService.findContributionsByUserId(session.user.id),
   ]);
 
+  const truncatedContributionData = contributionData.slice(-8);
   const max = roundMax(
-    contributionData.reduce(
+    truncatedContributionData.reduce(
       (max, week) => Math.max(max, week.approvedCount),
       0,
     ),
@@ -122,7 +123,7 @@ export default async function DashboardView() {
                   <table className="h-full flex-grow mt-2">
                     <tbody>
                       <tr className="h-full border-b-2 border-t border-gray-400 dark:border-gray-700">
-                        {contributionData.slice(-8).map((week) => (
+                        {truncatedContributionData.map((week) => (
                           <td
                             className="w-12 relative"
                             key={week.week.toString()}
