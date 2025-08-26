@@ -5,7 +5,14 @@ import { Icon } from "@/components/Icon";
 import ListboxInput from "@/components/ListboxInput";
 import bookKeys from "@/data/book-keys.json";
 import { useTranslations } from "next-intl";
-import { PointerEvent, useCallback, useEffect, useRef, useState } from "react";
+import {
+  PointerEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import useSWR from "swr";
 import throttle from "@/components/throttle";
 
@@ -16,7 +23,8 @@ interface VerseAudioTiming {
 
 export interface AudioDialogProps {
   className?: string;
-  chapterId: string;
+  chapterId?: string;
+  verseId?: string;
   onVerseChange?(verseId: string | undefined): void;
   onClose?(): void;
 }
@@ -26,11 +34,17 @@ const PREV_THRESHOLD = 1.5; // The time threshold after which clicking previous 
 
 export default function AudioDialog({
   className = "",
-  chapterId,
+  verseId,
+  chapterId = verseId?.slice(0, -2),
   onClose,
   onVerseChange,
 }: AudioDialogProps) {
   const t = useTranslations("AudioDialog");
+
+  if (!chapterId) {
+    throw new Error("[AudioDialog] verseId or chapterId are required");
+  }
+  const isVersePlayer = !!verseId;
 
   const bookId = parseInt(chapterId.slice(0, 2)) || 1;
   const chapter = parseInt(chapterId.slice(2, 5)) || 1;
@@ -47,7 +61,11 @@ export default function AudioDialog({
     },
   );
 
+  const [length, setLength] = useState(0);
+  const [progress, setProgress] = useState(0);
+
   const canPlay = !!data;
+  const timeRange = useTimeRange({ timings: data ?? [], verseId, length });
 
   const audio = useRef<HTMLAudioElement>(null);
 
@@ -55,12 +73,15 @@ export default function AudioDialog({
     const el = audio.current;
     if (!el) return;
 
-    el.currentTime = data?.[0].start ?? 0;
-    setProgress(0);
-  }, []);
+    const newTime = timeRange.start;
+    el.currentTime = newTime;
+    setProgress(newTime);
+  }, [timeRange.start]);
 
   const prevVerse = useCallback(
     (count = 1) => {
+      if (isVersePlayer) return;
+
       const el = audio.current;
       if (!el || !data) return;
 
@@ -79,11 +100,13 @@ export default function AudioDialog({
         el.currentTime = data[currentIndex].start;
       }
     },
-    [data],
+    [data, isVersePlayer],
   );
 
   const nextVerse = useCallback(
     (count = 1) => {
+      if (isVersePlayer) return;
+
       const el = audio.current;
       if (!el || !data) return;
 
@@ -96,15 +119,18 @@ export default function AudioDialog({
       el.currentTime =
         data[Math.min(data.length - 1, currentIndex + count)].start;
     },
-    [data],
+    [data, isVersePlayer],
   );
 
-  const seek = useCallback((progress: number) => {
-    const el = audio.current;
-    if (!el) return;
+  const seek = useCallback(
+    (progress: number) => {
+      const el = audio.current;
+      if (!el) return;
 
-    el.currentTime = progress;
-  }, []);
+      el.currentTime = timeRange.start + progress;
+    },
+    [timeRange.start],
+  );
 
   const toggleSpeed = useCallback(() => {
     const newIndex = (speed + 1) % SPEEDS.length;
@@ -114,18 +140,26 @@ export default function AudioDialog({
     if (!el) return;
 
     el.playbackRate = SPEEDS[newIndex];
-  }, []);
+  }, [speed]);
 
   const togglePlay = useCallback(() => {
     const el = audio.current;
     if (!el) return;
+
+    if (el.currentTime >= timeRange.end) {
+      reset();
+    }
+
+    if (el.currentTime < timeRange.start) {
+      el.currentTime = timeRange.start;
+    }
 
     if (el.paused) {
       el.play();
     } else {
       el.pause();
     }
-  }, []);
+  }, [timeRange, reset]);
 
   const src = `https://assets.globalbibletools.com/audio/${speaker}/${bookKeys[bookId - 1]}/${chapter.toString().padStart(3, "0")}.mp3`;
   const lastVerseId = useRef<string>();
@@ -134,8 +168,8 @@ export default function AudioDialog({
     const el = audio.current;
     if (!el) return;
 
-    el.currentTime = data?.[0].start ?? 0;
-  }, [data]);
+    el.currentTime = timeRange.start;
+  }, [timeRange]);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -157,14 +191,16 @@ export default function AudioDialog({
     return () => window.removeEventListener("click", handler);
   }, [data]);
 
-  const [length, setLength] = useState(0);
-  const [progress, setProgress] = useState(0);
-
   function onTimeUpdate() {
     const el = audio.current;
     if (!el || !data) return;
 
-    setProgress(audio.current?.currentTime ?? 0);
+    const currentTime = audio.current?.currentTime ?? 0;
+    setProgress(currentTime);
+
+    if (currentTime >= timeRange.end) {
+      el.pause();
+    }
 
     const verse = data.reduce<VerseAudioTiming | undefined>(
       (last, v) => (v.start > el.currentTime ? last : v),
@@ -225,6 +261,8 @@ export default function AudioDialog({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [data, prevVerse, nextVerse, togglePlay]);
 
+  const shiftedProgress = progress - timeRange.start;
+
   return (
     <dialog
       open
@@ -261,15 +299,17 @@ export default function AudioDialog({
         onTimeUpdate={onTimeUpdate}
       />
       <div className="flex gap-2">
-        <Button
-          variant="tertiary"
-          className="w-8"
-          disabled={!canPlay}
-          onClick={() => prevVerse()}
-        >
-          <Icon icon="backward-step" size="lg" fixedWidth />
-          <span className="sr-only">{t("prev")}</span>
-        </Button>
+        {!isVersePlayer && (
+          <Button
+            variant="tertiary"
+            className="w-8"
+            disabled={!canPlay}
+            onClick={() => prevVerse()}
+          >
+            <Icon icon="backward-step" size="lg" fixedWidth />
+            <span className="sr-only">{t("prev")}</span>
+          </Button>
+        )}
         <Button
           variant="tertiary"
           className="w-8"
@@ -288,38 +328,40 @@ export default function AudioDialog({
           <Icon icon={isPlaying ? "pause" : "play"} size="lg" fixedWidth />
           <span className="sr-only">{t(isPlaying ? "pause" : "play")}</span>
         </Button>
-        <Button
-          variant="tertiary"
-          className="w-8"
-          disabled={!canPlay}
-          onClick={() => nextVerse()}
-        >
-          <Icon icon="forward-step" size="lg" fixedWidth />
-          <span className="sr-only">{t("next")}</span>
-        </Button>
+        {!isVersePlayer && (
+          <Button
+            variant="tertiary"
+            className="w-8"
+            disabled={!canPlay}
+            onClick={() => nextVerse()}
+          >
+            <Icon icon="forward-step" size="lg" fixedWidth />
+            <span className="sr-only">{t("next")}</span>
+          </Button>
+        )}
       </div>
       <div className="w-full flex justify-between gap-3 items-center">
         <span className="text-sm">
-          {Math.floor(progress / 60)
+          {Math.floor(shiftedProgress / 60)
             .toString()
             .padStart(2, "0")}
           :
-          {Math.round(progress % 60)
+          {Math.round(shiftedProgress % 60)
             .toString()
             .padStart(2, "0")}
         </span>
         <ScrubBar
           className="w-full"
-          length={length}
-          progress={progress}
+          length={timeRange.length}
+          progress={shiftedProgress}
           onChange={seek}
         />
         <span className="text-sm">
-          {Math.floor(length / 60)
+          {Math.floor(timeRange.length / 60)
             .toString()
             .padStart(2, "0")}
           :
-          {Math.round(length % 60)
+          {Math.round(timeRange.length % 60)
             .toString()
             .padStart(2, "0")}
         </span>
@@ -361,7 +403,7 @@ function ScrubBar({
   label,
   onChange,
 }: ScrubBarProps) {
-  const percent = progress / length;
+  const percent = Math.min(1, progress / length);
 
   const root = useRef<HTMLDivElement>(null);
   const [thumbKey, setThumbKey] = useState("left");
@@ -436,4 +478,42 @@ function ScrubBar({
       />
     </div>
   );
+}
+
+function useTimeRange({
+  timings,
+  verseId,
+  length,
+}: {
+  timings: VerseAudioTiming[];
+  verseId?: string;
+  length: number;
+}): { start: number; end: number; length: number } {
+  return useMemo(() => {
+    if (!verseId) {
+      const start = timings[0]?.start ?? 0;
+      return {
+        start,
+        end: length,
+        length: length - start,
+      };
+    }
+    const timingIndex = timings.findIndex((entry) => entry.verseId === verseId);
+    if (timingIndex < 0) {
+      const start = timings[0]?.start ?? 0;
+      return {
+        start,
+        end: length,
+        length: length - start,
+      };
+    }
+
+    const start = timings[timingIndex].start;
+    const end = timings[timingIndex + 1]?.start ?? length;
+    return {
+      start,
+      end,
+      length: end - start,
+    };
+  }, [timings, verseId]);
 }
