@@ -32,44 +32,6 @@ export interface AudioDialogProps {
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5];
 const PREV_THRESHOLD = 1.5; // The time threshold after which clicking previous verse, restarts the current verse.
 
-function useTimeRange({
-  timings,
-  verseId,
-  length,
-}: {
-  timings: VerseAudioTiming[];
-  verseId?: string;
-  length: number;
-}): { start: number; end: number; length: number } {
-  return useMemo(() => {
-    if (!verseId) {
-      const start = timings[0]?.start ?? 0;
-      return {
-        start,
-        end: length,
-        length: length - start,
-      };
-    }
-    const timingIndex = timings.findIndex((entry) => entry.verseId === verseId);
-    if (timingIndex < 0) {
-      const start = timings[0]?.start ?? 0;
-      return {
-        start,
-        end: length,
-        length: length - start,
-      };
-    }
-
-    const start = timings[timingIndex].start;
-    const end = timings[timingIndex + 1]?.start ?? length;
-    return {
-      start,
-      end,
-      length: end - start,
-    };
-  }, [timings, verseId]);
-}
-
 export default function AudioDialog({
   className = "",
   verseId,
@@ -111,7 +73,7 @@ export default function AudioDialog({
     const el = audio.current;
     if (!el) return;
 
-    const newTime = timeRange.start ?? 0;
+    const newTime = timeRange.start;
     el.currentTime = newTime;
     setProgress(newTime);
   }, [timeRange.start]);
@@ -206,7 +168,7 @@ export default function AudioDialog({
     const el = audio.current;
     if (!el) return;
 
-    el.currentTime = timeRange?.start ?? 0;
+    el.currentTime = timeRange.start;
   }, [timeRange]);
 
   useEffect(() => {
@@ -236,7 +198,7 @@ export default function AudioDialog({
     const currentTime = audio.current?.currentTime ?? 0;
     setProgress(currentTime);
 
-    if (timeRange?.end && currentTime >= timeRange.end) {
+    if (currentTime >= timeRange.end) {
       el.pause();
     }
 
@@ -516,4 +478,42 @@ function ScrubBar({
       />
     </div>
   );
+}
+
+function useTimeRange({
+  timings,
+  verseId,
+  length,
+}: {
+  timings: VerseAudioTiming[];
+  verseId?: string;
+  length: number;
+}): { start: number; end: number; length: number } {
+  return useMemo(() => {
+    if (!verseId) {
+      const start = timings[0]?.start ?? 0;
+      return {
+        start,
+        end: length,
+        length: length - start,
+      };
+    }
+    const timingIndex = timings.findIndex((entry) => entry.verseId === verseId);
+    if (timingIndex < 0) {
+      const start = timings[0]?.start ?? 0;
+      return {
+        start,
+        end: length,
+        length: length - start,
+      };
+    }
+
+    const start = timings[timingIndex].start;
+    const end = timings[timingIndex + 1]?.start ?? length;
+    return {
+      start,
+      end,
+      length: end - start,
+    };
+  }, [timings, verseId]);
 }
