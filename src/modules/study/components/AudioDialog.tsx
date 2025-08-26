@@ -5,7 +5,14 @@ import { Icon } from "@/components/Icon";
 import ListboxInput from "@/components/ListboxInput";
 import bookKeys from "@/data/book-keys.json";
 import { useTranslations } from "next-intl";
-import { PointerEvent, useCallback, useEffect, useRef, useState } from "react";
+import {
+  PointerEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import useSWR from "swr";
 import throttle from "@/components/throttle";
 
@@ -16,7 +23,8 @@ interface VerseAudioTiming {
 
 export interface AudioDialogProps {
   className?: string;
-  chapterId: string;
+  chapterId?: string;
+  verseId?: string;
   onVerseChange?(verseId: string | undefined): void;
   onClose?(): void;
 }
@@ -24,13 +32,46 @@ export interface AudioDialogProps {
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5];
 const PREV_THRESHOLD = 1.5; // The time threshold after which clicking previous verse, restarts the current verse.
 
+function useTimeRange({
+  timings,
+  verseId,
+}: {
+  timings: VerseAudioTiming[];
+  verseId?: string;
+}): { start: number; end?: number } {
+  return useMemo(() => {
+    if (!verseId) {
+      return {
+        start: timings[0]?.start ?? 0,
+      };
+    }
+    const timingIndex = timings.findIndex((entry) => entry.verseId === verseId);
+    if (timingIndex < 0) {
+      return {
+        start: timings[0].start ?? 0,
+      };
+    }
+
+    return {
+      start: timings[timingIndex].start,
+      end: timings[timingIndex + 1]?.start,
+    };
+  }, [timings, verseId]);
+}
+
 export default function AudioDialog({
   className = "",
-  chapterId,
+  verseId,
+  chapterId = verseId?.slice(0, -2),
   onClose,
   onVerseChange,
 }: AudioDialogProps) {
   const t = useTranslations("AudioDialog");
+
+  if (!chapterId) {
+    throw new Error("[AudioDialog] verseId or chapterId are required");
+  }
+  const isVersePlayer = !!verseId;
 
   const bookId = parseInt(chapterId.slice(0, 2)) || 1;
   const chapter = parseInt(chapterId.slice(2, 5)) || 1;
@@ -48,6 +89,7 @@ export default function AudioDialog({
   );
 
   const canPlay = !!data;
+  const timeRange = useTimeRange({ timings: data ?? [], verseId });
 
   const audio = useRef<HTMLAudioElement>(null);
 
@@ -55,12 +97,15 @@ export default function AudioDialog({
     const el = audio.current;
     if (!el) return;
 
-    el.currentTime = data?.[0].start ?? 0;
-    setProgress(0);
+    const newTime = data?.[0].start ?? 0;
+    el.currentTime = newTime;
+    setProgress(newTime);
   }, []);
 
   const prevVerse = useCallback(
     (count = 1) => {
+      if (isVersePlayer) return;
+
       const el = audio.current;
       if (!el || !data) return;
 
@@ -79,11 +124,13 @@ export default function AudioDialog({
         el.currentTime = data[currentIndex].start;
       }
     },
-    [data],
+    [data, isVersePlayer],
   );
 
   const nextVerse = useCallback(
     (count = 1) => {
+      if (isVersePlayer) return;
+
       const el = audio.current;
       if (!el || !data) return;
 
@@ -96,7 +143,7 @@ export default function AudioDialog({
       el.currentTime =
         data[Math.min(data.length - 1, currentIndex + count)].start;
     },
-    [data],
+    [data, isVersePlayer],
   );
 
   const seek = useCallback((progress: number) => {
@@ -120,12 +167,21 @@ export default function AudioDialog({
     const el = audio.current;
     if (!el) return;
 
+    const end = timeRange.end ?? el.duration;
+    if (el.currentTime >= end) {
+      reset();
+    }
+
+    if (el.currentTime < timeRange.start) {
+      el.currentTime = timeRange.start;
+    }
+
     if (el.paused) {
       el.play();
     } else {
       el.pause();
     }
-  }, []);
+  }, [timeRange, reset]);
 
   const src = `https://assets.globalbibletools.com/audio/${speaker}/${bookKeys[bookId - 1]}/${chapter.toString().padStart(3, "0")}.mp3`;
   const lastVerseId = useRef<string>();
@@ -134,8 +190,8 @@ export default function AudioDialog({
     const el = audio.current;
     if (!el) return;
 
-    el.currentTime = data?.[0].start ?? 0;
-  }, [data]);
+    el.currentTime = timeRange?.start ?? 0;
+  }, [timeRange]);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -164,7 +220,12 @@ export default function AudioDialog({
     const el = audio.current;
     if (!el || !data) return;
 
-    setProgress(audio.current?.currentTime ?? 0);
+    const currentTime = audio.current?.currentTime ?? 0;
+    setProgress(currentTime);
+
+    if (timeRange?.end && currentTime >= timeRange.end) {
+      el.pause();
+    }
 
     const verse = data.reduce<VerseAudioTiming | undefined>(
       (last, v) => (v.start > el.currentTime ? last : v),

@@ -25,6 +25,7 @@ import TranslationProgressBar from "./TranslationProgressBar";
 import { useSWRConfig } from "swr";
 import { useFlash } from "@/flash";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
+import AudioDialog from "@/modules/study/components/AudioDialog";
 
 export interface TranslationToolbarProps {
   languages: { name: string; code: string }[];
@@ -206,6 +207,8 @@ export default function TranslationToolbar({
     verseId,
   ]);
 
+  const [showAudioPlayer, setShowAudioPlayer] = useState(false);
+
   return (
     <div>
       <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-700 px-6 md:px-8 py-4">
@@ -316,6 +319,13 @@ export default function TranslationToolbar({
               }
             </>
           )}
+          <span className="mx-1 dark:text-gray-300" aria-hidden="true">
+            |
+          </span>
+          <Button variant="tertiary" onClick={() => setShowAudioPlayer(true)}>
+            <Icon icon="circle-play" className="me-1" />
+            {t("audio")}
+          </Button>
           {isPlatformAdmin && (
             <>
               {isTranslator && (
@@ -341,6 +351,13 @@ export default function TranslationToolbar({
         </div>
       </div>
       {verseId && <TranslationProgressBar />}
+      {showAudioPlayer && (
+        <AudioDialog
+          className="bottom-12 w-[calc(100%-1rem)] mx-2 sm:w-80 sm:mx-auto"
+          verseId={verseId}
+          onClose={() => setShowAudioPlayer(false)}
+        />
+      )}
     </div>
   );
 }
