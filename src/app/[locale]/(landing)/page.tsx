@@ -14,7 +14,7 @@ export default async function LandingPage() {
       <nav className="bg-white flex items-center h-20 border-b border-gray-200 relative flex-shrink-0 px-4 md:px-8">
         <a href="#hero" className="flex items-center mr-2 md:mr-4 lg:mr-12">
           <img
-            src="/bet-scroll.png"
+            src="https://assets.globalbibletools.com/landing/logo.png"
             className="w-8 h-8 sm:w-10 sm:h-10 lg:w-14 lg:h-14"
           />
           <h1 className="font-bold ms-2 text-base sm:text-lg lg:text-2xl">
@@ -56,7 +56,10 @@ export default async function LandingPage() {
       </nav>
       <main className="flex-grow overflow-auto">
         <section id="hero" className="relative">
-          <img src="/hero.png" className="w-full brightness-90" />
+          <img
+            src="https://assets.globalbibletools.com/landing/hero.png"
+            className="w-full brightness-90"
+          />
           <div className="absolute top-0 bottom-0 w-full flex flex-col items-center justify-center sm:mb-10 md:mb-20 px-8">
             <p className="text-white text-center font-bold text-md sm:text-lg md:text-xl lg:text-2xl max-w-[600px] mb-6 sm:mb-16">
               The global Church needs access to serious biblical language study
@@ -78,14 +81,16 @@ export default async function LandingPage() {
             <h2 className="text-3xl md:text-5xl font-bold mb-8">Vision</h2>
             <div className="relative w-full shadow-lg mb-8">
               <div className="pb-[56.25%]" />
-              <iframe
+              <video
                 className="absolute h-full w-full top-0"
-                src="https://www.youtube.com/embed/Zern2kzSqk4?si=HQ2IkbtiiplE0LYd&amp;rel=0"
-                title="YouTube video player"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              />
+                controls
+                poster="https://assets.globalbibletools.com/landing/info.jpg"
+              >
+                <source
+                  type="video/mp4"
+                  src="https://assets.globalbibletools.com/landing/info.mp4"
+                />
+              </video>
             </div>
             <div className="flex justify-center mb-16">
               <a
@@ -168,7 +173,7 @@ export default async function LandingPage() {
             <h2 className="text-3xl md:text-5xl font-bold mb-8 text-white text-white">
               Contribute
             </h2>
-            <ul className="flex flex-col md:grid lg:flex lg:flex-row grid-cols-2  gap-8 mb-8">
+            <ul className="flex flex-col md:grid lg:flex lg:flex-row grid-cols-2  gap-8 mb-16">
               <li className="w-full rounded-[16px] bg-white p-6 shadow md:text-center">
                 <h4 className="text-lg font-bold mb-3">Give</h4>
                 <p>
@@ -232,6 +237,19 @@ export default async function LandingPage() {
                 </p>
               </li>
             </ul>
+            <div className="relative w-full shadow-lg">
+              <div className="pb-[56.25%]" />
+              <video
+                className="absolute h-full w-full top-0"
+                controls
+                poster="https://assets.globalbibletools.com/landing/contributing.jpg"
+              >
+                <source
+                  type="video/mp4"
+                  src="https://assets.globalbibletools.com/landing/contributing.mp4"
+                />
+              </video>
+            </div>
           </div>
         </section>
         <section

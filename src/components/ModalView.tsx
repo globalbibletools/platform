@@ -25,7 +25,11 @@ export default function ModalView({
           className="flex items-center rounded focus-visible:outline outline-2 outline-green-300"
           href="/read"
         >
-          <img src="/bet-scroll.png" alt="" className="w-10 h-10" />
+          <img
+            src="https://assets.globalbibletools.com/landing/logo.png"
+            alt=""
+            className="w-10 h-10"
+          />
           <h1 className="font-bold mx-2">{t("app_name")}</h1>
         </Link>
         <div className="flex-grow flex justify-end items-center">{header}</div>

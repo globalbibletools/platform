@@ -46,7 +46,7 @@ export default async function AuthenticatedLayout({
           className="flex items-center me-8"
         >
           <img
-            src="/bet-scroll.png"
+            src="https://assets.globalbibletools.com/landing/logo.png"
             className="w-10 h-10"
             alt=""
             aria-hidden="true"
