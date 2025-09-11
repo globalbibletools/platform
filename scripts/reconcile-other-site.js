@@ -68,16 +68,14 @@ async function testBook(bookCode) {
 }
 
 async function run() {
-  /*
   let total = 0;
   for (const bookCode of bookKeys) {
     total += await testBook(bookCode);
   }
 
   console.log("total", total);
-    */
 
-  await combineWords("2701102602");
+  // await combineWords("2701102602");
 }
 
 run().then(async () => {

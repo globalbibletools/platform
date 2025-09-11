@@ -57,4 +57,12 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER machine_gloss_audit on machine_gloss;
+
+CREATE TRIGGER machine_gloss_audit
+AFTER UPDATE
+ON machine_gloss
+FOR EACH ROW 
+EXECUTE FUNCTION machine_gloss_audit();
+
 commit;
