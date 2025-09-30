@@ -45,6 +45,10 @@ export default async function DashboardView() {
 
   const locale = await getLocale();
 
+  currentProgressData[0].approvedCount = 5000;
+  currentProgressData[1].approvedCount = currentProgressData[1].wordCount;
+  currentProgressData[2].approvedCount = currentProgressData[2].wordCount * 0.9;
+
   return (
     <div className="absolute w-full h-[calc(100%-48px)] flex items-stretch overflow-auto">
       <div className="px-4 lg:px-8 w-full">
@@ -159,28 +163,32 @@ export default async function DashboardView() {
           <DashboardCard className="md:col-span-full">
             <DashboardCard.Heading>Total progress</DashboardCard.Heading>
             <DashboardCard.Body className="grid gap-2 grid-cols-[repeat(auto-fill,minmax(40px,1fr))]">
-              {currentProgressData.map((book, i) => (
-                <a
-                  className={`
-                    aspect-square rounded flex flex-col items-center justify-center
-                    ${
-                      book.approvedCount === book.wordCount ?
-                        "text-gray-800 bg-blue-800 dark:bg-green-400"
-                      : "bg-gray-300 dark:bg-gray-700"
-                    }
+              {currentProgressData.map((book, i) => {
+                const completeProgress = book.approvedCount / book.wordCount;
+                const isComplete = book.approvedCount === book.wordCount;
+                const isUnstarted = book.approvedCount === 0;
+                return (
+                  <a
+                    className={`
+                      relative block aspect-square rounded flex flex-col items-center justify-center overflow-hidden
+                      ${
+                        isComplete ?
+                          "text-white dark:text-gray-800 bg-blue-800 dark:bg-green-400"
+                        : "bg-gray-300 dark:bg-gray-700"
+                      }
                   `}
-                  key={book.name}
-                  href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
-                >
-                  <Icon
-                    icon={
-                      book.approvedCount === book.wordCount ? "check" : "xmark"
-                    }
-                    size="sm"
-                  />
-                  <div className="text-xs font-bold">{book.name}</div>
-                </a>
-              ))}
+                    key={book.name}
+                    href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
+                  >
+                    {isComplete ?
+                      <Icon icon="check" />
+                    : isUnstarted ?
+                      <Icon icon="xmark" />
+                    : <DonutChart percentage={completeProgress} />}
+                    <span className="text-xs font-bold">{book.name}</span>
+                  </a>
+                );
+              })}
             </DashboardCard.Body>
           </DashboardCard>
         </div>
@@ -192,4 +200,54 @@ export default async function DashboardView() {
 function roundMax(max: number): number {
   const scale = Math.pow(10, max.toString().length - 1);
   return Math.ceil(max / scale) * scale;
+}
+
+function DonutChart({ percentage }: { percentage: number }) {
+  const radians = ((percentage * 360 - 90) * Math.PI) / 180;
+  const radius = 8;
+
+  const x = radius * Math.cos(radians);
+  const y = radius * Math.sin(radians);
+
+  const largeArcFlag = percentage > 0.5 ? 1 : 0;
+
+  const path = `
+    M 0 0
+    L 0 ${-radius}
+    A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x} ${y}
+    Z
+  `;
+
+  return (
+    <svg
+      width={radius * 2}
+      height={radius * 2}
+      viewBox={`${-radius} ${-radius} ${2 * radius} ${2 * radius}`}
+    >
+      <circle
+        cx={0}
+        cy={0}
+        r={radius}
+        fill="currentColor"
+        mask="url(#chart-center)"
+        className="text-gray-400 dark:text-gray-500"
+      />
+      <path
+        d={path}
+        fill="currentColor"
+        mask="url(#chart-center)"
+        className="text-blue-800 dark:text-green-400"
+      />
+      <mask id="chart-center" mask-type="luminance">
+        <rect
+          x={-radius}
+          y={-radius}
+          width={2 * radius}
+          height={2 * radius}
+          fill="white"
+        />
+        <circle cx="0" cy="0" r="4" fill="black" />
+      </mask>
+    </svg>
+  );
 }
