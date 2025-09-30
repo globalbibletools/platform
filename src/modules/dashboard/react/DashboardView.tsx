@@ -45,10 +45,6 @@ export default async function DashboardView() {
 
   const locale = await getLocale();
 
-  currentProgressData[0].approvedCount = 5000;
-  currentProgressData[1].approvedCount = currentProgressData[1].wordCount;
-  currentProgressData[2].approvedCount = currentProgressData[2].wordCount * 0.9;
-
   return (
     <div className="absolute w-full h-[calc(100%-48px)] flex items-stretch overflow-auto">
       <div className="px-4 lg:px-8 w-full">
