@@ -1,6 +1,6 @@
 import { useLayoutEffect, useState } from "react";
 
-export type Feature = never; // string union of available flags
+export type Feature = "ff-snapshots"; // string union of available flags
 
 export const features: Feature[] = [];
 
