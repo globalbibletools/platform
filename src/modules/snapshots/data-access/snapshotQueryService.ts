@@ -1,11 +1,16 @@
 import { query } from "@/db";
 import { DbSnapshot } from "./types";
+import { SNAPSHOT_JOB_TYPES } from "../jobs/jobTypes";
 
 type PaginatedSnapshot = Pick<DbSnapshot, "id" | "timestamp">;
 
 interface SnapshotPage {
   total: number;
   page: PaginatedSnapshot[];
+}
+
+interface SnapshotJob {
+  id: string;
 }
 
 export const snapshotQueryService = {
@@ -45,6 +50,23 @@ export const snapshotQueryService = {
       [languageId, limit * (page - 1), limit],
     );
 
+    return result.rows[0];
+  },
+
+  async findPendingSnapshotJobForLanguage({
+    languageId,
+  }: {
+    languageId: string;
+  }): Promise<SnapshotJob | undefined> {
+    const result = await query<SnapshotJob>(
+      `
+        select id from job
+        where type_id = (select id from job_type where name = $2)
+          and payload->>'languageId' = $1
+          and status IN ('pending', 'in-progress')
+      `,
+      [languageId, SNAPSHOT_JOB_TYPES.CREATE_SNAPSHOT],
+    );
     return result.rows[0];
   },
 };

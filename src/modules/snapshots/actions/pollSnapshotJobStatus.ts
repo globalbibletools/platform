@@ -5,10 +5,8 @@ import { parseForm } from "@/form-parser";
 import Policy from "@/modules/access/public/Policy";
 import { serverActionLogger } from "@/server-action";
 import { verifySession } from "@/session";
-import { enqueueJob } from "@/shared/jobs/enqueueJob";
 import { notFound } from "next/navigation";
 import * as z from "zod";
-import { SNAPSHOT_JOB_TYPES } from "../jobs/jobTypes";
 import { languageQueryService } from "@/modules/languages/data-access/LanguageQueryService";
 import { snapshotQueryService } from "../data-access/snapshotQueryService";
 import { revalidatePath } from "next/cache";
@@ -22,11 +20,11 @@ const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
 
-export async function createLanguageSnapshotAction(
+export async function pollSnapshotJobStatus(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const logger = serverActionLogger("createLanguageSnapshot");
+  const logger = serverActionLogger("pollSnapshotJobStatus");
 
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
@@ -55,13 +53,9 @@ export async function createLanguageSnapshotAction(
       languageId: language.id,
     });
   if (!pendingSnapshot) {
-    await enqueueJob(SNAPSHOT_JOB_TYPES.CREATE_SNAPSHOT, {
-      languageId: language.id,
-    });
+    const locale = await getLocale();
+    revalidatePath(`/${locale}/admin/languages/${request.data.code}/snapshots`);
   }
-
-  const locale = await getLocale();
-  revalidatePath(`/${locale}/admin/languages/${request.data.code}/snapshots`);
 
   return { state: "success" };
 }

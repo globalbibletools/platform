@@ -35,6 +35,8 @@ export async function createSnapshotJob(job: CreateSnapshotJob) {
 
   // TODO: stream db collections to JSON files in S3.
 
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
   const snapshot: Snapshot = {
     id: ulid(),
     languageId: job.payload.languageId,

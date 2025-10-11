@@ -19,6 +19,8 @@ import Pagination from "@/components/Pagination";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import Button from "@/components/Button";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import SnapshotJobStatusPoller from "./SnapshotJobStatusPoller";
 
 export async function generateMetadata(
   _: any,
@@ -52,11 +54,16 @@ export default async function LanguageSettingsPage({
     notFound();
   }
 
-  const snapshotPage = await snapshotQueryService.findSnapshotsForLanguage({
-    languageId: language.id,
-    limit: PAGE_SIZE,
-    page,
-  });
+  const [pendingJob, snapshotPage] = await Promise.all([
+    snapshotQueryService.findPendingSnapshotJobForLanguage({
+      languageId: language.id,
+    }),
+    snapshotQueryService.findSnapshotsForLanguage({
+      languageId: language.id,
+      limit: PAGE_SIZE,
+      page,
+    }),
+  ]);
 
   return (
     <NextIntlClientProvider
@@ -67,12 +74,19 @@ export default async function LanguageSettingsPage({
       <div className="px-8 py-6 w-fit overflow-y-auto h-full">
         <ViewTitle>Snapshots</ViewTitle>
         <div className="mb-8">
-          <ServerAction
-            action={createLanguageSnapshotAction}
-            actionData={{ code: params.code }}
-          >
-            Take New Snapshot
-          </ServerAction>
+          {pendingJob ?
+            <div className="flex gap-4">
+              <LoadingSpinner />
+              Creating new snapshot...
+              <SnapshotJobStatusPoller code={params.code} />
+            </div>
+          : <ServerAction
+              action={createLanguageSnapshotAction}
+              actionData={{ code: params.code }}
+            >
+              Create New Snapshot
+            </ServerAction>
+          }
         </div>
         <List className="mb-4">
           <ListHeader>
