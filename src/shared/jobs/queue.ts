@@ -53,7 +53,7 @@ export class LocalQueue implements Queue {
   constructor(private readonly functionUrl: string) {}
 
   async add(job: QueuedJob<any>) {
-    // Queues are fire and forget so we don't await it's return here?
+    // Queues are fire and forget so we don't await it's return here
     fetch(this.functionUrl, {
       method: "post",
       body: JSON.stringify({ Records: [{ body: JSON.stringify(job) }] }),
