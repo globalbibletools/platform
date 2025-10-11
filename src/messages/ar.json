@@ -167,7 +167,8 @@
       "settings": "الإعدادات",
       "users": "المستخدمون",
       "reports": "التقارير",
-      "import": "استيراد"
+      "import": "استيراد",
+      "snapshots": "لقطات"
     }
   },
   "LanguageReportsPage": {

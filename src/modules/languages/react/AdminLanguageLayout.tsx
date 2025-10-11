@@ -7,6 +7,7 @@ import { verifySession } from "@/session";
 import { Metadata, ResolvingMetadata } from "next";
 import Policy from "@/modules/access/public/Policy";
 import { languageQueryService } from "../data-access/LanguageQueryService";
+import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
 
 interface LanguageLayoutProps {
   children: ReactNode;
@@ -93,6 +94,19 @@ export default async function LanguageLayout({
               {t("links.import")}
             </SidebarLink>
           </li>
+          <FeatureFlagged
+            feature="ff-snapshots"
+            enabledChildren={
+              <li>
+                <SidebarLink
+                  href={`/${params.locale}/admin/languages/${params.code}/snapshots`}
+                >
+                  <Icon icon="database" className="w-4 me-2" />
+                  {t("links.snapshots")}
+                </SidebarLink>
+              </li>
+            }
+          />
         </ul>
       </div>
       <div className="flex-grow relative">{children}</div>

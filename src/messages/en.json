@@ -167,7 +167,8 @@
       "settings": "Settings",
       "users": "Users",
       "reports": "Reports",
-      "import": "Import"
+      "import": "Import",
+      "snapshots": "Snapshots"
     }
   },
   "LanguageReportsPage": {
