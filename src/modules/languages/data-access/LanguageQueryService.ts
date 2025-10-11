@@ -101,6 +101,18 @@ export const languageQueryService = {
     return result.rows;
   },
 
+  async findById(id: string): Promise<LanguageQueryResult | undefined> {
+    const result = await query<LanguageQueryResult>(
+      `
+        select id, code, name
+        from language
+        where id = $1
+      `,
+      [id],
+    );
+    return result.rows[0];
+  },
+
   async findByCode(code: string): Promise<LanguageQueryResult | undefined> {
     const result = await query<LanguageQueryResult>(
       `
