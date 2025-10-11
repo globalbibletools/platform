@@ -2,7 +2,7 @@ export enum JobStatus {
   Pending = "pending",
   InProgress = "in-progress",
   Complete = "complete",
-  Failed = "failed",
+  Failed = "error",
 }
 
 export interface Job<Payload, Data = unknown> {
