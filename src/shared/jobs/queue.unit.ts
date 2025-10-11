@@ -93,7 +93,7 @@ describe("LocalQueue", () => {
   });
 
   beforeEach(() => {
-    mockedFetch.mockReset();
+    mockedFetch.mockReset().mockResolvedValue(new Response());
   });
 
   afterAll(() => {
