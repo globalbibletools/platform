@@ -39,9 +39,9 @@ export const snapshotObjectRepository = {
       const objectStream = await plugin.createReadStream(snapshot.languageId);
 
       await uploadJson({
-        key: `${snapshot.languageId}/${snapshot.id}/${plugin.resourceName}.json`,
+        key: `${snapshot.languageId}/${snapshot.id}/${plugin.resourceName}.jsonl`,
         bucket: `${SNAPSHOT_BUCKET_PREFIX}-${environment}`,
-        stream: objectStream.pipe(new JsonArrayTransform()),
+        stream: objectStream.pipe(new JsonLTransform()),
       });
 
       logger.info(`Finished snapshot for ${plugin.resourceName}`);
@@ -51,8 +51,8 @@ export const snapshotObjectRepository = {
   },
 };
 
-export class JsonArrayTransform extends Transform {
-  private started = false;
+export class JsonLTransform extends Transform {
+  started: boolean = false;
 
   constructor() {
     super({ writableObjectMode: true });
@@ -63,27 +63,13 @@ export class JsonArrayTransform extends Transform {
     _encoding: BufferEncoding,
     callback: TransformCallback,
   ): void {
-    let json = "";
-
-    if (!this.started) {
-      json += "[";
+    if (this.started) {
+      this.push("\n");
+    } else {
       this.started = true;
-    } else {
-      json += ",";
     }
 
-    json += JSON.stringify(chunk);
-    this.push(json);
-    callback();
-  }
-
-  override _final(callback: TransformCallback): void {
-    if (!this.started) {
-      // If no data was ever written, still output a valid empty array
-      this.push("[]");
-    } else {
-      this.push("]");
-    }
+    this.push(JSON.stringify(chunk));
     callback();
   }
 }
