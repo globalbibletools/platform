@@ -21,6 +21,7 @@ import { getMessages } from "next-intl/server";
 import Button from "@/components/Button";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SnapshotJobStatusPoller from "./SnapshotJobStatusPoller";
+import { restoreLanguageSnapshotAction } from "../actions/restoreLanguageSnapshot";
 
 export async function generateMetadata(
   _: any,
@@ -100,9 +101,13 @@ export default async function LanguageSettingsPage({
                   {format(snapshot.timestamp, "YYY MMMM, dd HH:mm:ss")} UTC
                 </ListCell>
                 <ListCell className="ps-4">
-                  <Button variant="link" disabled>
-                    Restore (coming soon)
-                  </Button>
+                  <ServerAction
+                    variant="link"
+                    action={restoreLanguageSnapshotAction}
+                    actionData={{ code: params.code, snapshotId: snapshot.id }}
+                  >
+                    Restore
+                  </ServerAction>
                 </ListCell>
               </ListRow>
             ))}

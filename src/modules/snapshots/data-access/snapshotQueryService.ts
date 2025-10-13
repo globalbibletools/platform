@@ -9,6 +9,8 @@ interface SnapshotPage {
   page: PaginatedSnapshot[];
 }
 
+type Snapshot = Pick<DbSnapshot, "id" | "languageId" | "timestamp">;
+
 interface SnapshotJob {
   id: string;
 }
@@ -48,6 +50,26 @@ export const snapshotQueryService = {
           ) as page
       `,
       [languageId, limit * (page - 1), limit],
+    );
+
+    return result.rows[0];
+  },
+
+  async findForLanguageById(
+    languageCode: string,
+    snapshotId: string,
+  ): Promise<Snapshot | undefined> {
+    const result = await query<Snapshot>(
+      `
+        select
+          id,
+          language_id as "languageId",
+          timestamp
+        from language_snapshot
+        where id = $2
+          and language_id = (select id from language where code = $1)
+      `,
+      [languageCode, snapshotId],
     );
 
     return result.rows[0];
