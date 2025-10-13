@@ -29,3 +29,5 @@ export const logger = pino({
       }
     : undefined,
 });
+
+export const createLogger = logger.child.bind(logger);
