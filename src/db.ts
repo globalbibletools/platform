@@ -1,5 +1,7 @@
 import pg, { type QueryResult, type QueryResultRow } from "pg";
+import QueryStream from "pg-query-stream";
 import { logger } from "./logging";
+import { Readable } from "stream";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL env var missing");
@@ -22,6 +24,22 @@ export async function query<T extends QueryResultRow>(
   params: any,
 ): Promise<QueryResult<T>> {
   return pool.query(text, params);
+}
+
+export async function queryStream(
+  text: string,
+  params: any,
+): Promise<QueryStream> {
+  const client = await pool.connect();
+
+  const query = new QueryStream(text, params);
+  const stream = client.query(query);
+
+  stream.on("end", () => {
+    client.release();
+  });
+
+  return stream;
 }
 
 export async function transaction<T>(

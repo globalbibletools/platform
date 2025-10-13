@@ -5,6 +5,7 @@ import { languageQueryService } from "@/modules/languages/data-access/LanguageQu
 import { Snapshot } from "../model";
 import { ulid } from "@/shared/ulid";
 import { snapshotRepository } from "../data-access/SnapshotRepository";
+import { snapshotObjectRepository } from "../data-access/snapshotObjectRepository";
 
 export type CreateSnapshotJob = Job<{
   languageId: string;
@@ -33,15 +34,17 @@ export async function createSnapshotJob(job: CreateSnapshotJob) {
     throw new Error(`Language ${job.payload.languageId} not found`);
   }
 
-  // TODO: stream db collections to JSON files in S3.
-
-  await new Promise((resolve) => setTimeout(resolve, 3000));
-
   const snapshot: Snapshot = {
     id: ulid(),
     languageId: job.payload.languageId,
     timestamp: new Date(),
   };
+
+  await snapshotObjectRepository.upload({
+    environment: process.env.NODE_ENV === "production" ? "prod" : "local",
+    snapshot,
+  });
   await snapshotRepository.create(snapshot);
+
   jobLogger.info(`Created snapshot ${snapshot.id}`);
 }
