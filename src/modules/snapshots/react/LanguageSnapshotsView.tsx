@@ -22,6 +22,7 @@ import Button from "@/components/Button";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SnapshotJobStatusPoller from "./SnapshotJobStatusPoller";
 import { restoreLanguageSnapshotAction } from "../actions/restoreLanguageSnapshot";
+import { Icon } from "@/components/Icon";
 
 export async function generateMetadata(
   _: any,
@@ -70,6 +71,7 @@ export default async function LanguageSettingsPage({
     <NextIntlClientProvider
       messages={{
         Pagination: messages.Pagination,
+        ConfirmModal: messages.ConfirmModal,
       }}
     >
       <div className="px-8 py-6 w-fit overflow-y-auto h-full">
@@ -103,9 +105,12 @@ export default async function LanguageSettingsPage({
                 <ListCell className="ps-4">
                   <ServerAction
                     variant="link"
+                    destructive
                     action={restoreLanguageSnapshotAction}
                     actionData={{ code: params.code, snapshotId: snapshot.id }}
+                    confirm="Are you sure you want to restore this snapshot?"
                   >
+                    <Icon icon="arrows-rotate" className="me-1" />
                     Restore
                   </ServerAction>
                 </ListCell>
