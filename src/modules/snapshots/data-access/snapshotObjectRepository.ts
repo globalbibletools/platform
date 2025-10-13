@@ -1,22 +1,17 @@
 import { Upload } from "@aws-sdk/lib-storage";
 import { S3Client } from "@aws-sdk/client-s3";
 import { Readable, Transform, TransformCallback } from "stream";
-import {
-  createPostgresSnapshotObjectPlugin,
-  Snapshot,
-  SnapshotObjectPlugin,
-} from "../model";
+import { Snapshot, SnapshotObjectPlugin } from "../model";
 import { createLogger } from "@/logging";
+import { languageSnapshotObjectPlugins } from "@/modules/languages/data-access/snapshotObjectPlugins";
+import { translationSnapshotObjectPlugins } from "@/modules/translation/data-access/snapshotObjectPlugins";
+import { reportingSnapshotObjectPlugins } from "@/modules/reporting/data-access/snapshotObjectPlugins";
 
 const SNAPSHOT_BUCKET_PREFIX = "gbt-snapshots";
 const SNAPSHOT_OBJECT_PLUGINS: SnapshotObjectPlugin[] = [
-  createPostgresSnapshotObjectPlugin({
-    resourceName: "language",
-    readSqlQuery: `
-        select * from language
-        where id = $1
-      `,
-  }),
+  ...languageSnapshotObjectPlugins,
+  ...translationSnapshotObjectPlugins,
+  ...reportingSnapshotObjectPlugins,
 ];
 
 export const snapshotObjectRepository = {
