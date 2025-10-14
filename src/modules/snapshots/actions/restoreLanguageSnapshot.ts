@@ -55,9 +55,16 @@ export async function restoreLanguageSnapshotAction(
     notFound();
   }
 
-  await enqueueJob(SNAPSHOT_JOB_TYPES.RESTORE_SNAPSHOT, {
-    snapshotId: request.data.snapshotId,
-  });
+  const pendingSnapshot =
+    await snapshotQueryService.findPendingSnapshotJobForLanguage({
+      languageId: snapshot.languageId,
+    });
+  if (!pendingSnapshot) {
+    await enqueueJob(SNAPSHOT_JOB_TYPES.RESTORE_SNAPSHOT, {
+      snapshotId: request.data.snapshotId,
+      languageId: snapshot.languageId,
+    });
+  }
 
   const locale = await getLocale();
   revalidatePath(`/${locale}/admin/languages/${request.data.code}/snapshots`);
