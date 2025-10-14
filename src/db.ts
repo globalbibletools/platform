@@ -1,5 +1,6 @@
 import pg, { type QueryResult, type QueryResultRow } from "pg";
 import QueryStream from "pg-query-stream";
+import { from as copyFrom } from "pg-copy-streams";
 import { logger } from "./logging";
 import { Readable } from "stream";
 
@@ -40,6 +41,33 @@ export async function queryStream(
   });
 
   return stream;
+}
+
+export async function copyStream(
+  table: string,
+  stream: Readable,
+): Promise<void> {
+  const client = await pool.connect();
+
+  const dbStream = client.query(copyFrom(`copy ${table} from stdin`));
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      stream.on("error", (err) => {
+        reject(err);
+      });
+      dbStream.on("error", (err) => {
+        reject(err);
+      });
+      dbStream.on("end", () => {
+        resolve();
+      });
+
+      stream.pipe(dbStream);
+    });
+  } finally {
+    client.release();
+  }
 }
 
 export async function transaction<T>(
