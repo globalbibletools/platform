@@ -1,5 +1,5 @@
 import { queryStream } from "@/db";
-import { Readable } from "stream";
+import { Readable, Writable } from "stream";
 
 export interface Snapshot {
   id: string;
@@ -9,7 +9,8 @@ export interface Snapshot {
 
 export interface SnapshotObjectPlugin {
   resourceName: string;
-  createReadStream(languageId: string): Promise<Readable>;
+  read(languageId: string): Promise<Readable>;
+  write?(languageId: string, stream: Readable): Promise<void>;
 }
 
 export function createPostgresSnapshotObjectPlugin({
@@ -21,7 +22,7 @@ export function createPostgresSnapshotObjectPlugin({
 }): SnapshotObjectPlugin {
   return {
     resourceName,
-    async createReadStream(languageId: string) {
+    async read(languageId: string) {
       return queryStream(readSqlQuery, [languageId]);
     },
   };

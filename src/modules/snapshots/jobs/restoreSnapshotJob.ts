@@ -34,12 +34,10 @@ export async function restoreSnapshotJob(job: RestoreSnapshotJob) {
 
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
-  /*
   await snapshotObjectRepository.restore({
     environment: process.env.NODE_ENV === "production" ? "prod" : "local",
     snapshot,
   });
-  */
 
   jobLogger.info(`Restored snapshot ${snapshot.id}`);
 }
