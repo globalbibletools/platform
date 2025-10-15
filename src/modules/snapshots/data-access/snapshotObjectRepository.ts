@@ -10,8 +10,10 @@ import { reportingSnapshotObjectPlugins } from "@/modules/reporting/data-access/
 const SNAPSHOT_BUCKET_PREFIX = "gbt-snapshots";
 const SNAPSHOT_OBJECT_PLUGINS: SnapshotObjectPlugin[] = [
   ...languageSnapshotObjectPlugins,
+  /*
   ...translationSnapshotObjectPlugins,
   ...reportingSnapshotObjectPlugins,
+  */
 ];
 
 export const snapshotObjectRepository = {
@@ -33,10 +35,10 @@ export const snapshotObjectRepository = {
 
       const objectStream = await plugin.createReadStream(snapshot.languageId);
 
-      await uploadJson({
-        key: `${snapshot.languageId}/${snapshot.id}/${plugin.resourceName}.jsonl`,
+      await uploadFile({
+        key: `${snapshot.languageId}/${snapshot.id}/${plugin.resourceName}.tsv`,
         bucket: `${SNAPSHOT_BUCKET_PREFIX}-${environment}`,
-        stream: objectStream.pipe(new JsonLTransform()),
+        stream: objectStream.pipe(new TsvTransform(plugin.fields)),
       });
 
       logger.info(`Finished snapshot for ${plugin.resourceName}`);
@@ -46,10 +48,10 @@ export const snapshotObjectRepository = {
   },
 };
 
-export class JsonLTransform extends Transform {
+export class TsvTransform extends Transform {
   started: boolean = false;
 
-  constructor() {
+  constructor(public headers: string[]) {
     super({ writableObjectMode: true });
   }
 
@@ -61,17 +63,24 @@ export class JsonLTransform extends Transform {
     if (this.started) {
       this.push("\n");
     } else {
+      this.push(this.headers.join("\t"));
+      this.push("\n");
       this.started = true;
     }
 
-    this.push(JSON.stringify(chunk));
+    for (let i = 0; i < this.headers.length; i++) {
+      if (i > 0) {
+        this.push("\t");
+      }
+      this.push(chunk[this.headers[i]]);
+    }
     callback();
   }
 }
 
 const s3Client = new S3Client();
 
-async function uploadJson({
+async function uploadFile({
   stream,
   key,
   bucket,

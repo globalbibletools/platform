@@ -9,18 +9,22 @@ export interface Snapshot {
 
 export interface SnapshotObjectPlugin {
   resourceName: string;
+  fields: string[];
   createReadStream(languageId: string): Promise<Readable>;
 }
 
 export function createPostgresSnapshotObjectPlugin({
   resourceName,
+  fields,
   readSqlQuery,
 }: {
   resourceName: string;
+  fields: string[];
   readSqlQuery: string;
 }): SnapshotObjectPlugin {
   return {
     resourceName,
+    fields,
     async createReadStream(languageId: string) {
       return queryStream(readSqlQuery, [languageId]);
     },
