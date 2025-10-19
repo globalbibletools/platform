@@ -3,6 +3,7 @@ import QueryStream from "pg-query-stream";
 import { from as copyFrom } from "pg-copy-streams";
 import { logger } from "./logging";
 import { Readable } from "stream";
+import { pipeline } from "stream/promises";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL env var missing");
@@ -49,22 +50,9 @@ export async function copyStream(
 ): Promise<void> {
   const client = await pool.connect();
 
-  const dbStream = client.query(copyFrom(`copy ${table} from stdin`));
-
   try {
-    await new Promise<void>((resolve, reject) => {
-      stream.on("error", (err) => {
-        reject(err);
-      });
-      dbStream.on("error", (err) => {
-        reject(err);
-      });
-      dbStream.on("end", () => {
-        resolve();
-      });
-
-      stream.pipe(dbStream);
-    });
+    const dbStream = client.query(copyFrom(`copy ${table} from stdin`));
+    await pipeline(stream, dbStream);
   } finally {
     client.release();
   }

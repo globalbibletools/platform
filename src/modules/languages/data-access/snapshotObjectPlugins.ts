@@ -96,7 +96,7 @@ export const languageSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
 class PostgresTextFormatTransform extends Transform {
   constructor() {
     super({
-      readableObjectMode: true,
+      writableObjectMode: true,
     });
   }
 
@@ -106,19 +106,19 @@ class PostgresTextFormatTransform extends Transform {
     cb: (err?: Error) => void,
   ) {
     this.push(record.user_id);
-    this.push("\\t");
+    this.push("\t");
 
     this.push(record.language_id);
-    this.push("\\t");
+    this.push("\t");
 
     this.push(record.role);
-    this.push("\\n");
+    this.push("\n");
 
     cb();
   }
 
   override _flush(cb: (err?: Error) => void) {
-    this.push("\\.");
+    this.push("\\.\n");
     cb();
   }
 }
@@ -141,17 +141,17 @@ class PostgresTextFormatTransformV2 extends Transform {
       this.push(this.fieldMappers[i](record));
 
       if (i < this.fieldMappers.length - 1) {
-        this.push("\\t");
+        this.push("\t");
       }
     }
 
-    this.push("\\n");
+    this.push("\n");
 
     cb();
   }
 
   override _flush(cb: (err?: Error) => void) {
-    this.push("\\.");
+    this.push("\\.\n");
     cb();
   }
 }
