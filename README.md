@@ -33,7 +33,6 @@ We intend to build similar interfaces to translate the following resources for t
 
 We are excited to add new contributors! If you are interested,
 please review our [contributing guidelines](https://github.com/globalbibletools/platform/blob/main/.github/CONTRIBUTING.md) to get started.
-and fill out [this form](https://enormous-square-660.notion.site/1468e90207d68038b9e5f22949d40b87?pvs=105).
 
 ## Docker
 
