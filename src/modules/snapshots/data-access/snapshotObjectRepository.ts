@@ -29,6 +29,11 @@ export const snapshotObjectRepository = {
     });
 
     for (const plugin of SNAPSHOT_OBJECT_PLUGINS) {
+      if (!plugin.read) {
+        logger.info(`Skipping snapshot for ${plugin.resourceName}`);
+        continue;
+      }
+
       logger.info(`Starting snapshot for ${plugin.resourceName}`);
 
       const objectStream = await plugin.read(snapshot.languageId);
@@ -73,10 +78,7 @@ export const snapshotObjectRepository = {
         continue;
       }
 
-      await plugin.write?.(
-        snapshot.languageId,
-        maybeStream.pipe(new DeserializeJsonLTransform()),
-      );
+      await plugin.write?.(maybeStream.pipe(new DeserializeJsonLTransform()));
 
       logger.info(`Finished restoring snapshot for ${plugin.resourceName}`);
     }

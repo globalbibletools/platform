@@ -1,6 +1,9 @@
 import { copyStream, query, queryStream } from "@/db";
 import { Readable, Transform } from "stream";
-import { SnapshotObjectPlugin } from "@/modules/snapshots/model";
+import {
+  PostgresTextFormatTransform,
+  SnapshotObjectPlugin,
+} from "@/modules/snapshots/model";
 
 export const languageSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
   {
@@ -8,36 +11,29 @@ export const languageSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
     async read(languageId: string): Promise<Readable> {
       return queryStream(
         `
-          select
-            id,
-            code,
-            name,
-            font,
-            translation_ids,
-            text_direction,
-            reference_language_id
+          select *
           from language
           where id = $1
         `,
         [languageId],
       );
     },
-    async write(languageId: string, stream: Readable): Promise<void> {
+    async write(stream: Readable): Promise<void> {
       return new Promise((resolve, reject) => {
         stream.on("readable", async () => {
           let language;
           while (null !== (language = stream.read())) {
             await query(
               `
-          update language set
-            code = $2,
-            name = $3,
-            font = $4,
-            translation_ids = $5,
-            text_direction = $6,
-            reference_language_id = $7
-          where id = $1
-        `,
+                update language set
+                  code = $2,
+                  name = $3,
+                  font = $4,
+                  translation_ids = $5,
+                  text_direction = $6,
+                  reference_language_id = $7
+                where id = $1
+              `,
               [
                 language.id,
                 language.code,
@@ -65,10 +61,7 @@ export const languageSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
     async read(languageId: string): Promise<Readable> {
       return queryStream(
         `
-          select
-            user_id,
-            language_id,
-            role
+          select *
           from language_member_role
           where language_id = $1
         `,
@@ -84,74 +77,17 @@ export const languageSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
         [languageId],
       );
     },
-    async write(languageId: string, stream: Readable): Promise<void> {
+    async write(stream: Readable): Promise<void> {
       await copyStream(
         "language_member_role",
-        stream.pipe(new PostgresTextFormatTransform()),
+        stream.pipe(
+          new PostgresTextFormatTransform([
+            (role) => role.user_id,
+            (role) => role.language_id,
+            (role) => role.role,
+          ]),
+        ),
       );
     },
   },
 ];
-
-class PostgresTextFormatTransform extends Transform {
-  constructor() {
-    super({
-      writableObjectMode: true,
-    });
-  }
-
-  override _transform(
-    record: any,
-    encoding: string,
-    cb: (err?: Error) => void,
-  ) {
-    this.push(record.user_id);
-    this.push("\t");
-
-    this.push(record.language_id);
-    this.push("\t");
-
-    this.push(record.role);
-    this.push("\n");
-
-    cb();
-  }
-
-  override _flush(cb: (err?: Error) => void) {
-    this.push("\\.\n");
-    cb();
-  }
-}
-
-type FieldMapper = (record: any) => any;
-
-class PostgresTextFormatTransformV2 extends Transform {
-  constructor(private fieldMappers: FieldMapper[]) {
-    super({
-      readableObjectMode: true,
-    });
-  }
-
-  override _transform(
-    record: any,
-    encoding: string,
-    cb: (err?: Error) => void,
-  ) {
-    for (let i = 0; i < this.fieldMappers.length; i++) {
-      this.push(this.fieldMappers[i](record));
-
-      if (i < this.fieldMappers.length - 1) {
-        this.push("\t");
-      }
-    }
-
-    this.push("\n");
-
-    cb();
-  }
-
-  override _flush(cb: (err?: Error) => void) {
-    this.push("\\.\n");
-    cb();
-  }
-}
