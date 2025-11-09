@@ -18,7 +18,7 @@ export default function LanguageDialog() {
     <>
       <Button variant="tertiary" onClick={() => dialog.current?.show()}>
         <Icon icon="language" className="me-2" />
-        {languages[locale as keyof typeof languages]?.name}
+        {languages[locale as keyof typeof languages]?.local_name}
       </Button>
       <dialog
         ref={dialog}
@@ -44,7 +44,7 @@ export default function LanguageDialog() {
           aria-label="Interface Language"
           up
           items={Object.entries(languages).map(([value, config]) => ({
-            label: config.name,
+            label: config.local_name,
             value,
           }))}
         />

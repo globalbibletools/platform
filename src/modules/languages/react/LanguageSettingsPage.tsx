@@ -67,7 +67,8 @@ export default async function LanguageSettingsPage({
             <h3 className="font-bold text-lg mb-2">
               {t("headings.identification")}
             </h3>
-            <p className="text-sm mb-2">{t("name_description")}</p>
+            <p className="text-sm mb-2">{t("english_name_description")}</p>
+            <p className="text-sm mb-2">{t("local_name_description")}</p>
             <p className="text-sm">
               {t.rich("code_description", {
                 a: () => (
@@ -86,17 +87,19 @@ export default async function LanguageSettingsPage({
           </div>
           <div className="flex-shrink-0 w-80">
             <div className="mb-4">
-              <FormLabel htmlFor="language-name">{t("form.name")}</FormLabel>
+              <FormLabel htmlFor="english_name">
+                {t("form.english_name")}
+              </FormLabel>
               <TextInput
-                id="language-name"
-                name="name"
+                id="english_name"
+                name="english_name"
                 className="block w-56"
-                defaultValue={languageSettings?.name ?? ""}
+                defaultValue={languageSettings?.english_name ?? ""}
                 autoComplete="off"
-                aria-describedby="name-error"
+                aria-describedby="english-name-error"
                 autosubmit
               />
-              <FieldError id="name-error" name="name" />
+              <FieldError id="english-name-error" name="english_name" />
             </div>
             <div>
               <FormLabel htmlFor="code">
@@ -111,6 +114,19 @@ export default async function LanguageSettingsPage({
                 aria-describedby="code-error"
               />
               <FieldError id="code-error" name="code" />
+            </div>
+            <div className="mb-4">
+              <FormLabel htmlFor="local_name">{t("form.local_name")}</FormLabel>
+              <TextInput
+                id="local_name"
+                name="local_name"
+                className="block w-56"
+                defaultValue={languageSettings?.local_name ?? ""}
+                autoComplete="off"
+                aria-describedby="local-name-error"
+                autosubmit
+              />
+              <FieldError id="local-name-error" name="local_name" />
             </div>
           </div>
         </section>
@@ -181,7 +197,7 @@ export default async function LanguageSettingsPage({
               className="w-full"
               defaultValue={languageSettings.translationIds}
               items={translations.map((t) => ({
-                label: t.name,
+                label: t.english_name,
                 value: t.id,
               }))}
               placeholder={t("form.translation_placeholder").toString()}
@@ -205,7 +221,7 @@ export default async function LanguageSettingsPage({
               id="reference-language"
               name="reference_language_id"
               items={languages.map((language) => ({
-                label: language.name,
+                label: language.english_name,
                 value: language.id,
               }))}
               className="block w-64"
@@ -223,7 +239,7 @@ export default async function LanguageSettingsPage({
 
 async function fetchTranslations(
   languageCode: string,
-): Promise<{ id: string; name: string }[]> {
+): Promise<{ id: string; english_name: string }[]> {
   const client = new BibleClient();
   const collection = await client.fetch_collection();
   const options: { sort_by_year?: boolean; language?: string } = {};
@@ -233,6 +249,6 @@ async function fetchTranslations(
   return translations.map(({ id, name_english, name_local }) => ({
     id,
     // Sometimes name_local is an empty string, so fallback to name_english
-    name: name_local ? name_local : name_english,
+    english_name: name_local ? name_local : name_english,
   }));
 }

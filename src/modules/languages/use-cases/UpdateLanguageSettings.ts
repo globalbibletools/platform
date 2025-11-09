@@ -4,7 +4,8 @@ import { SourceLanguageMissingError, TextDirectionRaw } from "../model";
 
 export interface UpdateLanguageSettingsRequest {
   code: string;
-  name: string;
+  english_name: string;
+  local_name: string;
   font: string;
   textDirection: TextDirectionRaw;
   translationIds: string[];

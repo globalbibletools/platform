@@ -39,14 +39,24 @@ export default function NewLanguagePage() {
           <FieldError id="code-error" name="code" />
         </div>
         <div className="mb-6">
-          <FormLabel htmlFor="name">{t("form.name")}</FormLabel>
+          <FormLabel htmlFor="english_name">{t("form.english_name")}</FormLabel>
           <TextInput
-            id="name"
-            name="name"
+            id="english_name"
+            name="english_name"
             className="block w-64"
-            aria-describedby="name-error"
+            aria-describedby="english-name-error"
           />
-          <FieldError id="name-error" name="name" />
+          <FieldError id="english-name-error" name="english_name" />
+        </div>
+        <div className="mb-6">
+          <FormLabel htmlFor="local_name">{t("form.local_name")}</FormLabel>
+          <TextInput
+            id="local_name"
+            name="local_name"
+            className="block w-64"
+            aria-describedby="local-name-error"
+          />
+          <FieldError id="local-name-error" name="local_name" />
         </div>
         <Button type="submit">{t("form.submit")}</Button>
       </Form>

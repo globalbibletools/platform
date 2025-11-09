@@ -372,14 +372,15 @@ export default async function LandingPage() {
 
 interface LanguageProgressStats {
   code: string;
-  name: string;
+  english_name: string;
+  local_name: string;
   otProgress: number;
   ntProgress: number;
 }
 
 async function fetchLanguageProgressStats() {
   const result = await query<LanguageProgressStats>(
-    `SELECT l.code, l.name, COALESCE(s.ot_progress, 0) AS "otProgress", COALESCE(s.nt_progress, 0) AS "ntProgress" FROM language AS l
+    `SELECT l.code, l.english_name, l.local_name, COALESCE(s.ot_progress, 0) AS "otProgress", COALESCE(s.nt_progress, 0) AS "ntProgress" FROM language AS l
         LEFT JOIN language_progress AS s ON l.code = s.code
         ORDER BY (s.ot_progress + s.nt_progress) DESC
         `,

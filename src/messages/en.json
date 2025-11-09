@@ -177,7 +177,8 @@
   "LanguageSettingsPage": {
     "title": "Settings",
     "form": {
-      "name": "Name",
+      "english_name": "English Name",
+      "local_name": "Local Name",
       "code": "Code",
       "font": "Font",
       "text_direction": "Text Direction",
@@ -186,7 +187,8 @@
       "reference_language": "Reference Language"
     },
     "errors": {
-      "name_required": "Please enter the language name.",
+      "english_name_required": "Please enter the language's English Name.",
+      "local_name_required": "Please enter the language's Local Name.",
       "font_required": "Please select a font.",
       "text_direction_required": "Please select a text direction."
     },
@@ -196,7 +198,8 @@
       "bible_translation": "Bible Translations",
       "gloss_prediction": "Gloss Prediction"
     },
-    "name_description": "The name of the language is shown throughout the app. We prefer it to be written in the language rather than English.",
+    "english_name_description": "The English name is used to identify the language to admins and translators.",
+    "local_name_description": "The Local Name is used to identify the language to end users who may not speak English. It should be written as it appears to speakers of the language.",
     "code_description": "The language code follows <a>ISO 639-3</a> which uniquely identifies languages across systems.",
     "text_description": "Configure the text of the language as you would like it to appear in the platform.",
     "translation_description": "These translation are used in the platform when showing a passage from the Bible.",
@@ -236,13 +239,15 @@
   "NewLanguagePage": {
     "title": "Add Language",
     "errors": {
-      "name_required": "Please enter the language name.",
+      "english_name_required": "Please enter the language's English Name.",
+      "local_name_required": "Please enter the language's Local Name.",
       "code_size": "The language code must be 3 characters.",
       "language_exists": "This language already exists."
     },
     "form": {
       "code": "Code",
-      "name": "Name",
+      "local_name": "Local Name",
+      "english_name": "English Name",
       "submit": "Add"
     }
   },

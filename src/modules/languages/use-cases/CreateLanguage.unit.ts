@@ -10,7 +10,8 @@ test("throws error if language already exists with the same code", async () => {
   const existingLanguage = {
     id: ulid(),
     code: "spa",
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Español",
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
@@ -19,7 +20,8 @@ test("throws error if language already exists with the same code", async () => {
 
   const result = createLanguage.execute({
     code: existingLanguage.code,
-    name: existingLanguage.name,
+    english_name: existingLanguage.english_name,
+    local_name: existingLanguage.local_name,
   });
   await expect(result).rejects.toThrow(
     new LanguageAlreadyExistsError(existingLanguage.code),
@@ -29,7 +31,8 @@ test("throws error if language already exists with the same code", async () => {
 test("creates new language", async () => {
   const request = {
     code: "spa",
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Español",
   };
   await createLanguage.execute(request);
   expect(mockLanguageRepo.languages).toEqual([

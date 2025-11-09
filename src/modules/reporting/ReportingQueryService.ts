@@ -28,7 +28,8 @@ export interface ReportingUser {
 
 export interface ReportingLanguage {
   id: string;
-  name: string;
+  english_name: string;
+  local_name: string;
   code: string;
 }
 
@@ -133,7 +134,7 @@ const reportingQueryService = {
 
   async findLanguages(): Promise<ReportingLanguage[]> {
     const result = await query<ReportingLanguage>(
-      `select id, name, code from language`,
+      `select id, english_name, local_name, code from language`,
       [],
     );
     return result.rows;

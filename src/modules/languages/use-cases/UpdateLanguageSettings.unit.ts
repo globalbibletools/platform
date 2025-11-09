@@ -10,7 +10,8 @@ const updateLanguageSettings = new UpdateLanguageSettings(mockLanguageRepo);
 test("throws error if language does not exist", async () => {
   const result = updateLanguageSettings.execute({
     code: "spa",
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Español",
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
@@ -22,7 +23,8 @@ test("throws error if the source langauge does not exist", async () => {
   const language = {
     id: ulid(),
     code: "spa",
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Español",
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
@@ -31,7 +33,8 @@ test("throws error if the source langauge does not exist", async () => {
 
   const request = {
     code: "spa",
-    name: "Arabic",
+    english_name: "Arabic",
+    local_name: "Árabe",
     font: "Noto Sans Arabic",
     textDirection: TextDirectionRaw.RTL,
     translationIds: ["translation-id-1"],
@@ -49,7 +52,8 @@ test("updates language settings", async () => {
   const language = {
     id: ulid(),
     code: "spa",
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Español",
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
@@ -57,7 +61,8 @@ test("updates language settings", async () => {
   const sourceLanguage = {
     id: ulid(),
     code: "eng",
-    name: "English",
+    english_name: "English",
+    local_name: "Español",
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
@@ -66,7 +71,8 @@ test("updates language settings", async () => {
 
   const request = {
     code: "spa",
-    name: "Arabic",
+    english_name: "Arabic",
+    local_name: "Árabe",
     font: "Noto Sans Arabic",
     textDirection: TextDirectionRaw.RTL,
     translationIds: ["translation-id-1"],

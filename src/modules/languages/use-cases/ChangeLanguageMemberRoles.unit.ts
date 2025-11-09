@@ -23,7 +23,8 @@ test("throws error if language could not be found", async () => {
 test("throws error if member could not be found", async () => {
   const language = {
     id: ulid(),
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Español",
     code: "spa",
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
@@ -42,7 +43,8 @@ test("throws error if member could not be found", async () => {
 test("removes language member", async () => {
   const language = {
     id: ulid(),
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Español",
     code: "spa",
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,

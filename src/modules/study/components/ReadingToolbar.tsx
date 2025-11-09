@@ -25,7 +25,7 @@ import SettingsMenu from "./SettingsMenu";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 
 export interface TranslationToolbarProps {
-  languages: { name: string; code: string }[];
+  languages: { english_name: string; local_name: string; code: string }[];
   children: ReactNode;
 }
 
@@ -118,7 +118,7 @@ export default function ReadingToolbar({
         <ComboboxInput
           id="target-language"
           items={languages.map((l) => ({
-            label: l.name,
+            label: l.local_name,
             value: l.code,
           }))}
           value={code}

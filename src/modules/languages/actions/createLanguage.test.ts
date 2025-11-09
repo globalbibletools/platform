@@ -37,7 +37,7 @@ test("returns validation error if the request shape doesn't match the schema", a
   {
     const formData = new FormData();
     formData.set("code", "");
-    formData.set("name", "");
+    formData.set("english_name", "");
     const response = await createLanguage({ state: "idle" }, formData);
     expect(response).toEqual({
       state: "error",
@@ -55,7 +55,7 @@ test("returns not found if the user is not a platform admin", async () => {
 
   const formData = new FormData();
   formData.set("code", "spa");
-  formData.set("name", "Spanish");
+  formData.set("english_name", "Spanish");
   const response = createLanguage({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 });
@@ -68,7 +68,7 @@ test("returns error if language with the same code already exists", async () => 
 
   const formData = new FormData();
   formData.set("code", existingLanguage.code);
-  formData.set("name", "Spanish");
+  formData.set("english_name", "Spanish");
   const response = await createLanguage({ state: "idle" }, formData);
   expect(response).toEqual({
     state: "error",
@@ -82,11 +82,13 @@ test("creates language and redirects to its settings", async () => {
 
   const request = {
     code: "spa",
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Español",
   };
   const formData = new FormData();
   formData.set("code", request.code);
-  formData.set("name", request.name);
+  formData.set("english_name", request.english_name);
+  formData.set("local_name", request.local_name);
   const response = createLanguage({ state: "idle" }, formData);
   await expect(response).toBeNextjsRedirect(
     `/en/admin/languages/${request.code}/settings`,
@@ -95,7 +97,8 @@ test("creates language and redirects to its settings", async () => {
   const language = await findLanguageByCode(request.code);
   expect(language).toEqual({
     id: expect.toBeUlid(),
-    name: request.name,
+    english_name: request.english_name,
+    local_name: request.local_name,
     code: request.code,
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
