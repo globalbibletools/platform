@@ -38,7 +38,7 @@ export default function NewLanguagePage() {
           />
           <FieldError id="code-error" name="code" />
         </div>
-        <div className="mb-6">
+        <div className="mb-4">
           <FormLabel htmlFor="english_name">{t("form.english_name")}</FormLabel>
           <TextInput
             id="english_name"
@@ -48,7 +48,7 @@ export default function NewLanguagePage() {
           />
           <FieldError id="english-name-error" name="english_name" />
         </div>
-        <div className="mb-6">
+        <div className="mb-4">
           <FormLabel htmlFor="local_name">{t("form.local_name")}</FormLabel>
           <TextInput
             id="local_name"
