@@ -177,8 +177,8 @@
   "LanguageSettingsPage": {
     "title": "Settings",
     "form": {
-      "english_name": "English Name",
-      "local_name": "Local Name",
+      "english_name": "English name",
+      "local_name": "Local name",
       "code": "Code",
       "font": "Font",
       "text_direction": "Text Direction",
@@ -187,8 +187,8 @@
       "reference_language": "Reference Language"
     },
     "errors": {
-      "english_name_required": "Please enter the language's English Name.",
-      "local_name_required": "Please enter the language's Local Name.",
+      "english_name_required": "Please enter the language's English name.",
+      "local_name_required": "Please enter the language's local name.",
       "font_required": "Please select a font.",
       "text_direction_required": "Please select a text direction."
     },
@@ -199,7 +199,7 @@
       "gloss_prediction": "Gloss Prediction"
     },
     "english_name_description": "The English name is used to identify the language to admins and translators.",
-    "local_name_description": "The Local Name is used to identify the language to end users who may not speak English. It should be written as it appears to speakers of the language.",
+    "local_name_description": "The local name is used to identify the language to end users who may not speak English. It should be written as it appears to speakers of the language.",
     "code_description": "The language code follows <a>ISO 639-3</a> which uniquely identifies languages across systems.",
     "text_description": "Configure the text of the language as you would like it to appear in the platform.",
     "translation_description": "These translation are used in the platform when showing a passage from the Bible.",
@@ -239,15 +239,15 @@
   "NewLanguagePage": {
     "title": "Add Language",
     "errors": {
-      "english_name_required": "Please enter the language's English Name.",
-      "local_name_required": "Please enter the language's Local Name.",
+      "english_name_required": "Please enter the language's English name.",
+      "local_name_required": "Please enter the language's local name.",
       "code_size": "The language code must be 3 characters.",
       "language_exists": "This language already exists."
     },
     "form": {
       "code": "Code",
-      "local_name": "Local Name",
-      "english_name": "English Name",
+      "local_name": "Local name",
+      "english_name": "English name",
       "submit": "Add"
     }
   },
