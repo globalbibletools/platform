@@ -1,7 +1,9 @@
 import pg, { type QueryResult, type QueryResultRow } from "pg";
 import QueryStream from "pg-query-stream";
+import { from as copyFrom } from "pg-copy-streams";
 import { logger } from "./logging";
 import { Readable } from "stream";
+import { pipeline } from "stream/promises";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL env var missing");
@@ -40,6 +42,20 @@ export async function queryStream(
   });
 
   return stream;
+}
+
+export async function copyStream(
+  table: string,
+  stream: Readable,
+): Promise<void> {
+  const client = await pool.connect();
+
+  try {
+    const dbStream = client.query(copyFrom(`copy ${table} from stdin`));
+    await pipeline(stream, dbStream);
+  } finally {
+    client.release();
+  }
 }
 
 export async function transaction<T>(

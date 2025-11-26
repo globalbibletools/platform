@@ -9,8 +9,11 @@ interface SnapshotPage {
   page: PaginatedSnapshot[];
 }
 
+type Snapshot = Pick<DbSnapshot, "id" | "languageId" | "timestamp">;
+
 interface SnapshotJob {
   id: string;
+  type: string;
 }
 
 export const snapshotQueryService = {
@@ -53,6 +56,42 @@ export const snapshotQueryService = {
     return result.rows[0];
   },
 
+  async findForLanguageById(
+    languageCode: string,
+    snapshotId: string,
+  ): Promise<Snapshot | undefined> {
+    const result = await query<Snapshot>(
+      `
+        select
+          id,
+          language_id as "languageId",
+          timestamp
+        from language_snapshot
+        where id = $2
+          and language_id = (select id from language where code = $1)
+      `,
+      [languageCode, snapshotId],
+    );
+
+    return result.rows[0];
+  },
+
+  async findById(snapshotId: string): Promise<Snapshot | undefined> {
+    const result = await query<Snapshot>(
+      `
+        select
+          id,
+          language_id as "languageId",
+          timestamp
+        from language_snapshot
+        where id = $1
+      `,
+      [snapshotId],
+    );
+
+    return result.rows[0];
+  },
+
   async findPendingSnapshotJobForLanguage({
     languageId,
   }: {
@@ -60,12 +99,23 @@ export const snapshotQueryService = {
   }): Promise<SnapshotJob | undefined> {
     const result = await query<SnapshotJob>(
       `
-        select id from job
-        where type_id = (select id from job_type where name = $2)
+        select
+          id,
+          (select name from job_type where job_type.id = job.type_id) as type
+        from job
+        where
+          type_id IN (
+            select id from job_type
+            where name IN ($2, $3)
+          )
           and payload->>'languageId' = $1
           and status IN ('pending', 'in-progress')
       `,
-      [languageId, SNAPSHOT_JOB_TYPES.CREATE_SNAPSHOT],
+      [
+        languageId,
+        SNAPSHOT_JOB_TYPES.CREATE_SNAPSHOT,
+        SNAPSHOT_JOB_TYPES.RESTORE_SNAPSHOT,
+      ],
     );
     return result.rows[0];
   },
