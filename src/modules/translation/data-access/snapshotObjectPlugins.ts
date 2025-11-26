@@ -3,7 +3,6 @@ import { copyStream, query, queryStream } from "@/db";
 import {
   PostgresTextFormatTransform,
   SnapshotObjectPlugin,
-  createPostgresSnapshotObjectPlugin,
 } from "@/modules/snapshots/model";
 
 export const translationSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
