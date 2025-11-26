@@ -1,4 +1,3 @@
-import { query, queryStream } from "@/db";
 import { Readable, Transform } from "stream";
 
 export interface Snapshot {
@@ -14,26 +13,6 @@ export interface SnapshotObjectPlugin {
   write?(stream: Readable): Promise<void>;
 }
 
-export function createPostgresSnapshotObjectPlugin({
-  resourceName,
-  readSqlQuery,
-  deleteSqlQuery,
-}: {
-  resourceName: string;
-  readSqlQuery: string;
-  deleteSqlQuery: string;
-}): SnapshotObjectPlugin {
-  return {
-    resourceName,
-    async read(languageId: string) {
-      return queryStream(readSqlQuery, [languageId]);
-    },
-    async clear(languageId: string) {
-      await query(deleteSqlQuery, [languageId]);
-    },
-  };
-}
-
 type FieldMapper = (record: any) => any;
 
 export class PostgresTextFormatTransform extends Transform {
@@ -45,7 +24,7 @@ export class PostgresTextFormatTransform extends Transform {
 
   override _transform(
     record: any,
-    encoding: string,
+    _encoding: string,
     cb: (err?: Error) => void,
   ) {
     for (let i = 0; i < this.fieldMappers.length; i++) {
