@@ -13,8 +13,8 @@ import Policy from "@/modules/access/public/Policy";
 
 const requestSchema = z.object({
   code: z.string().length(3),
-  english_name: z.string().min(1),
-  local_name: z.string().min(1),
+  englishName: z.string().min(1),
+  localName: z.string().min(1),
 });
 
 const policy = new Policy({
@@ -34,16 +34,16 @@ export async function createLanguage(
   const request = requestSchema.safeParse(
     {
       code: formData.get("code"),
-      english_name: formData.get("english_name"),
-      local_name: formData.get("local_name"),
+      englishName: formData.get("englishName"),
+      localName: formData.get("localName"),
     },
     {
       errorMap: (error) => {
         if (error.path.toString() === "code") {
           return { message: t("errors.code_size") };
-        } else if (error.path.toString() === "english_name") {
+        } else if (error.path.toString() === "englishName") {
           return { message: t("errors.english_name_required") };
-        } else if (error.path.toString() === "local_name") {
+        } else if (error.path.toString() === "localName") {
           return { message: t("errors.local_name_required") };
         } else {
           return { message: "Invalid" };

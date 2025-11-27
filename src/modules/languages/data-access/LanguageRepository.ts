@@ -20,7 +20,7 @@ const languageRepository = {
     const result = await query<Language>(
       `
         select
-          id, code, english_name, local_name, font,
+          id, code, english_name as "englishName", local_name as "localName", font,
           text_direction as "textDirection",
           translation_ids as "translationIds",
           reference_language_id as "referenceLanguage"
@@ -34,14 +34,14 @@ const languageRepository = {
   },
 
   async create(
-    language: Pick<Language, "id" | "code" | "english_name" | "local_name">,
+    language: Pick<Language, "id" | "code" | "englishName" | "localName">,
   ): Promise<void> {
     await query(
       `
         INSERT INTO language (id, code, english_name, local_name)
         VALUES ($1, $2, $3, $4)
       `,
-      [language.id, language.code, language.english_name, language.local_name],
+      [language.id, language.code, language.englishName, language.localName],
     );
   },
 
@@ -59,12 +59,12 @@ const languageRepository = {
       `,
       [
         language.code,
-        language.english_name,
+        language.englishName,
         language.font,
         language.textDirection,
         language.translationIds,
         language.referenceLanguageId,
-        language.local_name,
+        language.localName,
       ],
     );
   },

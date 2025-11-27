@@ -41,7 +41,7 @@ export default async function serverReadingView({ params }: ReadingPageProps) {
 
 interface CurrentLanguage {
   code: string;
-  local_name: string;
+  localName: string;
   font: string;
   textDirection: string;
 }
@@ -53,7 +53,7 @@ async function fetchCurrentLanguage(
   const result = await query<CurrentLanguage>(
     `
         SELECT
-            code, local_name, font, text_direction AS "textDirection"
+            code, local_name as "localName", font, text_direction AS "textDirection"
         FROM language AS l
         WHERE code = $1
         `,

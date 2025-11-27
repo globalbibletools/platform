@@ -92,14 +92,14 @@ export default async function LanguageSettingsPage({
               </FormLabel>
               <TextInput
                 id="english_name"
-                name="english_name"
+                name="englishName"
                 className="block w-56"
-                defaultValue={languageSettings?.english_name ?? ""}
+                defaultValue={languageSettings?.englishName ?? ""}
                 autoComplete="off"
                 aria-describedby="english-name-error"
                 autosubmit
               />
-              <FieldError id="english-name-error" name="english_name" />
+              <FieldError id="english-name-error" name="englishName" />
             </div>
             <div>
               <FormLabel htmlFor="code">
@@ -119,14 +119,14 @@ export default async function LanguageSettingsPage({
               <FormLabel htmlFor="local_name">{t("form.local_name")}</FormLabel>
               <TextInput
                 id="local_name"
-                name="local_name"
+                name="localName"
                 className="block w-56"
-                defaultValue={languageSettings?.local_name ?? ""}
+                defaultValue={languageSettings?.localName ?? ""}
                 autoComplete="off"
                 aria-describedby="local-name-error"
                 autosubmit
               />
-              <FieldError id="local-name-error" name="local_name" />
+              <FieldError id="local-name-error" name="localName" />
             </div>
           </div>
         </section>
@@ -197,7 +197,7 @@ export default async function LanguageSettingsPage({
               className="w-full"
               defaultValue={languageSettings.translationIds}
               items={translations.map((t) => ({
-                label: t.english_name,
+                label: t.name,
                 value: t.id,
               }))}
               placeholder={t("form.translation_placeholder").toString()}
@@ -221,7 +221,7 @@ export default async function LanguageSettingsPage({
               id="reference-language"
               name="reference_language_id"
               items={languages.map((language) => ({
-                label: language.english_name,
+                label: language.englishName,
                 value: language.id,
               }))}
               className="block w-64"
@@ -239,7 +239,7 @@ export default async function LanguageSettingsPage({
 
 async function fetchTranslations(
   languageCode: string,
-): Promise<{ id: string; english_name: string }[]> {
+): Promise<{ id: string; name: string }[]> {
   const client = new BibleClient();
   const collection = await client.fetch_collection();
   const options: { sort_by_year?: boolean; language?: string } = {};
@@ -249,6 +249,6 @@ async function fetchTranslations(
   return translations.map(({ id, name_english, name_local }) => ({
     id,
     // Sometimes name_local is an empty string, so fallback to name_english
-    english_name: name_local ? name_local : name_english,
+    name: name_local ? name_local : name_english,
   }));
 }

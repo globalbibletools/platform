@@ -10,7 +10,8 @@ const locales = Object.keys(localeMap);
 export const languageFactory = Async.makeFactory<DbLanguage>({
   id: Async.each(() => ulid()),
   code: Async.each(() => faker.helpers.arrayElement(locales)),
-  name: Async.each(() => faker.lorem.word()),
+  englishName: Async.each(() => faker.lorem.word()),
+  localName: Async.each(() => faker.lorem.word()),
   font: "Noto Sans",
   textDirection: TextDirectionRaw.LTR,
   translationIds: Async.each(() => []),
@@ -24,12 +25,12 @@ export const languageFactory = Async.makeFactory<DbLanguage>({
     [
       lang.id,
       lang.code,
-      lang.english_name,
+      lang.englishName,
       lang.font,
       lang.textDirection,
       lang.translationIds,
       lang.referenceLanguageId,
-      lang.local_name,
+      lang.localName,
     ],
   );
   return lang;

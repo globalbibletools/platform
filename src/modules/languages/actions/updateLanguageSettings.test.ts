@@ -39,8 +39,8 @@ test("returns validation error if the request shape doesn't match the schema", a
   {
     const formData = new FormData();
     formData.set("code", "spa");
-    formData.set("english_name", "");
-    formData.set("local_name", "");
+    formData.set("englishName", "");
+    formData.set("localName", "");
     formData.set("font", "");
     formData.set("text_direction", TextDirectionRaw.LTR);
     const response = await updateLanguageSettings({ state: "idle" }, formData);
@@ -62,8 +62,8 @@ test("returns not found if the user is not a platform or language admin", async 
 
   const formData = new FormData();
   formData.set("code", language.code);
-  formData.set("english_name", "Spanish");
-  formData.set("local_name", "Español");
+  formData.set("englishName", "Spanish");
+  formData.set("localName", "Español");
   formData.set("text_direction", TextDirectionRaw.LTR);
   formData.set("font", "Noto Sans");
   const response = updateLanguageSettings({ state: "idle" }, formData);
@@ -76,8 +76,8 @@ test("returns not found if the language does not exist", async () => {
 
   const formData = new FormData();
   formData.set("code", "random");
-  formData.set("english_name", "Spanish");
-  formData.set("local_name", "Español");
+  formData.set("englishName", "Spanish");
+  formData.set("localName", "Español");
   formData.set("text_direction", TextDirectionRaw.LTR);
   formData.set("font", "Noto Sans");
   const response = updateLanguageSettings({ state: "idle" }, formData);
@@ -90,16 +90,16 @@ test("updates the language settings", async () => {
 
   const language = await languageFactory.build({
     code: "spa",
-    english_name: "Spanish",
-    local_name: "Español",
+    englishName: "Spanish",
+    localName: "Español",
     textDirection: TextDirectionRaw.LTR,
     font: "Noto Sans",
   });
   const referenceLanguage = await languageFactory.build();
 
   const request = {
-    local_name: "Espanol",
-    english_name: "Spanish",
+    localName: "Espanol",
+    englishName: "Spanish",
     textDirection: TextDirectionRaw.LTR,
     font: "Noto Sans Arabic",
     translationIds: ["asdf1234", "qwer1234"],
@@ -107,8 +107,8 @@ test("updates the language settings", async () => {
   };
   const formData = new FormData();
   formData.set("code", language.code);
-  formData.set("english_name", request.english_name);
-  formData.set("local_name", request.local_name);
+  formData.set("englishName", request.englishName);
+  formData.set("localName", request.localName);
   formData.set("text_direction", request.textDirection);
   formData.set("font", request.font);
   formData.set("bible_translations", request.translationIds.join(","));

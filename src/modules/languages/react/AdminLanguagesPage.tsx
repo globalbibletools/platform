@@ -83,7 +83,7 @@ export default async function AdminLanguagesPage({
             {languages.map((language) => (
               <ListRow key={language.code}>
                 <ListCell header>
-                  {language.english_name}
+                  {language.englishName}
                   <span className="text-sm ml-1 font-normal">
                     {language.code}
                   </span>

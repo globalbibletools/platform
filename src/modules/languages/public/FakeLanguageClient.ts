@@ -10,8 +10,8 @@ interface LanguageMember {
 interface Language {
   id: string;
   code: string;
-  english_name: string;
-  local_name: string;
+  englishName: string;
+  localName: string;
   members: LanguageMember[];
 }
 
@@ -35,8 +35,8 @@ const fakeLanguageClient = {
       .filter((lang) => lang.members.some((member) => member.userId === userId))
       .map((lang) => ({
         id: lang.id,
-        english_name: lang.english_name,
-        local_name: lang.local_name,
+        englishName: lang.englishName,
+        localName: lang.localName,
         code: lang.code,
       }));
   },

@@ -4,8 +4,8 @@ import { LanguageAlreadyExistsError, TextDirectionRaw } from "../model";
 
 export interface CreateLanguageRequest {
   code: string;
-  english_name: string;
-  local_name: string;
+  englishName: string;
+  localName: string;
 }
 
 export default class CreateLanguage {
@@ -20,8 +20,8 @@ export default class CreateLanguage {
     await this.languageRepo.create({
       id: ulid(),
       code: request.code,
-      english_name: request.english_name,
-      local_name: request.local_name,
+      englishName: request.englishName,
+      localName: request.localName,
       font: "Noto Sans",
       textDirection: TextDirectionRaw.LTR,
       translationIds: [],

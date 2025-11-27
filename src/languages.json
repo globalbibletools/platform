@@ -1,11 +1,11 @@
 {
   "en": {
-    "local_name": "English",
+    "name": "English",
     "class": "locale-en",
     "dir": "ltr"
   },
   "ar": {
-    "local_name": "اَلْعَرَبِيَّةُ",
+    "name": "اَلْعَرَبِيَّةُ",
     "class": "locale-ar",
     "dir": "rtl"
   }

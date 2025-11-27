@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 
 interface Language {
   code: string;
-  english_name: string;
-  local_name: string;
+  englishName: string;
+  localName: string;
 }
 
 export default function DashboardLanguageSelector({
@@ -23,7 +23,7 @@ export default function DashboardLanguageSelector({
       className="w-48"
       value={code}
       items={languages.map((lang) => ({
-        label: lang.local_name,
+        label: lang.localName,
         value: lang.code,
       }))}
       onChange={(newCode) => {

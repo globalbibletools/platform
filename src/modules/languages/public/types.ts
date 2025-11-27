@@ -1,7 +1,7 @@
 export interface PublicLanguageView {
   id: string;
-  english_name: string;
-  local_name: string;
+  englishName: string;
+  localName: string;
   code: string;
 }
 

@@ -9,7 +9,7 @@ import { useParams, useRouter } from "next/navigation";
 export interface SettingsMenuProps {
   textSize: number;
   languageCode: string;
-  languages: { english_name: string; local_name: string; code: string }[];
+  languages: { englishName: string; localName: string; code: string }[];
   onTextSizeChange?(textSize: number): void;
 }
 
@@ -36,7 +36,7 @@ export default function SettingsMenu({
             <ComboboxInput
               id="target-language"
               items={languages.map((l) => ({
-                label: l.local_name,
+                label: l.localName,
                 value: l.code,
               }))}
               value={languageCode}
