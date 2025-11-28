@@ -124,6 +124,20 @@
       "log_in": "تسجيل الدخول"
     }
   },
+  "ImportLanguagePage": {
+    "title": "لغة الاستيراد",
+    "errors": {
+      "code_size": "يجب أن يتكون كود اللغة من 3 أحرف.",
+      "language_exists": "هذه اللغة موجودة بالفعل."
+    },
+    "form": {
+      "code": "الكود",
+      "submit": "استيراد",
+      "import_source": "المصدر",
+      "import_source_option": "{source, select, local {محلي} prod {إنتاج} other {}}",
+      "import_key": "المعرّف"
+    }
+  },
   "InviteLanguageUserPage": {
     "title": "دعوة مستخدم",
     "form": {
@@ -232,8 +246,7 @@
     "app_name": "أدوات الكتاب المقدس العالمية"
   },
   "NewLanguagePage": {
-    "title_new": "إضافة لغة",
-    "title_import": "لغة الاستيراد",
+    "title": "إضافة لغة",
     "errors": {
       "name_required": "يرجى إدخال اسم اللغة.",
       "code_size": "يجب أن يتكون كود اللغة من 3 أحرف.",
@@ -242,10 +255,7 @@
     "form": {
       "code": "الكود",
       "name": "الاسم",
-      "submit": "إضافة",
-      "import_source": "المصدر",
-      "import_source_option": "{source, select, local {محلي} prod {إنتاج} other {}}",
-      "import_key": "المعرّف"
+      "submit": "إضافة"
     }
   },
   "Pagination": {

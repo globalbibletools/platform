@@ -124,6 +124,20 @@
       "log_in": "Log In"
     }
   },
+  "ImportLanguagePage": {
+    "title": "Import Language",
+    "errors": {
+      "code_size": "The language code must be 3 characters.",
+      "language_exists": "This language already exists."
+    },
+    "form": {
+      "code": "Code",
+      "submit": "Import",
+      "snapshot_source": "Source",
+      "snapshot_source_option": "{source, select, local {Local} prod {Production} other {}}",
+      "snapshot_key": "Key"
+    }
+  },
   "InviteLanguageUserPage": {
     "title": "Invite User",
     "form": {
@@ -235,8 +249,7 @@
     "app_name": "Global Bible Tools"
   },
   "NewLanguagePage": {
-    "title_new": "Add Language",
-    "title_import": "Import Language",
+    "title": "Add Language",
     "errors": {
       "name_required": "Please enter the language name.",
       "code_size": "The language code must be 3 characters.",
@@ -245,10 +258,7 @@
     "form": {
       "code": "Code",
       "name": "Name",
-      "submit": "Add",
-      "import_source": "Source",
-      "import_source_option": "{source, select, local {Local} prod {Production} other {}}",
-      "import_key": "Key"
+      "submit": "Add"
     }
   },
   "Pagination": {

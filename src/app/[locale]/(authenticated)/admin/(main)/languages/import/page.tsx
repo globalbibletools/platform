@@ -1,5 +1,4 @@
-import NewLanguagePage from "@/modules/languages/react/NewLanguagePage";
-
-export default function () {
-  return <NewLanguagePage isImport={true} />;
-}
+export {
+  default,
+  generateMetadata,
+} from "@/modules/languages/react/ImportLanguagePage";
