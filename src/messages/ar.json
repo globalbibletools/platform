@@ -33,6 +33,7 @@
     },
     "actions": {
       "add_language": "إضافة لغة",
+      "import_language": "استيراد",
       "manage": "إدارة"
     }
   },
@@ -231,7 +232,8 @@
     "app_name": "أدوات الكتاب المقدس العالمية"
   },
   "NewLanguagePage": {
-    "title": "إضافة لغة",
+    "title_new": "إضافة لغة",
+    "title_import": "لغة الاستيراد",
     "errors": {
       "name_required": "يرجى إدخال اسم اللغة.",
       "code_size": "يجب أن يتكون كود اللغة من 3 أحرف.",
@@ -240,7 +242,10 @@
     "form": {
       "code": "الكود",
       "name": "الاسم",
-      "submit": "إضافة"
+      "submit": "إضافة",
+      "import_source": "المصدر",
+      "import_source_option": "{source, select, local {محلي} prod {إنتاج} other {}}",
+      "import_key": "المعرّف"
     }
   },
   "Pagination": {

@@ -1,5 +1,5 @@
 import NewLanguagePage from "@/modules/languages/react/NewLanguagePage";
 
 export default function () {
-  return <NewLanguagePage isImport={false} />;
+  return <NewLanguagePage isImport={true} />;
 }

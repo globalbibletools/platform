@@ -32,7 +32,8 @@
       "nt_progress": "NT Progress"
     },
     "actions": {
-      "add_language": "Add Language",
+      "add_language": "Add",
+      "import_language": "Import",
       "manage": "Manage"
     }
   },
@@ -234,7 +235,8 @@
     "app_name": "Global Bible Tools"
   },
   "NewLanguagePage": {
-    "title": "Add Language",
+    "title_new": "Add Language",
+    "title_import": "Import Language",
     "errors": {
       "name_required": "Please enter the language name.",
       "code_size": "The language code must be 3 characters.",
@@ -243,7 +245,10 @@
     "form": {
       "code": "Code",
       "name": "Name",
-      "submit": "Add"
+      "submit": "Add",
+      "import_source": "Source",
+      "import_source_option": "{source, select, local {Local} prod {Production} other {}}",
+      "import_key": "Key"
     }
   },
   "Pagination": {

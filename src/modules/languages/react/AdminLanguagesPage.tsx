@@ -58,9 +58,13 @@ export default async function AdminLanguagesPage({
   return (
     <div className="absolute w-full h-full overflow-auto">
       <div className="px-8 py-6 w-fit">
-        <div className="flex items-baseline mb-4">
+        <div className="flex items-center mb-4 gap-4">
           <ViewTitle>{t("title")}</ViewTitle>
           <div className="flex-grow" />
+          <Button variant="link" href="./languages/import">
+            <Icon icon="upload" className="me-1" />
+            {t("actions.import_language")}
+          </Button>
           <Button variant="primary" href="./languages/new">
             <Icon icon="plus" className="me-1" />
             {t("actions.add_language")}
