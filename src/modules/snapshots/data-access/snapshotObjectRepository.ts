@@ -85,6 +85,38 @@ export const snapshotObjectRepository = {
 
     logger.info(`Snapshot restore complete`);
   },
+  async import({
+    environment,
+    snapshotKey,
+    code: _code,
+  }: {
+    environment: "prod" | "local";
+    snapshotKey: string;
+    code: string;
+  }): Promise<void> {
+    const logger = createLogger({
+      environment,
+      snapshotKey: snapshotKey,
+    });
+
+    for (const plugin of SNAPSHOT_OBJECT_PLUGINS) {
+      const maybeStream = await downloadJson({
+        bucket: `${SNAPSHOT_BUCKET_PREFIX}-${environment}`,
+        key: `${snapshotKey}/${plugin.resourceName}.jsonl`,
+      });
+
+      if (!maybeStream) {
+        logger.info(`Snapshot file for ${plugin.resourceName} not found`);
+        continue;
+      }
+
+      await plugin.write?.(maybeStream.pipe(new DeserializeJsonLTransform()));
+
+      logger.info(`Finished importing snapshot for ${plugin.resourceName}`);
+    }
+
+    logger.info(`Snapshot import complete`);
+  },
 };
 
 export class SerializeJsonLTransform extends Transform {

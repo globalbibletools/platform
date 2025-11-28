@@ -5,6 +5,7 @@ import { REPORTING_JOB_TYPES } from "@/modules/reporting/jobs/jobTypes";
 import { SNAPSHOT_JOB_TYPES } from "@/modules/snapshots/jobs/jobTypes";
 import { createSnapshotJob } from "@/modules/snapshots/jobs/createSnapshotJob";
 import { restoreSnapshotJob } from "@/modules/snapshots/jobs/restoreSnapshotJob";
+import { importSnapshotJob } from "@/modules/snapshots/jobs/importSnapshotJob";
 
 export type JobHandler<Payload, Data = unknown> = (
   job: Job<Payload, Data>,
@@ -32,6 +33,10 @@ const jobMap: Record<string, JobMapEntry<any>> = {
   },
   [SNAPSHOT_JOB_TYPES.RESTORE_SNAPSHOT]: {
     handler: restoreSnapshotJob,
+    timeout: 60 * 15, // 15 minutes
+  },
+  [SNAPSHOT_JOB_TYPES.IMPORT_SNAPSHOT]: {
+    handler: importSnapshotJob,
     timeout: 60 * 15, // 15 minutes
   },
 };
