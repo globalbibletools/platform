@@ -5,8 +5,11 @@ import {
   SnapshotObjectPlugin,
 } from "@/modules/snapshots/model";
 
-export const reportingSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
-  {
+export const reportingSnapshotObjectPlugins: Record<
+  string,
+  SnapshotObjectPlugin
+> = {
+  trackingEvent: {
     resourceName: "tracking_event",
     async read(languageId: string): Promise<Readable> {
       return queryStream(
@@ -42,7 +45,7 @@ export const reportingSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
       );
     },
   },
-  {
+  weeklyContributionStatistics: {
     resourceName: "weekly_contribution_statistics",
     async read(languageId: string): Promise<Readable> {
       return queryStream(
@@ -80,7 +83,7 @@ export const reportingSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
       );
     },
   },
-  {
+  weeklyGlossStatistics: {
     resourceName: "weekly_gloss_statistics",
     async read(languageId: string): Promise<Readable> {
       return queryStream(
@@ -116,4 +119,4 @@ export const reportingSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
       );
     },
   },
-];
+};

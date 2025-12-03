@@ -1,12 +1,15 @@
 import { copyStream, query, queryStream } from "@/db";
-import { Readable, Transform } from "stream";
+import { Readable } from "stream";
 import {
   PostgresTextFormatTransform,
   SnapshotObjectPlugin,
 } from "@/modules/snapshots/model";
 
-export const languageSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
-  {
+export const languageSnapshotObjectPlugins: Record<
+  string,
+  SnapshotObjectPlugin
+> = {
+  language: {
     resourceName: "language",
     async read(languageId: string): Promise<Readable> {
       return queryStream(
@@ -56,7 +59,7 @@ export const languageSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
       });
     },
   },
-  {
+  languageMemberRole: {
     resourceName: "language_member_role",
     async read(languageId: string): Promise<Readable> {
       return queryStream(
@@ -90,4 +93,4 @@ export const languageSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
       );
     },
   },
-];
+};

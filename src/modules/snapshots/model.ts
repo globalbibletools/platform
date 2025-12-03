@@ -8,6 +8,7 @@ export interface Snapshot {
 
 export interface SnapshotObjectPlugin {
   resourceName: string;
+  dependencies?: string[];
   read?(languageId: string): Promise<Readable>;
   clear?(languageId: string): Promise<void>;
   write?(stream: Readable): Promise<void>;

@@ -5,8 +5,11 @@ import {
   SnapshotObjectPlugin,
 } from "@/modules/snapshots/model";
 
-export const translationSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
-  {
+export const translationSnapshotObjectPlugins: Record<
+  string,
+  SnapshotObjectPlugin
+> = {
+  phrase: {
     resourceName: "phrase",
     async read(languageId: string) {
       return queryStream(
@@ -42,7 +45,7 @@ export const translationSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
       );
     },
   },
-  {
+  phraseWord: {
     resourceName: "phrase_word",
     async read(languageId: string) {
       return queryStream(
@@ -82,7 +85,7 @@ export const translationSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
       );
     },
   },
-  {
+  gloss: {
     resourceName: "gloss",
     async read(languageId: string) {
       return queryStream(
@@ -126,7 +129,7 @@ export const translationSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
       );
     },
   },
-  {
+  glossHistory: {
     resourceName: "gloss_history",
     async read(languageId: string) {
       return queryStream(
@@ -171,7 +174,7 @@ export const translationSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
       );
     },
   },
-  {
+  footnote: {
     resourceName: "footnote",
     async read(languageId: string) {
       return queryStream(
@@ -213,7 +216,7 @@ export const translationSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
       );
     },
   },
-  {
+  translatorNote: {
     resourceName: "translator_note",
     async read(languageId: string) {
       return queryStream(
@@ -255,7 +258,7 @@ export const translationSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
       );
     },
   },
-  {
+  lemmaFormSuggestion: {
     resourceName: "lemma_form_suggestion",
     async clear(languageId: string) {
       await query(
@@ -267,7 +270,7 @@ export const translationSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
       );
     },
   },
-  {
+  machineGloss: {
     resourceName: "machine_gloss",
     async read(languageId: string) {
       return queryStream(
@@ -304,4 +307,4 @@ export const translationSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
       );
     },
   },
-];
+};

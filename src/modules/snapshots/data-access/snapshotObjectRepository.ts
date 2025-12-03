@@ -8,11 +8,19 @@ import { translationSnapshotObjectPlugins } from "@/modules/translation/data-acc
 import { reportingSnapshotObjectPlugins } from "@/modules/reporting/data-access/snapshotObjectPlugins";
 
 const SNAPSHOT_BUCKET_PREFIX = "gbt-snapshots";
-const SNAPSHOT_OBJECT_PLUGINS: SnapshotObjectPlugin[] = [
-  ...languageSnapshotObjectPlugins,
-  ...translationSnapshotObjectPlugins,
-  ...reportingSnapshotObjectPlugins,
-];
+
+interface SnapshotObjectPlugins {
+  order: string[];
+  reverseOrder: string[];
+  map: Record<string, SnapshotObjectPlugin>;
+}
+
+export const snapshotObjectPlugins: SnapshotObjectPlugins =
+  buildSnapshotObjectPluginMap({
+    ...languageSnapshotObjectPlugins,
+    ...translationSnapshotObjectPlugins,
+    ...reportingSnapshotObjectPlugins,
+  });
 
 export const snapshotObjectRepository = {
   async upload({
@@ -28,7 +36,9 @@ export const snapshotObjectRepository = {
       snapshotId: snapshot.id,
     });
 
-    for (const plugin of SNAPSHOT_OBJECT_PLUGINS) {
+    for (const pluginKey of snapshotObjectPlugins.order) {
+      const plugin = snapshotObjectPlugins.map[pluginKey];
+
       if (!plugin.read) {
         logger.info(`Skipping snapshot for ${plugin.resourceName}`);
         continue;
@@ -62,12 +72,13 @@ export const snapshotObjectRepository = {
       languageId: snapshot.languageId,
     });
 
-    for (let i = SNAPSHOT_OBJECT_PLUGINS.length - 1; i >= 0; i--) {
-      const plugin = SNAPSHOT_OBJECT_PLUGINS[i];
+    for (const pluginKey of snapshotObjectPlugins.reverseOrder) {
+      const plugin = snapshotObjectPlugins.map[pluginKey];
       await plugin.clear?.(snapshot.languageId);
     }
 
-    for (const plugin of SNAPSHOT_OBJECT_PLUGINS) {
+    for (const pluginKey of snapshotObjectPlugins.order) {
+      const plugin = snapshotObjectPlugins.map[pluginKey];
       const maybeStream = await downloadJson({
         bucket: `${SNAPSHOT_BUCKET_PREFIX}-${environment}`,
         key: `${snapshot.languageId}/${snapshot.id}/${plugin.resourceName}.jsonl`,
@@ -99,7 +110,8 @@ export const snapshotObjectRepository = {
       snapshotKey: snapshotKey,
     });
 
-    for (const plugin of SNAPSHOT_OBJECT_PLUGINS) {
+    for (const pluginKey of snapshotObjectPlugins.order) {
+      const plugin = snapshotObjectPlugins.map[pluginKey];
       const maybeStream = await downloadJson({
         bucket: `${SNAPSHOT_BUCKET_PREFIX}-${environment}`,
         key: `${snapshotKey}/${plugin.resourceName}.jsonl`,
@@ -231,4 +243,50 @@ async function uploadJson({
   });
 
   await uploadToS3.done();
+}
+
+function buildSnapshotObjectPluginMap(
+  map: Record<string, SnapshotObjectPlugin>,
+): SnapshotObjectPlugins {
+  const dependencyMap: Record<string, Array<string>> = Object.fromEntries(
+    Object.keys(map).map((key) => [key, []]),
+  );
+
+  for (const pluginKey in map) {
+    const plugin = map[pluginKey];
+    for (const dependencyKey of plugin.dependencies ?? []) {
+      dependencyMap[dependencyKey].push(pluginKey);
+    }
+  }
+
+  const order = Object.keys(dependencyMap).filter(
+    (pluginKey) => dependencyMap[pluginKey].length === 0,
+  );
+  const finalLength = Object.keys(map).length;
+  let currentLength = order.length;
+  while (order.length < finalLength) {
+    for (const pluginKey in dependencyMap) {
+      if (order.includes(pluginKey)) {
+        continue;
+      }
+
+      if (
+        dependencyMap[pluginKey].every((dependencyKey) =>
+          order.includes(dependencyKey),
+        )
+      ) {
+        order.push(pluginKey);
+      }
+    }
+
+    if (currentLength === order.length) {
+      new Error("Failed to construct snapshot plugin tree");
+    }
+  }
+
+  return {
+    order,
+    reverseOrder: order.slice().reverse(),
+    map,
+  };
 }
