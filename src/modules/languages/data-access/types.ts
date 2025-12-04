@@ -3,7 +3,8 @@ import { LanguageMemberRoleRaw, TextDirectionRaw } from "../model";
 export interface DbLanguage {
   id: string;
   code: string;
-  name: string;
+  englishName: string;
+  localName: string;
   font: string;
   textDirection: TextDirectionRaw;
   translationIds: string[];

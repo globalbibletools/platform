@@ -19,7 +19,8 @@ export const languageClient = {
 
     return languages.map((lang) => ({
       id: lang.id,
-      name: lang.name,
+      englishName: lang.englishName,
+      localName: lang.localName,
       code: lang.code,
     }));
   },

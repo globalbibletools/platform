@@ -6,7 +6,7 @@ export async function findLanguageByCode(
 ): Promise<DbLanguage | undefined> {
   const result = await query<DbLanguage>(
     `
-        select id, code, name, font,
+        select id, code, english_name as "englishName", local_name as "localName", font,
           text_direction as "textDirection",
           coalesce(translation_ids, '{}') as "translationIds",
           reference_language_id as "referenceLanguageId"
