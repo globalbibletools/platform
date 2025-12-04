@@ -23,11 +23,20 @@ import { changeChapter } from "../actions/changeChapter";
 import AudioDialog from "./AudioDialog";
 import SettingsMenu from "./SettingsMenu";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
+import useLocalStorageState from "@/utils/localstorage";
 
 export interface TranslationToolbarProps {
   languages: { name: string; code: string }[];
   children: ReactNode;
 }
+
+interface ReadingToolbarSettings {
+  textSize: number;
+}
+
+const defaultSettings: ReadingToolbarSettings = {
+  textSize: 3,
+};
 
 export default function ReadingToolbar({
   languages,
@@ -40,7 +49,9 @@ export default function ReadingToolbar({
     chapterId: string;
   }>();
   const router = useRouter();
-  const [textSize, setTextSize] = useState(3);
+
+  const [settings, setSettings] = useLocalStorageState<ReadingToolbarSettings>("ReadingToolbarSettings", defaultSettings);
+
   const [audioVerse, setAudioVerse] = useState<string>();
 
   const bookId = parseInt(chapterId.slice(0, 2)) || 1;
@@ -145,14 +156,14 @@ export default function ReadingToolbar({
             <span className="sr-only">{t("gpt")}</span>
           </Button>
           <SettingsMenu
-            textSize={textSize}
+            textSize={settings.textSize}
             languageCode={code}
             languages={languages}
-            onTextSizeChange={setTextSize}
+            onTextSizeChange={(textSize) => { setSettings({ ...settings, textSize }); } }
           />
         </div>
       </div>
-      <ReadingContext.Provider value={{ textSize, audioVerse }}>
+      <ReadingContext.Provider value={{ textSize: settings.textSize, audioVerse }}>
         {children}
       </ReadingContext.Provider>
       {showAudioPlayer && (
