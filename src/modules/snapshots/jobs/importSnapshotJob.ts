@@ -2,10 +2,9 @@ import { logger } from "@/logging";
 import { Job } from "@/shared/jobs/model";
 import { SNAPSHOT_JOB_TYPES } from "./jobTypes";
 import { snapshotObjectRepository } from "../data-access/snapshotObjectRepository";
-import { snapshotQueryService } from "../data-access/snapshotQueryService";
 
 export type ImportSnapshotJob = Job<{
-  snapshotId: string;
+  snapshotKey: string;
   source: string;
   code: string;
 }>;
@@ -15,7 +14,8 @@ export async function importSnapshotJob(job: ImportSnapshotJob) {
     job: {
       id: job.id,
       type: job.type,
-      snapshotId: job.payload.snapshotId,
+      source: job.payload.source,
+      snapshotKey: job.payload.snapshotKey,
     },
   });
 
@@ -28,18 +28,13 @@ export async function importSnapshotJob(job: ImportSnapshotJob) {
     );
   }
 
-  const snapshot = await snapshotQueryService.findById(job.payload.snapshotId);
-  if (!snapshot) {
-    throw new Error(`Snapshot ${job.payload.snapshotId} not found`);
-  }
-
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
   await snapshotObjectRepository.import({
     environment: process.env.NODE_ENV === "production" ? "prod" : "local",
-    snapshot,
+    snapshotKey: job.payload.snapshotKey,
     code: job.payload.code,
   });
 
-  jobLogger.info(`Imported snapshot ${snapshot.id}`);
+  jobLogger.info(`Imported snapshot ${job.payload.snapshotKey}`);
 }

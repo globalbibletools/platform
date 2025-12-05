@@ -1,9 +1,12 @@
 import { copyStream, query, queryStream } from "@/db";
 import { Readable } from "stream";
 import {
+  IdMapper,
   PostgresTextFormatTransform,
   SnapshotObjectPlugin,
+  WriteConfig,
 } from "@/modules/snapshots/model";
+import { ulid } from "@/shared/ulid";
 
 export const languageSnapshotObjectPlugins: Record<
   string,
@@ -21,13 +24,32 @@ export const languageSnapshotObjectPlugins: Record<
         [languageId],
       );
     },
-    async write(stream: Readable): Promise<void> {
+    async write(stream: Readable, writeConfig?: WriteConfig): Promise<void> {
       return new Promise((resolve, reject) => {
         stream.on("readable", async () => {
           let language;
           while (null !== (language = stream.read())) {
-            await query(
-              `
+            if (writeConfig?.type === "import") {
+              const newId = this.idMapper!.mapId(language.id);
+
+              await query(
+                `
+                insert into language(id, code, name, font, translation_ids, text_direction)
+                values ($1, $2, $3, $4, $5, $6)
+              `,
+                [
+                  newId,
+                  writeConfig.languageCode,
+                  language.name,
+                  language.font,
+                  language.translation_ids,
+                  language.text_direction,
+                  // We ignore the reference language on import since it may not exist when transferring between environments.
+                ],
+              );
+            } else {
+              await query(
+                `
                 update language set
                   code = $2,
                   name = $3,
@@ -37,16 +59,17 @@ export const languageSnapshotObjectPlugins: Record<
                   reference_language_id = $7
                 where id = $1
               `,
-              [
-                language.id,
-                language.code,
-                language.name,
-                language.font,
-                language.translation_ids,
-                language.text_direction,
-                language.reference_language_id,
-              ],
-            );
+                [
+                  language.id,
+                  language.code,
+                  language.name,
+                  language.font,
+                  language.translation_ids,
+                  language.text_direction,
+                  language.reference_language_id,
+                ],
+              );
+            }
           }
         });
 
@@ -58,6 +81,7 @@ export const languageSnapshotObjectPlugins: Record<
         });
       });
     },
+    idMapper: new IdMapper(ulid),
   },
   languageMemberRole: {
     resourceName: "language_member_role",

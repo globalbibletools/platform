@@ -6,12 +6,37 @@ export interface Snapshot {
   timestamp: Date;
 }
 
-export interface SnapshotObjectPlugin {
+export type WriteConfig =
+  | {
+      type: "restore";
+    }
+  | {
+      type: "import";
+      languageCode: string;
+    };
+
+export interface SnapshotObjectPlugin<Id = string> {
   resourceName: string;
   dependencies?: string[];
   read?(languageId: string): Promise<Readable>;
   clear?(languageId: string): Promise<void>;
-  write?(stream: Readable): Promise<void>;
+  write?(stream: Readable, config?: WriteConfig): Promise<void>;
+  idMapper?: IdMapper<Id>;
+}
+
+export class IdMapper<Id = string> {
+  #map: Map<Id, Id> = new Map();
+
+  constructor(private generateId: () => Id) {}
+
+  mapId(fromId: Id): Id {
+    let mappedId = this.#map.get(fromId);
+    if (!mappedId) {
+      mappedId = this.generateId();
+      this.#map.set(fromId, mappedId);
+    }
+    return mappedId;
+  }
 }
 
 type FieldMapper = (record: any) => any;

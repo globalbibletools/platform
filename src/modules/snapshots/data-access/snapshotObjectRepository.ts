@@ -17,9 +17,12 @@ interface SnapshotObjectPlugins {
 
 export const snapshotObjectPlugins: SnapshotObjectPlugins =
   buildSnapshotObjectPluginMap({
+    language: languageSnapshotObjectPlugins.language,
+    /*
     ...languageSnapshotObjectPlugins,
     ...translationSnapshotObjectPlugins,
     ...reportingSnapshotObjectPlugins,
+    */
   });
 
 export const snapshotObjectRepository = {
@@ -89,7 +92,9 @@ export const snapshotObjectRepository = {
         continue;
       }
 
-      await plugin.write?.(maybeStream.pipe(new DeserializeJsonLTransform()));
+      await plugin.write?.(maybeStream.pipe(new DeserializeJsonLTransform()), {
+        type: "restore",
+      });
 
       logger.info(`Finished restoring snapshot for ${plugin.resourceName}`);
     }
@@ -99,7 +104,7 @@ export const snapshotObjectRepository = {
   async import({
     environment,
     snapshotKey,
-    code: _code,
+    code,
   }: {
     environment: "prod" | "local";
     snapshotKey: string;
@@ -122,7 +127,10 @@ export const snapshotObjectRepository = {
         continue;
       }
 
-      await plugin.write?.(maybeStream.pipe(new DeserializeJsonLTransform()));
+      await plugin.write?.(maybeStream.pipe(new DeserializeJsonLTransform()), {
+        type: "import",
+        languageCode: code,
+      });
 
       logger.info(`Finished importing snapshot for ${plugin.resourceName}`);
     }
