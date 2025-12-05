@@ -17,9 +17,8 @@ interface SnapshotObjectPlugins {
 
 export const snapshotObjectPlugins: SnapshotObjectPlugins =
   buildSnapshotObjectPluginMap({
-    language: languageSnapshotObjectPlugins.language,
-    /*
     ...languageSnapshotObjectPlugins,
+    /*
     ...translationSnapshotObjectPlugins,
     ...reportingSnapshotObjectPlugins,
     */
@@ -130,6 +129,7 @@ export const snapshotObjectRepository = {
       await plugin.write?.(maybeStream.pipe(new DeserializeJsonLTransform()), {
         type: "import",
         languageCode: code,
+        pluginMap: snapshotObjectPlugins.map,
       });
 
       logger.info(`Finished importing snapshot for ${plugin.resourceName}`);

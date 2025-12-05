@@ -81,7 +81,7 @@ export const languageSnapshotObjectPlugins: Record<
         });
       });
     },
-    idMapper: new IdMapper(ulid),
+    idMapper: new IdMapper(() => ulid()),
   },
   languageMemberRole: {
     resourceName: "language_member_role",
@@ -104,7 +104,12 @@ export const languageSnapshotObjectPlugins: Record<
         [languageId],
       );
     },
-    async write(stream: Readable): Promise<void> {
+    async write(stream: Readable, config?: WriteConfig): Promise<void> {
+      // When importing, we may not have the same users as the source language so we import with none.
+      if (config?.type === "import") {
+        return;
+      }
+
       await copyStream(
         "language_member_role",
         stream.pipe(
@@ -116,5 +121,6 @@ export const languageSnapshotObjectPlugins: Record<
         ),
       );
     },
+    idMapper: new IdMapper((x) => x),
   },
 };

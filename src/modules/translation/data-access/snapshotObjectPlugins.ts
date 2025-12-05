@@ -1,8 +1,12 @@
 import { Readable } from "stream";
+import { pipeline } from "stream/promises";
 import { copyStream, query, queryStream } from "@/db";
 import {
+  IdMapper,
+  PostgresBulkInsertStream,
   PostgresTextFormatTransform,
   SnapshotObjectPlugin,
+  WriteConfig,
 } from "@/modules/snapshots/model";
 
 export const translationSnapshotObjectPlugins: Record<
@@ -29,20 +33,39 @@ export const translationSnapshotObjectPlugins: Record<
         [languageId],
       );
     },
-    async write(stream: Readable) {
-      await copyStream(
-        "phrase",
-        stream.pipe(
-          new PostgresTextFormatTransform([
-            (record) => record.id?.toString(),
-            (record) => record.language_id,
+    async write(stream: Readable, config?: WriteConfig) {
+      if (config?.type === "import") {
+        const writeStream = new PostgresBulkInsertStream(
+          `
+            insert into phrase(language_id, created_at, created_by
+          `,
+          [
+            (record) =>
+              config.pluginMap.language.idMapper?.mapId(record.language_id) ??
+              record.languageId,
             (record) => record.created_at,
             (record) => record.created_by,
             (record) => record.deleted_at,
             (record) => record.deleted_by,
-          ]),
-        ),
-      );
+          ],
+        );
+
+        await pipeline(stream, writeStream);
+      } else {
+        await copyStream(
+          "phrase",
+          stream.pipe(
+            new PostgresTextFormatTransform([
+              (record) => record.id?.toString(),
+              (record) => record.language_id,
+              (record) => record.created_at,
+              (record) => record.created_by,
+              (record) => record.deleted_at,
+              (record) => record.deleted_by,
+            ]),
+          ),
+        );
+      }
     },
   },
   phraseWord: {
