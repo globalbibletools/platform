@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
-import plugin from "tailwindcss/plugin";
-import defaultTheme from "tailwindcss/defaultTheme";
 import colors from "tailwindcss/colors";
+import defaultTheme from "tailwindcss/defaultTheme";
+import plugin from "tailwindcss/plugin";
 
 // Our tailwind rtl utilities are originally based off of tailwindcss-rtl.
 const rtl = plugin(({ addUtilities, matchUtilities, theme }) => {
@@ -103,6 +103,10 @@ const config: Config = {
       boxShadow: {
         left: "-1px 0 3px 0 rgb(0 0 0 / 0.1), -1px 0 2px -1px rgb(0 0 0 / 0.1)",
         right: "1px 0 3px 0 rgb(0 0 0 / 0.1), 1px 0 2px -1px rgb(0 0 0 / 0.1)",
+      },
+      screens: {
+        xs: "512px",
+        xxs: "384px",
       },
     },
     colors: {
