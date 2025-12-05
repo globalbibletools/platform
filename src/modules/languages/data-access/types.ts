@@ -1,4 +1,15 @@
+import { Generated } from "kysely";
 import { LanguageMemberRoleRaw, TextDirectionRaw } from "../model";
+
+export interface LanguageTable {
+  id: Generated<string>;
+  code: string;
+  name: string;
+  font: Generated<string>;
+  text_direction: Generated<TextDirectionRaw>;
+  translation_ids: Generated<Array<string>> | null;
+  reference_language_id: string | null;
+}
 
 export interface DbLanguage {
   id: string;
