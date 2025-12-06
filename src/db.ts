@@ -5,6 +5,13 @@ import { logger } from "./logging";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 
+import { LanguageTable } from "@/modules/languages/data-access/types";
+import { Kysely, PostgresDialect } from "kysely";
+
+export interface Database {
+  language: LanguageTable;
+}
+
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL env var missing");
 }
@@ -20,6 +27,14 @@ function onError(error: unknown) {
   logger.error(error);
 }
 pool.on("error", onError);
+
+let db = new Kysely<Database>({
+  dialect: new PostgresDialect({ pool }),
+});
+
+export function getDb(): Kysely<Database> {
+  return db;
+}
 
 export async function query<T extends QueryResultRow>(
   text: string,
@@ -88,4 +103,8 @@ export async function reconnect() {
   } catch (_) {}
   pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 20 });
   pool.on("error", onError);
+
+  db = new Kysely({
+    dialect: new PostgresDialect({ pool }),
+  });
 }

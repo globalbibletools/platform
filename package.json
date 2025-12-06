@@ -81,6 +81,7 @@
     "eslint-config-prettier": "9.1.0",
     "factory.ts": "1.4.2",
     "husky": "9.1.7",
+    "kysely": "0.28.2",
     "lint-staged": "15.2.11",
     "lodash": "4.17.21",
     "pg-cursor": "2.15.3",
