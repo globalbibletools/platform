@@ -1,7 +1,7 @@
-import { query } from "@/db";
-import ProgressChart from "./ProgressChart";
 import { Icon } from "@/components/Icon";
+import { query } from "@/db";
 import { verifySession } from "@/session";
+import ProgressChart from "./ProgressChart";
 
 export default async function LandingPage() {
   const [session, stats] = await Promise.all([
@@ -49,7 +49,7 @@ export default async function LandingPage() {
         <div className="md:flex-grow"></div>
         <a
           href={session ? "/dashboard" : "/read"}
-          className="rounded-lg bg-blue-800 text-white font-bold shadow-md px-4 flex items-center justify-center h-8 md:mt-[4px] ms-1"
+          className="rounded-lg bg-blue-800 text-white font-bold shadow-md px-4 py-0.5 xxs:py-0 flex items-center text-center justify-center w-min xxs:w-fit min-h-8 md:mt-[4px] ms-1"
         >
           {session ? "Go to Dashboard" : "Reader's Bible"}
         </a>
