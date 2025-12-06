@@ -1,5 +1,6 @@
 import { getDb } from "@/db";
 import { Language } from "../model";
+import { sql } from "kysely";
 
 const languageRepository = {
   async existsById(id: string): Promise<boolean> {
@@ -29,7 +30,11 @@ const languageRepository = {
         "name",
         "font",
         "text_direction as textDirection",
-        "translation_ids as translationIds",
+        sql<
+          string[]
+        >`coalesce(${sql.ref("translation_ids")}, array[]::text[])`.as(
+          "translationIds",
+        ),
         "reference_language_id as referenceLanguageId",
       ])
       .where("code", "=", code)
