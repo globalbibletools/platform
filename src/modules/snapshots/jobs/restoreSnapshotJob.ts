@@ -3,6 +3,7 @@ import { Job } from "@/shared/jobs/model";
 import { SNAPSHOT_JOB_TYPES } from "./jobTypes";
 import { snapshotObjectRepository } from "../data-access/snapshotObjectRepository";
 import { snapshotQueryService } from "../data-access/snapshotQueryService";
+import { getStorageEnvironment } from "@/shared/storageEnvironment";
 
 export type RestoreSnapshotJob = Job<{
   snapshotId: string;
@@ -35,7 +36,7 @@ export async function restoreSnapshotJob(job: RestoreSnapshotJob) {
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
   await snapshotObjectRepository.restore({
-    environment: process.env.NODE_ENV === "production" ? "prod" : "local",
+    environment: getStorageEnvironment(),
     snapshot,
   });
 

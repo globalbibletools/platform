@@ -19,6 +19,8 @@ import { updateLanguageSettings } from "@/modules/languages/actions/updateLangua
 import Form from "@/components/Form";
 import { languageQueryService } from "../data-access/LanguageQueryService";
 import { notFound } from "next/navigation";
+import InterlinearExportPanel from "@/modules/export/react/InterlinearExportPanel";
+import { exportClient } from "@/modules/export/public/ExportClient";
 
 interface LanguageSettingsPageProps {
   params: { code: string };
@@ -41,10 +43,11 @@ export default async function LanguageSettingsPage({
 }: LanguageSettingsPageProps) {
   const t = await getTranslations("LanguageSettingsPage");
 
-  const [languageSettings, languages, translations] = await Promise.all([
+  const [languageSettings, languages, translations, books] = await Promise.all([
     languageQueryService.findSettingsByCode(params.code),
     languageQueryService.findAll(),
     fetchTranslations(params.code),
+    exportClient.findAllBooks(),
   ]);
   if (!languageSettings) {
     notFound();
@@ -217,6 +220,10 @@ export default async function LanguageSettingsPage({
           <FieldError id="reference_language_error" name="reference_language" />
         </section>
       </Form>
+      <InterlinearExportPanel
+        languageCode={languageSettings.code}
+        books={books}
+      />
     </div>
   );
 }

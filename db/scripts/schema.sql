@@ -114,6 +114,17 @@ CREATE TYPE public.text_direction AS ENUM (
     'rtl'
 );
 
+--
+-- Name: export_request_status; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.export_request_status AS ENUM (
+    'PENDING',
+    'IN_PROGRESS',
+    'COMPLETE',
+    'FAILED'
+);
+
 
 --
 -- Name: user_status; Type: TYPE; Schema: public; Owner: -
@@ -575,6 +586,37 @@ CREATE TABLE public.language_member_role (
     user_id uuid NOT NULL,
     language_id uuid NOT NULL,
     role public.language_role NOT NULL
+);
+
+--
+-- Name: export_request; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.export_request (
+    id uuid DEFAULT public.generate_ulid() NOT NULL,
+    language_id uuid NOT NULL,
+    book_id integer,
+    chapters integer[],
+    layout text DEFAULT 'standard'::text NOT NULL,
+    status public.export_request_status DEFAULT 'PENDING'::public.export_request_status NOT NULL,
+    job_id uuid,
+    download_url text,
+    expires_at timestamp with time zone,
+    requested_by uuid NOT NULL,
+    requested_at timestamp with time zone DEFAULT now() NOT NULL,
+    completed_at timestamp with time zone,
+    export_key text
+);
+
+
+--
+-- Name: export_request_book; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.export_request_book (
+    request_id uuid NOT NULL,
+    book_id integer NOT NULL,
+    chapters integer[] NOT NULL
 );
 
 
@@ -1196,6 +1238,16 @@ ALTER TABLE ONLY public.language_import_job
 ALTER TABLE ONLY public.language_member_role
     ADD CONSTRAINT language_member_role_pkey PRIMARY KEY (language_id, user_id, role);
 
+--
+-- Name: export_request export_request_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.export_request
+    ADD CONSTRAINT export_request_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.export_request_book
+    ADD CONSTRAINT export_request_book_pkey PRIMARY KEY (request_id, book_id);
+
 
 --
 -- Name: language language_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -1456,6 +1508,18 @@ CREATE INDEX gloss_phrase_id_idx ON public.gloss USING btree (phrase_id);
 
 CREATE UNIQUE INDEX language_code_idx ON public.language USING btree (code);
 
+--
+-- Name: export_request_status_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX export_request_status_idx ON public.export_request USING btree (status);
+
+CREATE INDEX export_request_requested_by_idx ON public.export_request USING btree (requested_by);
+
+CREATE INDEX export_request_expires_at_idx ON public.export_request USING btree (expires_at);
+
+CREATE INDEX export_request_book_request_idx ON public.export_request_book USING btree (request_id);
+
 
 --
 -- Name: lemma_form_lemma_id_idx; Type: INDEX; Schema: public; Owner: -
@@ -1661,6 +1725,43 @@ ALTER TABLE ONLY public.language_member_role
 
 ALTER TABLE ONLY public.language_member_role
     ADD CONSTRAINT language_member_role_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+--
+-- Name: export_request export_request_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.export_request
+    ADD CONSTRAINT export_request_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.book(id);
+
+
+--
+-- Name: export_request export_request_job_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.export_request
+    ADD CONSTRAINT export_request_job_id_fkey FOREIGN KEY (job_id) REFERENCES public.job(id);
+
+
+--
+-- Name: export_request export_request_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.export_request
+    ADD CONSTRAINT export_request_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id) ON DELETE CASCADE;
+
+
+--
+-- Name: export_request export_request_requested_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.export_request
+    ADD CONSTRAINT export_request_requested_by_fkey FOREIGN KEY (requested_by) REFERENCES public.users(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY public.export_request_book
+    ADD CONSTRAINT export_request_book_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.book(id);
+
+ALTER TABLE ONLY public.export_request_book
+    ADD CONSTRAINT export_request_book_request_id_fkey FOREIGN KEY (request_id) REFERENCES public.export_request(id) ON DELETE CASCADE;
 
 
 --
@@ -1930,4 +2031,3 @@ ALTER TABLE ONLY public.word
 --
 -- PostgreSQL database dump complete
 --
-
