@@ -8,7 +8,7 @@ import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import InviteLanguageMember from "../use-cases/InviteLanguageMember";
-import languageRepository from "../data-access/LanguageRepository";
+import languageRepository from "../data-access/languageRepository";
 import languageMemberRepository from "../data-access/LanguageMemberRepository";
 import { userClient } from "@/modules/users/public/UserClient";
 import { LanguageMemberRoleRaw } from "../model";

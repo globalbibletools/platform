@@ -1,6 +1,6 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { beforeEach, describe, expect, test } from "vitest";
-import languageRepository from "./LanguageRepository";
+import languageRepository from "./languageRepository";
 import { ulid } from "@/shared/ulid";
 import { getDb } from "@/db";
 import { TextDirectionRaw } from "../model";
