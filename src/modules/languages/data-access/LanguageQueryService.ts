@@ -102,7 +102,7 @@ export const languageQueryService = {
       `
         select id, code, english_name as "englishName", local_name as "localName"
         from language
-        order by english_name
+        order by "englishName"
       `,
       [],
     );
@@ -112,7 +112,7 @@ export const languageQueryService = {
   async findById(id: string): Promise<LanguageQueryResult | undefined> {
     const result = await query<LanguageQueryResult>(
       `
-        select id, code, englishName, localName
+        select id, code, english_name as "englishName", local_name as "localName"
         from language
         where id = $1
       `,
@@ -229,14 +229,14 @@ export const languageQueryService = {
   async findForMember(userId: string): Promise<LanguageQueryResult[]> {
     const result = await query<LanguageQueryResult>(
       `
-        select id, code, english_name as "englishName", local_name as "englishName"
+        select id, code, english_name as "englishName", local_name as "localName"
         from language
         where exists (
             select * from language_member_role
             where language_id = language.id
               and user_id = $1
         )
-        order by english_name
+        order by "englishName"
       `,
       [userId],
     );

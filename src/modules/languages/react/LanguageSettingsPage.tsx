@@ -101,20 +101,6 @@ export default async function LanguageSettingsPage({
               />
               <FieldError id="english-name-error" name="englishName" />
             </div>
-            <div>
-              <FormLabel htmlFor="code">
-                {t("form.code").toUpperCase()}
-              </FormLabel>
-              <TextInput
-                defaultValue={languageSettings.code}
-                id="code"
-                name="code"
-                className="block w-20"
-                readOnly
-                aria-describedby="code-error"
-              />
-              <FieldError id="code-error" name="code" />
-            </div>
             <div className="mb-4">
               <FormLabel htmlFor="local_name">{t("form.local_name")}</FormLabel>
               <TextInput
@@ -127,6 +113,20 @@ export default async function LanguageSettingsPage({
                 autosubmit
               />
               <FieldError id="local-name-error" name="localName" />
+            </div>
+            <div className="mb-4">
+              <FormLabel htmlFor="code">
+                {t("form.code").toUpperCase()}
+              </FormLabel>
+              <TextInput
+                defaultValue={languageSettings.code}
+                id="code"
+                name="code"
+                className="block w-20"
+                readOnly
+                aria-describedby="code-error"
+              />
+              <FieldError id="code-error" name="code" />
             </div>
           </div>
         </section>
