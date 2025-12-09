@@ -7,7 +7,7 @@ import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import InviteUser from "../use-cases/InviteUser";
-import userRepository from "../data-access/UserRepository";
+import userRepository from "../data-access/userRepository";
 import { UserAlreadyActiveError } from "../model/errors";
 import Policy from "@/modules/access/public/Policy";
 

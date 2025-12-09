@@ -8,7 +8,7 @@ import { createSession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import ResetPassword from "../use-cases/ResetPassword";
-import userRepository from "../data-access/UserRepository";
+import userRepository from "../data-access/userRepository";
 import { NotFoundError } from "@/shared/errors";
 
 const requestSchema = z

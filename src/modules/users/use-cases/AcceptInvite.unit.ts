@@ -1,6 +1,6 @@
 import { test, expect } from "vitest";
 import AcceptInvite from "./AcceptInvite";
-import mockUserRepo from "../data-access/MockUserRepository";
+import mockUserRepo from "../data-access/mockUserRepository";
 import User from "../model/User";
 import UserEmail from "../model/UserEmail";
 import EmailStatus from "../model/EmailStatus";

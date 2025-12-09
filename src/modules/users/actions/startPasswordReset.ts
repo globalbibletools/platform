@@ -7,7 +7,7 @@ import { parseForm } from "@/form-parser";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import StartPasswordReset from "../use-cases/StartPasswordReset";
-import userRepository from "../data-access/UserRepository";
+import userRepository from "../data-access/userRepository";
 
 const requestSchema = z.object({
   email: z.string().min(1),

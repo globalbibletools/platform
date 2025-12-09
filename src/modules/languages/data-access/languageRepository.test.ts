@@ -23,7 +23,7 @@ describe("existsById", () => {
     );
   });
 
-  test("returns false if language does not exists", async () => {
+  test("returns false if language does not exist", async () => {
     await expect(languageRepository.existsById(ulid())).resolves.toBe(false);
   });
 });

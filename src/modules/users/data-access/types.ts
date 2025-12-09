@@ -1,7 +1,47 @@
+import { Generated } from "kysely";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { SystemRoleRaw } from "../model/SystemRole";
 import User from "../model/User";
 import { UserStatusRaw } from "../model/UserStatus";
+
+export interface UserTable {
+  id: Generated<string>;
+  name: string | null;
+  email_status: Generated<EmailStatusRaw>;
+  email: string;
+  hashed_password: string | null;
+  user_status: Generated<UserStatusRaw>;
+}
+
+export interface ResetPasswordTokenTable {
+  user_id: string;
+  token: string;
+  expires_at: Date;
+}
+
+export interface UserEmailVerificationTable {
+  user_id: string;
+  email: string;
+  token: string;
+  expires_at: Date;
+}
+
+export interface UserInvitationTable {
+  user_id: string;
+  token: string;
+  expires: BigInt;
+}
+
+export interface UserSystemRoleTable {
+  user_id: string;
+  role: SystemRoleRaw;
+}
+
+export interface SessionTable {
+  id: string;
+  user_id: string;
+  expires_at: Date;
+}
 
 export interface DbUser {
   id: string;

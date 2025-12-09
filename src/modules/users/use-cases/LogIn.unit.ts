@@ -6,7 +6,7 @@ import EmailStatus from "../model/EmailStatus";
 import UserEmail from "../model/UserEmail";
 import { Scrypt } from "oslo/password";
 import { NotFoundError } from "@/shared/errors";
-import mockUserRepo from "../data-access/MockUserRepository";
+import mockUserRepo from "../data-access/mockUserRepository";
 import Password from "../model/Password";
 import UserStatus from "../model/UserStatus";
 

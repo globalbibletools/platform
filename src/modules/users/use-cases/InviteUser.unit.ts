@@ -1,6 +1,6 @@
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
-import mockUserRepo from "../data-access/MockUserRepository";
+import mockUserRepo from "../data-access/mockUserRepository";
 import InviteUser from "./InviteUser";
 import User from "../model/User";
 import UserEmail from "../model/UserEmail";

@@ -1,4 +1,4 @@
-import { query, transaction } from "@/db";
+import { getDb, query, transaction } from "@/db";
 import User from "../model/User";
 import UserEmail from "../model/UserEmail";
 import PasswordReset from "../model/PasswordReset";
@@ -66,11 +66,11 @@ function dbToUser(dbModel: DbUserModel): User {
 
 const userRepository = {
   async existsByEmail(email: string): Promise<boolean> {
-    const result = await query(`select 1 from users where email = $1`, [
-      email.toLowerCase(),
-    ]);
-
-    return result.rows.length > 0;
+    const result = await getDb()
+      .selectFrom("users")
+      .where("email", "=", email.toLowerCase())
+      .executeTakeFirst();
+    return Boolean(result);
   },
 
   async findById(id: string) {

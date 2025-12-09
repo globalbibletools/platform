@@ -8,7 +8,7 @@ import { parseForm } from "@/form-parser";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import AcceptInvite from "../use-cases/AcceptInvite";
-import userRepository from "../data-access/UserRepository";
+import userRepository from "../data-access/userRepository";
 import { InvalidInvitationTokenError } from "../model/errors";
 
 const loginSchema = z
