@@ -16,14 +16,14 @@ export interface UserTable {
 export interface ResetPasswordTokenTable {
   user_id: string;
   token: string;
-  expires_at: Date;
+  expires: BigInt;
 }
 
 export interface UserEmailVerificationTable {
   user_id: string;
   email: string;
   token: string;
-  expires_at: Date;
+  expires: BigInt;
 }
 
 export interface UserInvitationTable {
