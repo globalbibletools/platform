@@ -1014,3 +1014,459 @@ describe("findByEmailVerificationToken", () => {
     );
   });
 });
+
+describe.only("commit", () => {
+  test("update columns in the users table", async () => {
+    const initialUser = {
+      id: ulid(),
+      email: "initial@example.com",
+      name: "Initial Name",
+      email_status: EmailStatusRaw.Unverified,
+      hashed_password: "initialhash",
+      status: UserStatusRaw.Disabled,
+    };
+    await getDb().insertInto("users").values(initialUser).execute();
+
+    const updatedUser = new User({
+      id: initialUser.id,
+      email: new UserEmail({
+        address: "updated@example.com",
+        status: EmailStatus.Verified,
+      }),
+      name: "Updated Name",
+      password: new Password({ hash: "updatedhash" }),
+      status: UserStatus.Active,
+      passwordResets: [],
+      invitations: [],
+      systemRoles: [],
+    });
+
+    await userRepository.commit(updatedUser);
+
+    const result = await getDb()
+      .selectFrom("users")
+      .selectAll()
+      .where("id", "=", initialUser.id)
+      .executeTakeFirst();
+
+    expect(result).toEqual({
+      id: initialUser.id,
+      email: "updated@example.com",
+      name: "Updated Name",
+      email_status: EmailStatusRaw.Verified,
+      hashed_password: "updatedhash",
+      status: UserStatusRaw.Active,
+    });
+  });
+
+  test("adds new row to the password reset table", async () => {
+    const user = {
+      id: ulid(),
+      email: "test@example.com",
+      name: "Test User",
+      email_status: EmailStatusRaw.Verified,
+      hashed_password: "pa$$word",
+      status: UserStatusRaw.Active,
+    };
+    await getDb().insertInto("users").values(user).execute();
+
+    const passwordReset = new PasswordReset({
+      token: "newreset1234",
+      expiresAt: endOfTomorrow(),
+    });
+
+    const updatedUser = new User({
+      id: user.id,
+      name: user.name,
+      password: new Password({ hash: user.hashed_password }),
+      email: new UserEmail({
+        address: user.email,
+        status: EmailStatus.fromRaw(user.email_status),
+      }),
+      passwordResets: [passwordReset],
+      invitations: [],
+      systemRoles: [],
+      status: UserStatus.fromRaw(user.status),
+    });
+
+    await userRepository.commit(updatedUser);
+
+    const result = await getDb()
+      .selectFrom("reset_password_token")
+      .selectAll()
+      .where("user_id", "=", user.id)
+      .execute();
+
+    expect(result).toEqual([
+      {
+        user_id: user.id,
+        token: passwordReset.token,
+        expires: passwordReset.expiresAt.valueOf(),
+      },
+    ]);
+  });
+
+  test("removes password reset row", async () => {
+    const user = {
+      id: ulid(),
+      email: "test@example.com",
+      name: "Test User",
+      email_status: EmailStatusRaw.Verified,
+      hashed_password: "pa$$word",
+      status: UserStatusRaw.Active,
+    };
+    const existingPasswordReset = {
+      user_id: user.id,
+      token: "oldreset1234",
+      expires: BigInt(endOfTomorrow().valueOf()),
+    };
+    await getDb().insertInto("users").values(user).execute();
+    await getDb()
+      .insertInto("reset_password_token")
+      .values(existingPasswordReset)
+      .execute();
+
+    const updatedUser = new User({
+      id: user.id,
+      name: user.name,
+      password: new Password({ hash: user.hashed_password }),
+      email: new UserEmail({
+        address: user.email,
+        status: EmailStatus.fromRaw(user.email_status),
+      }),
+      passwordResets: [], // Empty array to remove the existing one
+      invitations: [],
+      systemRoles: [],
+      status: UserStatus.fromRaw(user.status),
+    });
+
+    await userRepository.commit(updatedUser);
+
+    const result = await getDb()
+      .selectFrom("reset_password_token")
+      .selectAll()
+      .where("user_id", "=", user.id)
+      .execute();
+
+    expect(result).toEqual([]);
+  });
+
+  test("adds new row to the invitation table", async () => {
+    const user = {
+      id: ulid(),
+      email: "test@example.com",
+      status: UserStatusRaw.Active,
+      email_status: EmailStatusRaw.Unverified,
+    };
+    await getDb().insertInto("users").values(user).execute();
+
+    const invitation = new Invitation({
+      token: "newinvite1234",
+      expiresAt: new Date(),
+    });
+
+    const updatedUser = new User({
+      id: user.id,
+      email: new UserEmail({
+        address: user.email,
+        status: EmailStatus.fromRaw(user.email_status),
+      }),
+      passwordResets: [],
+      invitations: [invitation],
+      systemRoles: [],
+      status: UserStatus.fromRaw(user.status),
+    });
+
+    await userRepository.commit(updatedUser);
+
+    const result = await getDb()
+      .selectFrom("user_invitation")
+      .selectAll()
+      .where("user_id", "=", user.id)
+      .execute();
+
+    expect(result).toEqual([
+      {
+        user_id: user.id,
+        token: invitation.token,
+        expires: invitation.expiresAt.valueOf(),
+      },
+    ]);
+  });
+
+  test("removes invitation row", async () => {
+    const user = {
+      id: ulid(),
+      email: "test@example.com",
+      status: UserStatusRaw.Active,
+      email_status: EmailStatusRaw.Unverified,
+    };
+    const existingInvitation = {
+      user_id: user.id,
+      token: "oldinvite1234",
+      expires: new Date().valueOf(),
+    };
+    await getDb().insertInto("users").values(user).execute();
+    await getDb()
+      .insertInto("user_invitation")
+      .values(existingInvitation)
+      .execute();
+
+    const updatedUser = new User({
+      id: user.id,
+      email: new UserEmail({
+        address: user.email,
+        status: EmailStatus.fromRaw(user.email_status),
+      }),
+      passwordResets: [],
+      invitations: [], // Empty array to remove the existing one
+      systemRoles: [],
+      status: UserStatus.fromRaw(user.status),
+    });
+
+    await userRepository.commit(updatedUser);
+
+    const result = await getDb()
+      .selectFrom("user_invitation")
+      .selectAll()
+      .where("user_id", "=", user.id)
+      .execute();
+
+    expect(result).toEqual([]);
+  });
+
+  test("adds row to the email verification table", async () => {
+    const user = {
+      id: ulid(),
+      email: "test@example.com",
+      name: "Test User",
+      email_status: EmailStatusRaw.Verified,
+      hashed_password: "pa$$word",
+      status: UserStatusRaw.Active,
+    };
+    await getDb().insertInto("users").values(user).execute();
+
+    const emailVerification = new EmailVerification({
+      token: "verify1234",
+      email: "new@example.com",
+      expiresAt: endOfTomorrow(),
+    });
+
+    const updatedUser = new User({
+      id: user.id,
+      name: user.name,
+      password: new Password({ hash: user.hashed_password }),
+      email: new UserEmail({
+        address: user.email,
+        status: EmailStatus.fromRaw(user.email_status),
+      }),
+      passwordResets: [],
+      invitations: [],
+      systemRoles: [],
+      emailVerification,
+      status: UserStatus.fromRaw(user.status),
+    });
+
+    await userRepository.commit(updatedUser);
+
+    const result = await getDb()
+      .selectFrom("user_email_verification")
+      .selectAll()
+      .where("user_id", "=", user.id)
+      .executeTakeFirst();
+
+    expect(result).toEqual({
+      user_id: user.id,
+      email: emailVerification.email,
+      token: emailVerification.token,
+      expires: emailVerification.expiresAt.valueOf(),
+    });
+  });
+
+  test("deletes row from the email verification table", async () => {
+    const user = {
+      id: ulid(),
+      email: "test@example.com",
+      name: "Test User",
+      email_status: EmailStatusRaw.Verified,
+      hashed_password: "pa$$word",
+      status: UserStatusRaw.Active,
+    };
+    const existingEmailVerification = {
+      user_id: user.id,
+      email: "old@example.com",
+      token: "oldverify1234",
+      expires: endOfTomorrow().valueOf(),
+    };
+    await getDb().insertInto("users").values(user).execute();
+    await getDb()
+      .insertInto("user_email_verification")
+      .values(existingEmailVerification)
+      .execute();
+
+    const updatedUser = new User({
+      id: user.id,
+      name: user.name,
+      password: new Password({ hash: user.hashed_password }),
+      email: new UserEmail({
+        address: user.email,
+        status: EmailStatus.fromRaw(user.email_status),
+      }),
+      passwordResets: [],
+      invitations: [],
+      systemRoles: [],
+      emailVerification: undefined, // No email verification
+      status: UserStatus.fromRaw(user.status),
+    });
+
+    await userRepository.commit(updatedUser);
+
+    const result = await getDb()
+      .selectFrom("user_email_verification")
+      .selectAll()
+      .where("user_id", "=", user.id)
+      .execute();
+
+    expect(result).toEqual([]);
+  });
+
+  test("replaces row in the email verification table", async () => {
+    const user = {
+      id: ulid(),
+      email: "test@example.com",
+      name: "Test User",
+      email_status: EmailStatusRaw.Verified,
+      hashed_password: "pa$$word",
+      status: UserStatusRaw.Active,
+    };
+    const existingEmailVerification = {
+      user_id: user.id,
+      email: "old@example.com",
+      token: "oldverify1234",
+      expires: endOfTomorrow().valueOf(),
+    };
+    await getDb().insertInto("users").values(user).execute();
+    await getDb()
+      .insertInto("user_email_verification")
+      .values(existingEmailVerification)
+      .execute();
+
+    const newEmailVerification = new EmailVerification({
+      token: "newverify5678",
+      email: "new@example.com",
+      expiresAt: addDays(endOfTomorrow(), 1),
+    });
+
+    const updatedUser = new User({
+      id: user.id,
+      name: user.name,
+      password: new Password({ hash: user.hashed_password }),
+      email: new UserEmail({
+        address: user.email,
+        status: EmailStatus.fromRaw(user.email_status),
+      }),
+      passwordResets: [],
+      invitations: [],
+      systemRoles: [],
+      emailVerification: newEmailVerification,
+      status: UserStatus.fromRaw(user.status),
+    });
+
+    await userRepository.commit(updatedUser);
+
+    const result = await getDb()
+      .selectFrom("user_email_verification")
+      .selectAll()
+      .where("user_id", "=", user.id)
+      .executeTakeFirst();
+
+    expect(result).toEqual({
+      user_id: user.id,
+      email: newEmailVerification.email,
+      token: newEmailVerification.token,
+      expires: newEmailVerification.expiresAt.valueOf(),
+    });
+  });
+
+  test("adds system role", async () => {
+    const user = {
+      id: ulid(),
+      email: "test@example.com",
+      name: "Test User",
+      email_status: EmailStatusRaw.Verified,
+      hashed_password: "pa$$word",
+      status: UserStatusRaw.Active,
+    };
+    await getDb().insertInto("users").values(user).execute();
+
+    const updatedUser = new User({
+      id: user.id,
+      name: user.name,
+      password: new Password({ hash: user.hashed_password }),
+      email: new UserEmail({
+        address: user.email,
+        status: EmailStatus.fromRaw(user.email_status),
+      }),
+      passwordResets: [],
+      invitations: [],
+      systemRoles: [SystemRole.Admin],
+      status: UserStatus.fromRaw(user.status),
+    });
+
+    await userRepository.commit(updatedUser);
+
+    const result = await getDb()
+      .selectFrom("user_system_role")
+      .selectAll()
+      .where("user_id", "=", user.id)
+      .execute();
+
+    expect(result).toEqual([
+      {
+        user_id: user.id,
+        role: SystemRoleRaw.Admin,
+      },
+    ]);
+  });
+
+  test("removes system role", async () => {
+    const user = {
+      id: ulid(),
+      email: "test@example.com",
+      name: "Test User",
+      email_status: EmailStatusRaw.Verified,
+      hashed_password: "pa$$word",
+      status: UserStatusRaw.Active,
+    };
+    const existingRole = {
+      user_id: user.id,
+      role: SystemRoleRaw.Admin,
+    };
+    await getDb().insertInto("users").values(user).execute();
+    await getDb().insertInto("user_system_role").values(existingRole).execute();
+
+    const updatedUser = new User({
+      id: user.id,
+      name: user.name,
+      password: new Password({ hash: user.hashed_password }),
+      email: new UserEmail({
+        address: user.email,
+        status: EmailStatus.fromRaw(user.email_status),
+      }),
+      passwordResets: [],
+      invitations: [],
+      systemRoles: [], // Empty array to remove the existing role
+      status: UserStatus.fromRaw(user.status),
+    });
+
+    await userRepository.commit(updatedUser);
+
+    const result = await getDb()
+      .selectFrom("user_system_role")
+      .selectAll()
+      .where("user_id", "=", user.id)
+      .execute();
+
+    expect(result).toEqual([]);
+  });
+});

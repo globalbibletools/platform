@@ -207,12 +207,21 @@ const userRepository = {
         ],
       );
 
+      // Delete all existing email verification records for the user
+      await query(
+        `
+          delete from user_email_verification
+          where user_id = $1
+        `,
+        [user.id],
+      );
+
+      // Insert the new email verification if present
       if (user.emailVerification) {
         await query(
           `
             insert into user_email_verification (user_id, email, token, expires)
             values ($1, $2, $3, $4)
-            on conflict (token) do nothing
           `,
           [
             user.id,
@@ -220,14 +229,6 @@ const userRepository = {
             user.emailVerification.token,
             user.emailVerification.expiresAt.valueOf(),
           ],
-        );
-      } else {
-        await query(
-          `
-            delete from user_email_verification
-            where user_id = $1
-          `,
-          [user.id],
         );
       }
 

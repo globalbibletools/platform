@@ -16,20 +16,20 @@ export interface UserTable {
 export interface ResetPasswordTokenTable {
   user_id: string;
   token: string;
-  expires: BigInt;
+  expires: number;
 }
 
 export interface UserEmailVerificationTable {
   user_id: string;
   email: string;
   token: string;
-  expires: BigInt;
+  expires: number;
 }
 
 export interface UserInvitationTable {
   user_id: string;
   token: string;
-  expires: BigInt;
+  expires: number;
 }
 
 export interface UserSystemRoleTable {
