@@ -1015,7 +1015,7 @@ describe("findByEmailVerificationToken", () => {
   });
 });
 
-describe.only("commit", () => {
+describe("commit", () => {
   test("update columns in the users table", async () => {
     const initialUser = {
       id: ulid(),

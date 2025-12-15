@@ -10,7 +10,7 @@ export interface UserTable {
   email_status: Generated<EmailStatusRaw>;
   email: string;
   hashed_password: string | null;
-  user_status: Generated<UserStatusRaw>;
+  status: Generated<UserStatusRaw>;
 }
 
 export interface ResetPasswordTokenTable {

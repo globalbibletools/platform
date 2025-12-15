@@ -1,4 +1,6 @@
-import { getDb, query, transaction } from "@/db";
+import { Database, getDb, query, transaction } from "@/db";
+import { SelectQueryBuilder, sql } from "kysely";
+import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import User from "../model/User";
 import UserEmail from "../model/UserEmail";
 import PasswordReset from "../model/PasswordReset";
@@ -74,87 +76,79 @@ const userRepository = {
   },
 
   async findById(id: string) {
-    const result = await query<DbUserModel>(
-      `
-        ${USER_SELECT}
-        where u.id = $1
-      `,
-      [id],
+    const query = selectUserFields(
+      getDb().selectFrom("users").where("id", "=", id),
     );
 
-    const dbModel = result.rows[0];
-    if (!dbModel) return;
+    const result = await query.executeTakeFirst();
+    if (!result) return;
 
-    return dbToUser(dbModel);
+    return dbToUser(result);
   },
 
   async findByEmail(email: string) {
-    const result = await query<DbUserModel>(
-      `
-        ${USER_SELECT}
-        where u.email = $1
-      `,
-      [email.toLowerCase()],
+    const query = selectUserFields(
+      getDb().selectFrom("users").where("email", "=", email.toLowerCase()),
     );
 
-    const dbModel = result.rows[0];
-    if (!dbModel) return;
+    const result = await query.executeTakeFirst();
+    if (!result) return;
 
-    return dbToUser(dbModel);
+    return dbToUser(result);
   },
 
   async findByInvitationToken(token: string) {
-    const result = await query<DbUserModel>(
-      `
-        ${USER_SELECT}
-        where u.id = (
-            select user_id from user_invitation
-            where token = $1
-        )
-      `,
-      [token],
+    const query = selectUserFields(
+      getDb()
+        .selectFrom("users")
+        .where("id", "in", (eb) =>
+          eb
+            .selectFrom("user_invitation")
+            .select("user_id")
+            .where("token", "=", token),
+        ),
     );
 
-    const dbModel = result.rows[0];
-    if (!dbModel) return;
+    const result = await query.executeTakeFirst();
+    if (!result) return;
 
-    return dbToUser(dbModel);
+    return dbToUser(result);
   },
 
   async findByResetPasswordToken(token: string) {
-    const result = await query<DbUserModel>(
-      `
-        ${USER_SELECT}
-        where u.id = (
-            select user_id from reset_password_token
-            where token = $1
-        )
-      `,
-      [token],
+    const query = selectUserFields(
+      getDb()
+        .selectFrom("users")
+        .where("id", "in", (eb) =>
+          eb
+            .selectFrom("reset_password_token")
+            .select("user_id")
+            .where("token", "=", token),
+        ),
     );
 
-    const dbModel = result.rows[0];
-    if (!dbModel) return;
+    const result = await query.executeTakeFirst();
+    if (!result) return;
 
-    return dbToUser(dbModel);
+    return dbToUser(result);
   },
 
   async findByEmailVerificationToken(token: string) {
-    const result = await query<DbUserModel>(
-      `
-        ${USER_SELECT}
-        where u.id = (
-            select user_id from user_email_verification
-            where token = $1
-        )
-      `,
-      [token],
+    const query = selectUserFields(
+      getDb()
+        .selectFrom("users")
+        .where("id", "in", (eb) =>
+          eb
+            .selectFrom("user_email_verification")
+            .select("user_id")
+            .where("token", "=", token),
+        ),
     );
 
-    const dbModel = result.rows[0];
-    if (!dbModel) return;
+    const result = await query.executeTakeFirst();
+    if (!result) return;
 
-    return dbToUser(dbModel);
+    return dbToUser(result);
   },
 
   async commit(user: User): Promise<void> {
@@ -283,44 +277,49 @@ const userRepository = {
 };
 export default userRepository;
 
-const USER_SELECT = `
-    select
-        u.id,
-        u.name,
-        u.hashed_password as "hashedPassword",
-        u.email,
-        u.email_status as "emailStatus",
-        u.status,
-        (
-            select json_agg(json_build_object(
-                'token', token,
-                'expiresAt', timestamp '1970-01-01' + make_interval(0, 0, 0, 0, 0, 0, expires / 1000)
-            ))
-            from reset_password_token
-            where user_id = u.id
-        ) as "passwordResets",
-        (
-            select json_build_object(
-                'email', email,
-                'token', token,
-                'expiresAt', timestamp '1970-01-01' + make_interval(0, 0, 0, 0, 0, 0, expires / 1000)
-            )
-            from user_email_verification
-            where user_id = u.id
-            limit 1
-        ) as "emailVerification",
-        (
-            select json_agg(json_build_object(
-                'token', token,
-                'expiresAt', timestamp '1970-01-01' + make_interval(0, 0, 0, 0, 0, 0, expires / 1000)
-            ))
-            from user_invitation
-            where user_id = u.id
-        ) as invitations,
-        (
-            select json_agg(role)
-            from user_system_role
-            where user_id = u.id
-        ) as "systemRoles"
-    from users u
-`;
+function selectUserFields(
+  query: SelectQueryBuilder<Database, "users", {}>,
+): SelectQueryBuilder<Database, "users", DbUserModel> {
+  return query.select((eb) => [
+    "users.id",
+    "users.name",
+    "users.hashed_password as hashedPassword",
+    "users.email",
+    "users.email_status as emailStatus",
+    "users.status",
+    jsonArrayFrom(
+      eb
+        .selectFrom("reset_password_token")
+        .select((eb) => [
+          "token",
+          sql<Date>`to_timestamp(${eb.ref("expires")} / 1000)`.as("expiresAt"),
+        ])
+        .whereRef("reset_password_token.user_id", "=", "users.id"),
+    ).as("passwordResets"),
+    jsonObjectFrom(
+      eb
+        .selectFrom("user_email_verification")
+        .select((eb) => [
+          "email",
+          "token",
+          sql<Date>`to_timestamp(${eb.ref("expires")} / 1000)`.as("expiresAt"),
+        ])
+        .whereRef("user_email_verification.user_id", "=", "users.id")
+        .limit(1),
+    ).as("emailVerification"),
+    jsonArrayFrom(
+      eb
+        .selectFrom("user_invitation")
+        .select((eb) => [
+          "token",
+          sql<Date>`to_timestamp(${eb.ref("expires")} / 1000)`.as("expiresAt"),
+        ])
+        .whereRef("user_invitation.user_id", "=", "users.id"),
+    ).as("invitations"),
+    eb
+      .selectFrom("user_system_role")
+      .select((eb) => [eb.fn.jsonAgg("role").as("roles")])
+      .whereRef("user_system_role.user_id", "=", "users.id")
+      .as("systemRoles"),
+  ]);
+}
