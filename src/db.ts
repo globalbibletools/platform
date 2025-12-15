@@ -7,9 +7,23 @@ import { pipeline } from "stream/promises";
 
 import { LanguageTable } from "@/modules/languages/data-access/types";
 import { Kysely, PostgresDialect } from "kysely";
+import {
+  ResetPasswordTokenTable,
+  SessionTable,
+  UserEmailVerificationTable,
+  UserInvitationTable,
+  UserSystemRoleTable,
+  UserTable,
+} from "./modules/users/data-access/types";
 
 export interface Database {
   language: LanguageTable;
+  users: UserTable;
+  reset_password_token: ResetPasswordTokenTable;
+  user_email_verification: UserEmailVerificationTable;
+  user_invitation: UserInvitationTable;
+  user_system_role: UserSystemRoleTable;
+  session: SessionTable;
 }
 
 if (!process.env.DATABASE_URL) {

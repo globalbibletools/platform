@@ -1,6 +1,6 @@
 import { test, expect } from "vitest";
 import ProcessEmailRejection from "./ProcessEmailRejection";
-import mockUserRepo from "../data-access/MockUserRepository";
+import mockUserRepo from "../data-access/mockUserRepository";
 import EmailStatus, { EmailStatusRaw } from "../model/EmailStatus";
 import UserEmail from "../model/UserEmail";
 import Password from "../model/Password";

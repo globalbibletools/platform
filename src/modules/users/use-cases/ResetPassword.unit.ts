@@ -1,6 +1,6 @@
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
-import mockUserRepo from "../data-access/MockUserRepository";
+import mockUserRepo from "../data-access/mockUserRepository";
 import { NotFoundError } from "@/shared/errors";
 import ResetPassword from "./ResetPassword";
 import UserEmail from "../model/UserEmail";

@@ -6,7 +6,7 @@ import { createSession } from "@/session";
 import { redirect } from "next/navigation";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import userRepository from "@/modules/users/data-access/UserRepository";
+import userRepository from "@/modules/users/data-access/userRepository";
 import LogIn from "../use-cases/LogIn";
 import { IncorrectPasswordError } from "../model/errors";
 import { NotFoundError } from "@/shared/errors";

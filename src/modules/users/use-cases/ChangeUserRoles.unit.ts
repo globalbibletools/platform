@@ -1,4 +1,4 @@
-import mockUserRepo from "../data-access/MockUserRepository";
+import mockUserRepo from "../data-access/mockUserRepository";
 import { ulid } from "@/shared/ulid";
 import { expect, test } from "vitest";
 import { NotFoundError } from "@/shared/errors";
