@@ -25,47 +25,6 @@ type DbUserModel = DbUser & {
   systemRoles: DbSystemRole["role"][] | null;
 };
 
-function dbToUser(dbModel: DbUserModel): User {
-  return new User({
-    id: dbModel.id,
-    name: dbModel.name ?? undefined,
-    email: new UserEmail({
-      address: dbModel.email,
-      status: EmailStatus.fromRaw(dbModel.emailStatus),
-    }),
-    emailVerification:
-      dbModel.emailVerification ?
-        new EmailVerification({
-          ...dbModel.emailVerification,
-          expiresAt: new Date(dbModel.emailVerification.expiresAt),
-        })
-      : undefined,
-    password:
-      dbModel.hashedPassword ?
-        new Password({ hash: dbModel.hashedPassword })
-      : undefined,
-    passwordResets:
-      dbModel.passwordResets?.map(
-        (reset) =>
-          new PasswordReset({
-            ...reset,
-            expiresAt: new Date(reset.expiresAt),
-          }),
-      ) ?? [],
-    invitations:
-      dbModel.invitations?.map(
-        (invite) =>
-          new Invitation({
-            token: invite.token,
-            expiresAt: new Date(invite.expiresAt),
-          }),
-      ) ?? [],
-    status: UserStatus.fromRaw(dbModel.status),
-    systemRoles:
-      dbModel.systemRoles?.map((role) => SystemRole.fromRaw(role)) ?? [],
-  });
-}
-
 const userRepository = {
   async existsByEmail(email: string): Promise<boolean> {
     const result = await getDb()
@@ -322,4 +281,45 @@ function selectUserFields(
       .whereRef("user_system_role.user_id", "=", "users.id")
       .as("systemRoles"),
   ]);
+}
+
+function dbToUser(dbModel: DbUserModel): User {
+  return new User({
+    id: dbModel.id,
+    name: dbModel.name ?? undefined,
+    email: new UserEmail({
+      address: dbModel.email,
+      status: EmailStatus.fromRaw(dbModel.emailStatus),
+    }),
+    emailVerification:
+      dbModel.emailVerification ?
+        new EmailVerification({
+          ...dbModel.emailVerification,
+          expiresAt: new Date(dbModel.emailVerification.expiresAt),
+        })
+      : undefined,
+    password:
+      dbModel.hashedPassword ?
+        new Password({ hash: dbModel.hashedPassword })
+      : undefined,
+    passwordResets:
+      dbModel.passwordResets?.map(
+        (reset) =>
+          new PasswordReset({
+            ...reset,
+            expiresAt: new Date(reset.expiresAt),
+          }),
+      ) ?? [],
+    invitations:
+      dbModel.invitations?.map(
+        (invite) =>
+          new Invitation({
+            token: invite.token,
+            expiresAt: new Date(invite.expiresAt),
+          }),
+      ) ?? [],
+    status: UserStatus.fromRaw(dbModel.status),
+    systemRoles:
+      dbModel.systemRoles?.map((role) => SystemRole.fromRaw(role)) ?? [],
+  });
 }
