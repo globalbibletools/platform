@@ -111,127 +111,141 @@ const userRepository = {
   },
 
   async commit(user: User): Promise<void> {
-    await transaction(async (query) => {
-      await query(
-        `
-          insert into users (id, name, email, email_status, hashed_password, status)
-          values ($1, $2, $3, $4, $5, $6)
-          on conflict (id) do update set
-            name = excluded.name,
-            email = excluded.email,
-            email_status = excluded.email_status,
-            hashed_password = excluded.hashed_password,
-            status = excluded.status
-        `,
-        [
-          user.id,
-          user.name,
-          user.email.address,
-          user.email.status.value,
-          user.password?.hash,
-          user.status.value,
-        ],
-      );
+    await getDb()
+      .transaction()
+      .execute(async (tx) => {
+        await tx
+          .insertInto("users")
+          .values({
+            id: user.id,
+            name: user.name,
+            email: user.email.address,
+            email_status: user.email.status.value,
+            hashed_password: user.password?.hash,
+            status: user.status.value,
+          })
+          .onConflict((oc) =>
+            oc.column("id").doUpdateSet({
+              name: sql`excluded.name`,
+              email: sql`excluded.email`,
+              email_status: sql`excluded.email_status`,
+              hashed_password: sql`excluded.hashed_password`,
+              status: sql`excluded.status`,
+            }),
+          )
+          .execute();
 
-      await query(
-        `
-            with data as (
-                select
-                    unnest($2::text[]) as token,
-                    unnest($3::bigint[]) as expires
-            ),
-            del as (
-                delete from user_invitation t
-                where user_id = $1
-                    and not exists (
-                        select 1 from data
-                        where data.token = t.token
-                    )
+        if (user.invitations.length === 0) {
+          await tx
+            .deleteFrom("user_invitation")
+            .where("user_id", "=", user.id)
+            .execute();
+        } else {
+          await tx
+            .deleteFrom("user_invitation")
+            .where("user_id", "=", user.id)
+            .where(
+              "token",
+              "not in",
+              user.invitations.map((inv) => inv.token),
             )
-            insert into user_invitation (user_id, token, expires)
-            select $1, data.token, data.expires from data
-            on conflict (token) do update set
-                expires = excluded.expires
-        `,
-        [
-          user.id,
-          user.invitations.map((reset) => reset.token),
-          user.invitations.map((reset) => reset.expiresAt.valueOf()),
-        ],
-      );
+            .execute();
 
-      // Delete all existing email verification records for the user
-      await query(
-        `
-          delete from user_email_verification
-          where user_id = $1
-        `,
-        [user.id],
-      );
-
-      // Insert the new email verification if present
-      if (user.emailVerification) {
-        await query(
-          `
-            insert into user_email_verification (user_id, email, token, expires)
-            values ($1, $2, $3, $4)
-          `,
-          [
-            user.id,
-            user.emailVerification.email,
-            user.emailVerification.token,
-            user.emailVerification.expiresAt.valueOf(),
-          ],
-        );
-      }
-
-      await query(
-        `
-            with data as (
-                select
-                    unnest($2::text[]) as token,
-                    unnest($3::bigint[]) as expires
-            ),
-            del as (
-                delete from reset_password_token t
-                where user_id = $1
-                    and not exists (
-                        select 1 from data
-                        where data.token = t.token
-                    )
+          await tx
+            .insertInto("user_invitation")
+            .values(
+              user.invitations.map((inv) => ({
+                user_id: user.id,
+                token: inv.token,
+                expires: inv.expiresAt.valueOf(),
+              })),
             )
-            insert into reset_password_token (user_id, token, expires)
-            select $1, data.token, data.expires from data
-            on conflict (token) do update set
-                expires = excluded.expires
-        `,
-        [
-          user.id,
-          user.passwordResets.map((reset) => reset.token),
-          user.passwordResets.map((reset) => reset.expiresAt.valueOf()),
-        ],
-      );
-
-      await query(
-        `
-            with data as (
-                select unnest($2::system_role[]) as role
-            ),
-            del as (
-                delete from user_system_role r
-                where user_id = $1
-                    and not exists (
-                        select 1 from data
-                        where data.role = r.role
-                    )
+            .onConflict((oc) =>
+              oc.column("token").doUpdateSet({
+                expires: sql`excluded.expires`,
+              }),
             )
-            insert into user_system_role (user_id, role)
-            select $1, data.role from data
-            on conflict do nothing
-        `,
-        [user.id, user.systemRoles.map((role) => role.value)],
-      );
-    });
+            .execute();
+        }
+
+        await tx
+          .deleteFrom("user_email_verification")
+          .where("user_id", "=", user.id)
+          .execute();
+
+        if (user.emailVerification) {
+          await tx
+            .insertInto("user_email_verification")
+            .values({
+              user_id: user.id,
+              email: user.emailVerification.email,
+              token: user.emailVerification.token,
+              expires: user.emailVerification.expiresAt.valueOf(),
+            })
+            .execute();
+        }
+
+        if (user.passwordResets.length === 0) {
+          await tx
+            .deleteFrom("reset_password_token")
+            .where("user_id", "=", user.id)
+            .execute();
+        } else {
+          await tx
+            .deleteFrom("reset_password_token")
+            .where("user_id", "=", user.id)
+            .where(
+              "token",
+              "not in",
+              user.passwordResets.map((reset) => reset.token),
+            )
+            .execute();
+
+          await tx
+            .insertInto("reset_password_token")
+            .values(
+              user.passwordResets.map((reset) => ({
+                user_id: user.id,
+                token: reset.token,
+                expires: reset.expiresAt.valueOf(),
+              })),
+            )
+            .onConflict((oc) =>
+              oc.column("token").doUpdateSet({
+                expires: sql`excluded.expires`,
+              }),
+            )
+            .execute();
+        }
+
+        if (user.systemRoles.length === 0) {
+          await tx
+            .deleteFrom("user_system_role")
+            .where("user_id", "=", user.id)
+            .execute();
+        } else {
+          await tx
+            .deleteFrom("user_system_role")
+            .where("user_id", "=", user.id)
+            .where(
+              "role",
+              "not in",
+              user.systemRoles.map((role) => role.value),
+            )
+            .execute();
+
+          await tx
+            .insertInto("user_system_role")
+            .values(
+              user.systemRoles.map((role) => ({
+                user_id: user.id,
+                role: role.value,
+              })),
+            )
+            .onConflict((oc) => oc.doNothing())
+            .execute();
+        }
+      });
   },
 };
 export default userRepository;
