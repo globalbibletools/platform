@@ -1,5 +1,5 @@
-import { getDb } from "@/db";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
+import { getDb } from "@/db";
 import { beforeEach, describe, expect, test } from "vitest";
 import userRepository from "./userRepository";
 import { ulid } from "@/shared/ulid";
