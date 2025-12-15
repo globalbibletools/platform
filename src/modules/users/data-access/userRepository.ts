@@ -1,4 +1,4 @@
-import { Database, getDb, query, transaction } from "@/db";
+import { Database, getDb } from "@/db";
 import { SelectQueryBuilder, sql } from "kysely";
 import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import User from "../model/User";
