@@ -399,7 +399,8 @@ async function saveMachineTranslations(
 
 interface CurrentLanguage {
   code: string;
-  name: string;
+  englishName: string;
+  localName: string;
   font: string;
   textDirection: string;
   translationIds: string[];
@@ -414,7 +415,7 @@ async function fetchCurrentLanguage(
   const result = await query<CurrentLanguage>(
     `
         SELECT
-            code, name, font, text_direction AS "textDirection", translation_ids AS "translationIds",
+            code, english_name AS "englishName", local_name as "localName", font, text_direction AS "textDirection", translation_ids AS "translationIds",
             ( select code from language where id = l.reference_language_id) as "referenceLanguage",
             (
                 SELECT COALESCE(JSON_AGG(r."role"), '[]') FROM language_member_role AS r

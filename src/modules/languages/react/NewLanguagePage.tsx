@@ -29,6 +29,26 @@ export default function NewLanguagePage() {
       <ViewTitle>{t("title")}</ViewTitle>
       <Form action={createLanguage}>
         <div className="mb-4">
+          <FormLabel htmlFor="english_name">{t("form.english_name")}</FormLabel>
+          <TextInput
+            id="english_name"
+            name="englishName"
+            className="block w-64"
+            aria-describedby="english-name-error"
+          />
+          <FieldError id="english-name-error" name="englishName" />
+        </div>
+        <div className="mb-4">
+          <FormLabel htmlFor="local_name">{t("form.local_name")}</FormLabel>
+          <TextInput
+            id="local_name"
+            name="localName"
+            className="block w-64"
+            aria-describedby="local-name-error"
+          />
+          <FieldError id="local-name-error" name="localName" />
+        </div>
+        <div className="mb-4">
           <FormLabel htmlFor="code">{t("form.code")}</FormLabel>
           <TextInput
             id="code"
@@ -37,16 +57,6 @@ export default function NewLanguagePage() {
             aria-describedby="code-error"
           />
           <FieldError id="code-error" name="code" />
-        </div>
-        <div className="mb-6">
-          <FormLabel htmlFor="name">{t("form.name")}</FormLabel>
-          <TextInput
-            id="name"
-            name="name"
-            className="block w-64"
-            aria-describedby="name-error"
-          />
-          <FieldError id="name-error" name="name" />
         </div>
         <Button type="submit">{t("form.submit")}</Button>
       </Form>

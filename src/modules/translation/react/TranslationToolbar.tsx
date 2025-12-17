@@ -28,7 +28,7 @@ import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import AudioDialog from "@/modules/study/components/AudioDialog";
 
 export interface TranslationToolbarProps {
-  languages: { name: string; code: string }[];
+  languages: { englishName: string; localName: string; code: string }[];
   currentLanguage?: { roles: string[] };
   userRoles: string[];
 }
@@ -265,7 +265,7 @@ export default function TranslationToolbar({
             <ComboboxInput
               id="target-language"
               items={languages.map((l) => ({
-                label: l.name,
+                label: l.localName,
                 value: l.code,
               }))}
               value={code}
