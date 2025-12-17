@@ -12,15 +12,16 @@ import {
   ListHeader,
   ListHeaderCell,
   ListRow,
-  ListRowAction,
 } from "@/components/List";
 import { format } from "date-fns";
 import Pagination from "@/components/Pagination";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
-import Button from "@/components/Button";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SnapshotJobStatusPoller from "./SnapshotJobStatusPoller";
+import { restoreLanguageSnapshotAction } from "../actions/restoreLanguageSnapshot";
+import { Icon } from "@/components/Icon";
+import { SNAPSHOT_JOB_TYPES } from "../jobs/jobTypes";
 
 export async function generateMetadata(
   _: any,
@@ -69,6 +70,7 @@ export default async function LanguageSettingsPage({
     <NextIntlClientProvider
       messages={{
         Pagination: messages.Pagination,
+        ConfirmModal: messages.ConfirmModal,
       }}
     >
       <div className="px-8 py-6 w-fit overflow-y-auto h-full">
@@ -77,7 +79,11 @@ export default async function LanguageSettingsPage({
           {pendingJob ?
             <div className="flex gap-4">
               <LoadingSpinner />
-              Creating new snapshot...
+              {pendingJob.type === SNAPSHOT_JOB_TYPES.CREATE_SNAPSHOT ?
+                "Creating new snapshot..."
+              : pendingJob.type === SNAPSHOT_JOB_TYPES.RESTORE_SNAPSHOT ?
+                "Restoring snapshot..."
+              : "Unknown snapshot action in progress"}
               <SnapshotJobStatusPoller code={params.code} />
             </div>
           : <ServerAction
@@ -100,9 +106,17 @@ export default async function LanguageSettingsPage({
                   {format(snapshot.timestamp, "YYY MMMM, dd HH:mm:ss")} UTC
                 </ListCell>
                 <ListCell className="ps-4">
-                  <Button variant="link" disabled>
-                    Restore (coming soon)
-                  </Button>
+                  <ServerAction
+                    variant="link"
+                    destructive
+                    action={restoreLanguageSnapshotAction}
+                    actionData={{ code: params.code, snapshotId: snapshot.id }}
+                    confirm="Are you sure you want to restore this snapshot?"
+                    disabled={!!pendingJob}
+                  >
+                    <Icon icon="arrows-rotate" className="me-1" />
+                    Restore
+                  </ServerAction>
                 </ListCell>
               </ListRow>
             ))}

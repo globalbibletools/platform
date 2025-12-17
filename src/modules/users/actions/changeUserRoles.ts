@@ -8,7 +8,7 @@ import { notFound } from "next/navigation";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import ChangeUserRoles from "../use-cases/ChangeUserRoles";
-import userRepository from "../data-access/UserRepository";
+import userRepository from "../data-access/userRepository";
 import { SystemRoleRaw } from "../model/SystemRole";
 import { NotFoundError } from "@/shared/errors";
 import Policy from "@/modules/access/public/Policy";

@@ -1,5 +1,5 @@
 import fakeLanguageClient from "@/modules/languages/public/FakeLanguageClient";
-import mockUserRepo from "../data-access/MockUserRepository";
+import mockUserRepo from "../data-access/mockUserRepository";
 import DisableUser from "./DisableUser";
 import { ulid } from "@/shared/ulid";
 import { expect, test } from "vitest";

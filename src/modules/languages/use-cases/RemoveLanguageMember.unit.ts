@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import mockLanguageRepo from "../data-access/MockLanguageRepository";
+import mockLanguageRepo from "../data-access/mockLanguageRepository";
 import mockLanguageMemberRepo from "../data-access/MockLanguageMemberRepository";
 import { NotFoundError } from "@/shared/errors";
 import { LanguageMemberRoleRaw, TextDirectionRaw } from "../model";

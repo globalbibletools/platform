@@ -9,7 +9,7 @@ import { notFound } from "next/navigation";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import ChangeLanguageMemberRoles from "../use-cases/ChangeLanguageMemberRoles";
-import languageRepository from "../data-access/LanguageRepository";
+import languageRepository from "../data-access/languageRepository";
 import languageMemberRepository from "../data-access/LanguageMemberRepository";
 import { LanguageMemberRoleRaw } from "../model";
 import { NotFoundError } from "@/shared/errors";

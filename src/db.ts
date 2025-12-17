@@ -1,7 +1,30 @@
 import pg, { type QueryResult, type QueryResultRow } from "pg";
 import QueryStream from "pg-query-stream";
+import { from as copyFrom } from "pg-copy-streams";
 import { logger } from "./logging";
 import { Readable } from "stream";
+import { pipeline } from "stream/promises";
+
+import { LanguageTable } from "@/modules/languages/data-access/types";
+import { Kysely, PostgresDialect } from "kysely";
+import {
+  ResetPasswordTokenTable,
+  SessionTable,
+  UserEmailVerificationTable,
+  UserInvitationTable,
+  UserSystemRoleTable,
+  UserTable,
+} from "./modules/users/data-access/types";
+
+export interface Database {
+  language: LanguageTable;
+  users: UserTable;
+  reset_password_token: ResetPasswordTokenTable;
+  user_email_verification: UserEmailVerificationTable;
+  user_invitation: UserInvitationTable;
+  user_system_role: UserSystemRoleTable;
+  session: SessionTable;
+}
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL env var missing");
@@ -18,6 +41,14 @@ function onError(error: unknown) {
   logger.error(error);
 }
 pool.on("error", onError);
+
+let db = new Kysely<Database>({
+  dialect: new PostgresDialect({ pool }),
+});
+
+export function getDb(): Kysely<Database> {
+  return db;
+}
 
 export async function query<T extends QueryResultRow>(
   text: string,
@@ -40,6 +71,20 @@ export async function queryStream(
   });
 
   return stream;
+}
+
+export async function copyStream(
+  table: string,
+  stream: Readable,
+): Promise<void> {
+  const client = await pool.connect();
+
+  try {
+    const dbStream = client.query(copyFrom(`copy ${table} from stdin`));
+    await pipeline(stream, dbStream);
+  } finally {
+    client.release();
+  }
 }
 
 export async function transaction<T>(
@@ -72,4 +117,8 @@ export async function reconnect() {
   } catch (_) {}
   pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 20 });
   pool.on("error", onError);
+
+  db = new Kysely({
+    dialect: new PostgresDialect({ pool }),
+  });
 }

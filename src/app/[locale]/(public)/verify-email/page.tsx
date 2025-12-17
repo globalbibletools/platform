@@ -2,7 +2,7 @@ import ModalView from "@/components/ModalView";
 import { ResolvingMetadata, Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import VerifyEmail from "@/modules/users/use-cases/VerifyEmail";
-import userRepository from "@/modules/users/data-access/UserRepository";
+import userRepository from "@/modules/users/data-access/userRepository";
 
 interface Props {
   searchParams: { token?: string };

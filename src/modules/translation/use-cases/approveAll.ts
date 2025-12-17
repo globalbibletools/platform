@@ -2,7 +2,7 @@ import { NotFoundError } from "@/shared/errors";
 import phraseRepository from "../data-access/PhraseRepository";
 import { GlossApprovalMethodRaw, GlossStateRaw } from "../types";
 import glossRepository from "../data-access/GlossRepository";
-import languageRepository from "@/modules/languages/data-access/LanguageRepository";
+import languageRepository from "@/modules/languages/data-access/languageRepository";
 import trackingClient from "@/modules/reporting/public/trackingClient";
 
 export interface ApproveAllUseCaseRequest {

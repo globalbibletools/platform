@@ -11,6 +11,7 @@ services:
       JOB_FUNCTION_URL: http://job_worker:8080/2015-03-31/functions/function/invocations
     volumes:
       - ./:/app
+      - server-node-modules:/app/node_modules
     ports:
       - 3000:3000
     depends_on:
@@ -26,6 +27,7 @@ services:
       DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
     volumes:
       - ./:/app
+      - job-worker-node-modules:/app/node_modules
     ports:
       - 9000:8080
     depends_on:
@@ -75,4 +77,5 @@ services:
       retries: 5
 volumes:
   db-data:
-  node-modules:
+  job-worker-node-modules:
+  server-node-modules:

@@ -8,7 +8,7 @@ import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import CreateLanguage from "../use-cases/CreateLanguage";
 import { LanguageAlreadyExistsError } from "../model";
-import languageRepository from "../data-access/LanguageRepository";
+import languageRepository from "../data-access/languageRepository";
 import Policy from "@/modules/access/public/Policy";
 
 const requestSchema = z.object({

@@ -1,5 +1,5 @@
 import { ulid } from "@/shared/ulid";
-import mockLanguageRepo from "../data-access/MockLanguageRepository";
+import mockLanguageRepo from "../data-access/mockLanguageRepository";
 import { test, expect } from "vitest";
 import { SourceLanguageMissingError, TextDirectionRaw } from "../model";
 import UpdateLanguageSettings from "./UpdateLanguageSettings";

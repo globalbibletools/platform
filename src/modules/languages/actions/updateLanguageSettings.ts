@@ -7,7 +7,7 @@ import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import UpdateLanguageSettings from "../use-cases/UpdateLanguageSettings";
-import languageRepository from "../data-access/LanguageRepository";
+import languageRepository from "../data-access/languageRepository";
 import { TextDirectionRaw } from "../model";
 import { NotFoundError } from "@/shared/errors";
 import Policy from "@/modules/access/public/Policy";

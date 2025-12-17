@@ -1,6 +1,6 @@
 import { test, expect } from "vitest";
 import InviteLanguageMember from "./InviteLanguageMember";
-import mockLanguageRepo from "../data-access/MockLanguageRepository";
+import mockLanguageRepo from "../data-access/mockLanguageRepository";
 import mockLanguageMemberRepo from "../data-access/MockLanguageMemberRepository";
 import fakeUserClient from "@/modules/users/public/FakeUserClient";
 import { NotFoundError } from "@/shared/errors";

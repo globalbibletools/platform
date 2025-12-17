@@ -1,5 +1,5 @@
 import userQueryService from "../data-access/UserQueryService";
-import userRepository from "../data-access/UserRepository";
+import userRepository from "../data-access/userRepository";
 import InviteUser from "../use-cases/InviteUser";
 import { PublicUserView } from "./types";
 

@@ -9,7 +9,7 @@ import { FormState } from "@/components/Form";
 import { revalidatePath } from "next/cache";
 import { serverActionLogger } from "@/server-action";
 import DisableUser from "../use-cases/DisableUser";
-import userRepository from "../data-access/UserRepository";
+import userRepository from "../data-access/userRepository";
 import { languageClient } from "@/modules/languages/public/LanguageClient";
 import { NotFoundError } from "@/shared/errors";
 import Policy from "@/modules/access/public/Policy";

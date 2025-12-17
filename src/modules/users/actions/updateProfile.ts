@@ -9,7 +9,7 @@ import { serverActionLogger } from "@/server-action";
 import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
 import UpdateProfile from "../use-cases/UpdateProfile";
-import userRepository from "../data-access/UserRepository";
+import userRepository from "../data-access/userRepository";
 
 const profileValidationSchema = z
   .object({

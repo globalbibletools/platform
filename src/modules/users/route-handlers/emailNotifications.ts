@@ -1,6 +1,6 @@
 import * as z from "zod";
 import ProcessEmailRejection from "../use-cases/ProcessEmailRejection";
-import userRepository from "../data-access/UserRepository";
+import userRepository from "../data-access/userRepository";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { logger } from "@/logging";
 

@@ -1,7 +1,7 @@
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import VerifyEmail from "./VerifyEmail";
-import mockUserRepo from "../data-access/MockUserRepository";
+import mockUserRepo from "../data-access/mockUserRepository";
 import { InvalidEmailVerificationToken } from "../model/errors";
 import UserEmail from "../model/UserEmail";
 import EmailStatus from "../model/EmailStatus";
