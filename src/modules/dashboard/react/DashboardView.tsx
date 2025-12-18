@@ -34,6 +34,9 @@ export default async function DashboardView() {
     reportingQueryService.findContributionsByUserId(session.user.id),
   ]);
 
+  const otBooks = currentProgressData.slice(0, 39);
+  const ntBooks = currentProgressData.slice(39);
+
   const truncatedContributionData = contributionData.slice(-8);
   const max = roundMax(
     truncatedContributionData.reduce(
@@ -158,38 +161,69 @@ export default async function DashboardView() {
           </DashboardCard>
           <DashboardCard className="md:col-span-full">
             <DashboardCard.Heading>Total progress</DashboardCard.Heading>
-            <DashboardCard.Body className="grid gap-2 grid-cols-[repeat(auto-fill,minmax(40px,1fr))]">
-              {currentProgressData.map((book, i) => {
-                const completeProgress = book.approvedCount / book.wordCount;
-                const isComplete = book.approvedCount === book.wordCount;
-                const isUnstarted = book.approvedCount === 0;
-                return (
-                  <a
-                    className={`
-                      relative block aspect-square rounded flex flex-col items-center justify-center overflow-hidden
-                      ${
-                        isComplete ?
-                          "text-white dark:text-gray-800 bg-blue-800 dark:bg-green-400"
-                        : "bg-gray-300 dark:bg-gray-700"
-                      }
-                  `}
+            <DashboardCard.Body className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 md:basis-3/5 md:max-w-[calc(60%-1rem)] content-start grid gap-2 grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] md:grid-cols-[repeat(auto-fill,40px)]">
+                {otBooks.map((book) => (
+                  <BookProgressLink
                     key={book.name}
-                    href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
-                  >
-                    {isComplete ?
-                      <Icon icon="check" />
-                    : isUnstarted ?
-                      <Icon icon="xmark" />
-                    : <DonutChart percentage={completeProgress} />}
-                    <span className="text-xs font-bold">{book.name}</span>
-                  </a>
-                );
-              })}
+                    book={book}
+                    locale={locale}
+                    currentLanguage={currentLanguage}
+                  />
+                ))}
+              </div>
+              <div className="flex-1 basis-full flex items-stretch justify-center">
+                <div className="border-t-2 w-full md:w-0 md:border-t-0 md:border-l-2 border-gray-300 dark:border-gray-600"></div>
+              </div>
+              <div className="flex-1 md:basis-2/5 md:max-w-[calc(40%-1rem)] grid gap-2 content-start grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] md:grid-cols-[repeat(auto-fill,39px)]">
+                {ntBooks.map((book) => (
+                  <BookProgressLink
+                    key={book.name}
+                    book={book}
+                    locale={locale}
+                    currentLanguage={currentLanguage}
+                  />
+                ))}
+              </div>
             </DashboardCard.Body>
           </DashboardCard>
         </div>
       </div>
     </div>
+  );
+}
+
+function BookProgressLink({
+  book,
+  locale,
+  currentLanguage,
+}: {
+  book: any;
+  locale: string;
+  currentLanguage: any;
+}) {
+  const completeProgress = book.approvedCount / book.wordCount;
+  const isComplete = book.approvedCount === book.wordCount;
+  const isUnstarted = book.approvedCount === 0;
+  return (
+    <a
+      className={`
+        relative block aspect-square rounded flex flex-col items-center justify-center overflow-hidden
+        ${
+          isComplete ?
+            "text-white dark:text-gray-800 bg-blue-800 dark:bg-green-400"
+          : "bg-gray-300 dark:bg-gray-700"
+        }
+    `}
+      href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
+    >
+      {isComplete ?
+        <Icon icon="check" />
+      : isUnstarted ?
+        <Icon icon="xmark" />
+      : <DonutChart percentage={completeProgress} />}
+      <span className="text-xs font-bold">{book.name}</span>
+    </a>
   );
 }
 
