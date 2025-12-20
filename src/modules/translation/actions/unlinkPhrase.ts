@@ -16,7 +16,7 @@ const unlinkPhraseSchema = z.object({
 });
 
 const policy = new Policy({
-  languageRoles: [Policy.LanguageRole.Translator],
+  languageMember: true,
 });
 
 export async function unlinkPhrase(formData: FormData): Promise<void> {

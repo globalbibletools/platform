@@ -23,7 +23,6 @@ const requestSchema = z.object({
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
-  languageRoles: [Policy.LanguageRole.Admin],
 });
 
 const changeLanguageMemberRolesUseCase = new ChangeLanguageMemberRoles(

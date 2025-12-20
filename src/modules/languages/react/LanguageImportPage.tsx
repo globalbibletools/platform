@@ -11,6 +11,9 @@ import { resetImport } from "../actions/resetImport";
 import { query } from "@/db";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Poller from "./Poller";
+import Policy from "@/modules/access/public/Policy";
+import { verifySession } from "@/session";
+import { notFound } from "next/navigation";
 
 const IMPORT_SERVER = "https://hebrewgreekbible.online";
 
@@ -30,10 +33,21 @@ export async function generateMetadata(
   };
 }
 
+const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
+
 export default async function LanguageImportPage({
   params,
 }: LanguageImportPageProps) {
   const t = await getTranslations("LanguageImportPage");
+
+  const session = await verifySession();
+  const isAuthorized = await policy.authorize({
+    actorId: session?.user.id,
+    languageCode: params.code,
+  });
+  if (!isAuthorized) {
+    notFound();
+  }
 
   const job = await fetchImportJob(params.code);
 

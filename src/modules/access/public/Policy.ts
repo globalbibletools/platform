@@ -1,9 +1,9 @@
+import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import claimsRepository from "../claimsRepository";
-import { SystemRole, LanguageRole } from "../model";
 
 export interface PolicyOptions {
-  systemRoles?: SystemRole[];
-  languageRoles?: LanguageRole[];
+  systemRoles?: SystemRoleRaw[];
+  languageMember?: boolean;
 }
 
 export interface AuthorizationContext {
@@ -30,13 +30,12 @@ export default class Policy {
     const systemRoleMatches = this.options.systemRoles?.some((role) =>
       actor.systemRoles.includes(role),
     );
-    const languageRoleMatches = this.options.languageRoles?.some((role) =>
-      language?.roles.includes(role),
-    );
+
+    const languageRoleMatches =
+      this.options.languageMember ? language?.isMember : false;
 
     return (systemRoleMatches || languageRoleMatches) ?? false;
   }
 
-  static SystemRole = SystemRole;
-  static LanguageRole = LanguageRole;
+  static SystemRole = SystemRoleRaw;
 }

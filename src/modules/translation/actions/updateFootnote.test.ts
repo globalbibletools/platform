@@ -13,13 +13,12 @@ initializeDatabase();
 const scenarioDefinition: ScenarioDefinition = {
   users: {
     translator: {},
-    admin: {},
+    nonmember: {},
   },
   languages: {
     spanish: {
       members: [
         { userId: "translator", roles: [LanguageMemberRoleRaw.Translator] },
-        { userId: "admin", roles: [LanguageMemberRoleRaw.Admin] },
       ],
     },
   },
@@ -56,7 +55,7 @@ test("returns not found if user is not logged in", async () => {
 
 test("returns not found if user is not a translator on the language", async () => {
   const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  await logIn(scenario.users.nonmember.id);
 
   const language = scenario.languages.spanish;
 
@@ -102,7 +101,7 @@ test("returns not found if phrase is not in the language", async () => {
       },
     },
   });
-  await logIn(scenario.users.admin.id);
+  await logIn(scenario.users.translator.id);
 
   const language = scenario.languages.spanish;
 

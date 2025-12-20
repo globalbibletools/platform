@@ -22,7 +22,7 @@ const requestSchema = z.object({
 });
 
 const policy = new Policy({
-  languageRoles: [Policy.LanguageRole.Translator],
+  languageMember: true,
 });
 
 export async function updateGlossAction(formData: FormData): Promise<any> {

@@ -9,6 +9,9 @@ import { Metadata, ResolvingMetadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { inviteLanguageMember } from "@/modules/languages/actions/inviteLanguageMember";
 import Form from "@/components/Form";
+import Policy from "@/modules/access/public/Policy";
+import { verifySession } from "@/session";
+import { notFound } from "next/navigation";
 
 interface InviteLanguageUserPageProps {
   params: { code: string };
@@ -26,10 +29,23 @@ export async function generateMetadata(
   };
 }
 
-export default function InviteLanguageUserPage({
+const policy = new Policy({
+  systemRoles: [Policy.SystemRole.Admin],
+});
+
+export default async function InviteLanguageUserPage({
   params,
 }: InviteLanguageUserPageProps) {
   const t = useTranslations("InviteLanguageUserPage");
+
+  const session = await verifySession();
+  const isAuthorized = await policy.authorize({
+    actorId: session?.user.id,
+    languageCode: params.code,
+  });
+  if (!isAuthorized) {
+    notFound();
+  }
 
   return (
     <div className="px-8 py-6">

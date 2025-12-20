@@ -24,13 +24,12 @@ vitest.mock("@/modules/reporting/public/trackingClient");
 const scenarioDefinition: ScenarioDefinition = {
   users: {
     translator: {},
-    admin: {},
+    nonmember: {},
   },
   languages: {
     spanish: {
       members: [
         { userId: "translator", roles: [LanguageMemberRoleRaw.Translator] },
-        { userId: "admin", roles: [LanguageMemberRoleRaw.Admin] },
       ],
     },
   },
@@ -73,7 +72,7 @@ test("returns not found if user is not logged in", async () => {
 
 test("returns not found if user is not a translator on the language", async () => {
   const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  await logIn(scenario.users.nonmember.id);
 
   const language = scenario.languages.spanish;
 

@@ -19,7 +19,7 @@ interface LanguageLayoutProps {
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
-  languageRoles: [Policy.LanguageRole.Admin],
+  languageMember: true,
 });
 
 export async function generateMetadata(

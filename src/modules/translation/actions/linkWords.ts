@@ -16,7 +16,7 @@ const requestSchema = z.object({
 });
 
 const policy = new Policy({
-  languageRoles: [Policy.LanguageRole.Translator],
+  languageMember: true,
 });
 
 export async function linkWords(formData: FormData): Promise<void> {

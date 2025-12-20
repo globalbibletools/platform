@@ -63,7 +63,7 @@ test("returns validation error if the request shape doesn't match the schema", a
   }
 });
 
-test("returns not found if not a language or platform admin", async () => {
+test("returns not found if not a platform admin", async () => {
   const scenario = await createScenario({
     users: { user: {} },
     languages: { spanish: {} },

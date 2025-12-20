@@ -18,6 +18,9 @@ import { changeLanguageMemberRoles } from "@/modules/languages/actions/changeLan
 import { removeLanguageMember } from "@/modules/languages/actions/removeLanguageMember";
 import ServerAction from "@/components/ServerAction";
 import { inviteUser } from "@/modules/users/actions/inviteUser";
+import { verifySession } from "@/session";
+import Policy from "@/modules/access/public/Policy";
+import { notFound } from "next/navigation";
 
 interface LanguageUsersPageProps {
   params: { code: string };
@@ -35,10 +38,22 @@ export async function generateMetadata(
   };
 }
 
+const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
+
 export default async function LanguageUsersPage({
   params,
 }: LanguageUsersPageProps) {
   const t = await getTranslations("LanguageUsersPage");
+
+  const session = await verifySession();
+  const isAuthorized = await policy.authorize({
+    actorId: session?.user.id,
+    languageCode: params.code,
+  });
+  if (!isAuthorized) {
+    notFound();
+  }
+
   const users = await fetchUsers(params.code);
 
   return (
