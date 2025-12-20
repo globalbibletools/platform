@@ -11,6 +11,12 @@ export interface LanguageTable {
   reference_language_id: string | null;
 }
 
+export interface LanguageMemberTable {
+  user_id: string;
+  language_id: string;
+  invited_at: Date;
+}
+
 export interface DbLanguage {
   id: string;
   code: string;

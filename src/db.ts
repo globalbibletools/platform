@@ -5,7 +5,10 @@ import { logger } from "./logging";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 
-import { LanguageTable } from "@/modules/languages/data-access/types";
+import {
+  LanguageMemberTable,
+  LanguageTable,
+} from "@/modules/languages/data-access/types";
 import { Kysely, PostgresDialect } from "kysely";
 import {
   ResetPasswordTokenTable,
@@ -18,6 +21,7 @@ import {
 
 export interface Database {
   language: LanguageTable;
+  language_member: LanguageMemberTable;
   users: UserTable;
   reset_password_token: ResetPasswordTokenTable;
   user_email_verification: UserEmailVerificationTable;

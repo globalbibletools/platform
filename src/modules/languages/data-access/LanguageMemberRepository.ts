@@ -1,4 +1,4 @@
-import { query } from "@/db";
+import { getDb, query } from "@/db";
 import { LanguageMember } from "../model";
 
 const languageMemberRepository = {
@@ -16,6 +16,14 @@ const languageMemberRepository = {
   },
 
   async create(member: LanguageMember): Promise<void> {
+    await getDb()
+      .insertInto("language_member")
+      .values({
+        language_id: member.languageId,
+        user_id: member.userId,
+        invited_at: new Date(),
+      })
+      .execute();
     await query(
       `
         insert into language_member_role (language_id, user_id, role)
