@@ -22,6 +22,30 @@ beforeEach(async () => {
   ]);
 });
 
+describe("exists", () => {
+  const languageMember = {
+    user_id: user.id,
+    language_id: language.id,
+    invited_at: new Date(),
+  };
+  beforeEach(async () => {
+    await getDb()
+      .insertInto("language_member")
+      .values(languageMember)
+      .execute();
+  });
+
+  test("returns true if user is a member of the language", async () => {
+    const exists = await languageMemberRepository.exists(language.id, user.id);
+    expect(exists).toBe(true);
+  });
+
+  test("returns false if user is not a member of the language", async () => {
+    const exists = await languageMemberRepository.exists(language.id, ulid());
+    expect(exists).toBe(false);
+  });
+});
+
 describe("create", () => {
   test("creates new language member", async () => {
     await expect(

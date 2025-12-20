@@ -3,16 +3,12 @@ import { LanguageMember } from "../model";
 
 const languageMemberRepository = {
   async exists(languageId: string, userId: string): Promise<boolean> {
-    const result = await query(
-      `
-        select 1 from language_member_role
-        where language_id = $1 and user_id = $2
-        limit 1
-      `,
-      [languageId, userId],
-    );
-
-    return result.rows.length > 0;
+    const result = await getDb()
+      .selectFrom("language_member")
+      .where("language_id", "=", languageId)
+      .where("user_id", "=", userId)
+      .executeTakeFirst();
+    return Boolean(result);
   },
 
   async create(member: LanguageMember): Promise<void> {
