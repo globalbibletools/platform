@@ -52,7 +52,6 @@ library.add(
   FaSolid.faSave,
   FaSolid.faLink,
   FaSolid.faUnlink,
-  FaSolid.faChartBar,
   FaSolid.faBars,
   FaSolid.faQuestionCircle,
   FaSolid.faFeather,

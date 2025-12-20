@@ -80,14 +80,6 @@ export default async function LanguageLayout({
           </li>
           <li>
             <SidebarLink
-              href={`/${params.locale}/admin/languages/${params.code}/reports`}
-            >
-              <Icon icon="chart-bar" className="w-4 me-2" />
-              {t("links.reports")}
-            </SidebarLink>
-          </li>
-          <li>
-            <SidebarLink
               href={`/${params.locale}/admin/languages/${params.code}/import`}
             >
               <Icon icon="file-import" className="w-4 me-2" />
