@@ -5,14 +5,6 @@ export interface LanguageContributions {
   users: Array<{ userId: string; glosses: number }>;
 }
 
-export interface ContributionRecord {
-  week: Date;
-  approvedCount: number;
-  revokedCount: number;
-  editedApprovedCount: number;
-  editedUnapprovedCount: number;
-}
-
 export interface ReportingContribution {
   id: string;
   week: Date;
@@ -87,35 +79,6 @@ const reportingQueryService = {
       `,
       [languageId, limit - 1],
     );
-    return result.rows;
-  },
-
-  async findContributionsByUserId(
-    userId: string,
-  ): Promise<ContributionRecord[]> {
-    const result = await query<ContributionRecord>(
-      `
-        with week as (
-		    select
-				min(week) + interval '7 days' * generate_series(0, floor(extract(day from(now() - min(week) + interval '7 days') / 7) - 1)) as date
-			from weekly_contribution_statistics
-			where user_id = $1
-		)
-		select
-		  week.date as week,
-		  sum(coalesce(approved_count, 0)) as "approvedCount",
-		  sum(coalesce(revoked_count, 0)) as "revokedCount",
-		  sum(coalesce(edited_approved_count, 0)) as "editedApprovedCount", 
-		  sum(coalesce(edited_unapproved_count, 0)) as "editedUnapprovedCount"
-		from week
-		left join weekly_contribution_statistics s
-          on s.week = week.date and s.user_id = $1
-		group by week.date
-        order by week.date
-      `,
-      [userId],
-    );
-
     return result.rows;
   },
 
