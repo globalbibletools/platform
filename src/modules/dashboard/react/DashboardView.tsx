@@ -31,20 +31,34 @@ export default async function DashboardView() {
 
   const [currentProgressData, contributionData] = await Promise.all([
     languageQueryService.findProgressByCode(currentLanguage.code),
-    reportingQueryService.findContributionsByUserId(session.user.id),
+    reportingQueryService.findContributionsByLanguageId({
+      languageId: currentLanguage.id,
+      limit: 8,
+    }),
   ]);
 
   const otBooks = currentProgressData.slice(0, 39);
   const ntBooks = currentProgressData.slice(39);
 
-  const truncatedContributionData = contributionData.slice(-8);
+  const segregatedContributionData = contributionData.map((week) => ({
+    ...week,
+    currentUser:
+      week.users.find((user) => user.userId === session.user.id)?.glosses ?? 0,
+    otherUsers: week.users.reduce((total, user) => {
+      if (user.userId === session.user.id) {
+        return total;
+      }
+
+      return total + user.glosses;
+    }, 0),
+  }));
   const max = roundMax(
-    truncatedContributionData.reduce(
-      (max, week) => Math.max(max, week.approvedCount),
+    segregatedContributionData.reduce(
+      (max, week) => Math.max(max, week.currentUser + week.otherUsers),
       0,
     ),
   );
-  const lastContribution = contributionData.at(-1)?.approvedCount ?? 0;
+  const lastContribution = segregatedContributionData.at(-1);
 
   const locale = await getLocale();
 
@@ -118,45 +132,65 @@ export default async function DashboardView() {
           </DashboardCard>
           <DashboardCard className="md:col-span-3 lg:col-span-2 h-60">
             <DashboardCard.Heading>
-              Last week, you contributed {lastContribution} glosses
+              Last week, you contributed {lastContribution?.currentUser ?? 0}{" "}
+              glosses
             </DashboardCard.Heading>
-            <DashboardCard.Body className="flex items-stretch gap-2">
-              {contributionData.length > 0 && (
-                <>
-                  <table className="h-full flex-grow mt-2">
-                    <tbody>
-                      <tr className="h-full border-b-2 border-t border-gray-400 dark:border-gray-700">
-                        {truncatedContributionData.map((week) => (
-                          <td
-                            className="w-12 relative"
-                            key={week.week.toString()}
-                          >
-                            <div className="absolute inset-0 mx-2">
-                              <div
-                                className="absolute bg-blue-800 dark:bg-green-400 bottom-0 inset-x-0"
-                                style={{
-                                  height: `${(100 * week.approvedCount) / max}%`,
-                                }}
-                              />
-                            </div>
-                          </td>
-                        ))}
-                      </tr>
-                      <tr>
-                        {contributionData.slice(-8).map((week) => (
-                          <td
-                            className="w-12 text-center text-xs pt-2"
-                            key={week.week.toString()}
-                          >
-                            {format(week.week, "M/dd")}
-                          </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
-                  <div className="flex-shrink-0 text-xs">{max}</div>
-                </>
-              )}
+            <DashboardCard.Body className="flex flex-col gap-2">
+              <div className="flex-grow flex items-stretch gap-2">
+                {contributionData.length > 0 && (
+                  <>
+                    <table className="h-full flex-grow">
+                      <tbody>
+                        <tr className="h-full border-b-2 border-t border-gray-400 dark:border-gray-700">
+                          {segregatedContributionData.map((week) => (
+                            <td
+                              className="w-12 relative"
+                              key={week.week.toString()}
+                            >
+                              <div className="absolute inset-0 mx-2">
+                                <div
+                                  className="absolute bg-blue-800 bottom-0 inset-x-0"
+                                  style={{
+                                    height: `${(100 * week.currentUser) / max}%`,
+                                  }}
+                                />
+                                <div
+                                  className="absolute bg-green-400 left-0 inset-x-0"
+                                  style={{
+                                    bottom: `${(100 * week.currentUser) / max}%`,
+                                    height: `${(100 * week.otherUsers) / max}%`,
+                                  }}
+                                />
+                              </div>
+                            </td>
+                          ))}
+                        </tr>
+                        <tr>
+                          {segregatedContributionData.slice(-8).map((week) => (
+                            <td
+                              className="w-12 text-center text-xs pt-2"
+                              key={week.week.toString()}
+                            >
+                              {format(week.week, "M/dd")}
+                            </td>
+                          ))}
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div className="flex-shrink-0 text-xs">{max}</div>
+                  </>
+                )}
+              </div>
+              <div className="flex gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-blue-800" />
+                  <div>You</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-400" />
+                  <div>Others</div>
+                </div>
+              </div>
             </DashboardCard.Body>
           </DashboardCard>
           <DashboardCard className="md:col-span-full">

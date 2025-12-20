@@ -1,5 +1,10 @@
 import { query } from "@/db";
 
+export interface LanguageContributions {
+  week: Date;
+  users: Array<{ userId: string; glosses: number }>;
+}
+
 export interface ContributionRecord {
   week: Date;
   approvedCount: number;
@@ -58,6 +63,33 @@ export interface ApprovalStats {
 }
 
 const reportingQueryService = {
+  async findContributionsByLanguageId({
+    languageId,
+    limit,
+  }: {
+    languageId: string;
+    limit: number;
+  }): Promise<LanguageContributions[]> {
+    const result = await query<LanguageContributions>(
+      `
+        select
+		  week.date as week,
+		  json_agg(json_build_object('glosses', approved_count, 'userId', user_id)) as users
+		from (
+          select
+            (current_date - extract(dow from current_date) * interval '1 day')
+              - interval '7 days' * generate_series(0, $2) as date
+		) as week
+		left join weekly_contribution_statistics s
+          on s.week = week.date and s.language_id = $1
+		group by week.date
+        order by week.date;
+      `,
+      [languageId, limit - 1],
+    );
+    return result.rows;
+  },
+
   async findContributionsByUserId(
     userId: string,
   ): Promise<ContributionRecord[]> {
