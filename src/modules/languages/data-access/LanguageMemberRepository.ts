@@ -50,6 +50,11 @@ const languageMemberRepository = {
   },
 
   async delete(languageId: string, userId: string): Promise<void> {
+    await getDb()
+      .deleteFrom("language_member")
+      .where("language_id", "=", languageId)
+      .where("user_id", "=", userId)
+      .execute();
     await query(
       `
         delete from language_member_role

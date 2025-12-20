@@ -118,3 +118,41 @@ describe("create", () => {
     expect(dbLanguageMembers).toEqual(previousLanguageMembers);
   });
 });
+
+describe("delete", () => {
+  const languageMember = {
+    user_id: user.id,
+    language_id: language.id,
+    invited_at: new Date(),
+  };
+  beforeEach(async () => {
+    await getDb()
+      .insertInto("language_member")
+      .values(languageMember)
+      .execute();
+  });
+
+  test("removes language member", async () => {
+    const otherUser = {
+      id: ulid(),
+      email: "test2@example.com",
+    };
+    const otherMember = {
+      user_id: otherUser.id,
+      language_id: language.id,
+      invited_at: new Date(),
+    };
+    await getDb().insertInto("users").values(otherUser).execute(),
+      await getDb().insertInto("language_member").values(otherMember).execute();
+
+    await expect(
+      languageMemberRepository.delete(language.id, user.id),
+    ).resolves.toBeUndefined();
+
+    const dbLanguageMembers = await getDb()
+      .selectFrom("language_member")
+      .selectAll()
+      .execute();
+    expect(dbLanguageMembers).toEqual([otherMember]);
+  });
+});
