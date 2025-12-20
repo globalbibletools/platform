@@ -9,7 +9,7 @@ import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import InviteLanguageMember from "../use-cases/InviteLanguageMember";
 import languageRepository from "../data-access/languageRepository";
-import languageMemberRepository from "../data-access/LanguageMemberRepository";
+import languageMemberRepository from "../data-access/languageMemberRepository";
 import { userClient } from "@/modules/users/public/UserClient";
 import { LanguageMemberRoleRaw } from "../model";
 import { NotFoundError } from "@/shared/errors";

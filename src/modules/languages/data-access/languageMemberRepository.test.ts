@@ -2,7 +2,7 @@ import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { getDb } from "@/db";
 import { ulid } from "@/shared/ulid";
 import { beforeEach, describe, expect, test } from "vitest";
-import languageMemberRepository from "./LanguageMemberRepository";
+import languageMemberRepository from "./languageMemberRepository";
 
 initializeDatabase();
 

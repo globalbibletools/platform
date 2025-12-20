@@ -1,7 +1,7 @@
 import { test, expect } from "vitest";
 import InviteLanguageMember from "./InviteLanguageMember";
 import mockLanguageRepo from "../data-access/mockLanguageRepository";
-import mockLanguageMemberRepo from "../data-access/MockLanguageMemberRepository";
+import mockLanguageMemberRepo from "../data-access/mockLanguageMemberRepository";
 import fakeUserClient from "@/modules/users/public/FakeUserClient";
 import { NotFoundError } from "@/shared/errors";
 import { LanguageMemberRoleRaw, TextDirectionRaw } from "../model";
