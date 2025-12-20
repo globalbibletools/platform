@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.13 (Debian 14.13-1.pgdg120+1)
--- Dumped by pg_dump version 14.13 (Debian 14.13-1.pgdg120+1)
+-- Dumped from database version 14.18 (Debian 14.18-1.pgdg120+1)
+-- Dumped by pg_dump version 14.18 (Debian 14.18-1.pgdg120+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -564,6 +564,17 @@ CREATE TABLE public.language_import_job (
     end_date timestamp(3) without time zone,
     succeeded boolean,
     user_id uuid
+);
+
+
+--
+-- Name: language_member; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.language_member (
+    language_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    invited_at timestamp without time zone NOT NULL
 );
 
 
@@ -1190,6 +1201,14 @@ ALTER TABLE ONLY public.language_import_job
 
 
 --
+-- Name: language_member language_member_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.language_member
+    ADD CONSTRAINT language_member_pkey PRIMARY KEY (language_id, user_id);
+
+
+--
 -- Name: language_member_role language_member_role_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1648,6 +1667,14 @@ ALTER TABLE ONLY public.language_import_job
 
 
 --
+-- Name: language_member language_member_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.language_member
+    ADD CONSTRAINT language_member_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id);
+
+
+--
 -- Name: language_member_role language_member_role_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1661,6 +1688,14 @@ ALTER TABLE ONLY public.language_member_role
 
 ALTER TABLE ONLY public.language_member_role
     ADD CONSTRAINT language_member_role_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: language_member language_member_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.language_member
+    ADD CONSTRAINT language_member_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
