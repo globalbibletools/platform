@@ -1,3 +1,4 @@
+import { getDb } from "@/db";
 import { DbLanguage } from "@/modules/languages/data-access/types";
 import { LanguageMemberRoleRaw } from "@/modules/languages/model";
 import {
@@ -60,6 +61,16 @@ export async function createScenario(
         if (languageDefinition.members) {
           for (const memberDefinition of languageDefinition.members) {
             const user = scenario.users[memberDefinition.userId];
+
+            await getDb()
+              .insertInto("language_member")
+              .values({
+                language_id: language.id,
+                user_id: user.id,
+                invited_at: new Date(),
+              })
+              .execute();
+
             await languageRoleFactory.build({
               userId: user.id,
               languageId: language.id,

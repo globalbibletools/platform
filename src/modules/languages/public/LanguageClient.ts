@@ -1,4 +1,4 @@
-import languageMemberRepository from "../data-access/LanguageMemberRepository";
+import languageMemberRepository from "../data-access/languageMemberRepository";
 import { languageQueryService } from "../data-access/LanguageQueryService";
 import RemoveUserFromLanguages from "../use-cases/RemoveUserFromLanguages";
 import { PublicLanguageView } from "./types";

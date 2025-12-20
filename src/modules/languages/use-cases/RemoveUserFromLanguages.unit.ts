@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import mockLanguageMemberRepo from "../data-access/MockLanguageMemberRepository";
+import mockLanguageMemberRepo from "../data-access/mockLanguageMemberRepository";
 import { LanguageMemberRoleRaw } from "../model";
 import { ulid } from "@/shared/ulid";
 import RemoveUserFromLanguages from "./RemoveUserFromLanguages";
