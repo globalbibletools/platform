@@ -171,9 +171,6 @@
       "snapshots": "Snapshots"
     }
   },
-  "LanguageReportsPage": {
-    "title": "Reports"
-  },
   "LanguageSettingsPage": {
     "title": "Settings",
     "form": {
