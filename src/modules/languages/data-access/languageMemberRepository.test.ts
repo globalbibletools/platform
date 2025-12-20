@@ -156,3 +156,54 @@ describe("delete", () => {
     expect(dbLanguageMembers).toEqual([otherMember]);
   });
 });
+
+describe("deleteAll", () => {
+  const otherLanguage = {
+    id: ulid(),
+    name: "English",
+    code: "eng",
+  };
+  const languageMembers = [
+    {
+      user_id: user.id,
+      language_id: language.id,
+      invited_at: new Date(),
+    },
+    {
+      user_id: user.id,
+      language_id: otherLanguage.id,
+      invited_at: new Date(),
+    },
+  ];
+  beforeEach(async () => {
+    await getDb().insertInto("language").values(otherLanguage).execute();
+    await getDb()
+      .insertInto("language_member")
+      .values(languageMembers)
+      .execute();
+  });
+
+  test("removes language member", async () => {
+    const otherUser = {
+      id: ulid(),
+      email: "test2@example.com",
+    };
+    const otherMember = {
+      user_id: otherUser.id,
+      language_id: language.id,
+      invited_at: new Date(),
+    };
+    await getDb().insertInto("users").values(otherUser).execute(),
+      await getDb().insertInto("language_member").values(otherMember).execute();
+
+    await expect(
+      languageMemberRepository.deleteAll(user.id),
+    ).resolves.toBeUndefined();
+
+    const dbLanguageMembers = await getDb()
+      .selectFrom("language_member")
+      .selectAll()
+      .execute();
+    expect(dbLanguageMembers).toEqual([otherMember]);
+  });
+});
