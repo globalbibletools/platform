@@ -8,6 +8,7 @@ import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import logIn from "@/tests/vitest/login";
 import { findLanguageRolesForUser } from "../test-utils/dbUtils";
+import { getDb } from "@/db";
 
 initializeDatabase();
 
@@ -103,4 +104,10 @@ test("removes user from language", async () => {
 
   const languageRoles = await findLanguageRolesForUser(user.id);
   expect(languageRoles).toEqual([]);
+
+  const languageMembers = await getDb()
+    .selectFrom("language_member")
+    .selectAll()
+    .execute();
+  expect(languageMembers).toEqual([]);
 });

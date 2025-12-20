@@ -16,6 +16,7 @@ import {
 } from "@/modules/users/test-utils/dbUtils";
 import { userFactory } from "@/modules/users/test-utils/factories";
 import { findLanguageRolesForLanguage } from "../test-utils/dbUtils";
+import { getDb } from "@/db";
 
 initializeDatabase();
 
@@ -133,6 +134,18 @@ test("adds existing user to the language", async () => {
     },
   ]);
 
+  const languageMembers = await getDb()
+    .selectFrom("language_member")
+    .selectAll()
+    .execute();
+  expect(languageMembers).toEqual([
+    {
+      language_id: language.id,
+      user_id: user.id,
+      invited_at: expect.toBeNow(),
+    },
+  ]);
+
   expect(sendEmailMock).not.toHaveBeenCalled();
 });
 
@@ -185,6 +198,18 @@ test("invites new user to the language", async () => {
       languageId: language.id,
       userId: createdUser!.id,
       role,
+    },
+  ]);
+
+  const languageMembers = await getDb()
+    .selectFrom("language_member")
+    .selectAll()
+    .execute();
+  expect(languageMembers).toEqual([
+    {
+      language_id: language.id,
+      user_id: createdUser!.id,
+      invited_at: expect.toBeNow(),
     },
   ]);
 
