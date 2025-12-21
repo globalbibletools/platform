@@ -154,21 +154,4 @@ export const languageQueryService = {
     );
     return request.rows;
   },
-
-  async findForMember(userId: string): Promise<LanguageQueryResult[]> {
-    const result = await query<LanguageQueryResult>(
-      `
-        select id, code, name
-        from language
-        where exists (
-            select * from language_member_role
-            where language_id = language.id
-              and user_id = $1
-        )
-        order by name
-      `,
-      [userId],
-    );
-    return result.rows;
-  },
 };

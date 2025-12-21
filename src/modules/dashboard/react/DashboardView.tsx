@@ -3,13 +3,13 @@ import DashboardCard from "./DashboardCard";
 import { languageQueryService } from "@/modules/languages/data-access/LanguageQueryService";
 import { Icon } from "@/components/Icon";
 import { format } from "date-fns";
-import { languageClient } from "@/modules/languages/public/LanguageClient";
 import { verifySession } from "@/session";
 import { redirect } from "next/navigation";
 import reportingQueryService from "@/modules/reporting/ReportingQueryService";
 import DashboardLanguageSelector from "./DashboardLanguageSelector";
 import { cookies } from "next/headers";
 import { getLocale } from "next-intl/server";
+import { getUserLanguagesReadModel } from "@/modules/languages/read-models/getUserLanguagesReadModel";
 
 export default async function DashboardView() {
   const session = await verifySession();
@@ -19,7 +19,7 @@ export default async function DashboardView() {
 
   const browserCookies = cookies();
 
-  const languages = await languageClient.findAllForUser(session.user.id);
+  const languages = await getUserLanguagesReadModel(session.user.id);
   if (languages.length === 0) {
     // TODO: no languages view
     return <div></div>;
