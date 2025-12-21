@@ -1,6 +1,6 @@
+import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { getDb } from "@/db";
 import { ulid } from "@/shared/ulid";
-import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { beforeEach, describe, expect, test } from "vitest";
 import claimsRepository from "./claimsRepository";
 import { SystemRoleRaw } from "../users/model/SystemRole";
