@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import DropdownMenu, { DropdownMenuItem } from "@/components/DropdownMenu";
 import { Icon } from "@/components/Icon";
 import LanguageDialog from "@/components/LanguageDialog";
 import {
@@ -14,7 +13,6 @@ import {
   HeaderMenuItems,
 } from "./HeaderLink";
 import { verifySession } from "@/session";
-import { query } from "@/db";
 
 export default async function AuthenticatedLayout({
   children,
@@ -27,9 +25,7 @@ export default async function AuthenticatedLayout({
 
   const session = await verifySession();
   const isAdmin = session?.user.roles.includes("ADMIN");
-
-  const canTranslate =
-    session ? await fetchCanTranslate(session.user.id) : false;
+  const canTranslate = Boolean(session);
 
   const locale = await getLocale();
 
@@ -181,16 +177,4 @@ export default async function AuthenticatedLayout({
       </footer>
     </div>
   );
-}
-
-async function fetchCanTranslate(userId: string): Promise<boolean> {
-  const result = await query(
-    `
-        SELECT FROM language_member_role
-        WHERE user_id = $1
-        LIMIT 1
-        `,
-    [userId],
-  );
-  return result.rows.length > 0;
 }
