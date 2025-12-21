@@ -206,10 +206,8 @@
       "resend_invite": "إعادة إرسال الدعوة"
     },
     "headers": {
-      "name": "الاسم",
-      "role": "الدور"
-    },
-    "role": "{role, select, ADMIN {مدير} TRANSLATOR {مترجم} other {}}"
+      "name": "الاسم"
+    }
   },
   "LoginPage": {
     "title": "تسجيل الدخول",

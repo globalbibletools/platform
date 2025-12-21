@@ -29,22 +29,6 @@ const languageMemberRepository = {
     );
   },
 
-  async update(member: LanguageMember): Promise<void> {
-    await query(
-      `
-        with del as (
-            delete from language_member_role AS r
-            where r.language_id = $1 and r.user_id = $2
-              and r.role != all($3::language_role[])
-        )
-        insert into language_member_role (language_id, user_id, role)
-        select $1, $2, unnest($3::language_role[])
-        on conflict do nothing
-      `,
-      [member.languageId, member.userId, ["VIEWER", ...member.roles]],
-    );
-  },
-
   async delete(languageId: string, userId: string): Promise<void> {
     await getDb()
       .deleteFrom("language_member")

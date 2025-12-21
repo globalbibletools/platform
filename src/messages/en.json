@@ -209,10 +209,8 @@
       "resend_invite": "Resend Invite"
     },
     "headers": {
-      "name": "Name",
-      "role": "Role"
-    },
-    "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
+      "name": "Name"
+    }
   },
   "LoginPage": {
     "title": "Log In",
