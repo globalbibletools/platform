@@ -6,6 +6,7 @@ import TranslationToolbar from "./TranslationToolbar";
 import { NextIntlClientProvider } from "next-intl";
 import { TranslationClientStateProvider } from "./TranslationClientState";
 import { verifySession } from "@/session";
+import { getCurrentLanguageReadModel } from "@/modules/languages/read-models/getCurrentLanguageReadModel";
 
 interface Props {
   children: ReactNode;
@@ -22,7 +23,7 @@ export default async function InterlinearLayout({ children, params }: Props) {
 
   const [languages, currentLanguage] = await Promise.all([
     fetchLanguages(),
-    fetchCurrentLanguage(params.code, session?.user.id),
+    getCurrentLanguageReadModel(params.code, session?.user.id),
   ]);
 
   return (
@@ -57,35 +58,4 @@ async function fetchLanguages(): Promise<Language[]> {
     [],
   );
   return result.rows;
-}
-
-interface CurrentLanguage {
-  code: string;
-  name: string;
-  font: string;
-  textDirection: string;
-  translationIds: string[];
-  roles: string[];
-}
-
-// TODO: cache this, it will only change when the language settings are changed or the user roles change on the language.
-async function fetchCurrentLanguage(
-  code: string,
-  userId?: string,
-): Promise<CurrentLanguage | undefined> {
-  const result = await query<CurrentLanguage>(
-    `
-        SELECT
-            code, name, font, text_direction AS "textDirection", translation_ids AS "translationIds",
-            (
-                SELECT COALESCE(JSON_AGG(r."role"), '[]') FROM language_member_role AS r
-                WHERE r.language_id = l.id
-                    AND r.user_id = $2
-            ) AS roles
-        FROM language AS l
-        WHERE code = $1
-        `,
-    [code, userId],
-  );
-  return result.rows[0];
 }

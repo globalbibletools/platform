@@ -57,7 +57,7 @@ export interface TranslationSidebarProps {
     code: string;
     font: string;
     textDirection: string;
-    roles: string[];
+    isMember: boolean;
   };
   onClose?(): void;
 }
@@ -71,8 +71,8 @@ const TranslationSidebar = forwardRef<
 >(({ className = "", language, word, phrase, verseId, onClose }, ref) => {
   const t = useTranslations("TranslationSidebar");
 
-  const canReadTranslatorNotes = language.roles.includes("VIEWER");
-  const canEditNotes = language.roles.includes("TRANSLATOR");
+  const canReadTranslatorNotes = language.isMember;
+  const canEditNotes = language.isMember;
 
   const [tabIndex, setTabIndex] = useState(0);
 

@@ -40,7 +40,7 @@ export interface TranslateWordProps {
     code: string;
     font: string;
     textDirection: string;
-    roles: string[];
+    isMember: boolean;
   };
   isHebrew: boolean;
   wordSelected: boolean;
@@ -76,8 +76,8 @@ export default function TranslateWord({
   const llmGloss = useRef<HTMLSpanElement>(null);
   const input = useRef<HTMLInputElement>(null);
 
-  const editable = language.roles.includes("TRANSLATOR");
-  const canViewTranslatorNotes = language.roles.includes("VIEWER");
+  const editable = language.isMember;
+  const canViewTranslatorNotes = language.isMember;
 
   const hasNote =
     !isRichTextEmpty(phrase.footnote?.content ?? "") ||

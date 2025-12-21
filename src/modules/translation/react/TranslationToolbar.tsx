@@ -29,7 +29,7 @@ import AudioDialog from "@/modules/study/components/AudioDialog";
 
 export interface TranslationToolbarProps {
   languages: { name: string; code: string }[];
-  currentLanguage?: { roles: string[] };
+  currentLanguage: { isMember: boolean } | null;
   userRoles: string[];
 }
 
@@ -48,8 +48,7 @@ export default function TranslationToolbar({
   const { mutate } = useSWRConfig();
   const flash = useFlash();
 
-  const isTranslator = !!currentLanguage?.roles.includes("TRANSLATOR");
-  const isLanguageAdmin = !!currentLanguage?.roles.includes("ADMIN");
+  const isTranslator = currentLanguage?.isMember;
   const isPlatformAdmin = userRoles.includes("ADMIN");
 
   const {
@@ -273,7 +272,7 @@ export default function TranslationToolbar({
               className="w-40"
               autoComplete="off"
             />
-            {isLanguageAdmin && (
+            {(isTranslator || isPlatformAdmin) && (
               <Button
                 className="ms-2"
                 variant="tertiary"

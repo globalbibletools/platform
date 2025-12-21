@@ -6,6 +6,7 @@ import { verifySession } from "@/session";
 import ClientTranslateView from "./ClientTranslationView";
 import { translateClient } from "@/google-translate";
 import { logger } from "@/logging";
+import { getCurrentLanguageReadModel } from "@/modules/languages/read-models/getCurrentLanguageReadModel";
 
 interface Props {
   params: { code: string; verseId: string };
@@ -20,7 +21,7 @@ export default async function InterlinearView({ params }: Props) {
 
   const [language, verse, phrases, suggestions, machineSuggestions] =
     await Promise.all([
-      fetchCurrentLanguage(params.code, session?.user.id),
+      getCurrentLanguageReadModel(params.code, session?.user.id),
       fetchVerse(params.verseId, params.code),
       fetchPhrases(params.verseId, params.code, session?.user.id),
       fetchSuggestions(params.verseId, params.code),
@@ -57,7 +58,7 @@ export default async function InterlinearView({ params }: Props) {
   );
 
   const newMachineSuggestions =
-    language.roles.includes("TRANSLATOR") ?
+    language.isMember && language.referenceLanguage ?
       await machineTranslate(
         wordsToTranslate,
         params.code,
@@ -395,36 +396,4 @@ async function saveMachineTranslations(
   } catch (error) {
     console.log(`Failed to save machine translations: ${error}`);
   }
-}
-
-interface CurrentLanguage {
-  code: string;
-  name: string;
-  font: string;
-  textDirection: string;
-  translationIds: string[];
-  roles: string[];
-  referenceLanguage: string;
-}
-
-async function fetchCurrentLanguage(
-  code: string,
-  userId?: string,
-): Promise<CurrentLanguage | undefined> {
-  const result = await query<CurrentLanguage>(
-    `
-        SELECT
-            code, name, font, text_direction AS "textDirection", translation_ids AS "translationIds",
-            ( select code from language where id = l.reference_language_id) as "referenceLanguage",
-            (
-                SELECT COALESCE(JSON_AGG(r."role"), '[]') FROM language_member_role AS r
-                WHERE r.language_id = l.id
-                    AND r.user_id = $2
-            ) AS roles
-        FROM language AS l
-        WHERE code = $1
-        `,
-    [code, userId],
-  );
-  return result.rows[0];
 }

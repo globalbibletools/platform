@@ -45,7 +45,7 @@ export interface TranslationViewProps {
     font: string;
     textDirection: string;
     translationIds: string[];
-    roles: string[];
+    isMember: boolean;
   };
 }
 
@@ -163,7 +163,7 @@ export default function TranslateView({
               />
             );
           })}
-          {language.roles.includes("TRANSLATOR") && (
+          {language.isMember && (
             <li className="mx-2" dir={isHebrew ? "rtl" : "ltr"}>
               <Button
                 variant="tertiary"

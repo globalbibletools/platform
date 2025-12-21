@@ -27,6 +27,12 @@ export interface DbLanguage {
   referenceLanguageId?: string | null;
 }
 
+export interface DbLanguageMember {
+  languageId: string;
+  userId: string;
+  invitedAt: Date;
+}
+
 export interface DbLanguageRole {
   languageId: string;
   userId: string;

@@ -1,10 +1,14 @@
 import { Async } from "factory.ts";
-import { DbLanguage, DbLanguageRole } from "../data-access/types";
+import {
+  DbLanguage,
+  DbLanguageRole,
+  DbLanguageMember,
+} from "../data-access/types";
 import { ulid } from "@/shared/ulid";
 import { faker } from "@faker-js/faker/locale/en";
 import localeMap from "@/data/locale-mapping.json";
 import { TextDirectionRaw } from "../model";
-import { query } from "@/db";
+import { getDb, query } from "@/db";
 const locales = Object.keys(localeMap);
 
 export const languageFactory = Async.makeFactory<DbLanguage>({
@@ -48,4 +52,21 @@ export const languageRoleFactory = Async.makeFactoryWithRequired<
     [role.languageId, role.userId, role.role],
   );
   return role;
+});
+
+export const languageMemberFactory = Async.makeFactoryWithRequired<
+  DbLanguageMember,
+  "userId" | "languageId"
+>({
+  invitedAt: Async.each(() => faker.date.recent()),
+}).transform(async (member) => {
+  await getDb()
+    .insertInto("language_member")
+    .values({
+      user_id: member.userId,
+      language_id: member.languageId,
+      invited_at: member.invitedAt,
+    })
+    .execute();
+  return member;
 });
