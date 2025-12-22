@@ -17,9 +17,7 @@ const scenarioDefinition: ScenarioDefinition = {
   },
   languages: {
     spanish: {
-      members: [
-        { userId: "translator", roles: [LanguageMemberRoleRaw.Translator] },
-      ],
+      members: ["translator"],
     },
   },
 };
@@ -95,9 +93,7 @@ test("returns not found if phrase is not in the language", async () => {
   const scenario = await createScenario(scenarioDefinition, {
     languages: {
       another: {
-        members: [
-          { userId: "translator", roles: [LanguageMemberRoleRaw.Translator] },
-        ],
+        members: ["translator"],
       },
     },
   });

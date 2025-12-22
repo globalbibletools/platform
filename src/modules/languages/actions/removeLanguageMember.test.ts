@@ -21,12 +21,7 @@ const scenarioDefinition: ScenarioDefinition = {
   },
   languages: {
     spanish: {
-      members: [
-        {
-          userId: "member",
-          roles: [LanguageMemberRoleRaw.Translator],
-        },
-      ],
+      members: ["member"],
     },
   },
 };

@@ -14,12 +14,10 @@ test("removes user from all languages", async () => {
     },
     languages: {
       spanish: {
-        members: [
-          { userId: "user", roles: [LanguageMemberRoleRaw.Translator] },
-        ],
+        members: ["user"],
       },
       italian: {
-        members: [{ userId: "user" }],
+        members: ["user"],
       },
     },
   });

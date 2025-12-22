@@ -16,7 +16,7 @@ export interface UserScenarioDefinition {
 }
 
 export interface LanguageScenarioDefinition {
-  members?: { userId: string; roles?: LanguageMemberRoleRaw[] }[];
+  members?: string[];
 }
 
 export interface ScenarioDefinition {
@@ -58,8 +58,8 @@ export async function createScenario(
         const language = await languageFactory.build();
         scenario.languages[id] = language;
         if (languageDefinition.members) {
-          for (const memberDefinition of languageDefinition.members) {
-            const user = scenario.users[memberDefinition.userId];
+          for (const userId of languageDefinition.members) {
+            const user = scenario.users[userId];
 
             await languageMemberFactory.build({
               languageId: language.id,

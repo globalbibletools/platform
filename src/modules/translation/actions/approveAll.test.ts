@@ -29,9 +29,7 @@ const scenarioDefinition: ScenarioDefinition = {
   },
   languages: {
     spanish: {
-      members: [
-        { userId: "translator", roles: [LanguageMemberRoleRaw.Translator] },
-      ],
+      members: ["translator"],
     },
   },
 };
@@ -148,14 +146,10 @@ test("returns not found if a phrase is for a different language", async () => {
     },
     languages: {
       spanish: {
-        members: [
-          { userId: "translator", roles: [LanguageMemberRoleRaw.Translator] },
-        ],
+        members: ["translator"],
       },
       italian: {
-        members: [
-          { userId: "translator", roles: [LanguageMemberRoleRaw.Translator] },
-        ],
+        members: ["translator"],
       },
     },
   });
