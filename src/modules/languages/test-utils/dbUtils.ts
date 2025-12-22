@@ -1,5 +1,5 @@
-import { query } from "@/db";
-import { DbLanguage, DbLanguageRole } from "../data-access/types";
+import { getDb, query } from "@/db";
+import { DbLanguage } from "../data-access/types";
 
 export async function findLanguageByCode(
   code: string,
@@ -18,30 +18,22 @@ export async function findLanguageByCode(
   return result.rows[0];
 }
 
-export async function findLanguageRolesForUser(
-  userId: string,
-): Promise<DbLanguageRole[]> {
-  const result = await query<DbLanguageRole>(
-    `
-        select language_id as "languageId", user_id as "userId", role
-        from language_member_role
-        where user_id = $1
-    `,
-    [userId],
-  );
-  return result.rows;
+export async function findLanguageMembersForUser(userId: string) {
+  const result = await getDb()
+    .selectFrom("language_member")
+    .where("user_id", "=", userId)
+    .orderBy("language_id")
+    .selectAll()
+    .execute();
+  return result;
 }
 
-export async function findLanguageRolesForLanguage(
-  languageId: string,
-): Promise<DbLanguageRole[]> {
-  const result = await query<DbLanguageRole>(
-    `
-        select language_id as "languageId", user_id as "userId", role
-        from language_member_role
-        where language_id = $1
-    `,
-    [languageId],
-  );
-  return result.rows;
+export async function findLanguageMembersForLanguage(languageId: string) {
+  const result = await getDb()
+    .selectFrom("language_member")
+    .where("language_id", "=", languageId)
+    .orderBy("language_id")
+    .selectAll()
+    .execute();
+  return result;
 }

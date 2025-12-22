@@ -7,7 +7,7 @@ import { LanguageMemberRoleRaw } from "../model";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import logIn from "@/tests/vitest/login";
-import { findLanguageRolesForUser } from "../test-utils/dbUtils";
+import { findLanguageMembersForUser } from "../test-utils/dbUtils";
 import { getDb } from "@/db";
 
 initializeDatabase();
@@ -102,7 +102,7 @@ test("removes user from language", async () => {
     message: "User removed successfully.",
   });
 
-  const languageRoles = await findLanguageRolesForUser(user.id);
+  const languageRoles = await findLanguageMembersForUser(user.id);
   expect(languageRoles).toEqual([]);
 
   const languageMembers = await getDb()

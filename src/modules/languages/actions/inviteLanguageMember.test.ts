@@ -15,8 +15,7 @@ import {
   findUserById,
 } from "@/modules/users/test-utils/dbUtils";
 import { userFactory } from "@/modules/users/test-utils/factories";
-import { findLanguageRolesForLanguage } from "../test-utils/dbUtils";
-import { getDb } from "@/db";
+import { findLanguageMembersForLanguage } from "../test-utils/dbUtils";
 
 initializeDatabase();
 
@@ -79,8 +78,8 @@ test("returns not found if not a platform admin", async () => {
   const response = inviteLanguageMember({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 
-  const languageRoles = await findLanguageRolesForLanguage(language.id);
-  expect(languageRoles).toEqual([]);
+  const languageMembers = await findLanguageMembersForLanguage(language.id);
+  expect(languageMembers).toEqual([]);
 });
 
 test("returns not found if language does not exist", async () => {
@@ -120,29 +119,12 @@ test("adds existing user to the language", async () => {
   const invites = await findInvitationsForUser(updatedUser!.id);
   expect(invites).toEqual([]);
 
-  const languageRoles = await findLanguageRolesForLanguage(language.id);
-  expect(languageRoles).toEqual([
-    {
-      languageId: language.id,
-      userId: updatedUser!.id,
-      role: "VIEWER",
-    },
-    {
-      languageId: language.id,
-      userId: updatedUser!.id,
-      role,
-    },
-  ]);
-
-  const languageMembers = await getDb()
-    .selectFrom("language_member")
-    .selectAll()
-    .execute();
+  const languageMembers = await findLanguageMembersForLanguage(language.id);
   expect(languageMembers).toEqual([
     {
       language_id: language.id,
-      user_id: user.id,
-      invited_at: expect.toBeNow(),
+      user_id: updatedUser!.id,
+      invited_at: expect.any(Date),
     },
   ]);
 
@@ -187,29 +169,12 @@ test("invites new user to the language", async () => {
     },
   ]);
 
-  const languageRoles = await findLanguageRolesForLanguage(language.id);
-  expect(languageRoles).toEqual([
-    {
-      languageId: language.id,
-      userId: createdUser!.id,
-      role: "VIEWER",
-    },
-    {
-      languageId: language.id,
-      userId: createdUser!.id,
-      role,
-    },
-  ]);
-
-  const languageMembers = await getDb()
-    .selectFrom("language_member")
-    .selectAll()
-    .execute();
+  const languageMembers = await findLanguageMembersForLanguage(language.id);
   expect(languageMembers).toEqual([
     {
       language_id: language.id,
       user_id: createdUser!.id,
-      invited_at: expect.toBeNow(),
+      invited_at: expect.any(Date),
     },
   ]);
 

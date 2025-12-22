@@ -38,22 +38,6 @@ export const languageFactory = Async.makeFactory<DbLanguage>({
   return lang;
 });
 
-export const languageRoleFactory = Async.makeFactoryWithRequired<
-  DbLanguageRole,
-  "userId" | "languageId"
->({
-  role: "VIEWER",
-}).transform(async (role) => {
-  await query(
-    `
-        insert into language_member_role (language_id, user_id, role)
-        values ($1, $2, $3)
-      `,
-    [role.languageId, role.userId, role.role],
-  );
-  return role;
-});
-
 export const languageMemberFactory = Async.makeFactoryWithRequired<
   DbLanguageMember,
   "userId" | "languageId"

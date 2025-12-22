@@ -79,7 +79,7 @@ describe("language member policy", () => {
     });
   });
 
-  test.only("grants access when actor is a member of the language", async () => {
+  test("grants access when actor is a member of the language", async () => {
     await expect(
       policy.authorize({ actorId: actor.id, languageCode: "spa" }),
     ).resolves.toEqual(true);

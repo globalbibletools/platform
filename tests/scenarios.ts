@@ -1,9 +1,8 @@
-import { getDb } from "@/db";
 import { DbLanguage } from "@/modules/languages/data-access/types";
 import { LanguageMemberRoleRaw } from "@/modules/languages/model";
 import {
   languageFactory,
-  languageRoleFactory,
+  languageMemberFactory,
 } from "@/modules/languages/test-utils/factories";
 import { DbUser } from "@/modules/users/data-access/types";
 import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
@@ -62,29 +61,10 @@ export async function createScenario(
           for (const memberDefinition of languageDefinition.members) {
             const user = scenario.users[memberDefinition.userId];
 
-            await getDb()
-              .insertInto("language_member")
-              .values({
-                language_id: language.id,
-                user_id: user.id,
-                invited_at: new Date(),
-              })
-              .execute();
-
-            await languageRoleFactory.build({
-              userId: user.id,
+            await languageMemberFactory.build({
               languageId: language.id,
-              role: "VIEWER",
+              userId: user.id,
             });
-            if (memberDefinition.roles) {
-              for (const role of memberDefinition.roles) {
-                await languageRoleFactory.build({
-                  userId: user.id,
-                  languageId: language.id,
-                  role,
-                });
-              }
-            }
           }
         }
       }

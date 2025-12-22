@@ -24,8 +24,12 @@ test("returns empty array if user is not a member of any languages", async () =>
 
 test("returns array of languages where the user is a member", async () => {
   const user = await userFactory.build();
-  const memberLanguage1 = await languageFactory.build();
-  const memberLanguage2 = await languageFactory.build();
+  const memberLanguage1 = await languageFactory.build({
+    name: "English",
+  });
+  const memberLanguage2 = await languageFactory.build({
+    name: "Spanish",
+  });
 
   // This one should not be included in the result.
   await languageFactory.build();
