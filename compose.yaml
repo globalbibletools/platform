@@ -9,6 +9,11 @@ services:
       DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
       TEST_DATABASE_URL: postgresql://postgres:asdfasdf@test_db:5432/postgres
       JOB_FUNCTION_URL: http://job_worker:8080/2015-03-31/functions/function/invocations
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_ENDPOINT_URL_S3: http://localstack:4566
+      AWS_S3_FORCE_PATH_STYLE: "true"
     volumes:
       - ./:/app
       - server-node-modules:/app/node_modules
@@ -16,6 +21,8 @@ services:
       - 3000:3000
     depends_on:
       db:
+        condition: service_healthy
+      localstack:
         condition: service_healthy
   job_worker:
     build:
@@ -25,6 +32,12 @@ services:
     restart: always
     environment:
       DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_ENDPOINT_URL_S3: http://localstack:4566
+      AWS_S3_FORCE_PATH_STYLE: "true"
+      EXPORT_PUBLIC_S3_ENDPOINT: http://localhost:4566
     volumes:
       - ./:/app
       - job-worker-node-modules:/app/node_modules
@@ -33,9 +46,44 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      localstack:
+        condition: service_healthy
     env_file:
       - path: .env
         required: false
+  localstack:
+    image: localstack/localstack:latest
+    environment:
+      - SERVICES=s3
+      - DEFAULT_REGION=us-east-1
+      - LS_LOG=warn
+    ports:
+      - 4566:4566
+    healthcheck:
+      test: ["CMD", "bash", "-c", "awslocal s3 ls >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  localstack-init:
+    image: amazon/aws-cli:2.32.11
+    depends_on:
+      localstack:
+        condition: service_healthy
+    environment:
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        until aws --endpoint-url http://localstack:4566 s3api list-buckets >/dev/null 2>&1; do
+          echo "Waiting for localstack S3...";
+          sleep 2;
+        done;
+        aws --endpoint-url http://localstack:4566 s3 mb s3://gbt-exports-local >/dev/null 2>&1 || true;
+        echo "Localstack S3 bucket ready";
+    restart: "no"
   db:
     build:
       dockerfile: db/Dockerfile
