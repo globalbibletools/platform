@@ -38,7 +38,7 @@ const jobMap: Record<string, JobMapEntry<any, any>> = {
   },
   [EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF]: {
     handler: exportInterlinearPdfJob,
-    timeout: 60 * 5, // 5 minutes
+    timeout: 60 * 15, // 15 minutes
   },
   [EXPORT_JOB_TYPES.EXPORT_GLOSSES]: {
     handler: exportGlossesJob,

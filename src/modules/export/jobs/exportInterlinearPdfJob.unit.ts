@@ -1,59 +1,166 @@
 import { Readable } from "stream";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { PDFDocument } from "pdf-lib";
 import { JobStatus } from "@/shared/jobs/model";
-import jobRepository from "@/shared/jobs/data-access/jobRepository";
-import exportStorageRepository from "../data-access/ExportStorageRepository";
 import { exportInterlinearPdfJob } from "./exportInterlinearPdfJob";
 import { EXPORT_JOB_TYPES } from "./jobTypes";
 
-const { uploadPdfMock, updateDataMock } = vi.hoisted(() => ({
-  uploadPdfMock: vi.fn(),
-  updateDataMock: vi.fn(),
-}));
-
-vi.mock("../data-access/ExportStorageRepository", () => {
-  const repository = {
-    uploadPdf: uploadPdfMock,
+const {
+  mockQuery,
+  mockFetchChapters,
+  mockUploadPdf,
+  mockPublicPdfUrl,
+  mockDeleteObject,
+  mockFetchBuffer,
+  mockMergePdfs,
+  mockGenerateInterlinearPdf,
+  mockUpdateData,
+} = vi.hoisted(() => {
+  return {
+    mockQuery: vi.fn(),
+    mockFetchChapters: vi.fn(),
+    mockUploadPdf: vi.fn(),
+    mockPublicPdfUrl: vi.fn(),
+    mockDeleteObject: vi.fn(),
+    mockFetchBuffer: vi.fn(),
+    mockMergePdfs: vi.fn(),
+    mockGenerateInterlinearPdf: vi.fn(),
+    mockUpdateData: vi.fn(),
   };
-  return { __esModule: true, default: repository };
 });
 
+vi.mock("@/db", () => ({ query: mockQuery }));
 vi.mock("@/shared/jobs/data-access/jobRepository", () => ({
   __esModule: true,
   default: {
-    updateData: updateDataMock,
+    updateData: mockUpdateData,
   },
 }));
+vi.mock("@/modules/export/data-access/InterlinearQueryService", () => {
+  return {
+    __esModule: true,
+    default: {
+      fetchChapters: mockFetchChapters,
+    },
+  };
+});
+vi.mock("@/modules/export/data-access/ExportStorageRepository", () => {
+  const repo = {
+    uploadPdf: mockUploadPdf,
+    publicPdfUrl: mockPublicPdfUrl,
+    deleteObject: mockDeleteObject,
+    fetchBuffer: mockFetchBuffer,
+  };
+  return { __esModule: true, exportStorageRepository: repo, default: repo };
+});
+vi.mock("./exportInterlinearMerge", () => ({
+  __esModule: true,
+  default: mockMergePdfs,
+  mergePdfs: mockMergePdfs,
+}));
+vi.mock("@/modules/export/pdf/InterlinearPdfGenerator", () => ({
+  generateInterlinearPdf: mockGenerateInterlinearPdf,
+}));
+
+const baseJob = {
+  id: "job-1",
+  createdAt: new Date("2026-04-09T00:00:00.000Z"),
+  updatedAt: new Date("2026-04-09T00:00:00.000Z"),
+  status: JobStatus.Pending,
+  type: EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF,
+  payload: {
+    languageId: "lang-1",
+    languageCode: "spa",
+    requestedBy: "user-1",
+    books: [{ bookId: 1, chapters: [1, 2] }],
+    layout: "standard" as const,
+  },
+};
+
+async function createPdfWithPages(count: number) {
+  const pdf = await PDFDocument.create();
+  for (let i = 0; i < count; i += 1) {
+    pdf.addPage();
+  }
+  return Buffer.from(await pdf.save());
+}
 
 describe("exportInterlinearPdfJob", () => {
-  beforeEach(() => {
-    uploadPdfMock.mockReset();
-    updateDataMock.mockReset();
+  beforeEach(async () => {
+    vi.useFakeTimers();
+    mockQuery.mockReset();
+    mockFetchChapters.mockReset();
+    mockUploadPdf.mockReset();
+    mockPublicPdfUrl.mockReset();
+    mockDeleteObject.mockReset();
+    mockFetchBuffer.mockReset();
+    mockMergePdfs.mockReset();
+    mockGenerateInterlinearPdf.mockReset();
+    mockUpdateData.mockReset();
+
+    const partBytes = await createPdfWithPages(1);
+
+    mockQuery.mockImplementation(async (text: string) => {
+      if (text.includes("select id, name from book")) {
+        return { rows: [{ id: 1, name: "Genesis" }] };
+      }
+      return { rows: [] };
+    });
+    mockFetchChapters.mockResolvedValue({
+      language: { textDirection: "ltr", name: "Test Language" },
+      verses: [
+        { number: 1, words: [{ text: "a", gloss: "a" }] },
+        { number: 1, words: [{ text: "b", gloss: "b" }] },
+      ],
+    });
+    mockGenerateInterlinearPdf.mockImplementation(() => ({
+      stream: Readable.from([partBytes]),
+      pageCount: 1,
+    }));
+    mockPublicPdfUrl.mockReturnValue("https://exports.example.com/final.pdf");
+    mockMergePdfs.mockResolvedValue({ uploaded: true, pages: 3 });
   });
 
-  test("uploads a placeholder PDF and records the export key", async () => {
-    const job = {
-      id: "job-1",
-      type: EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF,
-      status: JobStatus.Pending,
-      payload: {
-        languageId: "language-1",
-        languageCode: "spa",
-        requestedBy: "user-1",
-      },
-      createdAt: new Date("2026-04-09T00:00:00.000Z"),
-      updatedAt: new Date("2026-04-09T00:00:00.000Z"),
-    };
+  afterEach(() => {
+    vi.useRealTimers();
+  });
 
-    await expect(exportInterlinearPdfJob(job)).resolves.toBeUndefined();
+  it("processes multi-chapter exports in one job and records public download data", async () => {
+    await expect(exportInterlinearPdfJob(baseJob)).resolves.toBeUndefined();
 
-    expect(exportStorageRepository.uploadPdf).toHaveBeenCalledExactlyOnceWith({
+    expect(mockUploadPdf).toHaveBeenCalledTimes(baseJob.payload.books.length);
+
+    const uploadedKeys = mockUploadPdf.mock.calls.map((c) => c[0]?.key);
+    expect(uploadedKeys).toEqual(["interlinear/spa/job-1-book-1.pdf"]);
+
+    expect(mockMergePdfs).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        targetKey: "interlinear/spa/job-1.pdf",
+        partKeys: uploadedKeys,
+      }),
+    );
+    expect(mockPublicPdfUrl).toHaveBeenCalledExactlyOnceWith({
       environment: "local",
       key: "interlinear/spa/job-1.pdf",
-      stream: expect.any(Readable),
     });
-    expect(jobRepository.updateData).toHaveBeenCalledExactlyOnceWith("job-1", {
+    expect(mockUpdateData).toHaveBeenCalledExactlyOnceWith("job-1", {
       exportKey: "interlinear/spa/job-1.pdf",
+      downloadUrl: "https://exports.example.com/final.pdf",
+      pages: 3,
     });
+    expect(mockDeleteObject).toHaveBeenCalledTimes(uploadedKeys.length);
+  });
+
+  it("cleans up parts on errors after upload", async () => {
+    mockPublicPdfUrl.mockImplementationOnce(() => {
+      throw new Error("public URL failed");
+    });
+
+    await expect(exportInterlinearPdfJob(baseJob)).rejects.toThrow(
+      /public URL failed/,
+    );
+
+    expect(mockDeleteObject).toHaveBeenCalledTimes(1);
+    expect(mockUpdateData).not.toHaveBeenCalled();
   });
 });
