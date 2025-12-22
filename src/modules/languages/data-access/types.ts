@@ -33,17 +33,9 @@ export interface DbLanguageMember {
   invitedAt: Date;
 }
 
-export interface DbLanguageRole {
-  languageId: string;
-  userId: string;
-  role: LanguageMemberRoleRaw | "VIEWER";
-}
-
 export type Language = DbLanguage;
 
-export type LanguageMember = Omit<DbLanguageRole, "role"> & {
-  roles: LanguageMemberRoleRaw[];
-};
+export type LanguageMember = Omit<DbLanguageMember, "invitedAt">;
 
 export interface LanguageRepository {
   existsById(id: string): Promise<boolean>;

@@ -4,7 +4,6 @@ import FormLabel from "@/components/FormLabel";
 import TextInput from "@/components/TextInput";
 import FieldError from "@/components/FieldError";
 import ViewTitle from "@/components/ViewTitle";
-import MultiselectInput from "@/components/MultiselectInput";
 import { Metadata, ResolvingMetadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { inviteLanguageMember } from "@/modules/languages/actions/inviteLanguageMember";
@@ -61,26 +60,6 @@ export default async function InviteLanguageUserPage({
             aria-describedby="email-error"
           />
           <FieldError id="email-error" name="email" />
-        </div>
-        <div className="mb-6">
-          <FormLabel htmlFor="role">{t("form.role")}</FormLabel>
-          <MultiselectInput
-            className="w-96"
-            name="roles"
-            defaultValue={["TRANSLATOR"]}
-            items={[
-              {
-                label: t("role", { role: "ADMIN" }),
-                value: "ADMIN",
-              },
-              {
-                label: t("role", { role: "TRANSLATOR" }),
-                value: "TRANSLATOR",
-              },
-            ]}
-            aria-describedby="role-error"
-          />
-          <FieldError id="role-error" name="roles" />
         </div>
         <Button type="submit">{t("form.submit")}</Button>
       </Form>

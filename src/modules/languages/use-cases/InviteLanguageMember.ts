@@ -3,13 +3,11 @@ import {
   LanguageMemberRepository,
   LanguageRepository,
 } from "../data-access/types";
-import { LanguageMemberRoleRaw } from "../model";
 import { NotFoundError } from "@/shared/errors";
 
 export interface InviteLanguageMemberRequest {
   code: string;
   email: string;
-  roles: LanguageMemberRoleRaw[];
 }
 
 export interface InviteLanguageMemberResponse {
@@ -34,7 +32,6 @@ export default class InviteLanguageMember {
     await this.languageMemberRepo.create({
       languageId: language.id,
       userId,
-      roles: request.roles,
     });
 
     return { userId };

@@ -11,14 +11,12 @@ import InviteLanguageMember from "../use-cases/InviteLanguageMember";
 import languageRepository from "../data-access/languageRepository";
 import languageMemberRepository from "../data-access/languageMemberRepository";
 import { userClient } from "@/modules/users/public/UserClient";
-import { LanguageMemberRoleRaw } from "../model";
 import { NotFoundError } from "@/shared/errors";
 import Policy from "@/modules/access/public/Policy";
 
 const requestSchema = z.object({
   code: z.string(),
   email: z.string().email().min(1),
-  roles: z.array(z.nativeEnum(LanguageMemberRoleRaw)),
 });
 
 const policy = new Policy({
