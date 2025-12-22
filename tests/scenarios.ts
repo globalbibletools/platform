@@ -1,5 +1,4 @@
 import { DbLanguage } from "@/modules/languages/data-access/types";
-import { LanguageMemberRoleRaw } from "@/modules/languages/model";
 import {
   languageFactory,
   languageMemberFactory,

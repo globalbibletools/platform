@@ -52,7 +52,6 @@ describe("create", () => {
       languageMemberRepository.create({
         languageId: language.id,
         userId: user.id,
-        roles: [],
       }),
     ).resolves.toBeUndefined();
 
@@ -74,7 +73,6 @@ describe("create", () => {
       languageMemberRepository.create({
         languageId: language.id,
         userId: ulid(),
-        roles: [],
       }),
     ).rejects.toThrowError(
       expect.objectContaining({
@@ -95,7 +93,6 @@ describe("create", () => {
       languageMemberRepository.create({
         languageId: ulid(),
         userId: user.id,
-        roles: [],
       }),
     ).rejects.toThrowError(
       expect.objectContaining({
@@ -115,7 +112,6 @@ describe("create", () => {
     await languageMemberRepository.create({
       languageId: language.id,
       userId: user.id,
-      roles: [],
     });
     const previousLanguageMembers = await getDb()
       .selectFrom("language_member")
@@ -126,7 +122,6 @@ describe("create", () => {
       languageMemberRepository.create({
         languageId: ulid(),
         userId: user.id,
-        roles: [],
       }),
     ).rejects.toThrowError(
       expect.objectContaining({

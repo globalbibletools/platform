@@ -4,7 +4,7 @@ import mockLanguageRepo from "../data-access/mockLanguageRepository";
 import mockLanguageMemberRepo from "../data-access/mockLanguageMemberRepository";
 import fakeUserClient from "@/modules/users/public/FakeUserClient";
 import { NotFoundError } from "@/shared/errors";
-import { LanguageMemberRoleRaw, TextDirectionRaw } from "../model";
+import { TextDirectionRaw } from "../model";
 import { ulid } from "@/shared/ulid";
 
 const inviteLanguageMember = new InviteLanguageMember(
@@ -17,7 +17,6 @@ test("throws error if language could not be found", async () => {
   const response = inviteLanguageMember.execute({
     code: "spa",
     email: "invited@example.com",
-    roles: [],
   });
   await expect(response).rejects.toThrow(new NotFoundError("Language"));
 });
@@ -36,7 +35,6 @@ test("invites language member", async () => {
   const response = await inviteLanguageMember.execute({
     code: "spa",
     email: "invited@example.com",
-    roles: [LanguageMemberRoleRaw.Translator],
   });
   expect(response).toEqual({ userId: expect.toBeUlid() });
 
@@ -44,7 +42,6 @@ test("invites language member", async () => {
     {
       languageId: language.id,
       userId: response.userId,
-      roles: [LanguageMemberRoleRaw.Translator],
     },
   ]);
 });

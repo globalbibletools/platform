@@ -3,7 +3,6 @@ import { ulid } from "@/shared/ulid";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { expect, test } from "vitest";
 import { removeLanguageMember } from "./removeLanguageMember";
-import { LanguageMemberRoleRaw } from "../model";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import logIn from "@/tests/vitest/login";

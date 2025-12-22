@@ -1,5 +1,5 @@
 import { Generated } from "kysely";
-import { LanguageMemberRoleRaw, TextDirectionRaw } from "../model";
+import { TextDirectionRaw } from "../model";
 
 export interface LanguageTable {
   id: Generated<string>;

@@ -23,15 +23,6 @@ const mockLanguageMemberRepo = {
     this.members.push(member);
   },
 
-  async update(member: LanguageMember): Promise<void> {
-    const dbMember = this.members.find(
-      (m) => m.languageId === member.languageId && m.userId === member.userId,
-    );
-    if (!dbMember) return;
-
-    dbMember.roles = member.roles;
-  },
-
   async delete(languageId: string, userId: string): Promise<void> {
     this.members = this.members.filter(
       (m) => m.languageId !== languageId || m.userId !== userId,

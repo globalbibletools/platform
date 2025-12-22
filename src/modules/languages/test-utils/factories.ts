@@ -1,9 +1,5 @@
 import { Async } from "factory.ts";
-import {
-  DbLanguage,
-  DbLanguageRole,
-  DbLanguageMember,
-} from "../data-access/types";
+import { DbLanguage, DbLanguageMember } from "../data-access/types";
 import { ulid } from "@/shared/ulid";
 import { faker } from "@faker-js/faker/locale/en";
 import localeMap from "@/data/locale-mapping.json";

@@ -4,7 +4,6 @@ import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
 import { UserStatusRaw } from "@/modules/users/model/UserStatus";
-import { LanguageMemberRoleRaw } from "../model";
 import { inviteLanguageMember } from "./inviteLanguageMember";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
@@ -42,7 +41,6 @@ test("returns validation error if the request shape doesn't match the schema", a
       state: "error",
       validation: {
         code: ["Invalid"],
-        roles: ["Invalid"],
         email: ["Please enter a valid email."],
       },
     });
@@ -55,7 +53,6 @@ test("returns validation error if the request shape doesn't match the schema", a
       state: "error",
       validation: {
         code: ["Invalid"],
-        roles: ["Invalid"],
         email: ["Please enter a valid email."],
       },
     });
@@ -74,7 +71,6 @@ test("returns not found if not a platform admin", async () => {
   const formData = new FormData();
   formData.set("code", language.code);
   formData.set("email", "invite@example.com");
-  formData.set("roles[0]", LanguageMemberRoleRaw.Translator);
   const response = inviteLanguageMember({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 
@@ -89,7 +85,6 @@ test("returns not found if language does not exist", async () => {
   const formData = new FormData();
   formData.set("code", "garbage");
   formData.set("email", "invite@example.com");
-  formData.set("roles[0]", LanguageMemberRoleRaw.Translator);
   const response = inviteLanguageMember({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 });
@@ -101,12 +96,9 @@ test("adds existing user to the language", async () => {
   const language = scenario.languages.spanish;
   const user = await userFactory.build();
 
-  const role = LanguageMemberRoleRaw.Translator;
-
   const formData = new FormData();
   formData.set("code", language.code);
   formData.set("email", user.email);
-  formData.set("roles[0]", role);
   const response = inviteLanguageMember({ state: "idle" }, formData);
 
   await expect(response).toBeNextjsRedirect(
@@ -138,12 +130,10 @@ test("invites new user to the language", async () => {
   const language = scenario.languages.spanish;
 
   const email = "testinvite@example.com";
-  const role = LanguageMemberRoleRaw.Translator;
 
   const formData = new FormData();
   formData.set("code", language.code);
   formData.set("email", email);
-  formData.set("roles[0]", role);
   const response = inviteLanguageMember({ state: "idle" }, formData);
 
   await expect(response).toBeNextjsRedirect(

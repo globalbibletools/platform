@@ -2,7 +2,6 @@ import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect, vitest } from "vitest";
 import { approveAll } from "./approveAll";
-import { LanguageMemberRoleRaw } from "@/modules/languages/model";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
 import { glossFactory, phraseFactory } from "../test-utils/factories";

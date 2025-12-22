@@ -1,6 +1,5 @@
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
-import { LanguageMemberRoleRaw } from "../model";
 import { languageClient } from "./LanguageClient";
 import { createScenario } from "@/tests/scenarios";
 import { findLanguageMembersForUser } from "../test-utils/dbUtils";
