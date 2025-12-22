@@ -747,44 +747,8 @@ CREATE TABLE public.machine_gloss (
     word_id text NOT NULL,
     language_id uuid NOT NULL,
     gloss text,
-    id integer NOT NULL,
-    model_id integer NOT NULL,
-    updated_at timestamp without time zone,
-    updated_by uuid
+    id integer NOT NULL
 );
-
-
---
--- Name: machine_gloss_history; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.machine_gloss_history (
-    id integer NOT NULL,
-    machine_gloss_id integer NOT NULL,
-    gloss text NOT NULL,
-    updated_at timestamp without time zone,
-    updated_by uuid
-);
-
-
---
--- Name: machine_gloss_history_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.machine_gloss_history_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: machine_gloss_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.machine_gloss_history_id_seq OWNED BY public.machine_gloss_history.id;
 
 
 --
@@ -805,36 +769,6 @@ CREATE SEQUENCE public.machine_gloss_id_seq
 --
 
 ALTER SEQUENCE public.machine_gloss_id_seq OWNED BY public.machine_gloss.id;
-
-
---
--- Name: machine_gloss_model; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.machine_gloss_model (
-    id integer NOT NULL,
-    code text NOT NULL
-);
-
-
---
--- Name: machine_gloss_model_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.machine_gloss_model_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: machine_gloss_model_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.machine_gloss_model_id_seq OWNED BY public.machine_gloss_model.id;
 
 
 --
@@ -1095,20 +1029,6 @@ ALTER TABLE ONLY public.machine_gloss ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
--- Name: machine_gloss_history id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss_history ALTER COLUMN id SET DEFAULT nextval('public.machine_gloss_history_id_seq'::regclass);
-
-
---
--- Name: machine_gloss_model id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss_model ALTER COLUMN id SET DEFAULT nextval('public.machine_gloss_model_id_seq'::regclass);
-
-
---
 -- Name: phrase id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1265,35 +1185,11 @@ ALTER TABLE ONLY public.lemma_resource
 
 
 --
--- Name: machine_gloss_history machine_gloss_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss_history
-    ADD CONSTRAINT machine_gloss_history_pkey PRIMARY KEY (id);
-
-
---
--- Name: machine_gloss_model machine_gloss_model_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss_model
-    ADD CONSTRAINT machine_gloss_model_pkey PRIMARY KEY (id);
-
-
---
 -- Name: machine_gloss machine_gloss_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.machine_gloss
     ADD CONSTRAINT machine_gloss_pkey PRIMARY KEY (id);
-
-
---
--- Name: machine_gloss machine_gloss_word_id_language_id_model_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss
-    ADD CONSTRAINT machine_gloss_word_id_language_id_model_id_key UNIQUE (word_id, language_id, model_id);
 
 
 --
@@ -1739,43 +1635,11 @@ ALTER TABLE ONLY public.lemma_resource
 
 
 --
--- Name: machine_gloss_history machine_gloss_history_machine_gloss_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss_history
-    ADD CONSTRAINT machine_gloss_history_machine_gloss_id_fkey FOREIGN KEY (machine_gloss_id) REFERENCES public.machine_gloss(id);
-
-
---
--- Name: machine_gloss_history machine_gloss_history_updated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss_history
-    ADD CONSTRAINT machine_gloss_history_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id);
-
-
---
 -- Name: machine_gloss machine_gloss_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.machine_gloss
     ADD CONSTRAINT machine_gloss_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: machine_gloss machine_gloss_model_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss
-    ADD CONSTRAINT machine_gloss_model_id_fkey FOREIGN KEY (model_id) REFERENCES public.machine_gloss_model(id);
-
-
---
--- Name: machine_gloss machine_gloss_updated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss
-    ADD CONSTRAINT machine_gloss_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id);
 
 
 --

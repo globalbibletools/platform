@@ -12,11 +12,6 @@ import { Icon } from "@/components/Icon";
 import { incrementVerseId } from "@/verse-utils";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 
-interface MachineSuggestion {
-  model: string;
-  gloss: string;
-}
-
 interface Word {
   id: string;
   text: string;
@@ -26,7 +21,7 @@ interface Word {
   lemma: string;
   grammar: string;
   resource?: { name: string; entry: string };
-  machineSuggestions: MachineSuggestion[];
+  machineSuggestion?: string;
 }
 interface Phrase {
   id: number;

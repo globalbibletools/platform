@@ -22,7 +22,7 @@ export interface TranslateWordProps {
     text: string;
     referenceGloss?: string;
     suggestions: string[];
-    machineSuggestions: { model: string; gloss: string }[];
+    machineSuggestion?: string;
   };
   phrase: {
     id: number;
@@ -86,9 +86,7 @@ export default function TranslateWord({
   const dir = "ltr";
 
   const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
-  const googleTranslateSuggestion = word.machineSuggestions.find(
-    (sug) => sug.model === "google-translate",
-  )?.gloss;
+  const googleTranslateSuggestion = word.machineSuggestion;
   const hasMachineSuggestion =
     !isMultiWord &&
     !phrase.gloss?.text &&
