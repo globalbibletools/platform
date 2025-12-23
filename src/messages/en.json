@@ -73,18 +73,6 @@
     "speaker": "Speaker",
     "close": "Close"
   },
-  "AuthenticatedLayout": {
-    "app_name": "Global Bible Tools",
-    "links": {
-      "translate": "Translate",
-      "read": "Read",
-      "admin": "Admin",
-      "profile": "Profile",
-      "log_out": "Log Out",
-      "log_in": "Log In",
-      "help": "Help"
-    }
-  },
   "ConfirmModal": {
     "title": "Are you sure?",
     "no": "No",
@@ -245,6 +233,18 @@
     "next": "Next",
     "prev": "Back",
     "total": "of {total}"
+  },
+  "PrimaryNavigation": {
+    "app_name": "Global Bible Tools",
+    "links": {
+      "translate": "Translate",
+      "read": "Read",
+      "admin": "Admin",
+      "profile": "Profile",
+      "log_out": "Log Out",
+      "log_in": "Log In",
+      "help": "Help"
+    }
   },
   "ProfileView": {
     "form": {

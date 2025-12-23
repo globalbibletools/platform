@@ -1,15 +1,14 @@
 "use client";
 
 import { useRef } from "react";
-import Button from "./Button";
-import { Icon } from "./Icon";
+import Button from "@/components/Button";
+import { Icon } from "@/components/Icon";
 import languages from "@/languages.json" assert { type: "json" };
-import { useParams, useRouter, usePathname } from "next/navigation";
-import ComboboxInput from "./ComboboxInput";
+import { useParams, usePathname } from "next/navigation";
+import ComboboxInput from "@/components/ComboboxInput";
 
 export default function LanguageDialog() {
   const { locale } = useParams<{ locale: string }>();
-  const router = useRouter();
   const pathName = usePathname();
 
   const dialog = useRef<HTMLDialogElement>(null);

@@ -73,18 +73,6 @@
     "speaker": "المتحدث",
     "close": "إغلاق"
   },
-  "AuthenticatedLayout": {
-    "app_name": "أدوات الكتاب المقدس العالمية",
-    "links": {
-      "translate": "ترجمة",
-      "read": "قراءة",
-      "admin": "إدارة",
-      "profile": "الملف الشخصي",
-      "log_out": "تسجيل الخروج",
-      "log_in": "تسجيل الدخول",
-      "help": "مساعدة"
-    }
-  },
   "ConfirmModal": {
     "title": "هل أنت متأكد؟",
     "no": "لا",
@@ -242,6 +230,18 @@
     "next": "التالي",
     "prev": "العودة",
     "total": "من {total}"
+  },
+  "PrimaryNavigation": {
+    "app_name": "أدوات الكتاب المقدس العالمية",
+    "links": {
+      "translate": "ترجمة",
+      "read": "قراءة",
+      "admin": "إدارة",
+      "profile": "الملف الشخصي",
+      "log_out": "تسجيل الخروج",
+      "log_in": "تسجيل الدخول",
+      "help": "مساعدة"
+    }
   },
   "ProfileView": {
     "form": {

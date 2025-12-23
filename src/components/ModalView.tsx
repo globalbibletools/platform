@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import LanguageDialog from "./LanguageDialog";
+import LanguageDialog from "../shared/ui/LanguageDialog";
 
 export interface ModalViewProps {
   className?: string;
