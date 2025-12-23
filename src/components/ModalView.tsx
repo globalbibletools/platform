@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import LanguageDialog from "./LanguageDialog";
 
