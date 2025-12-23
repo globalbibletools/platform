@@ -7,6 +7,7 @@
     --font-sans: var(--font-noto-sans);
     --heading-height: 4rem;
     --read-nav-h: 4rem;
+    --translate-nav-h: 4rem;
   }
 
   .locale-en {
