@@ -63,8 +63,8 @@ export default async function DashboardView() {
   const locale = await getLocale();
 
   return (
-    <div className="absolute w-full h-[calc(100%-48px)] flex items-stretch overflow-auto">
-      <div className="px-4 lg:px-8 w-full">
+    <div className="flex-grow flex items-stretch">
+      <div className="px-4 pb-4 lg:px-8 w-full">
         <div className="flex items-center flex-col sm:flex-row mb-6 mt-8">
           <h1 className="text-xl md:text-2xl font-bold flex-grow mb-2 sm:mb-0">
             Welcome back, {session.user.name}!
