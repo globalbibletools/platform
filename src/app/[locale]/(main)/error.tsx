@@ -18,7 +18,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="absolute w-full h-full flex items-center justify-center">
+    <div className="flex-grow flex items-center justify-center">
       <div className="max-w-[400px] flex-grow mx-4 p-8 rounded-lg border border-gray-300 shadow">
         <h2 className="font-bold text-xl mb-4">{t("title")}</h2>
         <p className="mb-6">{t("help")}</p>

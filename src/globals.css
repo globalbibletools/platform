@@ -5,6 +5,7 @@
 @layer base {
   :root {
     --font-sans: var(--font-noto-sans);
+    --heading-height: 4rem;
   }
 
   .locale-en {

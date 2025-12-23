@@ -8,9 +8,9 @@ export default async function AuthenticatedLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="relative min-h-screen flex flex-col overflow-x-hidden">
+    <div className="min-h-screen flex flex-col">
       <PrimaryNavigation />
-      <div className="flex-grow relative flex flex-col w-full">{children}</div>
+      {children}
       <Footer />
     </div>
   );
