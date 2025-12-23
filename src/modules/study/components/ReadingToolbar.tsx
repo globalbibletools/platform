@@ -84,7 +84,13 @@ export default function ReadingToolbar({
 
   return (
     <>
-      <div className="flex gap-4 items-center justify-between sm:justify-center shadow-md dark:shadow-none dark:border-b dark:border-gray-700 px-4 lg:px-8 py-4">
+      <div
+        className="
+          sticky top-[--heading-height] h-[--read-nav-h] z-10 flex gap-4 items-center justify-between sm:justify-center
+          px-4
+          shadow-md dark:shadow-none dark:border-b dark:border-gray-700 bg-white dark:bg-gray-900
+        "
+      >
         <form action={changeChapter} className="relative w-56 flex-shrink">
           <input type="hidden" value={code} name="language" />
           <TextInput

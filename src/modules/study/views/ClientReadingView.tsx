@@ -78,11 +78,11 @@ export default function ReadingView({
       <div className="flex flex-col flex-grow lg:justify-center w-full min-h-0 lg:flex-row">
         <div
           className={`
-                    max-h-full min-h-0 overflow-auto pb-24 px-4 lg:px-8
-                    font-mixed max-w-[960px] leading-loose
-                    ${textSizeMap[textSize]}
-                    ${isOT ? "text-right" : "text-left"}
-                `}
+              max-h-full min-h-0 overflow-auto pb-24 px-4 lg:px-8
+              font-mixed max-w-[960px] leading-loose
+              ${textSizeMap[textSize]}
+              ${isOT ? "text-right" : "text-left"}
+          `}
           dir={isOT ? "rtl" : "ltr"}
         >
           {verses.flatMap((verse) => {
@@ -145,7 +145,14 @@ export default function ReadingView({
             ref={sidebarRef}
             language={language}
             word={sidebarWord}
-            className="h-[320px] lg:h-auto lg:w-1/3 lg:min-w-[320px] lg:max-w-[480px] mt-8 lg:mt-2 mb-10 mx-6 lg:ms-0 lg:me-8"
+            className="
+              sticky z-10
+              h-[320px] bottom-10 mb-10
+              lg:h-[calc(100dvh-var(--heading-height)-var(--read-nav-h)-2rem)] lg:top-[calc(var(--heading-height)+var(--read-nav-h)+1rem)]
+
+              lg:w-1/3 lg:min-w-[320px] lg:max-w-[480px]
+              lg:mb-0 mx-6 lg:mx-0 lg:me-8
+            "
             onClose={() => setShowSidebar(false)}
           />
         )}
