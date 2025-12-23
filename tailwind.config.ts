@@ -77,6 +77,7 @@ const config: Config = {
     "./src/modules/*/views/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/modules/*/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/modules/*/react/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/shared/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/languages.json",
   ],
   theme: {
