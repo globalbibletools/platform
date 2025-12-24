@@ -1,0 +1,57 @@
+services:
+  server:
+    environment:
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_ENDPOINT_URL_S3: http://localstack:4566
+      AWS_S3_FORCE_PATH_STYLE: "true"
+    depends_on:
+      localstack:
+        condition: service_healthy
+
+  job_worker:
+    environment:
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_ENDPOINT_URL_S3: http://localstack:4566
+      AWS_S3_FORCE_PATH_STYLE: "true"
+      EXPORT_PUBLIC_S3_ENDPOINT: http://localhost:4566
+    depends_on:
+      localstack:
+        condition: service_healthy
+
+  localstack:
+    image: localstack/localstack:latest
+    environment:
+      - SERVICES=s3
+      - DEFAULT_REGION=us-east-1
+      - LS_LOG=warn
+    ports:
+      - 4566:4566
+    healthcheck:
+      test: ["CMD", "bash", "-c", "awslocal s3 ls >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  localstack-init:
+    image: amazon/aws-cli:2.32.11
+    depends_on:
+      localstack:
+        condition: service_healthy
+    environment:
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        until aws --endpoint-url http://localstack:4566 s3api list-buckets >/dev/null 2>&1; do
+          echo "Waiting for localstack S3...";
+          sleep 2;
+        done;
+        aws --endpoint-url http://localstack:4566 s3 mb s3://gbt-exports-local >/dev/null 2>&1 || true;
+        echo "Localstack S3 bucket ready";
+    restart: "no"

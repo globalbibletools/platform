@@ -6,14 +6,21 @@ COPY package*.json .
 COPY patches/ ./patches/
 RUN npm ci
 COPY . .
-RUN npm run build:job-worker
+RUN npm run build:job-worker && mkdir -p /app/dist/fonts && cp src/fonts/*.ttf /app/dist/fonts/
  
 FROM public.ecr.aws/lambda/nodejs:18 AS runner
 ENV NODE_ENV=production
+ENV PDFKIT_DATA_DIR=/var/task/data
 COPY --from=build /app/dist/job-worker.js ${LAMBDA_TASK_ROOT}
+COPY --from=build /app/node_modules/pdfkit/js/data /var/task/data
+COPY --from=build /app/dist/fonts /var/task/fonts
+COPY --from=build /app/src/fonts /var/task/fonts
 CMD ["job-worker.handler"]
 
 FROM public.ecr.aws/lambda/nodejs:18 AS dev
+ENV PDFKIT_DATA_DIR=/var/task/data
 COPY --from=build /app/dist/job-worker.js ${LAMBDA_TASK_ROOT}
+COPY --from=build /app/node_modules/pdfkit/js/data /var/task/data
+COPY --from=build /app/dist/fonts /var/task/fonts
+COPY --from=build /app/src/fonts /var/task/fonts
 CMD ["job-worker.handler"]
-

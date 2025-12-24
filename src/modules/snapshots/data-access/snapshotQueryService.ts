@@ -106,7 +106,7 @@ export const snapshotQueryService = {
         where
           type_id IN (
             select id from job_type
-            where name IN ($2, $3)
+            where name IN ($2, $3, $4)
           )
           and payload->>'languageId' = $1
           and status IN ('pending', 'in-progress')
@@ -115,6 +115,7 @@ export const snapshotQueryService = {
         languageId,
         SNAPSHOT_JOB_TYPES.CREATE_SNAPSHOT,
         SNAPSHOT_JOB_TYPES.RESTORE_SNAPSHOT,
+        SNAPSHOT_JOB_TYPES.CREATE_SNAPSHOT_INTERLINEAR_PDF,
       ],
     );
     return result.rows[0];

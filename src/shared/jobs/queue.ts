@@ -50,11 +50,21 @@ export class SQSQueue implements Queue {
 }
 
 export class LocalQueue implements Queue {
-  constructor(private readonly functionUrl: string) {}
+  constructor(private readonly functionUrl?: string) {}
 
   async add(job: QueuedJob<any>) {
-    // Queues are fire and forget so we don't await it's return here
-    fetch(this.functionUrl, {
+    const targetUrl =
+      this.functionUrl && this.functionUrl.trim().length > 0 ?
+        this.functionUrl
+      : "http://localhost:8080/2015-03-31/functions/function/invocations";
+
+    if (!targetUrl) {
+      console.error("Failed to execute job: JOB_FUNCTION_URL is not set");
+      return;
+    }
+
+    // Queues are fire and forget so we don't await its return here
+    fetch(targetUrl, {
       method: "post",
       body: JSON.stringify({ Records: [{ body: JSON.stringify(job) }] }),
     }).catch((error) => {
@@ -77,4 +87,4 @@ const sqsCredentials =
 
 export default process.env.NODE_ENV === "production" ?
   new SQSQueue(process.env.JOB_QUEUE_URL ?? "", sqsCredentials)
-: new LocalQueue(process.env.JOB_FUNCTION_URL ?? "");
+: new LocalQueue(process.env.JOB_FUNCTION_URL);

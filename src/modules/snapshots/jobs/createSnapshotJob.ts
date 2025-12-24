@@ -6,6 +6,8 @@ import { Snapshot } from "../model";
 import { ulid } from "@/shared/ulid";
 import { snapshotRepository } from "../data-access/SnapshotRepository";
 import { snapshotObjectRepository } from "../data-access/snapshotObjectRepository";
+import { getStorageEnvironment } from "@/shared/storageEnvironment";
+import { enqueueJob } from "@/shared/jobs/enqueueJob";
 
 export type CreateSnapshotJob = Job<{
   languageId: string;
@@ -29,7 +31,7 @@ export async function createSnapshotJob(job: CreateSnapshotJob) {
     );
   }
 
-  const language = languageQueryService.findById(job.payload.languageId);
+  const language = await languageQueryService.findById(job.payload.languageId);
   if (!language) {
     throw new Error(`Language ${job.payload.languageId} not found`);
   }
@@ -41,10 +43,15 @@ export async function createSnapshotJob(job: CreateSnapshotJob) {
   };
 
   await snapshotObjectRepository.upload({
-    environment: process.env.NODE_ENV === "production" ? "prod" : "local",
+    environment: getStorageEnvironment(),
     snapshot,
   });
   await snapshotRepository.create(snapshot);
+  await enqueueJob(SNAPSHOT_JOB_TYPES.CREATE_SNAPSHOT_INTERLINEAR_PDF, {
+    languageId: snapshot.languageId,
+    languageCode: language.code,
+    snapshotId: snapshot.id,
+  });
 
   jobLogger.info(`Created snapshot ${snapshot.id}`);
 }

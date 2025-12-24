@@ -1,13 +1,15 @@
 import { Upload } from "@aws-sdk/lib-storage";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { Readable, Transform, TransformCallback } from "stream";
 import { Snapshot, SnapshotObjectPlugin } from "../model";
 import { createLogger, logger } from "@/logging";
 import { languageSnapshotObjectPlugins } from "@/modules/languages/data-access/snapshotObjectPlugins";
 import { translationSnapshotObjectPlugins } from "@/modules/translation/data-access/snapshotObjectPlugins";
 import { reportingSnapshotObjectPlugins } from "@/modules/reporting/data-access/snapshotObjectPlugins";
+import type { StorageEnvironment } from "@/shared/storageEnvironment";
+import { getS3Client, s3BodyToReadable } from "@/shared/s3";
+import { snapshotBucketName } from "./snapshotBucket";
 
-const SNAPSHOT_BUCKET_PREFIX = "gbt-snapshots";
 const SNAPSHOT_OBJECT_PLUGINS: SnapshotObjectPlugin[] = [
   ...languageSnapshotObjectPlugins,
   ...translationSnapshotObjectPlugins,
@@ -19,7 +21,7 @@ export const snapshotObjectRepository = {
     environment,
     snapshot,
   }: {
-    environment: "prod" | "local";
+    environment: StorageEnvironment;
     snapshot: Snapshot;
   }): Promise<void> {
     const logger = createLogger({
@@ -27,6 +29,7 @@ export const snapshotObjectRepository = {
       languageId: snapshot.languageId,
       snapshotId: snapshot.id,
     });
+    const bucket = snapshotBucketName(environment);
 
     for (const plugin of SNAPSHOT_OBJECT_PLUGINS) {
       if (!plugin.read) {
@@ -40,7 +43,7 @@ export const snapshotObjectRepository = {
 
       await uploadJson({
         key: `${snapshot.languageId}/${snapshot.id}/${plugin.resourceName}.jsonl`,
-        bucket: `${SNAPSHOT_BUCKET_PREFIX}-${environment}`,
+        bucket,
         stream: objectStream.pipe(new SerializeJsonLTransform()),
       });
 
@@ -53,7 +56,7 @@ export const snapshotObjectRepository = {
     environment,
     snapshot,
   }: {
-    environment: "prod" | "local";
+    environment: StorageEnvironment;
     snapshot: Snapshot;
   }): Promise<void> {
     const logger = createLogger({
@@ -61,6 +64,7 @@ export const snapshotObjectRepository = {
       snapshotId: snapshot.id,
       languageId: snapshot.languageId,
     });
+    const bucket = snapshotBucketName(environment);
 
     for (let i = SNAPSHOT_OBJECT_PLUGINS.length - 1; i >= 0; i--) {
       const plugin = SNAPSHOT_OBJECT_PLUGINS[i];
@@ -69,7 +73,7 @@ export const snapshotObjectRepository = {
 
     for (const plugin of SNAPSHOT_OBJECT_PLUGINS) {
       const maybeStream = await downloadJson({
-        bucket: `${SNAPSHOT_BUCKET_PREFIX}-${environment}`,
+        bucket,
         key: `${snapshot.languageId}/${snapshot.id}/${plugin.resourceName}.jsonl`,
       });
 
@@ -147,7 +151,7 @@ export class DeserializeJsonLTransform extends Transform {
   }
 }
 
-const s3Client = new S3Client();
+const s3Client = getS3Client();
 
 async function downloadJson({
   key,
@@ -170,13 +174,13 @@ async function downloadJson({
     }
     throw error;
   }
-  const stream = response.Body;
+  const body = response.Body;
+  if (!body) return undefined;
 
-  // Typescript doesn't know that the response type is always a stream when used in nodejs.
-  if (!(stream instanceof Readable)) {
-    throw new Error("Expected Body to be a Readable stream in Node.js");
+  const stream = await s3BodyToReadable(body);
+  if (!stream) {
+    throw new Error("Unsupported S3 Body type");
   }
-
   return stream;
 }
 

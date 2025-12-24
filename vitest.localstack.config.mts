@@ -4,12 +4,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
-    include: ["**/*.{unit,test}.ts?(x)"],
-    exclude: [
-      "**/node_modules/**",
-      "**/dist/**",
-      "**/*.localstack.test.ts?(x)",
-    ],
+    include: ["**/*.localstack.test.ts?(x)"],
     globalSetup: ["./tests/vitest/dbSetup.ts"],
     setupFiles: ["./tests/vitest/testSetup.ts"],
     mockReset: true,
