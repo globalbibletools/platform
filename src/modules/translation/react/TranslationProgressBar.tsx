@@ -5,7 +5,11 @@ import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 
-export default function TranslationProgressBar() {
+export default function TranslationProgressBar({
+  className = "",
+}: {
+  className?: string;
+}) {
   const { locale, verseId, code } = useParams<{
     locale: string;
     verseId: string;
@@ -66,7 +70,7 @@ export default function TranslationProgressBar() {
   }, [textElementWidth]);
 
   return (
-    <div className="relative h-2 w-full">
+    <div className={`h-2 ${className}`}>
       <div
         className={`absolute group w-full h-2 hover:h-6 top-0 start-0 z-[1] ${isLoading ? "bg-gray-100" : "bg-brown-100"}`}
       >

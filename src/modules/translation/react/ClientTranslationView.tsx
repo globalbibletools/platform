@@ -182,7 +182,14 @@ export default function TranslateView({
           language={language}
           word={sidebarWord}
           phrase={sidebarPhrase!}
-          className="h-[320px] lg:h-auto lg:w-1/3 lg:min-w-[320px] lg:max-w-[480px] mt-8 mb-10 mx-6 lg:ms-0 lg:me-8"
+          className="
+            sticky z-10
+            h-[320px] bottom-10 mb-10
+            lg:h-[calc(100dvh-var(--heading-height)-var(--translate-nav-h)-2rem)] lg:top-[calc(var(--heading-height)+var(--translate-nav-h)+1rem)]
+
+            lg:w-1/3 lg:min-w-[320px] lg:max-w-[480px]
+            lg:mb-0 mx-6 lg:mx-0 lg:me-8
+          "
           onClose={() => setShowSidebar(false)}
         />
       )}

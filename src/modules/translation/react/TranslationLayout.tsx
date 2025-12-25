@@ -27,22 +27,20 @@ export default async function InterlinearLayout({ children, params }: Props) {
   ]);
 
   return (
-    <div className={`absolute w-full h-full flex flex-col flex-grow`}>
-      <TranslationClientStateProvider>
-        <NextIntlClientProvider
-          messages={{
-            TranslationToolbar: messages.TranslationToolbar,
-          }}
-        >
-          <TranslationToolbar
-            languages={languages}
-            currentLanguage={currentLanguage}
-            userRoles={session.user.roles}
-          />
-        </NextIntlClientProvider>
-        {children}
-      </TranslationClientStateProvider>
-    </div>
+    <TranslationClientStateProvider>
+      <NextIntlClientProvider
+        messages={{
+          TranslationToolbar: messages.TranslationToolbar,
+        }}
+      >
+        <TranslationToolbar
+          languages={languages}
+          currentLanguage={currentLanguage}
+          userRoles={session.user.roles}
+        />
+      </NextIntlClientProvider>
+      {children}
+    </TranslationClientStateProvider>
   );
 }
 
