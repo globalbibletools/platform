@@ -1,7 +1,14 @@
 "use client";
 
 import { isOldTestament } from "@/verse-utils";
-import { Fragment, MouseEvent, useEffect, useRef, useState } from "react";
+import {
+  Fragment,
+  MouseEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useFloating, autoUpdate, shift } from "@floating-ui/react-dom";
 import { createPortal } from "react-dom";
 import ReadingSidebar, {
@@ -37,6 +44,16 @@ export interface ReadingViewProps {
   verses: Verse[];
 }
 
+type SelectedElement =
+  | {
+      type: "word";
+      element: VerseWord;
+    }
+  | {
+      type: "verse";
+      element: Verse;
+    };
+
 const textSizeMap: Record<number, string> = {
   1: "text-xs",
   2: "text-sm",
@@ -64,10 +81,8 @@ export default function ReadingView({
   const linkedWords = popover.selectedWord?.word.linkedWords ?? [];
 
   const [showSidebar, setShowSidebar] = useState(false);
-  const [sidebarWord, setSidebarWord] = useState(verses[0].words[0]);
-  useEffect(() => {
-    setSidebarWord(verses[0].words[0]);
-  }, [verses]);
+  const [selectedElement, setSelectedElement] =
+    useState<SelectedElement | null>(null);
 
   const sidebarRef = useRef<ReadingSidebarRef>(null);
 
@@ -106,7 +121,7 @@ export default function ReadingView({
                     setShowSidebar(true);
                   }}
                   onClick={(e) => {
-                    setSidebarWord(word);
+                    setSelectedElement({ type: "word", element: word });
                     popover.onWordClick(e, word);
                   }}
                 >
@@ -140,11 +155,11 @@ export default function ReadingView({
             );
           })}
         </div>
-        {showSidebar && (
+        {showSidebar && selectedElement?.type === "word" && (
           <ReadingSidebar
             ref={sidebarRef}
             language={language}
-            word={sidebarWord}
+            word={selectedElement.element}
             className="
               sticky z-10
               h-[320px] bottom-10 mb-10
