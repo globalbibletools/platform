@@ -138,6 +138,9 @@ export default function ReadingView({
                 }
                 // Allows audio player to start playing at this verse when clicked
                 data-verse-number={verse.number}
+                onDoubleClick={() => {
+                  setSelectedElement({ type: "verse", element: verse });
+                }}
               >
                 {verse.number}&nbsp;
               </span>,
@@ -171,6 +174,9 @@ export default function ReadingView({
             onClose={() => setShowSidebar(false)}
           />
         )}
+        {showSidebar &&
+          selectedElement?.type === "verse" &&
+          selectedElement.element.number}
       </div>
       {popover.selectedWord &&
         createPortal(
