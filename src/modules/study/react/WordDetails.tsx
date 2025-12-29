@@ -4,13 +4,22 @@ import RichText from "@/components/RichText";
 import { Tab } from "@headlessui/react";
 import DOMPurify from "isomorphic-dompurify";
 import { useTranslations } from "next-intl";
-import { forwardRef, Fragment, memo, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  Fragment,
+  memo,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { parseReferenceRange } from "@/verse-utils";
 import { VersesPreview } from "@/components/VersesPreview";
 import { isRichTextEmpty } from "@/components/RichTextInput";
 import useSWR from "swr";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import ComboboxInput from "@/components/ComboboxInput";
 
 export interface Word {
   id: string;
@@ -50,6 +59,27 @@ const WordDetails = forwardRef<WordDetailsRef, WordDetailsProps>(
         const response = await fetch(`/api/lemma-resources/${lemmaId}`);
         return (await response.json()) as Promise<LemmaResource | undefined>;
       },
+    );
+
+    const lexiconEntries = [
+      {
+        name: "Monolingual",
+        entry: "ἀνήρ, ἀπόστολος Ἰησοῦ Χριστοῦ, γράφων τὴν ἐπιστολήν.",
+      },
+    ];
+    if (data) {
+      lexiconEntries.push(data);
+    }
+
+    const [selectedLexiconName, setSelectedLexicon] = useState<string>();
+    useEffect(() => {
+      if (lexiconEntries.every((entry) => selectedLexiconName !== entry.name)) {
+        setSelectedLexicon(lexiconEntries[0]?.name);
+      }
+    }, [lexiconEntries, selectedLexiconName]);
+
+    const selectedLexicon = lexiconEntries.find(
+      (entry) => entry.name === selectedLexiconName,
     );
 
     const lexiconEntryRef = useRef<HTMLDivElement>(null);
@@ -109,9 +139,15 @@ const WordDetails = forwardRef<WordDetailsRef, WordDetailsProps>(
                   {isLoading && <LoadingSpinner />}
                   {!isLoading && data && (
                     <>
-                      <div className="text-lg mb-3 font-bold me-2">
-                        {data.name}
-                      </div>
+                      <ComboboxInput
+                        className="mb-3 me-2"
+                        value={selectedLexiconName}
+                        items={lexiconEntries.map((entry) => ({
+                          value: entry.name,
+                          label: entry.name,
+                        }))}
+                        onChange={(item) => setSelectedLexicon(item)}
+                      />
                       <div
                         className="leading-relaxed text-sm font-mixed"
                         ref={lexiconEntryRef}
@@ -125,7 +161,7 @@ const WordDetails = forwardRef<WordDetailsRef, WordDetailsProps>(
                           }
                         }}
                       >
-                        <LexiconText content={data.entry} />
+                        <LexiconText content={selectedLexicon?.entry ?? ""} />
                       </div>
                       {previewElement !== null &&
                         createPortal(
