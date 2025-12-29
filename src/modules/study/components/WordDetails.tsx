@@ -1,6 +1,5 @@
 "use client";
 
-import { Icon } from "@/components/Icon";
 import RichText from "@/components/RichText";
 import { Tab } from "@headlessui/react";
 import DOMPurify from "isomorphic-dompurify";
@@ -25,7 +24,6 @@ export interface WordDetailsProps {
   className?: string;
   word: Word;
   language: { font: string; textDirection: string; code: string };
-  onClose?(): void;
 }
 
 export interface LemmaResource {
@@ -39,7 +37,7 @@ export interface WordDetailsRef {
 }
 
 const WordDetails = forwardRef<WordDetailsRef, WordDetailsProps>(
-  ({ className = "", language, word, onClose }) => {
+  ({ language, word }) => {
     const t = useTranslations("WordDetails");
 
     const [tabIndex, setTabIndex] = useState(0);
@@ -73,21 +71,7 @@ const WordDetails = forwardRef<WordDetailsRef, WordDetailsProps>(
     };
 
     return (
-      <div
-        className={`
-          relative flex flex-col gap-4 flex-shrink-0 shadow rounded-2xl bg-brown-100
-          dark:bg-gray-800 dark:shadow-none
-          ${className}
-      `}
-      >
-        <button
-          onClick={onClose}
-          type="button"
-          className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline outline-2 outline-green-300"
-        >
-          <Icon icon="xmark" />
-          <span className="sr-only">{t("close")}</span>
-        </button>
+      <div className="flex flex-col gap-4">
         <div className="flex items-start p-4 pb-0">
           <div>
             <div className="flex gap-4 items-baseline">
@@ -100,7 +84,7 @@ const WordDetails = forwardRef<WordDetailsRef, WordDetailsProps>(
 
         <div className="grow flex flex-col min-h-0">
           <Tab.Group selectedIndex={tabIndex} onChange={setTabIndex}>
-            <Tab.List className="flex flex-row">
+            <Tab.List className="flex flex-row items-end">
               <div className="border-b border-blue-800 dark:border-green-400 h-full w-2"></div>
               {[t("tabs.lexicon"), ...(hasNotes ? [t("tabs.notes")] : [])].map(
                 (title) => (

@@ -13,6 +13,8 @@ import { useFloating, autoUpdate, shift } from "@floating-ui/react-dom";
 import { createPortal } from "react-dom";
 import WordDetails, { WordDetailsRef } from "../components/WordDetails";
 import { useReadingContext } from "../components/ReadingToolbar";
+import { Icon } from "@/components/Icon";
+import { useTranslations } from "next-intl";
 
 interface VerseWord {
   id: string;
@@ -73,6 +75,7 @@ export default function ReadingView({
   language,
   verses,
 }: ReadingViewProps) {
+  const t = useTranslations("ReadingView");
   const isOT = isOldTestament(chapterId + "001");
 
   const popover = usePopover();
@@ -156,25 +159,35 @@ export default function ReadingView({
             );
           })}
         </div>
-        {showSidebar && selectedElement?.type === "word" && (
-          <WordDetails
-            ref={sidebarRef}
-            language={language}
-            word={selectedElement.element}
+        {showSidebar && selectedElement && (
+          <div
             className="
+              flex-shrink-0 shadow rounded-2xl bg-brown-100
+              dark:bg-gray-800 dark:shadow-none
               sticky z-10
               h-[320px] bottom-10 mb-10
               lg:h-[calc(100dvh-var(--heading-height)-var(--read-nav-h)-2rem)] lg:top-[calc(var(--heading-height)+var(--read-nav-h)+1rem)]
-
               lg:w-1/3 lg:min-w-[320px] lg:max-w-[480px]
               lg:mb-0 mx-6 lg:mx-0 lg:me-8
             "
-            onClose={() => setShowSidebar(false)}
-          />
+          >
+            <button
+              onClick={() => setShowSidebar(false)}
+              type="button"
+              className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline outline-2 outline-green-300"
+            >
+              <Icon icon="xmark" />
+              <span className="sr-only">{t("close_sidebar")}</span>
+            </button>
+            {selectedElement.type === "word" ?
+              <WordDetails
+                ref={sidebarRef}
+                language={language}
+                word={selectedElement.element}
+              />
+            : selectedElement.element.number}
+          </div>
         )}
-        {showSidebar &&
-          selectedElement?.type === "verse" &&
-          selectedElement.element.number}
       </div>
       {popover.selectedWord &&
         createPortal(

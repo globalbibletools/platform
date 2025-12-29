@@ -265,12 +265,14 @@
     "title": "Profile",
     "update_profile": "Update Profile"
   },
+  "ReadingView": {
+    "close_sidebar": "Close"
+  },
   "WordDetails": {
     "tabs": {
       "lexicon": "Lexicon",
       "notes": "Notes"
     },
-    "close": "Close",
     "notes": {
       "footnotes": "Footnotes"
     },

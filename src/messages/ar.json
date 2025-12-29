@@ -262,12 +262,14 @@
     "title": "الملف الشخصي",
     "update_profile": "تحديث الملف الشخصي"
   },
+  "ReadingView": {
+    "close_sidebar": "إغلاق"
+  },
   "WordDetails": {
     "tabs": {
       "lexicon": "القاموس",
       "notes": "الملاحظات"
     },
-    "close": "إغلاق",
     "notes": {
       "footnotes": "الحواشي"
     },
