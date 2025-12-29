@@ -22,7 +22,7 @@ export default function VerseDetails({
   const chapterNumber = parseInt(chapterId.slice(2, 5));
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="absolute w-full h-full flex flex-col gap-4">
       <div className="flex items-start p-4 pb-0">
         {t("reference", { bookId, chapterNumber, verseNumber: verse.number })}
       </div>

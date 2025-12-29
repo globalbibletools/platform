@@ -88,7 +88,7 @@ export default function ReadingView({
       <div className="flex flex-col flex-grow lg:justify-center w-full min-h-0 lg:flex-row">
         <div
           className={`
-              max-h-full min-h-0 overflow-auto pb-24 px-4 lg:px-8
+              max-h-full min-h-0 overflow-auto pt-3 pb-24 px-4 lg:px-8
               font-mixed max-w-[960px] leading-loose
               ${textSizeMap[textSize]}
               ${isOT ? "text-right" : "text-left"}
@@ -112,7 +112,7 @@ export default function ReadingView({
                       : ""
                     }
                   `}
-                  onDoubleClick={(e) => {
+                  onDoubleClick={() => {
                     setShowSidebar(true);
                   }}
                   onClick={(e) => {

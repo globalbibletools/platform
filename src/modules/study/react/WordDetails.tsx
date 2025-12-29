@@ -71,7 +71,7 @@ const WordDetails = forwardRef<WordDetailsRef, WordDetailsProps>(
     };
 
     return (
-      <div className="flex flex-col gap-4">
+      <div className="absolute w-full h-full flex flex-col gap-4">
         <div className="flex items-start p-4 pb-0">
           <div>
             <div className="flex gap-4 items-baseline">
