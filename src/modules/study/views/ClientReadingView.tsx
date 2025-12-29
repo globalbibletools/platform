@@ -11,9 +11,7 @@ import {
 } from "react";
 import { useFloating, autoUpdate, shift } from "@floating-ui/react-dom";
 import { createPortal } from "react-dom";
-import ReadingSidebar, {
-  ReadingSidebarRef,
-} from "../components/ReadingSidebar";
+import WordDetails, { WordDetailsRef } from "../components/WordDetails";
 import { useReadingContext } from "../components/ReadingToolbar";
 
 interface VerseWord {
@@ -84,7 +82,7 @@ export default function ReadingView({
   const [selectedElement, setSelectedElement] =
     useState<SelectedElement | null>(null);
 
-  const sidebarRef = useRef<ReadingSidebarRef>(null);
+  const sidebarRef = useRef<WordDetailsRef>(null);
 
   const { textSize, audioVerse } = useReadingContext();
 
@@ -159,7 +157,7 @@ export default function ReadingView({
           })}
         </div>
         {showSidebar && selectedElement?.type === "word" && (
-          <ReadingSidebar
+          <WordDetails
             ref={sidebarRef}
             language={language}
             word={selectedElement.element}

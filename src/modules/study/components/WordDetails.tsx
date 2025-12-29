@@ -21,7 +21,7 @@ export interface Word {
   footnote?: string;
 }
 
-export interface ReadingSidebarProps {
+export interface WordDetailsProps {
   className?: string;
   word: Word;
   language: { font: string; textDirection: string; code: string };
@@ -34,13 +34,13 @@ export interface LemmaResource {
   entry: string;
 }
 
-export interface ReadingSidebarRef {
+export interface WordDetailsRef {
   openNotes(): void;
 }
 
-const ReadingSidebar = forwardRef<ReadingSidebarRef, ReadingSidebarProps>(
+const WordDetails = forwardRef<WordDetailsRef, WordDetailsProps>(
   ({ className = "", language, word, onClose }) => {
-    const t = useTranslations("ReadingSidebar");
+    const t = useTranslations("WordDetails");
 
     const [tabIndex, setTabIndex] = useState(0);
 
@@ -170,8 +170,8 @@ const ReadingSidebar = forwardRef<ReadingSidebarRef, ReadingSidebarProps>(
     );
   },
 );
-ReadingSidebar.displayName = "ReadingSidebar";
-export default ReadingSidebar;
+WordDetails.displayName = "WordDetails";
+export default WordDetails;
 
 const LexiconText = memo(function LexiconText({
   content,
