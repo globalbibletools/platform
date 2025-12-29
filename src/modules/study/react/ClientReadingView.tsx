@@ -1,21 +1,14 @@
 "use client";
 
 import { isOldTestament } from "@/verse-utils";
-import {
-  Fragment,
-  MouseEvent,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Fragment, MouseEvent, useEffect, useRef, useState } from "react";
 import { useFloating, autoUpdate, shift } from "@floating-ui/react-dom";
 import { createPortal } from "react-dom";
-import WordDetails, { WordDetailsRef } from "../components/WordDetails";
-import { useReadingContext } from "../components/ReadingToolbar";
+import WordDetails, { WordDetailsRef } from "./WordDetails";
+import { useReadingContext } from "./ReadingToolbar";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "next-intl";
-import VerseDetails from "../components/VerseDetails";
+import VerseDetails from "./VerseDetails";
 
 interface VerseWord {
   id: string;

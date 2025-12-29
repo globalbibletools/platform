@@ -25,7 +25,7 @@ import TranslationProgressBar from "./TranslationProgressBar";
 import { useSWRConfig } from "swr";
 import { useFlash } from "@/flash";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
-import AudioDialog from "@/modules/study/components/AudioDialog";
+import AudioDialog from "@/modules/study/react/AudioDialog";
 import { useElementDimensions } from "@/utils/measure-element";
 
 export interface TranslationToolbarProps {
