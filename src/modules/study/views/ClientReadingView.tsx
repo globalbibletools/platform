@@ -15,6 +15,7 @@ import WordDetails, { WordDetailsRef } from "../components/WordDetails";
 import { useReadingContext } from "../components/ReadingToolbar";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "next-intl";
+import VerseDetails from "../components/VerseDetails";
 
 interface VerseWord {
   id: string;
@@ -185,7 +186,11 @@ export default function ReadingView({
                 language={language}
                 word={selectedElement.element}
               />
-            : selectedElement.element.number}
+            : <VerseDetails
+                verse={selectedElement.element}
+                chapterId={chapterId}
+              />
+            }
           </div>
         )}
       </div>
