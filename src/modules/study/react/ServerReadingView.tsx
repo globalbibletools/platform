@@ -26,7 +26,9 @@ export default async function serverReadingView({ params }: ReadingPageProps) {
   return (
     <NextIntlClientProvider
       messages={{
-        ReadingSidebar: messages.ReadingSidebar,
+        ReadingView: messages.ReadingView,
+        WordDetails: messages.WordDetails,
+        VerseDetails: messages.VerseDetails,
         VersesPreview: messages.VersesPreview,
       }}
     >

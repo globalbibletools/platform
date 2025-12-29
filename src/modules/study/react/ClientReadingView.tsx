@@ -4,10 +4,11 @@ import { isOldTestament } from "@/verse-utils";
 import { Fragment, MouseEvent, useEffect, useRef, useState } from "react";
 import { useFloating, autoUpdate, shift } from "@floating-ui/react-dom";
 import { createPortal } from "react-dom";
-import ReadingSidebar, {
-  ReadingSidebarRef,
-} from "../components/ReadingSidebar";
-import { useReadingContext } from "../components/ReadingToolbar";
+import WordDetails, { WordDetailsRef } from "./WordDetails";
+import { useReadingContext } from "./ReadingToolbar";
+import { Icon } from "@/components/Icon";
+import { useTranslations } from "next-intl";
+import VerseDetails from "./VerseDetails";
 
 interface VerseWord {
   id: string;
@@ -37,6 +38,16 @@ export interface ReadingViewProps {
   verses: Verse[];
 }
 
+type SelectedElement =
+  | {
+      type: "word";
+      element: VerseWord;
+    }
+  | {
+      type: "verse";
+      element: Verse;
+    };
+
 const textSizeMap: Record<number, string> = {
   1: "text-xs",
   2: "text-sm",
@@ -58,18 +69,17 @@ export default function ReadingView({
   language,
   verses,
 }: ReadingViewProps) {
+  const t = useTranslations("ReadingView");
   const isOT = isOldTestament(chapterId + "001");
 
   const popover = usePopover();
   const linkedWords = popover.selectedWord?.word.linkedWords ?? [];
 
   const [showSidebar, setShowSidebar] = useState(false);
-  const [sidebarWord, setSidebarWord] = useState(verses[0].words[0]);
-  useEffect(() => {
-    setSidebarWord(verses[0].words[0]);
-  }, [verses]);
+  const [selectedElement, setSelectedElement] =
+    useState<SelectedElement | null>(null);
 
-  const sidebarRef = useRef<ReadingSidebarRef>(null);
+  const sidebarRef = useRef<WordDetailsRef>(null);
 
   const { textSize, audioVerse } = useReadingContext();
 
@@ -106,7 +116,7 @@ export default function ReadingView({
                     setShowSidebar(true);
                   }}
                   onClick={(e) => {
-                    setSidebarWord(word);
+                    setSelectedElement({ type: "word", element: word });
                     popover.onWordClick(e, word);
                   }}
                 >
@@ -123,6 +133,10 @@ export default function ReadingView({
                 }
                 // Allows audio player to start playing at this verse when clicked
                 data-verse-number={verse.number}
+                onClick={() => {
+                  setSelectedElement({ type: "verse", element: verse });
+                }}
+                onDoubleClick={() => setShowSidebar(true)}
               >
                 {verse.number}&nbsp;
               </span>,
@@ -140,21 +154,38 @@ export default function ReadingView({
             );
           })}
         </div>
-        {showSidebar && (
-          <ReadingSidebar
-            ref={sidebarRef}
-            language={language}
-            word={sidebarWord}
+        {showSidebar && selectedElement && (
+          <div
             className="
+              flex-shrink-0 shadow rounded-2xl bg-brown-100
+              dark:bg-gray-800 dark:shadow-none
               sticky z-10
               h-[320px] bottom-10 mb-10
               lg:h-[calc(100dvh-var(--heading-height)-var(--read-nav-h)-2rem)] lg:top-[calc(var(--heading-height)+var(--read-nav-h)+1rem)]
-
               lg:w-1/3 lg:min-w-[320px] lg:max-w-[480px]
               lg:mb-0 mx-6 lg:mx-0 lg:me-8
             "
-            onClose={() => setShowSidebar(false)}
-          />
+          >
+            <button
+              onClick={() => setShowSidebar(false)}
+              type="button"
+              className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline outline-2 outline-green-300"
+            >
+              <Icon icon="xmark" />
+              <span className="sr-only">{t("close_sidebar")}</span>
+            </button>
+            {selectedElement.type === "word" ?
+              <WordDetails
+                ref={sidebarRef}
+                language={language}
+                word={selectedElement.element}
+              />
+            : <VerseDetails
+                verse={selectedElement.element}
+                chapterId={chapterId}
+              />
+            }
+          </div>
         )}
       </div>
       {popover.selectedWord &&
