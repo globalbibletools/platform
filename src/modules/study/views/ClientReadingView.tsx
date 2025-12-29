@@ -140,9 +140,10 @@ export default function ReadingView({
                 }
                 // Allows audio player to start playing at this verse when clicked
                 data-verse-number={verse.number}
-                onDoubleClick={() => {
+                onClick={() => {
                   setSelectedElement({ type: "verse", element: verse });
                 }}
+                onDoubleClick={() => setShowSidebar(true)}
               >
                 {verse.number}&nbsp;
               </span>,
