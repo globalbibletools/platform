@@ -1,7 +1,14 @@
 "use client";
 
 import { isOldTestament } from "@/verse-utils";
-import { Fragment, MouseEvent, useEffect, useRef, useState } from "react";
+import {
+  Fragment,
+  MouseEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useFloating, autoUpdate, shift } from "@floating-ui/react-dom";
 import { createPortal } from "react-dom";
 import WordDetails, { WordDetailsRef } from "./WordDetails";
@@ -9,6 +16,7 @@ import { useReadingContext } from "./ReadingToolbar";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "next-intl";
 import VerseDetails from "./VerseDetails";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 interface VerseWord {
   id: string;
@@ -38,16 +46,6 @@ export interface ReadingViewProps {
   verses: Verse[];
 }
 
-type SelectedElement =
-  | {
-      type: "word";
-      element: VerseWord;
-    }
-  | {
-      type: "verse";
-      element: Verse;
-    };
-
 const textSizeMap: Record<number, string> = {
   1: "text-xs",
   2: "text-sm",
@@ -76,8 +74,19 @@ export default function ReadingView({
   const linkedWords = popover.selectedWord?.word.linkedWords ?? [];
 
   const [showSidebar, setShowSidebar] = useState(false);
-  const [selectedElement, setSelectedElement] =
-    useState<SelectedElement | null>(null);
+  const [selectedElement, setSelectedElement] = useSelectedElement();
+
+  const selectedVerse =
+    selectedElement?.type === "verse" ?
+      verses.find((v) => v.id === selectedElement?.elementId)
+    : undefined;
+  const selectedWord =
+    selectedElement?.type === "word" ?
+      verses.reduce<VerseWord | undefined>((word, v) => {
+        if (word) return word;
+        return v.words.find((w) => w.id === selectedElement?.elementId);
+      }, undefined)
+    : undefined;
 
   const sidebarRef = useRef<WordDetailsRef>(null);
 
@@ -116,7 +125,7 @@ export default function ReadingView({
                     setShowSidebar(true);
                   }}
                   onClick={(e) => {
-                    setSelectedElement({ type: "word", element: word });
+                    setSelectedElement({ type: "word", elementId: word.id });
                     popover.onWordClick(e, word);
                   }}
                 >
@@ -134,7 +143,7 @@ export default function ReadingView({
                 // Allows audio player to start playing at this verse when clicked
                 data-verse-number={verse.number}
                 onClick={() => {
-                  setSelectedElement({ type: "verse", element: verse });
+                  setSelectedElement({ type: "verse", elementId: verse.id });
                 }}
                 onDoubleClick={() => setShowSidebar(true)}
               >
@@ -178,13 +187,9 @@ export default function ReadingView({
               <WordDetails
                 ref={sidebarRef}
                 language={language}
-                word={selectedElement.element}
+                word={selectedWord!}
               />
-            : <VerseDetails
-                verse={selectedElement.element}
-                chapterId={chapterId}
-              />
-            }
+            : <VerseDetails verse={selectedVerse!} chapterId={chapterId} />}
           </div>
         )}
       </div>
@@ -273,4 +278,33 @@ function usePopover(onClose?: () => void) {
     onWordMouseLeave,
     selectedWord,
   };
+}
+
+interface SelectedElement {
+  type: string;
+  elementId: string;
+}
+type SelectElementFn = (element: SelectedElement) => void;
+
+function useSelectedElement(): [SelectedElement | null, SelectElementFn] {
+  const searchParams = useSearchParams();
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const selectElement = useCallback<SelectElementFn>(
+    ({ type, elementId }) => {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set("selection", `${type}-${elementId}`);
+      router.replace(`${pathname}?${newSearchParams.toString()}`);
+    },
+    [pathname, searchParams],
+  );
+
+  const selectedElementParam = searchParams.get("selection");
+  if (!selectedElementParam) {
+    return [null, selectElement];
+  }
+
+  const [type, elementId] = selectedElementParam.split("-");
+  return [{ type, elementId }, selectElement];
 }
