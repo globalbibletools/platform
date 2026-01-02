@@ -41,6 +41,7 @@ export default function ReadingToolbar({
   }>();
   const router = useRouter();
   const [textSize, setTextSize] = useState(3);
+  const [immersionMode, setImmersionMode] = useState(false);
   const [audioVerse, setAudioVerse] = useState<string>();
 
   const bookId = parseInt(chapterId.slice(0, 2)) || 1;
@@ -152,13 +153,15 @@ export default function ReadingToolbar({
           </Button>
           <SettingsMenu
             textSize={textSize}
+            immersionMode={immersionMode}
             languageCode={code}
             languages={languages}
             onTextSizeChange={setTextSize}
+            onImmersionModeChange={setImmersionMode}
           />
         </div>
       </div>
-      <ReadingContext.Provider value={{ textSize, audioVerse }}>
+      <ReadingContext.Provider value={{ textSize, audioVerse, immersionMode }}>
         {children}
       </ReadingContext.Provider>
       {showAudioPlayer && (
@@ -175,6 +178,7 @@ export default function ReadingToolbar({
 
 interface ReadingContextValue {
   textSize: number;
+  immersionMode: boolean;
   audioVerse?: string;
 }
 

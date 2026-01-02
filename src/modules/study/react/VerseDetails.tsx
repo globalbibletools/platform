@@ -3,6 +3,8 @@
 import { useState, Fragment } from "react";
 import { Tab } from "@headlessui/react";
 import { useTranslations } from "next-intl";
+import Button from "@/components/Button";
+import { Icon } from "@/components/Icon";
 
 interface Verse {
   number: number;
@@ -23,8 +25,14 @@ export default function VerseDetails({
 
   return (
     <div className="absolute w-full h-full flex flex-col gap-4">
-      <div className="flex items-start p-4 pb-0">
+      <div className="flex items-start p-4 pb-0 gap-2">
         {t("reference", { bookId, chapterNumber, verseNumber: verse.number })}
+        <Button variant="link">
+          <Icon icon="arrow-up" />
+        </Button>
+        <Button variant="link">
+          <Icon icon="arrow-down" />
+        </Button>
       </div>
 
       <div className="grow flex flex-col min-h-0">

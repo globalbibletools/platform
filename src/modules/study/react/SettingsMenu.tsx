@@ -2,22 +2,27 @@ import ComboboxInput from "@/components/ComboboxInput";
 import FormLabel from "@/components/FormLabel";
 import { Icon } from "@/components/Icon";
 import SliderInput from "@/components/SliderInput";
+import { SwitchInput } from "@/components/SwitchInput";
 import { Popover } from "@headlessui/react";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 
 export interface SettingsMenuProps {
   textSize: number;
+  immersionMode: boolean;
   languageCode: string;
   languages: { name: string; code: string }[];
   onTextSizeChange?(textSize: number): void;
+  onImmersionModeChange?(immersionMode: boolean): void;
 }
 
 export default function SettingsMenu({
   textSize,
+  immersionMode,
   languageCode,
   languages,
   onTextSizeChange,
+  onImmersionModeChange,
 }: SettingsMenuProps) {
   const t = useTranslations("SettingsMenu");
 
@@ -59,6 +64,15 @@ export default function SettingsMenu({
               onChange={(e) => onTextSizeChange?.(e.target.valueAsNumber)}
             />
           </div>
+        </div>
+        <div>
+          <SwitchInput
+            checked={immersionMode}
+            onChange={onImmersionModeChange}
+            className="whitespace-nowrap"
+          >
+            Immersion Mode
+          </SwitchInput>
         </div>
       </Popover.Panel>
     </Popover>

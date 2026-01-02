@@ -96,6 +96,7 @@ export default function ReadingView({
           dir={isOT ? "rtl" : "ltr"}
         >
           {verses.flatMap((verse) => {
+            const isSelected = verse === selectedElement?.element;
             const words = verse.words.map((word, i) => (
               <Fragment key={word.id}>
                 <span
@@ -128,9 +129,10 @@ export default function ReadingView({
             words.unshift(
               <span
                 key={`verse-${verse.number}`}
-                className={
-                  "font-sans font-bold text-xs cursor-pointer text-blue-800 dark:text-green-400"
-                }
+                className={`
+                  font-sans font-bold cursor-pointer text-blue-800 dark:text-green-400
+                  ${isSelected ? "text-sm" : "text-xs "}
+                `}
                 // Allows audio player to start playing at this verse when clicked
                 data-verse-number={verse.number}
                 onClick={() => {
@@ -147,6 +149,7 @@ export default function ReadingView({
                 className={`
                             rounded
                             ${audioVerse === verse.id ? "bg-green-200 dark:bg-gray-700" : ""}
+                            ${isSelected ? "block my-1 py-2 px-4 bg-brown-200 dark:bg-gray-700 text-lg" : ""}
                         `}
               >
                 {words}
