@@ -930,6 +930,28 @@ ALTER SEQUENCE public.verse_audio_timing_id_seq OWNED BY public.verse_audio_timi
 
 
 --
+-- Name: verse_commentary; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.verse_commentary (
+    verse_id text NOT NULL,
+    content text NOT NULL
+);
+
+
+--
+-- Name: verse_question; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.verse_question (
+    verse_id text NOT NULL,
+    sort_order integer NOT NULL,
+    question text NOT NULL,
+    response text NOT NULL
+);
+
+
+--
 -- Name: weekly_contribution_statistics; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -998,6 +1020,16 @@ CREATE SEQUENCE public.weekly_gloss_statistics_id_seq
 --
 
 ALTER SEQUENCE public.weekly_gloss_statistics_id_seq OWNED BY public.weekly_gloss_statistics.id;
+
+
+--
+-- Name: word_lexicon; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.word_lexicon (
+    word_id text NOT NULL,
+    content text NOT NULL
+);
 
 
 --
@@ -1297,11 +1329,27 @@ ALTER TABLE ONLY public.verse_audio_timing
 
 
 --
+-- Name: verse_commentary verse_commentary_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse_commentary
+    ADD CONSTRAINT verse_commentary_pkey PRIMARY KEY (verse_id);
+
+
+--
 -- Name: verse verse_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.verse
     ADD CONSTRAINT verse_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: verse_question verse_question_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse_question
+    ADD CONSTRAINT verse_question_pkey PRIMARY KEY (verse_id, sort_order);
 
 
 --
@@ -1334,6 +1382,14 @@ ALTER TABLE ONLY public.weekly_gloss_statistics
 
 ALTER TABLE ONLY public.weekly_gloss_statistics
     ADD CONSTRAINT weekly_gloss_statistics_week_language_id_book_id_user_id_key UNIQUE (week, language_id, book_id, user_id);
+
+
+--
+-- Name: word_lexicon word_lexicon_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.word_lexicon
+    ADD CONSTRAINT word_lexicon_pkey PRIMARY KEY (word_id);
 
 
 --
@@ -1771,6 +1827,22 @@ ALTER TABLE ONLY public.verse
 
 
 --
+-- Name: verse_commentary verse_commentary_verse_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse_commentary
+    ADD CONSTRAINT verse_commentary_verse_id_fkey FOREIGN KEY (verse_id) REFERENCES public.verse(id);
+
+
+--
+-- Name: verse_question verse_question_verse_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse_question
+    ADD CONSTRAINT verse_question_verse_id_fkey FOREIGN KEY (verse_id) REFERENCES public.verse(id);
+
+
+--
 -- Name: weekly_contribution_statistics weekly_contribution_statistics_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1816,6 +1888,14 @@ ALTER TABLE ONLY public.weekly_gloss_statistics
 
 ALTER TABLE ONLY public.word
     ADD CONSTRAINT word_form_id_fkey FOREIGN KEY (form_id) REFERENCES public.lemma_form(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: word_lexicon word_lexicon_word_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.word_lexicon
+    ADD CONSTRAINT word_lexicon_word_id_fkey FOREIGN KEY (word_id) REFERENCES public.word(id);
 
 
 --
