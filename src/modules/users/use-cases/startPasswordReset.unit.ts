@@ -1,7 +1,7 @@
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
-import { test, expect, vitest } from "vitest";
+import { test, expect, vi, vitest } from "vitest";
 import mockUserRepo from "../data-access/mockUserRepository";
-import StartPasswordReset from "./StartPasswordReset";
+import { startPasswordReset } from "./startPasswordReset";
 import UserEmail from "../model/UserEmail";
 import EmailStatus from "../model/EmailStatus";
 import Password from "../model/Password";
@@ -12,10 +12,13 @@ import { enqueueJob } from "@/shared/jobs/enqueueJob";
 
 vitest.mock("@/shared/jobs/enqueueJob");
 
-const startPasswordReset = new StartPasswordReset(mockUserRepo);
+vi.mock(
+  "../data-access/userRepository",
+  () => import("../data-access/mockUserRepository"),
+);
 
 test("does nothing if user could not be found", async () => {
-  await startPasswordReset.execute({ email: "test@example.com" });
+  await startPasswordReset({ email: "test@example.com" });
   expect(enqueueJob).not.toHaveBeenCalled();
 });
 
@@ -36,7 +39,7 @@ test("swallows errors from password reset", async () => {
   const user = new User({ ...props });
   mockUserRepo.users = [user];
 
-  await startPasswordReset.execute({ email: props.email.address });
+  await startPasswordReset({ email: props.email.address });
   // @ts-ignore
   expect(mockUserRepo.users[0].props).toEqual(props);
   expect(enqueueJob).not.toHaveBeenCalled();
@@ -59,7 +62,7 @@ test("sends password reset email", async () => {
   const user = new User({ ...props });
   mockUserRepo.users = [user];
 
-  await startPasswordReset.execute({ email: props.email.address });
+  await startPasswordReset({ email: props.email.address });
   // @ts-ignore
   expect(mockUserRepo.users[0].props).toEqual({
     ...props,
