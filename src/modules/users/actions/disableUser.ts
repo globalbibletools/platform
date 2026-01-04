@@ -8,9 +8,7 @@ import { notFound } from "next/navigation";
 import { FormState } from "@/components/Form";
 import { revalidatePath } from "next/cache";
 import { serverActionLogger } from "@/server-action";
-import DisableUser from "../use-cases/DisableUser";
-import userRepository from "../data-access/userRepository";
-import { languageClient } from "@/modules/languages/public/LanguageClient";
+import { disableUser as disableUserUseCase } from "../use-cases/disableUser";
 import { NotFoundError } from "@/shared/errors";
 import { Policy } from "@/modules/access";
 
@@ -21,8 +19,6 @@ const requestSchema = z.object({
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
-
-const disableUserUseCase = new DisableUser(userRepository, languageClient);
 
 export async function disableUser(
   _prevState: FormState,
@@ -51,7 +47,7 @@ export async function disableUser(
   }
 
   try {
-    await disableUserUseCase.execute({
+    await disableUserUseCase({
       userId: request.data.userId,
     });
   } catch (error) {
