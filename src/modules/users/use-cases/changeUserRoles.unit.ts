@@ -1,6 +1,6 @@
 import mockUserRepo from "../data-access/mockUserRepository";
 import { ulid } from "@/shared/ulid";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { NotFoundError } from "@/shared/errors";
 import UserEmail from "../model/UserEmail";
 import EmailStatus from "../model/EmailStatus";
@@ -9,12 +9,15 @@ import { addDays } from "date-fns";
 import UserStatus from "../model/UserStatus";
 import User from "../model/User";
 import SystemRole, { SystemRoleRaw } from "../model/SystemRole";
-import ChangeUserRoles from "./ChangeUserRoles";
+import { changeUserRoles } from "./changeUserRoles";
 
-const changeUserRoles = new ChangeUserRoles(mockUserRepo);
+vi.mock(
+  "../data-access/userRepository",
+  () => import("../data-access/mockUserRepository"),
+);
 
 test("throws error if user does not exist", async () => {
-  const result = changeUserRoles.execute({ userId: ulid(), roles: [] });
+  const result = changeUserRoles({ userId: ulid(), roles: [] });
   await expect(result).rejects.toThrow(new NotFoundError("User"));
 });
 
@@ -38,7 +41,7 @@ test("replaces user system roles", async () => {
   const user = new User({ ...props });
   mockUserRepo.users = [user];
 
-  await changeUserRoles.execute({
+  await changeUserRoles({
     userId: props.id,
     roles: [SystemRoleRaw.Admin],
   });
