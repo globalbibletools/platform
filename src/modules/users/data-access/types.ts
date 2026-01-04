@@ -91,28 +91,3 @@ export interface UserRepository {
   findByInvitationToken(token: string): Promise<User | undefined>;
   commit(user: User): Promise<void>;
 }
-
-export type SimpleUserView = Pick<DbUser, "id" | "name" | "email">;
-export type SearchUserView = Pick<
-  DbUser,
-  "id" | "name" | "email" | "emailStatus"
-> & {
-  roles: DbSystemRole["role"][];
-  invite: null | Omit<DbInvitation, "userId">;
-};
-
-export interface SearchUserPageView {
-  total: number;
-  page: SearchUserView[];
-}
-
-export interface SearchUserOptions {
-  page: number;
-  limit: number;
-}
-
-export interface UserQueryService {
-  findByEmail(email: string): Promise<SimpleUserView | undefined>;
-  findById(id: string): Promise<SimpleUserView | undefined>;
-  search(options: SearchUserOptions): Promise<SearchUserPageView>;
-}
