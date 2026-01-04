@@ -3,6 +3,9 @@
 import { useState, Fragment } from "react";
 import { Tab } from "@headlessui/react";
 import { useTranslations } from "next-intl";
+import useSWR from "swr";
+import { VerseImmersiveContentReadModel } from "@/modules/bible-core/read-models/getVerseImmersiveContentReadModel";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface Verse {
   number: number;
@@ -21,6 +24,19 @@ export default function VerseDetails({
   const bookId = parseInt(chapterId.slice(0, 2));
   const chapterNumber = parseInt(chapterId.slice(2, 5));
 
+  const { data, isLoading } = useSWR(
+    ["verse-content", chapterId, verse.number],
+    async ([, chapterId, verseNumber]) => {
+      const verseId = `${chapterId}${verseNumber.toString().padStart(3, "0")}`;
+      const response = await fetch(
+        `${window.location.pathname}/api/verses/${verseId}`,
+      );
+      return (await response.json()) as Promise<
+        VerseImmersiveContentReadModel | undefined
+      >;
+    },
+  );
+
   return (
     <div className="absolute w-full h-full flex flex-col gap-4">
       <div className="flex items-start p-4 pb-0">
@@ -31,7 +47,7 @@ export default function VerseDetails({
         <Tab.Group selectedIndex={tabIndex} onChange={setTabIndex}>
           <Tab.List className="flex flex-row items-end">
             <div className="border-b border-blue-800 dark:border-green-400 h-full w-2"></div>
-            {[t("tabs.questions")].map((title) => (
+            {[t("tabs.questions"), "Commentary"].map((title) => (
               <Fragment key={title}>
                 <Tab
                   className="
@@ -46,7 +62,37 @@ export default function VerseDetails({
             ))}
             <div className="border-b border-blue-800 dark:border-green-400 h-full grow"></div>
           </Tab.List>
-          <Tab.Panels className="overflow-y-auto grow px-4 pt-4 mb-4"></Tab.Panels>
+          <Tab.Panels className="overflow-y-auto grow px-4 pt-4 mb-4">
+            <Tab.Panel>
+              {(() => {
+                if (isLoading) {
+                  return <LoadingSpinner />;
+                } else if (data) {
+                  return (
+                    <ol className="font-mixed">
+                      {data.questions.map((question, i) => (
+                        <li key={i} className="mb-6">
+                          <div className="mb-1 font-bold">
+                            <span>{i + 1}.</span> {question.question}
+                          </div>
+                          <div>{question.response}</div>
+                        </li>
+                      ))}
+                    </ol>
+                  );
+                }
+              })()}
+            </Tab.Panel>
+            <Tab.Panel>
+              {(() => {
+                if (isLoading) {
+                  return <LoadingSpinner />;
+                } else if (data) {
+                  return <p className="font-mixed">{data.commentary}</p>;
+                }
+              })()}
+            </Tab.Panel>
+          </Tab.Panels>
         </Tab.Group>
       </div>
     </div>

@@ -18,16 +18,30 @@ import {
   UserSystemRoleTable,
   UserTable,
 } from "./modules/users/data-access/types";
+import {
+  BookTable,
+  VerseCommentaryTable,
+  VerseQuestionTable,
+  VerseTable,
+  WordLexiconTable,
+  WordTable,
+} from "./modules/bible-core/db/schema";
 
 export interface Database {
+  book: BookTable;
   language: LanguageTable;
   language_member: LanguageMemberTable;
-  users: UserTable;
   reset_password_token: ResetPasswordTokenTable;
+  session: SessionTable;
   user_email_verification: UserEmailVerificationTable;
   user_invitation: UserInvitationTable;
   user_system_role: UserSystemRoleTable;
-  session: SessionTable;
+  users: UserTable;
+  verse: VerseTable;
+  verse_commentary: VerseCommentaryTable;
+  verse_question: VerseQuestionTable;
+  word: WordTable;
+  word_lexicon: WordLexiconTable;
 }
 
 if (!process.env.DATABASE_URL) {
