@@ -57,7 +57,7 @@ function buttonClasses(
       }`;
     }
     case "link": {
-      return `inline font-bold focus:underline
+      return `inline font-bold focus:underline disabled:text-gray-400 disabled:dark:text-gray-500
             ${destructive ? "text-red-800 dark:text-red-700" : "text-blue-800 dark:text-green-400"}
         `;
     }

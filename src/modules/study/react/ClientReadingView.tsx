@@ -188,6 +188,13 @@ export default function ReadingView({
             : <VerseDetails
                 verse={selectedElement.element}
                 chapterId={chapterId}
+                verseCount={verses.length}
+                onSelectedVerseChange={(verseId) => {
+                  const verse = verses.find((v) => v.id === verseId);
+                  if (verse) {
+                    setSelectedElement({ type: "verse", element: verse });
+                  }
+                }}
               />
             }
             <button
