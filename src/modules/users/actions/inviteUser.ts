@@ -6,8 +6,7 @@ import { notFound, redirect } from "next/navigation";
 import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import InviteUser from "../use-cases/InviteUser";
-import userRepository from "../data-access/userRepository";
+import { inviteUser as inviteUserUseCase } from "../use-cases/inviteUser";
 import { UserAlreadyActiveError } from "../model/errors";
 import { Policy } from "@/modules/access";
 
@@ -18,8 +17,6 @@ const requestSchema = z.object({
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
-
-const inviteUserUseCase = new InviteUser(userRepository);
 
 export async function inviteUser(
   _prevState: FormState,
@@ -65,7 +62,7 @@ export async function inviteUser(
   }
 
   try {
-    await inviteUserUseCase.execute({ email: request.data.email });
+    await inviteUserUseCase({ email: request.data.email });
   } catch (error) {
     if (error instanceof UserAlreadyActiveError) {
       logger.error("user already exists");
