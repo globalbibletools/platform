@@ -114,9 +114,13 @@ export default function ReadingView({
                   `}
                   onDoubleClick={() => {
                     setShowSidebar(true);
+                    setSelectedElement({ type: "word", element: word });
                   }}
                   onClick={(e) => {
-                    setSelectedElement({ type: "word", element: word });
+                    if (showSidebar) {
+                      setSelectedElement({ type: "word", element: word });
+                    }
+
                     popover.onWordClick(e, word);
                   }}
                 >
@@ -134,20 +138,29 @@ export default function ReadingView({
                 // Allows audio player to start playing at this verse when clicked
                 data-verse-number={verse.number}
                 onClick={() => {
+                  if (showSidebar) {
+                    setSelectedElement({ type: "verse", element: verse });
+                  }
+                }}
+                onDoubleClick={() => {
+                  setShowSidebar(true);
                   setSelectedElement({ type: "verse", element: verse });
                 }}
-                onDoubleClick={() => setShowSidebar(true)}
               >
                 {verse.number}&nbsp;
               </span>,
             );
+
+            const isVerseSelected = selectedElement?.element === verse;
+
             return (
               <span
                 key={verse.id}
                 className={`
-                            rounded
-                            ${audioVerse === verse.id ? "bg-green-200 dark:bg-gray-700" : ""}
-                        `}
+                  rounded
+                  ${audioVerse === verse.id ? "bg-green-200 dark:bg-gray-700" : ""}
+                  ${isVerseSelected ? "block px-3 py-1 rounded bg-brown-200 dark:bg-gray-700" : ""}
+                `}
               >
                 {words}
               </span>
@@ -166,14 +179,6 @@ export default function ReadingView({
               lg:mb-0 mx-6 lg:mx-0 lg:me-8
             "
           >
-            <button
-              onClick={() => setShowSidebar(false)}
-              type="button"
-              className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline outline-2 outline-green-300"
-            >
-              <Icon icon="xmark" />
-              <span className="sr-only">{t("close_sidebar")}</span>
-            </button>
             {selectedElement.type === "word" ?
               <WordDetails
                 ref={sidebarRef}
@@ -183,8 +188,26 @@ export default function ReadingView({
             : <VerseDetails
                 verse={selectedElement.element}
                 chapterId={chapterId}
+                verseCount={verses.length}
+                onSelectedVerseChange={(verseId) => {
+                  const verse = verses.find((v) => v.id === verseId);
+                  if (verse) {
+                    setSelectedElement({ type: "verse", element: verse });
+                  }
+                }}
               />
             }
+            <button
+              onClick={() => {
+                setShowSidebar(false);
+                setSelectedElement(null);
+              }}
+              type="button"
+              className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline outline-2 outline-green-300"
+            >
+              <Icon icon="xmark" />
+              <span className="sr-only">{t("close_sidebar")}</span>
+            </button>
           </div>
         )}
       </div>

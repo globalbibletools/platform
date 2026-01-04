@@ -6,6 +6,8 @@ import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import { VerseImmersiveContentReadModel } from "@/modules/bible-core/read-models/getVerseImmersiveContentReadModel";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import Button from "@/components/Button";
+import { Icon } from "@/components/Icon";
 
 interface Verse {
   number: number;
@@ -14,9 +16,13 @@ interface Verse {
 export default function VerseDetails({
   chapterId,
   verse,
+  verseCount,
+  onSelectedVerseChange,
 }: {
   chapterId: string;
   verse: Verse;
+  verseCount: number;
+  onSelectedVerseChange?(verseId: string): void;
 }) {
   const t = useTranslations("VerseDetails");
   const [tabIndex, setTabIndex] = useState(0);
@@ -41,6 +47,32 @@ export default function VerseDetails({
     <div className="absolute w-full h-full flex flex-col gap-4">
       <div className="flex items-start p-4 pb-0">
         {t("reference", { bookId, chapterNumber, verseNumber: verse.number })}
+        <Button
+          variant="link"
+          className="ms-2 w-6"
+          disabled={verse.number === 1}
+          onClick={() =>
+            onSelectedVerseChange?.(
+              `${chapterId}${(verse.number - 1).toString().padStart(3, "0")}`,
+            )
+          }
+        >
+          <Icon icon="arrow-up" />
+          <span className="sr-only">Previous Verse</span>
+        </Button>
+        <Button
+          variant="link"
+          className="w-6"
+          disabled={verse.number === verseCount}
+          onClick={() =>
+            onSelectedVerseChange?.(
+              `${chapterId}${(verse.number + 1).toString().padStart(3, "0")}`,
+            )
+          }
+        >
+          <Icon icon="arrow-down" />
+          <span className="sr-only">Next Verse</span>
+        </Button>
       </div>
 
       <div className="grow flex flex-col min-h-0">
