@@ -104,10 +104,10 @@ export default function VerseDetails({
                     <ol className="font-mixed">
                       {data.questions.map((question, i) => (
                         <li key={i} className="mb-6">
-                          <div className="mb-1 font-bold">
+                          <div className="mb-1">
                             <span>{i + 1}.</span> {question.question}
                           </div>
-                          <div>{question.response}</div>
+                          <div className="italic">{question.response}</div>
                         </li>
                       ))}
                     </ol>
