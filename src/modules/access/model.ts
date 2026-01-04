@@ -1,4 +1,4 @@
-import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
+import { SystemRoleRaw } from "@/modules/users";
 
 export interface ActorClaims {
   id: string;

@@ -1,4 +1,4 @@
-import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
+import { SystemRoleRaw } from "@/modules/users";
 import claimsRepository from "./claimsRepository";
 
 export interface PolicyOptions {
