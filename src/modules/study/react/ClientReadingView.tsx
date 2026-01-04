@@ -141,13 +141,17 @@ export default function ReadingView({
                 {verse.number}&nbsp;
               </span>,
             );
+
+            const isVerseSelected = selectedElement?.element === verse;
+
             return (
               <span
                 key={verse.id}
                 className={`
-                            rounded
-                            ${audioVerse === verse.id ? "bg-green-200 dark:bg-gray-700" : ""}
-                        `}
+                  rounded
+                  ${audioVerse === verse.id ? "bg-green-200 dark:bg-gray-700" : ""}
+                  ${isVerseSelected ? "block px-3 py-1 rounded bg-brown-200 dark:bg-gray-700" : ""}
+                `}
               >
                 {words}
               </span>
@@ -166,14 +170,6 @@ export default function ReadingView({
               lg:mb-0 mx-6 lg:mx-0 lg:me-8
             "
           >
-            <button
-              onClick={() => setShowSidebar(false)}
-              type="button"
-              className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline outline-2 outline-green-300"
-            >
-              <Icon icon="xmark" />
-              <span className="sr-only">{t("close_sidebar")}</span>
-            </button>
             {selectedElement.type === "word" ?
               <WordDetails
                 ref={sidebarRef}
@@ -185,6 +181,14 @@ export default function ReadingView({
                 chapterId={chapterId}
               />
             }
+            <button
+              onClick={() => setShowSidebar(false)}
+              type="button"
+              className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline outline-2 outline-green-300"
+            >
+              <Icon icon="xmark" />
+              <span className="sr-only">{t("close_sidebar")}</span>
+            </button>
           </div>
         )}
       </div>
