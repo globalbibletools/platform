@@ -1,6 +1,6 @@
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
-import { test, expect } from "vitest";
-import VerifyEmail from "./VerifyEmail";
+import { test, expect, vi } from "vitest";
+import { verifyEmail } from "./verifyEmail";
 import mockUserRepo from "../data-access/mockUserRepository";
 import { InvalidEmailVerificationToken } from "../model/errors";
 import UserEmail from "../model/UserEmail";
@@ -11,10 +11,13 @@ import { addDays } from "date-fns";
 import User from "../model/User";
 import UserStatus from "../model/UserStatus";
 
-const verifyEmail = new VerifyEmail(mockUserRepo);
+vi.mock(
+  "../data-access/userRepository",
+  () => import("../data-access/mockUserRepository"),
+);
 
 test("throws error if token does not correspond to a pending email change", async () => {
-  const result = verifyEmail.execute({ token: "asdf" });
+  const result = verifyEmail({ token: "asdf" });
   await expect(result).rejects.toThrow(new InvalidEmailVerificationToken());
 });
 
@@ -40,7 +43,7 @@ test("verfies the email and sends message to user", async () => {
   const user = new User({ ...props });
   mockUserRepo.users = [user];
 
-  await verifyEmail.execute({ token: props.emailVerification.token });
+  await verifyEmail({ token: props.emailVerification.token });
 
   // @ts-ignore
   expect(mockUserRepo.users[0].props).toEqual({

@@ -1,8 +1,7 @@
 import ModalView from "@/components/ModalView";
 import { ResolvingMetadata, Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import VerifyEmail from "@/modules/users/use-cases/VerifyEmail";
-import userRepository from "@/modules/users/data-access/userRepository";
+import { verifyEmail } from "@/modules/users/use-cases/verifyEmail";
 
 interface Props {
   searchParams: { token?: string };
@@ -20,13 +19,11 @@ export async function generateMetadata(
   };
 }
 
-const verifyEmailUseCase = new VerifyEmail(userRepository);
-
 export default async function EmailVerificationView({ searchParams }: Props) {
   const t = await getTranslations("EmailVerification");
 
   try {
-    await verifyEmailUseCase.execute({ token: searchParams.token ?? "" });
+    await verifyEmail({ token: searchParams.token ?? "" });
   } catch (error) {
     return (
       <ModalView className="max-w-[480px] w-full">
