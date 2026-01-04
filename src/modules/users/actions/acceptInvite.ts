@@ -7,8 +7,7 @@ import { notFound, redirect } from "next/navigation";
 import { parseForm } from "@/form-parser";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import AcceptInvite from "../use-cases/AcceptInvite";
-import userRepository from "../data-access/userRepository";
+import { acceptInvite as acceptInviteUseCase } from "../use-cases/acceptInvite";
 import { InvalidInvitationTokenError } from "../model/errors";
 
 const loginSchema = z
@@ -22,8 +21,6 @@ const loginSchema = z
   .refine((data) => data.password === data.confirm_password, {
     path: ["confirm_password"],
   });
-
-const acceptInviteUseCase = new AcceptInvite(userRepository);
 
 export async function acceptInvite(
   prevState: FormState,
@@ -66,7 +63,7 @@ export async function acceptInvite(
 
   let userId;
   try {
-    const result = await acceptInviteUseCase.execute({
+    const result = await acceptInviteUseCase({
       token: request.data.token,
       firstName: request.data.first_name,
       lastName: request.data.last_name,

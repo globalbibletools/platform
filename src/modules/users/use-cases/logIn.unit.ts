@@ -1,5 +1,5 @@
-import { test, expect } from "vitest";
-import LogIn from "./LogIn";
+import { test, expect, vi } from "vitest";
+import { logIn } from "./logIn";
 import User from "../model/User";
 import { IncorrectPasswordError } from "../model/errors";
 import EmailStatus from "../model/EmailStatus";
@@ -10,16 +10,17 @@ import mockUserRepo from "../data-access/mockUserRepository";
 import Password from "../model/Password";
 import UserStatus from "../model/UserStatus";
 
-const logIn = new LogIn(mockUserRepo);
+vi.mock(
+  "../data-access/userRepository",
+  () => import("../data-access/mockUserRepository"),
+);
 
 test("returns error if no user is found", async () => {
   const request = {
     email: "test@example.com",
     password: "pa$$word",
   };
-  await expect(logIn.execute(request)).rejects.toThrow(
-    new NotFoundError("User"),
-  );
+  await expect(logIn(request)).rejects.toThrow(new NotFoundError("User"));
 });
 
 test("returns error if password does not match", async () => {
@@ -41,9 +42,7 @@ test("returns error if password does not match", async () => {
     email: user.email.address,
     password: "pa$$word",
   };
-  await expect(logIn.execute(request)).rejects.toThrow(
-    new IncorrectPasswordError(),
-  );
+  await expect(logIn(request)).rejects.toThrow(new IncorrectPasswordError());
 });
 
 test("returns user id if password matches", async () => {
@@ -65,7 +64,7 @@ test("returns user id if password matches", async () => {
     email: user.email.address,
     password: "pa$$word",
   };
-  await expect(logIn.execute(request)).resolves.toEqual({
+  await expect(logIn(request)).resolves.toEqual({
     userId: user.id,
   });
 });

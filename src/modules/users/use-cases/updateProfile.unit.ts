@@ -1,7 +1,7 @@
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
-import { test, expect } from "vitest";
+import { test, expect, vi } from "vitest";
 import mockUserRepo from "../data-access/mockUserRepository";
-import UpdateProfile from "./UpdateProfile";
+import { updateProfile } from "./updateProfile";
 import { NotFoundError } from "@/shared/errors";
 import User from "../model/User";
 import UserEmail from "../model/UserEmail";
@@ -11,7 +11,10 @@ import EmailVerification from "../model/EmailVerification";
 import Password from "../model/Password";
 import UserStatus from "../model/UserStatus";
 
-const updateProfile = new UpdateProfile(mockUserRepo);
+vi.mock(
+  "../data-access/userRepository",
+  () => import("../data-access/mockUserRepository"),
+);
 
 test("returns error if no user is found", async () => {
   const request = {
@@ -19,7 +22,7 @@ test("returns error if no user is found", async () => {
     name: "Joe Translator",
     email: "test@example.com",
   };
-  await expect(updateProfile.execute(request)).rejects.toThrow(
+  await expect(updateProfile(request)).rejects.toThrow(
     new NotFoundError("User"),
   );
 });
@@ -46,7 +49,7 @@ test("updates name for the user", async () => {
     name: "New Name",
     email: props.email.address,
   };
-  await expect(updateProfile.execute(request)).resolves.toBeUndefined();
+  await expect(updateProfile(request)).resolves.toBeUndefined();
 
   // @ts-ignore
   expect(user.props).toEqual({
@@ -79,7 +82,7 @@ test("updates email for the user if it changes", async () => {
     name: props.name,
     email: "changed@example.com",
   };
-  await expect(updateProfile.execute(request)).resolves.toBeUndefined();
+  await expect(updateProfile(request)).resolves.toBeUndefined();
 
   // @ts-ignore
   expect(user.props).toEqual({
@@ -128,7 +131,7 @@ test("updates password for the user if it changes", async () => {
     email: props.email.address,
     password: "pa$$word",
   };
-  await expect(updateProfile.execute(request)).resolves.toBeUndefined();
+  await expect(updateProfile(request)).resolves.toBeUndefined();
 
   // @ts-ignore
   expect(user.props).toEqual({

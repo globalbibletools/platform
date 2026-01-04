@@ -6,14 +6,11 @@ import { redirect } from "next/navigation";
 import { parseForm } from "@/form-parser";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import StartPasswordReset from "../use-cases/StartPasswordReset";
-import userRepository from "../data-access/userRepository";
+import { startPasswordReset as startPasswordResetUseCase } from "../use-cases/startPasswordReset";
 
 const requestSchema = z.object({
   email: z.string().min(1),
 });
-
-const startPasswordResetUseCase = new StartPasswordReset(userRepository);
 
 export async function startPasswordReset(
   _prevState: FormState,
@@ -40,7 +37,7 @@ export async function startPasswordReset(
     };
   }
 
-  await startPasswordResetUseCase.execute(request.data);
+  await startPasswordResetUseCase(request.data);
 
   const locale = await getLocale();
   redirect(`/${locale}/login`);

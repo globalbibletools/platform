@@ -1,8 +1,8 @@
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
-import { test, expect } from "vitest";
+import { test, expect, vi } from "vitest";
 import mockUserRepo from "../data-access/mockUserRepository";
 import { NotFoundError } from "@/shared/errors";
-import ResetPassword from "./ResetPassword";
+import { resetPassword } from "./resetPassword";
 import UserEmail from "../model/UserEmail";
 import EmailStatus from "../model/EmailStatus";
 import Password from "../model/Password";
@@ -10,10 +10,13 @@ import User from "../model/User";
 import PasswordReset from "../model/PasswordReset";
 import UserStatus from "../model/UserStatus";
 
-const resetPassword = new ResetPassword(mockUserRepo);
+vi.mock(
+  "../data-access/userRepository",
+  () => import("../data-access/mockUserRepository"),
+);
 
 test("throw error if user is not found", async () => {
-  const result = resetPassword.execute({ token: "asdf", password: "pa$$word" });
+  const result = resetPassword({ token: "asdf", password: "pa$$word" });
   await expect(result).rejects.toThrow(new NotFoundError("User"));
 });
 
@@ -35,7 +38,7 @@ test("changes password and sends email", async () => {
   mockUserRepo.users = [user];
 
   const password = "pa$$word";
-  const result = await resetPassword.execute({
+  const result = await resetPassword({
     token: props.passwordResets[0].token,
     password,
   });

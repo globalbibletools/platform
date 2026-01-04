@@ -1,7 +1,7 @@
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
-import { test, expect } from "vitest";
+import { test, expect, vi } from "vitest";
 import mockUserRepo from "../data-access/mockUserRepository";
-import InviteUser from "./InviteUser";
+import { inviteUser } from "./inviteUser";
 import User from "../model/User";
 import UserEmail from "../model/UserEmail";
 import EmailStatus from "../model/EmailStatus";
@@ -11,7 +11,10 @@ import { UserAlreadyActiveError } from "../model/errors";
 import Password from "../model/Password";
 import UserStatus from "../model/UserStatus";
 
-const inviteUser = new InviteUser(mockUserRepo);
+vi.mock(
+  "../data-access/userRepository",
+  () => import("../data-access/mockUserRepository"),
+);
 
 test("throws error if user is already active", async () => {
   const email = "TEST@example.com";
@@ -29,7 +32,7 @@ test("throws error if user is already active", async () => {
   });
   mockUserRepo.users = [user];
 
-  const result = inviteUser.execute({ email });
+  const result = inviteUser({ email });
   await expect(result).rejects.toThrow(new UserAlreadyActiveError());
 });
 
@@ -53,7 +56,7 @@ test("recreates and resends invite for pending user", async () => {
   });
   mockUserRepo.users = [user];
 
-  const result = await inviteUser.execute({ email });
+  const result = await inviteUser({ email });
   expect(result).toEqual({ userId: user.id });
 
   expect(mockUserRepo.users).toEqual([
@@ -80,7 +83,7 @@ test("recreates and resends invite for pending user", async () => {
 
 test("creates user and sends invite email", async () => {
   const email = "TEST@example.com";
-  const result = await inviteUser.execute({ email });
+  const result = await inviteUser({ email });
   expect(result).toEqual({ userId: expect.toBeUlid() });
 
   expect(mockUserRepo.users).toEqual([

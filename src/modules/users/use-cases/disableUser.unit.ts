@@ -1,8 +1,8 @@
 import fakeLanguageClient from "@/modules/languages/public/FakeLanguageClient";
 import mockUserRepo from "../data-access/mockUserRepository";
-import DisableUser from "./DisableUser";
+import { disableUser } from "./disableUser";
 import { ulid } from "@/shared/ulid";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { NotFoundError } from "@/shared/errors";
 import UserEmail from "../model/UserEmail";
 import EmailStatus from "../model/EmailStatus";
@@ -11,10 +11,18 @@ import { addDays } from "date-fns";
 import UserStatus from "../model/UserStatus";
 import User from "../model/User";
 
-const disableUser = new DisableUser(mockUserRepo, fakeLanguageClient);
+vi.mock(
+  "../data-access/userRepository",
+  () => import("../data-access/mockUserRepository"),
+);
+vi.mock("@/modules/languages/public/LanguageClient", async () => ({
+  languageClient: (
+    await import("@/modules/languages/public/FakeLanguageClient")
+  ).default,
+}));
 
 test("throws error if user does not exist", async () => {
-  const result = disableUser.execute({ userId: ulid() });
+  const result = disableUser({ userId: ulid() });
   await expect(result).rejects.toThrow(new NotFoundError("User"));
 });
 
@@ -56,7 +64,7 @@ test("disables users and removes from langauges", async () => {
   };
   fakeLanguageClient.languages = [language];
 
-  await disableUser.execute({ userId: props.id });
+  await disableUser({ userId: props.id });
 
   expect(mockUserRepo.users).toEqual([
     new User({
