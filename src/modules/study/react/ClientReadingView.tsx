@@ -79,8 +79,13 @@ export default function ReadingView({
   const linkedWords = popover.selectedWord?.word.linkedWords ?? [];
 
   const [showSidebar, setShowSidebar] = useState(false);
-  const [selectedElement, setSelectedElement] =
-    useState<SelectedElement | null>(null);
+  const [selectedVerseId, setSelectedVerse] = useState<string | null>(null);
+  const [selectedWordId, setSelectedWord] = useState<string | null>(null);
+
+  const selectedVerse = verses.find((v) => v.id === selectedVerseId);
+  const selectedWord = selectedVerse?.words.find(
+    (w) => w.id === selectedWordId,
+  );
 
   const sidebarRef = useRef<WordDetailsRef>(null);
 
@@ -115,11 +120,13 @@ export default function ReadingView({
                   `}
                   onDoubleClick={() => {
                     setShowSidebar(true);
-                    setSelectedElement({ type: "word", element: word });
+                    setSelectedWord(word.id);
+                    setSelectedVerse(verse.id);
                   }}
                   onClick={(e) => {
                     if (showSidebar) {
-                      setSelectedElement({ type: "word", element: word });
+                      setSelectedWord(word.id);
+                      setSelectedVerse(verse.id);
                     }
 
                     popover.onWordClick(e, word);
@@ -140,27 +147,32 @@ export default function ReadingView({
                 data-verse-number={verse.number}
                 onClick={() => {
                   if (showSidebar) {
-                    setSelectedElement({ type: "verse", element: verse });
+                    setSelectedWord(null);
+                    setSelectedVerse(verse.id);
                   }
                 }}
                 onDoubleClick={() => {
                   setShowSidebar(true);
-                  setSelectedElement({ type: "verse", element: verse });
+                  setSelectedWord(null);
+                  setSelectedVerse(verse.id);
                 }}
               >
                 {verse.number}&nbsp;
               </span>,
             );
 
-            const isVerseSelected = selectedElement?.element === verse;
+            const isVerseSelected = selectedVerseId === verse.id;
 
             return (
               <span
                 key={verse.id}
                 className={`
                   rounded
-                  ${audioVerse === verse.id ? "bg-green-200 dark:bg-gray-700" : ""}
-                  ${isVerseSelected ? "block px-3 py-1 rounded bg-brown-200 dark:bg-gray-700" : ""}
+                  ${
+                    audioVerse === verse.id || isVerseSelected ?
+                      "bg-green-200 dark:bg-gray-700"
+                    : ""
+                  }
                 `}
               >
                 {words}
@@ -168,7 +180,7 @@ export default function ReadingView({
             );
           })}
         </div>
-        {showSidebar && selectedElement && (
+        {showSidebar && (selectedVerseId || selectedWordId) && (
           <div
             className="
               flex-shrink-0 shadow rounded-2xl bg-brown-100
@@ -180,29 +192,28 @@ export default function ReadingView({
               lg:mb-0 mx-6 lg:mx-0 lg:me-8
             "
           >
-            {selectedElement.type === "word" ?
+            {selectedWord ?
               <WordDetails
                 ref={sidebarRef}
                 language={language}
-                word={selectedElement.element}
+                word={selectedWord}
                 mode={mode}
               />
-            : <VerseDetails
-                verse={selectedElement.element}
+            : selectedVerse ?
+              <VerseDetails
+                verse={selectedVerse}
                 chapterId={chapterId}
                 verseCount={verses.length}
                 onSelectedVerseChange={(verseId) => {
-                  const verse = verses.find((v) => v.id === verseId);
-                  if (verse) {
-                    setSelectedElement({ type: "verse", element: verse });
-                  }
+                  setSelectedVerse(verseId);
                 }}
               />
-            }
+            : null}
             <button
               onClick={() => {
                 setShowSidebar(false);
-                setSelectedElement(null);
+                setSelectedVerse(null);
+                setSelectedWord(null);
               }}
               type="button"
               className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline outline-2 outline-green-300"
