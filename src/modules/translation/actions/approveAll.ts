@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { verifySession } from "@/session";
 import { revalidatePath } from "next/cache";
 import { serverActionLogger } from "@/server-action";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 import { GlossApprovalMethodRaw } from "../types";
 import { approveAllUseCase } from "../use-cases/approveAll";
 import { NotFoundError } from "@/shared/errors";

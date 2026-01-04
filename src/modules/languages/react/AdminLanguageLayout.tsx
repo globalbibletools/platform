@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { verifySession } from "@/session";
 import { Metadata, ResolvingMetadata } from "next";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 import { languageQueryService } from "../data-access/LanguageQueryService";
 import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
 

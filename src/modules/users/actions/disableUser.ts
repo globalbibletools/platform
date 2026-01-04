@@ -12,7 +12,7 @@ import DisableUser from "../use-cases/DisableUser";
 import userRepository from "../data-access/userRepository";
 import { languageClient } from "@/modules/languages/public/LanguageClient";
 import { NotFoundError } from "@/shared/errors";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   userId: z.string().min(1),

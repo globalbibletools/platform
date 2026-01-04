@@ -6,7 +6,7 @@ import { parseForm } from "@/form-parser";
 import { notFound } from "next/navigation";
 import { verifySession } from "@/session";
 import { revalidatePath } from "next/cache";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 import phraseRepository from "../data-access/PhraseRepository";
 
 const requestSchema = z.object({

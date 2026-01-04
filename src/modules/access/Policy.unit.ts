@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import Policy from "./Policy";
-import fakeClaimsRepository from "../fakeClaimsRepository";
+import fakeClaimsRepository from "./fakeClaimsRepository";
 
-vi.mock("../claimsRepository", () => import("../fakeClaimsRepository"));
+vi.mock("./claimsRepository", () => import("./fakeClaimsRepository"));
 
 test("forbids access when policy has no roles", async () => {
   const policy = new Policy({});

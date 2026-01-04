@@ -15,7 +15,7 @@ import { removeLanguageMember } from "@/modules/languages/actions/removeLanguage
 import ServerAction from "@/components/ServerAction";
 import { inviteUser } from "@/modules/users/actions/inviteUser";
 import { verifySession } from "@/session";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 import { notFound } from "next/navigation";
 import { getLanguageMembersReadModel } from "../read-models/getLanguageMembersReadModel";
 

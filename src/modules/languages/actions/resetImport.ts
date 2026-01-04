@@ -8,7 +8,7 @@ import { verifySession } from "@/session";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { serverActionLogger } from "@/server-action";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string(),

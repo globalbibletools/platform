@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { verifySession } from "@/session";
 import { revalidatePath } from "next/cache";
 import phraseRepository from "../data-access/PhraseRepository";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 
 const unlinkPhraseSchema = z.object({
   verseId: z.string(),

@@ -3,7 +3,7 @@ import { getDb } from "@/db";
 import { ulid } from "@/shared/ulid";
 import { beforeEach, describe, expect, test } from "vitest";
 import claimsRepository from "./claimsRepository";
-import { SystemRoleRaw } from "../users/model/SystemRole";
+import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 
 initializeDatabase();
 

@@ -2,7 +2,7 @@
 
 import { FormState } from "@/components/Form";
 import { parseForm } from "@/form-parser";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 import { serverActionLogger } from "@/server-action";
 import { verifySession } from "@/session";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";

@@ -11,7 +11,7 @@ import { resetImport } from "../actions/resetImport";
 import { query } from "@/db";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Poller from "./Poller";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
 

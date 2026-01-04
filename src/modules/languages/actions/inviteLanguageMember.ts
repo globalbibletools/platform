@@ -12,7 +12,7 @@ import languageRepository from "../data-access/languageRepository";
 import languageMemberRepository from "../data-access/languageMemberRepository";
 import { userClient } from "@/modules/users/public/UserClient";
 import { NotFoundError } from "@/shared/errors";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string(),

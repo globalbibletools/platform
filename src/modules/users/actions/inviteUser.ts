@@ -9,7 +9,7 @@ import { serverActionLogger } from "@/server-action";
 import InviteUser from "../use-cases/InviteUser";
 import userRepository from "../data-access/userRepository";
 import { UserAlreadyActiveError } from "../model/errors";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   email: z.string().email().min(1),
