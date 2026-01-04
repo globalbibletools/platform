@@ -1,3 +1,7 @@
+import {
+  ButtonSelectorInput,
+  ButtonSelectorOption,
+} from "@/components/ButtonSelectorInput";
 import ComboboxInput from "@/components/ComboboxInput";
 import FormLabel from "@/components/FormLabel";
 import { Icon } from "@/components/Icon";
@@ -10,14 +14,18 @@ export interface SettingsMenuProps {
   textSize: number;
   languageCode: string;
   languages: { name: string; code: string }[];
+  mode: "immersive" | "standard";
   onTextSizeChange?(textSize: number): void;
+  onModeChange?(mode: "immersive" | "standard"): void;
 }
 
 export default function SettingsMenu({
   textSize,
   languageCode,
   languages,
+  mode,
   onTextSizeChange,
+  onModeChange,
 }: SettingsMenuProps) {
   const t = useTranslations("SettingsMenu");
 
@@ -45,6 +53,22 @@ export default function SettingsMenu({
               autoComplete="off"
             />
           </div>
+        </div>
+        <div>
+          <FormLabel id="mode-label">Mode</FormLabel>
+          <ButtonSelectorInput
+            name="mode"
+            value={mode}
+            onChange={onModeChange}
+            aria-labelledby="mode-label"
+          >
+            <ButtonSelectorOption value="standard">
+              Standard
+            </ButtonSelectorOption>
+            <ButtonSelectorOption value="immersive">
+              Immersive
+            </ButtonSelectorOption>
+          </ButtonSelectorInput>
         </div>
         <div>
           <FormLabel htmlFor="text-size">{t("text_size")}</FormLabel>

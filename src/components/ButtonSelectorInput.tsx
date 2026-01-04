@@ -57,6 +57,7 @@ export function ButtonSelectorInput({
         className={`
           inline-block rounded-lg shadow-md dark:shadow-none
           has-[:focus-visible]:outline outline-2
+          whitespace-nowrap
           ${
             hasErrors ?
               "focus-within:outline-red-700"

@@ -18,6 +18,7 @@ interface VerseWord {
   lemma: string;
   grammar: string;
   footnote?: string;
+  nativeLexicon?: string;
 }
 
 interface Verse {
@@ -72,7 +73,9 @@ export default function ReadingView({
   const t = useTranslations("ReadingView");
   const isOT = isOldTestament(chapterId + "001");
 
-  const popover = usePopover();
+  const { textSize, audioVerse, mode } = useReadingContext();
+
+  const popover = usePopover(mode !== "immersive");
   const linkedWords = popover.selectedWord?.word.linkedWords ?? [];
 
   const [showSidebar, setShowSidebar] = useState(false);
@@ -80,8 +83,6 @@ export default function ReadingView({
     useState<SelectedElement | null>(null);
 
   const sidebarRef = useRef<WordDetailsRef>(null);
-
-  const { textSize, audioVerse } = useReadingContext();
 
   return (
     <>
@@ -184,6 +185,7 @@ export default function ReadingView({
                 ref={sidebarRef}
                 language={language}
                 word={selectedElement.element}
+                mode={mode}
               />
             : <VerseDetails
                 verse={selectedElement.element}
@@ -215,9 +217,9 @@ export default function ReadingView({
         createPortal(
           <div
             className={`
-                        bg-brown-100 dark:bg-gray-800 rounded-sm border border-gray-300 dark:border-gray-700 shadow-sm dark:shadow-none px-1 font-bold
-                        ${textSizeMap[textSize]}
-                    `}
+              bg-brown-100 dark:bg-gray-800 rounded-sm border border-gray-300 dark:border-gray-700 shadow-sm dark:shadow-none px-1 font-bold
+              ${textSizeMap[textSize]}
+            `}
             dir={language.textDirection}
             ref={popover.refs.setFloating}
             style={popover.floatingStyles}
@@ -230,7 +232,7 @@ export default function ReadingView({
   );
 }
 
-function usePopover(onClose?: () => void) {
+function usePopover(enabled: boolean) {
   const [selectedWord, selectWord] = useState<{
     word: VerseWord;
     mode: "hover" | "click";
@@ -271,13 +273,17 @@ function usePopover(onClose?: () => void) {
     return () => {
       setTimeout(() => window.removeEventListener("click", handler));
     };
-  }, [refs, elements.reference, onClose]);
+  }, [refs, elements.reference]);
 
   function onWordClick(e: MouseEvent<HTMLSpanElement>, word: VerseWord) {
+    if (!enabled) return;
+
     refs.setReference(e.currentTarget);
     selectWord({ word, mode: "click" });
   }
   function onWordMouseEnter(e: MouseEvent<HTMLSpanElement>, word: VerseWord) {
+    if (!enabled) return;
+
     refs.setReference(e.currentTarget);
     selectWord({ word, mode: "hover" });
   }

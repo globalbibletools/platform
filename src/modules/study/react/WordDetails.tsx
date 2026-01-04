@@ -18,12 +18,14 @@ export interface Word {
   lemma: string;
   grammar: string;
   footnote?: string;
+  nativeLexicon?: string;
 }
 
 export interface WordDetailsProps {
   className?: string;
   word: Word;
   language: { font: string; textDirection: string; code: string };
+  mode: "immersive" | "standard";
 }
 
 export interface LemmaResource {
@@ -37,7 +39,7 @@ export interface WordDetailsRef {
 }
 
 const WordDetails = forwardRef<WordDetailsRef, WordDetailsProps>(
-  ({ language, word }) => {
+  ({ language, word, mode }) => {
     const t = useTranslations("WordDetails");
 
     const [tabIndex, setTabIndex] = useState(0);
@@ -78,16 +80,20 @@ const WordDetails = forwardRef<WordDetailsRef, WordDetailsProps>(
               <span className="font-mixed text-xl">{word.text}</span>
               <span>{word.lemma}</span>
             </div>
-            <div>{word.grammar}</div>
+            {mode === "standard" && <div>{word.grammar}</div>}
+            <div className="font-mixed mt-1">{word.nativeLexicon}</div>
           </div>
         </div>
 
-        <div className="grow flex flex-col min-h-0">
-          <Tab.Group selectedIndex={tabIndex} onChange={setTabIndex}>
-            <Tab.List className="flex flex-row items-end">
-              <div className="border-b border-blue-800 dark:border-green-400 h-full w-2"></div>
-              {[t("tabs.lexicon"), ...(hasNotes ? [t("tabs.notes")] : [])].map(
-                (title) => (
+        {mode === "standard" && (
+          <div className="grow flex flex-col min-h-0">
+            <Tab.Group selectedIndex={tabIndex} onChange={setTabIndex}>
+              <Tab.List className="flex flex-row items-end">
+                <div className="border-b border-blue-800 dark:border-green-400 h-full w-2"></div>
+                {[
+                  t("tabs.lexicon"),
+                  ...(hasNotes ? [t("tabs.notes")] : []),
+                ].map((title) => (
                   <Fragment key={title}>
                     <Tab
                       className="
@@ -99,57 +105,57 @@ const WordDetails = forwardRef<WordDetailsRef, WordDetailsProps>(
                     </Tab>
                     <div className="border-b border-blue-800 dark:border-green-400 h-full w-1"></div>
                   </Fragment>
-                ),
-              )}
-              <div className="border-b border-blue-800 dark:border-green-400 h-full grow"></div>
-            </Tab.List>
-            <Tab.Panels className="overflow-y-auto grow px-4 pt-4 mb-4">
-              <Tab.Panel unmount={false}>
-                <div>
-                  {isLoading && <LoadingSpinner />}
-                  {!isLoading && data && (
-                    <>
-                      <div className="text-lg mb-3 font-bold me-2">
-                        {data.name}
-                      </div>
-                      <div
-                        className="leading-relaxed text-sm font-mixed"
-                        ref={lexiconEntryRef}
-                        onClick={(event) => {
-                          const target = event.target as HTMLElement;
-                          if (
-                            target.nodeName === "A" &&
-                            target.classList.contains("ref")
-                          ) {
-                            openPreview(target as HTMLAnchorElement);
-                          }
-                        }}
-                      >
-                        <LexiconText content={data.entry} />
-                      </div>
-                      {previewElement !== null &&
-                        createPortal(
-                          <VersesPreview
-                            language={language}
-                            verseIds={previewVerseIds}
-                            onClose={() => {
-                              setPreviewVerseIds([]);
-                              setPreviewElement(null);
-                              previewElement.remove();
-                            }}
-                          />,
-                          previewElement,
-                        )}
-                    </>
-                  )}
-                </div>
-              </Tab.Panel>
-              <Tab.Panel unmount={false}>
-                <RichText className="pb-2" content={word.footnote ?? ""} />
-              </Tab.Panel>
-            </Tab.Panels>
-          </Tab.Group>
-        </div>
+                ))}
+                <div className="border-b border-blue-800 dark:border-green-400 h-full grow"></div>
+              </Tab.List>
+              <Tab.Panels className="overflow-y-auto grow px-4 pt-4 mb-4">
+                <Tab.Panel unmount={false}>
+                  <div>
+                    {isLoading && <LoadingSpinner />}
+                    {!isLoading && data && (
+                      <>
+                        <div className="text-lg mb-3 font-bold me-2">
+                          {data.name}
+                        </div>
+                        <div
+                          className="leading-relaxed text-sm font-mixed"
+                          ref={lexiconEntryRef}
+                          onClick={(event) => {
+                            const target = event.target as HTMLElement;
+                            if (
+                              target.nodeName === "A" &&
+                              target.classList.contains("ref")
+                            ) {
+                              openPreview(target as HTMLAnchorElement);
+                            }
+                          }}
+                        >
+                          <LexiconText content={data.entry} />
+                        </div>
+                        {previewElement !== null &&
+                          createPortal(
+                            <VersesPreview
+                              language={language}
+                              verseIds={previewVerseIds}
+                              onClose={() => {
+                                setPreviewVerseIds([]);
+                                setPreviewElement(null);
+                                previewElement.remove();
+                              }}
+                            />,
+                            previewElement,
+                          )}
+                      </>
+                    )}
+                  </div>
+                </Tab.Panel>
+                <Tab.Panel unmount={false}>
+                  <RichText className="pb-2" content={word.footnote ?? ""} />
+                </Tab.Panel>
+              </Tab.Panels>
+            </Tab.Group>
+          </div>
+        )}
       </div>
     );
   },
