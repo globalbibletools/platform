@@ -1,5 +1,5 @@
-import { test, expect } from "vitest";
-import ProcessEmailRejection from "./ProcessEmailRejection";
+import { test, expect, vi } from "vitest";
+import { processEmailRejection } from "./processEmailRejection";
 import mockUserRepo from "../data-access/mockUserRepository";
 import EmailStatus, { EmailStatusRaw } from "../model/EmailStatus";
 import UserEmail from "../model/UserEmail";
@@ -8,10 +8,13 @@ import PasswordReset from "../model/PasswordReset";
 import User from "../model/User";
 import UserStatus from "../model/UserStatus";
 
-const processEmailRejection = new ProcessEmailRejection(mockUserRepo);
+vi.mock(
+  "../data-access/userRepository",
+  () => import("../data-access/mockUserRepository"),
+);
 
 test("does nothing if the user could not be found", async () => {
-  await processEmailRejection.execute({
+  await processEmailRejection({
     email: "test@example.com",
     reason: EmailStatusRaw.Bounced,
   });
@@ -34,7 +37,7 @@ test("marks user's email as bounced", async () => {
   const user = new User({ ...props });
   mockUserRepo.users = [user];
 
-  await processEmailRejection.execute({
+  await processEmailRejection({
     email: props.email.address,
     reason: EmailStatusRaw.Bounced,
   });

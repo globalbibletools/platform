@@ -1,6 +1,5 @@
 import * as z from "zod";
-import ProcessEmailRejection from "../use-cases/ProcessEmailRejection";
-import userRepository from "../data-access/userRepository";
+import { processEmailRejection } from "../use-cases/processEmailRejection";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { logger } from "@/logging";
 
@@ -37,8 +36,6 @@ const bodySchema = z.discriminatedUnion("Type", [
     TopicArn: z.string(),
   }),
 ]);
-
-const processEmailRejectionUseCase = new ProcessEmailRejection(userRepository);
 
 export default async function postEmailNotification(req: Request) {
   const childLogger = logger.child({
@@ -78,7 +75,7 @@ export default async function postEmailNotification(req: Request) {
             "Emails bounced",
           );
           for (const recipient of message.bounce.bouncedRecipients) {
-            await processEmailRejectionUseCase.execute({
+            await processEmailRejection({
               email: recipient.emailAddress,
               reason: EmailStatusRaw.Bounced,
             });
@@ -98,7 +95,7 @@ export default async function postEmailNotification(req: Request) {
 
           for (const recipient of message.complaint.complainedRecipients) {
             try {
-              await processEmailRejectionUseCase.execute({
+              await processEmailRejection({
                 email: recipient.emailAddress,
                 reason: EmailStatusRaw.Complained,
               });
