@@ -86,7 +86,7 @@ export default function ReadingToolbar({
     <>
       <div
         className="
-          sticky top-[--heading-height] h-[--read-nav-h] z-10 flex gap-4 items-center justify-between sm:justify-center
+          sticky top-[--heading-height] h-[--read-nav-h] z-20 flex gap-4 items-center justify-between sm:justify-center
           px-4
           shadow-md dark:shadow-none dark:border-b dark:border-gray-700 bg-white dark:bg-gray-900
         "
