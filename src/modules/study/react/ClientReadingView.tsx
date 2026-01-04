@@ -114,9 +114,13 @@ export default function ReadingView({
                   `}
                   onDoubleClick={() => {
                     setShowSidebar(true);
+                    setSelectedElement({ type: "word", element: word });
                   }}
                   onClick={(e) => {
-                    setSelectedElement({ type: "word", element: word });
+                    if (showSidebar) {
+                      setSelectedElement({ type: "word", element: word });
+                    }
+
                     popover.onWordClick(e, word);
                   }}
                 >
@@ -134,9 +138,14 @@ export default function ReadingView({
                 // Allows audio player to start playing at this verse when clicked
                 data-verse-number={verse.number}
                 onClick={() => {
+                  if (showSidebar) {
+                    setSelectedElement({ type: "verse", element: verse });
+                  }
+                }}
+                onDoubleClick={() => {
+                  setShowSidebar(true);
                   setSelectedElement({ type: "verse", element: verse });
                 }}
-                onDoubleClick={() => setShowSidebar(true)}
               >
                 {verse.number}&nbsp;
               </span>,
@@ -182,7 +191,10 @@ export default function ReadingView({
               />
             }
             <button
-              onClick={() => setShowSidebar(false)}
+              onClick={() => {
+                setShowSidebar(false);
+                setSelectedElement(null);
+              }}
               type="button"
               className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline outline-2 outline-green-300"
             >
