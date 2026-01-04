@@ -88,6 +88,10 @@ export default class User {
     return this.props.systemRoles;
   }
 
+  isActive() {
+    return Boolean(this.props.password);
+  }
+
   updateName(name: string) {
     this.props.name = name;
   }
@@ -97,7 +101,7 @@ export default class User {
   }
 
   reinvite(): string {
-    if (this.props.password) throw new UserAlreadyActiveError();
+    if (this.isActive()) throw new UserAlreadyActiveError();
 
     const invite = Invitation.generate();
     this.props.invitations.push(invite);

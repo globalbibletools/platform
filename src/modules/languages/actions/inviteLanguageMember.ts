@@ -10,7 +10,6 @@ import { serverActionLogger } from "@/server-action";
 import InviteLanguageMember from "../use-cases/InviteLanguageMember";
 import languageRepository from "../data-access/languageRepository";
 import languageMemberRepository from "../data-access/languageMemberRepository";
-import { userClient } from "@/modules/users/public/UserClient";
 import { NotFoundError } from "@/shared/errors";
 import { Policy } from "@/modules/access";
 
@@ -26,7 +25,6 @@ const policy = new Policy({
 const inviteLanguageMemberUseCase = new InviteLanguageMember(
   languageRepository,
   languageMemberRepository,
-  userClient,
 );
 
 export async function inviteLanguageMember(

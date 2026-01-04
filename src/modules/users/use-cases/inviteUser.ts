@@ -4,6 +4,7 @@ import User from "../model/User";
 
 export interface InviteUserRequest {
   email: string;
+  returnIfActive?: boolean;
 }
 
 export interface InviteUserResponse {
@@ -17,7 +18,11 @@ export async function inviteUser(
 
   let user = await userRepository.findByEmail(request.email);
   if (user) {
-    token = user.reinvite();
+    if (request.returnIfActive && user.isActive()) {
+      return { userId: user.id };
+    } else {
+      token = user.reinvite();
+    }
   } else {
     const result = User.invite(request.email);
     user = result.user;

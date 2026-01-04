@@ -1,16 +1,19 @@
-import { test, expect } from "vitest";
+import { test, expect, vi } from "vitest";
 import InviteLanguageMember from "./InviteLanguageMember";
 import mockLanguageRepo from "../data-access/mockLanguageRepository";
 import mockLanguageMemberRepo from "../data-access/mockLanguageMemberRepository";
-import fakeUserClient from "@/modules/users/public/FakeUserClient";
+import { inviteUser } from "@/modules/users";
 import { NotFoundError } from "@/shared/errors";
 import { TextDirectionRaw } from "../model";
 import { ulid } from "@/shared/ulid";
 
+vi.mock("@/modules/users", () => ({
+  inviteUser: vi.fn(),
+}));
+
 const inviteLanguageMember = new InviteLanguageMember(
   mockLanguageRepo,
   mockLanguageMemberRepo,
-  fakeUserClient,
 );
 
 test("throws error if language could not be found", async () => {
@@ -22,6 +25,9 @@ test("throws error if language could not be found", async () => {
 });
 
 test("invites language member", async () => {
+  const userId = ulid();
+  vi.mocked(inviteUser).mockResolvedValue({ userId });
+
   const language = {
     id: ulid(),
     name: "Spanish",
@@ -36,7 +42,7 @@ test("invites language member", async () => {
     code: "spa",
     email: "invited@example.com",
   });
-  expect(response).toEqual({ userId: expect.toBeUlid() });
+  expect(response).toEqual({ userId });
 
   expect(mockLanguageMemberRepo.members).toEqual([
     {

@@ -1,4 +1,4 @@
-import { UserClient } from "@/modules/users/public/types";
+import { inviteUser } from "@/modules/users";
 import {
   LanguageMemberRepository,
   LanguageRepository,
@@ -18,7 +18,6 @@ export default class InviteLanguageMember {
   constructor(
     private readonly languageRepo: LanguageRepository,
     private readonly languageMemberRepo: LanguageMemberRepository,
-    private readonly userClient: UserClient,
   ) {}
 
   async execute(
@@ -27,7 +26,10 @@ export default class InviteLanguageMember {
     const language = await this.languageRepo.findByCode(request.code);
     if (!language) throw new NotFoundError("Language");
 
-    const userId = await this.userClient.findOrInviteUser(request.email);
+    const { userId } = await inviteUser({
+      email: request.email,
+      returnIfActive: true,
+    });
 
     await this.languageMemberRepo.create({
       languageId: language.id,
