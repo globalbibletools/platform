@@ -1,5 +1,5 @@
-import { test, expect } from "vitest";
-import AcceptInvite from "./AcceptInvite";
+import { test, expect, vi } from "vitest";
+import { acceptInvite } from "./acceptInvite";
 import mockUserRepo from "../data-access/mockUserRepository";
 import User from "../model/User";
 import UserEmail from "../model/UserEmail";
@@ -10,10 +10,13 @@ import { addDays } from "date-fns";
 import { InvalidInvitationTokenError } from "../model/errors";
 import UserStatus from "../model/UserStatus";
 
-const acceptInvite = new AcceptInvite(mockUserRepo);
+vi.mock(
+  "../data-access/userRepository",
+  () => import("../data-access/mockUserRepository"),
+);
 
 test("throws error if invite could not be found", async () => {
-  const result = acceptInvite.execute({
+  const result = acceptInvite({
     token: "asdf",
     firstName: "First",
     lastName: "Last",
@@ -43,7 +46,7 @@ test("throws error if invite is expired", async () => {
   const user = new User({ ...props });
   mockUserRepo.users = [user];
 
-  const result = acceptInvite.execute({
+  const result = acceptInvite({
     token,
     firstName: "First",
     lastName: "Last",
@@ -80,7 +83,7 @@ test("processes invite and sets up user", async () => {
     password: "pa$$word",
   };
 
-  const result = await acceptInvite.execute(request);
+  const result = await acceptInvite(request);
   expect(result).toEqual({ userId: user.id });
 
   expect(mockUserRepo.users).toEqual([
