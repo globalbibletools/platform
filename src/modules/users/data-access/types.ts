@@ -1,7 +1,6 @@
 import { Generated } from "kysely";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import { SystemRoleRaw } from "../model/SystemRole";
-import User from "../model/User";
 import { UserStatusRaw } from "../model/UserStatus";
 
 export interface UserTable {
@@ -80,14 +79,4 @@ export interface DbSession {
   id: string;
   userId: string;
   expiresAt: Date;
-}
-
-export interface UserRepository {
-  existsByEmail(email: string): Promise<boolean>;
-  findById(id: string): Promise<User | undefined>;
-  findByEmail(email: string): Promise<User | undefined>;
-  findByResetPasswordToken(token: string): Promise<User | undefined>;
-  findByEmailVerificationToken(token: string): Promise<User | undefined>;
-  findByInvitationToken(token: string): Promise<User | undefined>;
-  commit(user: User): Promise<void>;
 }
