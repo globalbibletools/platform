@@ -6,14 +6,17 @@ const PERMALINK_PATHNAME_REGEX = /^\/p\/(\w+)\/(.+)$/;
 const DEFAULT_LOCALE = "en";
 
 export async function resolvePermalink(request: NextRequest) {
-  const url = new URL(request.url);
-
-  const match = PERMALINK_PATHNAME_REGEX.exec(url.pathname);
+  const match = PERMALINK_PATHNAME_REGEX.exec(request.nextUrl.pathname);
   if (!match) {
     return new NextResponse("", { status: 404 });
   }
 
   const [, type, identifier] = match;
+
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const host = forwardedHost ?? request.headers.get("host");
+  const proto = request.headers.get("x-forwarded-proto") ?? "http";
+  const url = new URL(request.nextUrl.pathname, `${proto}://${host}`);
 
   switch (type) {
     default: {
@@ -32,9 +35,8 @@ export async function resolvePermalink(request: NextRequest) {
         return new NextResponse("", { status: 404 });
       }
 
-      const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = `/${DEFAULT_LOCALE}/read/eng/${chapterId}`;
-      return NextResponse.redirect(redirectUrl);
+      url.pathname = `/${DEFAULT_LOCALE}/read/eng/${chapterId}`;
+      return NextResponse.redirect(url);
     }
   }
 }
