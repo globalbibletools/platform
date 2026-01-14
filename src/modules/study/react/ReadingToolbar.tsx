@@ -5,10 +5,17 @@ import ComboboxInput from "@/components/ComboboxInput";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
-import { createContext, ReactNode, useContext, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useState,
+} from "react";
 import AudioDialog from "./AudioDialog";
 import SettingsMenu from "./SettingsMenu";
 import CommandInput from "./CommandInput";
+import { useFlash } from "@/flash";
 
 export interface TranslationToolbarProps {
   languages: { name: string; code: string }[];
@@ -31,6 +38,11 @@ export default function ReadingToolbar({
   const [audioVerse, setAudioVerse] = useState<string>();
 
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
+
+  const copyToClipboard = useClipboardCopy({
+    messageOnSuccess: t("copyLink.success"),
+    messageOnError: t("copyLink.error"),
+  });
 
   return (
     <>
@@ -55,6 +67,10 @@ export default function ReadingToolbar({
           aria-label={t("language")}
         />
         <div className="flex gap-4 items-center">
+          <Button variant="link" onClick={() => copyToClipboard("asdf")}>
+            <Icon icon="share-from-square" size="xl" />
+            <span className="sr-only">{t("share")}</span>
+          </Button>
           <Button
             variant="link"
             onClick={() => setShowAudioPlayer((show) => !show)}
@@ -110,4 +126,28 @@ export function useReadingContext() {
     throw new Error("useReadingContext must be used inside of ReadingToolbar");
   }
   return context;
+}
+
+export function useClipboardCopy({
+  messageOnSuccess,
+  messageOnError,
+}: {
+  messageOnSuccess: string;
+  messageOnError: string;
+}) {
+  const flash = useFlash();
+
+  const copy = useCallback(
+    async (value: string) => {
+      try {
+        await navigator.clipboard.writeText(value);
+        flash.success(messageOnSuccess);
+      } catch (error) {
+        flash.error(messageOnError);
+      }
+    },
+    [flash.error, flash.success, messageOnSuccess, messageOnError],
+  );
+
+  return copy;
 }
