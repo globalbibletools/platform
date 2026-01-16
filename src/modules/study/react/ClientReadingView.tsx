@@ -89,6 +89,12 @@ export default function ReadingView({
 
   const sidebarRef = useRef<WordDetailsRef>(null);
 
+  useEffect(() => {
+    if (language.code && chapterId) {
+      document.cookie = `LAST_READ=${language.code},${chapterId}; path=/; SameSite=Lax`;
+    }
+  }, [language.code, chapterId]);
+
   return (
     <>
       <div className="flex flex-col flex-grow lg:justify-center w-full min-h-0 lg:flex-row">

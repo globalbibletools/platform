@@ -117,6 +117,12 @@ export default function TranslateView({
     return () => window.removeEventListener("keydown", keydownCallback);
   }, []);
 
+  useEffect(() => {
+    if (language.code && verseId) {
+      document.cookie = `LAST_TRANSLATION=${language.code},${verseId}; path=/; SameSite=Lax`;
+    }
+  }, [language.code, verseId]);
+
   return (
     <div
       ref={root}
