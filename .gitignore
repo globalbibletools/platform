@@ -39,3 +39,6 @@ next-env.d.ts
 dist/
 
 diagram.txt
+
+# localstack
+localstack/data/
