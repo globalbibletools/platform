@@ -1,0 +1,8 @@
+{
+  "label": "System Design",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Understand how we have designed our system."
+  }
+}
