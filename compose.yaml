@@ -52,11 +52,14 @@ services:
       - path: .env
         required: false
   localstack:
-    image: localstack/localstack:latest
+    image: localstack/localstack:4
     environment:
       - SERVICES=s3
       - DEFAULT_REGION=us-east-1
       - LS_LOG=warn
+    volumes:
+      - ./localstack/data:/var/lib/localstack
+      - ./localstack/init:/etc/localstack/init
     ports:
       - 4566:4566
     healthcheck:
@@ -64,26 +67,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  localstack-init:
-    image: amazon/aws-cli:2.32.11
-    depends_on:
-      localstack:
-        condition: service_healthy
-    environment:
-      AWS_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: test
-      AWS_SECRET_ACCESS_KEY: test
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - >
-        until aws --endpoint-url http://localstack:4566 s3api list-buckets >/dev/null 2>&1; do
-          echo "Waiting for localstack S3...";
-          sleep 2;
-        done;
-        aws --endpoint-url http://localstack:4566 s3 mb s3://gbt-exports-local >/dev/null 2>&1 || true;
-        echo "Localstack S3 bucket ready";
-    restart: "no"
   db:
     build:
       dockerfile: db/Dockerfile
