@@ -36,4 +36,4 @@ COPY . .
 ENV PORT=3000
 ENV NODE_ENV=development
 EXPOSE 3000
-CMD npm run dev
+CMD npm ci && npm run dev

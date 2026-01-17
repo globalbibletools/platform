@@ -9,4 +9,4 @@ RUN npm ci
 
 COPY . ../.
 
-CMD npm run start
+CMD npm ci && npm run start

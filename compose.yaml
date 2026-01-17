@@ -16,7 +16,7 @@ services:
       AWS_S3_FORCE_PATH_STYLE: "true"
     volumes:
       - ./:/app
-      - server-node-modules:/app/node_modules
+      - platform-node-modules:/app/node_modules
     ports:
       - 3000:3000
     depends_on:
@@ -40,7 +40,7 @@ services:
       EXPORT_PUBLIC_S3_ENDPOINT: http://localhost:4566
     volumes:
       - ./:/app
-      - job-worker-node-modules:/app/node_modules
+      - platform-node-modules:/app/node_modules
     ports:
       - 9000:8080
     depends_on:
@@ -113,9 +113,10 @@ services:
     restart: always
     volumes:
       - ./:/app
+      - docs-node-modules:/app/docs/node_modules
     ports:
       - 4000:3000
 volumes:
   db-data:
-  job-worker-node-modules:
-  server-node-modules:
+  platform-node-modules:
+  docs-node-modules:
