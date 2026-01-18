@@ -3,7 +3,7 @@
 import { query } from "@/db";
 import { randomBytes } from "crypto";
 import { cookies } from "next/headers";
-import { cache } from "react";
+import * as React from "react";
 
 const DAY_FROM_MS = 24 * 60 * 60 * 1000;
 const EXPIRES_IN =
@@ -74,6 +74,12 @@ interface Session {
     roles: string[];
   };
 }
+
+// `cache` is provided by Next's React runtime; fallback to no caching in non-Next contexts (e.g. vitest).
+const cache: <T extends (...args: any[]) => any>(fn: T) => T =
+  typeof (React as any).cache === "function" ?
+    (React as any).cache
+  : (fn: any) => fn;
 
 const fetchSession = cache(
   async (sessionId: string): Promise<Session | undefined> => {
