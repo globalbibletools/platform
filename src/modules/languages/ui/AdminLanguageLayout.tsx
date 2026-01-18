@@ -92,6 +92,19 @@ export default async function LanguageLayout({
             </SidebarLink>
           </li>
           <FeatureFlagged
+            feature="ff-interlinear-pdf-export"
+            enabledChildren={
+              <li>
+                <SidebarLink
+                  href={`/${params.locale}/admin/languages/${params.code}/exports`}
+                >
+                  <Icon icon="file-arrow-down" className="w-4 me-2" />
+                  {t("links.exports")}
+                </SidebarLink>
+              </li>
+            }
+          />
+          <FeatureFlagged
             feature="ff-snapshots"
             enabledChildren={
               <li>

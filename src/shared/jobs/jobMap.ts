@@ -5,6 +5,8 @@ import { REPORTING_JOB_TYPES } from "@/modules/reporting/jobs/jobTypes";
 import { SNAPSHOT_JOB_TYPES } from "@/modules/snapshots/jobs/jobTypes";
 import { createSnapshotJob } from "@/modules/snapshots/jobs/createSnapshotJob";
 import { restoreSnapshotJob } from "@/modules/snapshots/jobs/restoreSnapshotJob";
+import { EXPORT_JOB_TYPES } from "@/modules/export/jobs/jobTypes";
+import exportInterlinearPdfJob from "@/modules/export/jobs/exportInterlinearPdfJob";
 
 export type JobHandler<Payload, Data = unknown> = (
   job: Job<Payload, Data>,
@@ -24,6 +26,10 @@ const jobMap: Record<string, JobMapEntry<any>> = {
   },
   [REPORTING_JOB_TYPES.EXPORT_ANALYTICS]: {
     handler: exportAnalyticsJob,
+    timeout: 60 * 5, // 5 minutes
+  },
+  [EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF]: {
+    handler: exportInterlinearPdfJob,
     timeout: 60 * 5, // 5 minutes
   },
   [SNAPSHOT_JOB_TYPES.CREATE_SNAPSHOT]: {
