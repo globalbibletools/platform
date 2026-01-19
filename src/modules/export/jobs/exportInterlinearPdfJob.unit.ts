@@ -15,6 +15,7 @@ const {
   mockMergePdfs,
   mockGenerateInterlinearPdf,
   mockUpdateData,
+  mockFindApprovedGlossChapters,
 } = vi.hoisted(() => {
   return {
     mockQuery: vi.fn(),
@@ -26,6 +27,7 @@ const {
     mockMergePdfs: vi.fn(),
     mockGenerateInterlinearPdf: vi.fn(),
     mockUpdateData: vi.fn(),
+    mockFindApprovedGlossChapters: vi.fn(),
   };
 });
 
@@ -41,6 +43,14 @@ vi.mock("@/modules/export/data-access/InterlinearQueryService", () => {
     __esModule: true,
     default: {
       fetchChapters: mockFetchChapters,
+    },
+  };
+});
+vi.mock("@/modules/export/data-access/InterlinearCoverageQueryService", () => {
+  return {
+    __esModule: true,
+    default: {
+      findApprovedGlossChapters: mockFindApprovedGlossChapters,
     },
   };
 });
@@ -72,8 +82,6 @@ const baseJob = {
     languageId: "lang-1",
     languageCode: "spa",
     requestedBy: "user-1",
-    books: [{ bookId: 1, chapters: [1, 2] }],
-    layout: "standard" as const,
   },
 };
 
@@ -97,15 +105,25 @@ describe("exportInterlinearPdfJob", () => {
     mockMergePdfs.mockReset();
     mockGenerateInterlinearPdf.mockReset();
     mockUpdateData.mockReset();
+    mockFindApprovedGlossChapters.mockReset();
 
     const partBytes = await createPdfWithPages(1);
 
     mockQuery.mockImplementation(async (text: string) => {
       if (text.includes("select id, name from book")) {
-        return { rows: [{ id: 1, name: "Genesis" }] };
+        return {
+          rows: [
+            { id: 1, name: "Genesis" },
+            { id: 2, name: "Exodus" },
+          ],
+        };
       }
       return { rows: [] };
     });
+    mockFindApprovedGlossChapters.mockResolvedValue([
+      { bookId: 1, chapters: [1, 2] },
+      { bookId: 2, chapters: [1] },
+    ]);
     mockFetchChapters.mockResolvedValue({
       language: { textDirection: "ltr", name: "Test Language" },
       verses: [
@@ -125,13 +143,17 @@ describe("exportInterlinearPdfJob", () => {
     vi.useRealTimers();
   });
 
-  it("processes multi-chapter exports in one job and records public download data", async () => {
+  it("processes approved gloss chapters and records public download data", async () => {
     await expect(exportInterlinearPdfJob(baseJob)).resolves.toBeUndefined();
 
-    expect(mockUploadPdf).toHaveBeenCalledTimes(baseJob.payload.books.length);
+    expect(mockFindApprovedGlossChapters).toHaveBeenCalledWith("lang-1");
+    expect(mockUploadPdf).toHaveBeenCalledTimes(2);
 
     const uploadedKeys = mockUploadPdf.mock.calls.map((c) => c[0]?.key);
-    expect(uploadedKeys).toEqual(["interlinear/spa/job-1-book-1.pdf"]);
+    expect(uploadedKeys).toEqual([
+      "interlinear/spa/job-1-book-1.pdf",
+      "interlinear/spa/job-1-book-2.pdf",
+    ]);
 
     expect(mockMergePdfs).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
@@ -160,7 +182,7 @@ describe("exportInterlinearPdfJob", () => {
       /public URL failed/,
     );
 
-    expect(mockDeleteObject).toHaveBeenCalledTimes(1);
+    expect(mockDeleteObject).toHaveBeenCalledTimes(2);
     expect(mockUpdateData).not.toHaveBeenCalled();
   });
 });

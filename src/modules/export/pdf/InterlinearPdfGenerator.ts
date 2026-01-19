@@ -9,7 +9,6 @@ import fs from "fs";
 
 export interface PdfGeneratorOptions {
   pageSize?: "letter" | "a4";
-  layout: "standard" | "parallel";
   direction?: "ltr" | "rtl";
   header?: { title?: string; subtitle?: string };
   footer?: { generatedAt?: Date; pageOffset?: number; pageTotal?: number };
@@ -88,19 +87,11 @@ export function generateInterlinearPdf(
 
   const contentWidth =
     doc.page.width - doc.page.margins.left - doc.page.margins.right;
-  const verseSpacing = options.layout === "parallel" ? 1.2 : 0.5;
+  const verseSpacing = 0.5;
 
   for (const verse of chapter.verses) {
     ensureSpace(doc, 40);
-    renderVerse(
-      doc,
-      verse,
-      options.layout,
-      primaryFont,
-      glossFont,
-      alignment,
-      contentWidth,
-    );
+    renderVerse(doc, verse, primaryFont, glossFont, alignment, contentWidth);
     doc.moveDown(verseSpacing);
   }
 
@@ -114,7 +105,6 @@ export function generateInterlinearPdf(
 function renderVerse(
   doc: PDFKit.PDFDocument,
   verse: InterlinearVerse,
-  layout: "standard" | "parallel",
   font: string,
   glossFont: string,
   alignment: "left" | "right",
@@ -132,18 +122,14 @@ function renderVerse(
     .fillColor("#000");
   doc.moveDown(0.2);
 
-  if (layout === "standard") {
-    renderInterlinearLine(
-      doc,
-      verse.words,
-      font,
-      glossFont,
-      alignment,
-      contentWidth,
-    );
-  } else {
-    renderParallelVerse(doc, verse, font, glossFont, alignment, contentWidth);
-  }
+  renderInterlinearLine(
+    doc,
+    verse.words,
+    font,
+    glossFont,
+    alignment,
+    contentWidth,
+  );
 }
 
 function renderInterlinearLine(
@@ -257,76 +243,6 @@ function renderInterlinearLine(
   }
 }
 
-function renderParallelVerse(
-  doc: PDFKit.PDFDocument,
-  verse: InterlinearVerse,
-  primaryFont: string,
-  glossFont: string,
-  alignment: "left" | "right",
-  contentWidth: number,
-) {
-  const primaryFontSize = 22;
-  const glossFontSize = 14;
-  const columnGap = 32;
-  const glossColumnWidth = contentWidth * 0.45;
-  const primaryColumnWidth = contentWidth - glossColumnWidth - columnGap;
-
-  const primaryText = verse.words
-    .map((w) => w.text)
-    .join(alignment === "right" ? "  " : " ");
-  const glossText = verse.words
-    .map((w) => formatParagraphDetail(w))
-    .filter(Boolean)
-    .join(" ");
-
-  const estimatedHeight =
-    doc.heightOfString(primaryText, {
-      width: primaryColumnWidth,
-      align: alignment,
-    }) +
-    doc.heightOfString(glossText, {
-      width: glossColumnWidth,
-      align: "left",
-    }) +
-    20;
-  ensureSpace(doc, estimatedHeight);
-
-  const startX = doc.page.margins.left;
-  const glossX = startX;
-  const primaryX = glossX + glossColumnWidth + columnGap;
-
-  const primaryY = doc.y;
-  doc
-    .font(primaryFont)
-    .fontSize(primaryFontSize)
-    .fillColor("#000")
-    .text(primaryText, primaryX, primaryY, {
-      width: primaryColumnWidth,
-      align: alignment,
-    });
-
-  const glossY = primaryY;
-  doc
-    .font(glossFont)
-    .fontSize(glossFontSize)
-    .fillColor("#444")
-    .text(glossText, glossX, glossY, {
-      width: glossColumnWidth,
-      align: "left",
-    });
-
-  const primaryHeight = doc.heightOfString(primaryText, {
-    width: primaryColumnWidth,
-    align: alignment,
-  });
-  const glossHeight = doc.heightOfString(glossText, {
-    width: glossColumnWidth,
-    align: "left",
-  });
-
-  doc.y = Math.max(primaryY + primaryHeight, glossY + glossHeight) + 10;
-}
-
 function addFooter(
   doc: PDFKit.PDFDocument,
   footer?: { generatedAt?: Date; pageOffset?: number; pageTotal?: number },
@@ -438,8 +354,4 @@ function ensureSpace(doc: PDFKit.PDFDocument, required: number) {
 function formatGloss(word: InterlinearVerse["words"][number]) {
   const parts = [word.gloss].filter(Boolean);
   return parts.length ? parts.join(" ") : "";
-}
-
-function formatParagraphDetail(word: InterlinearVerse["words"][number]) {
-  return word.gloss ? word.gloss : "";
 }

@@ -6,6 +6,7 @@ import exportStorageRepository from "../data-access/ExportStorageRepository";
 import type { Logger } from "pino";
 import { detectScript } from "@/shared/scriptDetection";
 import bookQueryService from "../data-access/BookQueryService";
+import interlinearCoverageQueryService from "../data-access/InterlinearCoverageQueryService";
 import interlinearQueryService from "../data-access/InterlinearQueryService";
 import type {
   ExportInterlinearPdfJobData,
@@ -31,22 +32,25 @@ export async function exportInterlinearPdfJob(
 
   const environment = getStorageEnvironment();
 
-  const { languageCode, books, layout } = job.payload;
+  const { languageCode, languageId } = job.payload;
 
   const exportKey = `interlinear/${languageCode}/${job.id}.pdf`;
 
-  if (books.length === 0) {
-    throw new Error("No chapters found for export");
-  }
+  const coverage =
+    await interlinearCoverageQueryService.findApprovedGlossChapters(languageId);
 
   const partKeys: string[] = [];
   try {
+    if (coverage.length === 0) {
+      throw new Error("No chapters with approved glosses found for export");
+    }
+
     const booksById = new Map(
       (await bookQueryService.findAll()).map((book) => [book.id, book.name]),
     );
 
     let pageOffset = 0;
-    for (const selection of books) {
+    for (const selection of coverage) {
       if (!selection.chapters.length) continue;
 
       const chapters = Array.from(new Set(selection.chapters)).sort(
@@ -74,16 +78,15 @@ export async function exportInterlinearPdfJob(
       const sourceScript = detectScript(sampleText);
 
       const glossLanguageName = chapterData.language.name;
-      const titleLayout = layout === "parallel" ? "Parallel" : "Interlinear";
-      const sourceLanguageLabel = sourceScript === "hebrew" ? "Hebrew" : "Greek";
+      const sourceLanguageLabel =
+        sourceScript === "hebrew" ? "Hebrew" : "Greek";
 
       const { stream, pageCount } = generateInterlinearPdf(chapterData, {
-        layout,
         pageSize: "letter",
         direction: chapterData.language.textDirection,
         sourceScript,
         header: {
-          title: `${glossLanguageName}/${sourceLanguageLabel} ${titleLayout}`,
+          title: `${glossLanguageName}/${sourceLanguageLabel} Interlinear`,
           subtitle: `${bookName} - ${chapterLabel}`,
         },
         footer: {
@@ -100,6 +103,10 @@ export async function exportInterlinearPdfJob(
       });
       partKeys.push(partKey);
       pageOffset += pageCount;
+    }
+
+    if (partKeys.length === 0) {
+      throw new Error("No chapters with approved glosses found for export");
     }
 
     const mergeResult = await mergePdfs({

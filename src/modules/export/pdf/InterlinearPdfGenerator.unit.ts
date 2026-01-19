@@ -76,7 +76,6 @@ describe("generateInterlinearPdf", () => {
 
   it("creates a readable PDF with Helvetica gloss and SBL body fonts", async () => {
     const { stream, pageCount } = generateInterlinearPdf(buildSampleChapter(), {
-      layout: "standard",
       pageSize: "letter",
       direction: "ltr",
       header: { title: "Test Header", subtitle: "Book 1" },
