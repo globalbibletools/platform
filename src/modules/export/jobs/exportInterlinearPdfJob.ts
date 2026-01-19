@@ -37,7 +37,9 @@ export async function exportInterlinearPdfJob(
   const exportKey = `interlinear/${languageCode}/${job.id}.pdf`;
 
   const coverage =
-    await interlinearCoverageQueryService.findApprovedGlossChapters(languageId);
+    await interlinearCoverageQueryService.findChaptersWithApprovedGlosses(
+      languageId,
+    );
 
   const partKeys: string[] = [];
   try {

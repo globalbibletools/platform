@@ -100,7 +100,7 @@ describe("interlinearCoverageQueryService", () => {
     );
 
     const result =
-      await interlinearCoverageQueryService.findApprovedGlossChapters(
+      await interlinearCoverageQueryService.findChaptersWithApprovedGlosses(
         language.id,
       );
 

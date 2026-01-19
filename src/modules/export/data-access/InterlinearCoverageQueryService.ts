@@ -6,7 +6,7 @@ export interface BookChaptersRow {
 }
 
 const interlinearCoverageQueryService = {
-  async findApprovedGlossChapters(
+  async findChaptersWithApprovedGlosses(
     languageId: string,
   ): Promise<BookChaptersRow[]> {
     const result = await query<BookChaptersRow>(
