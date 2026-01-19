@@ -5,7 +5,5 @@ select setval(
 
 insert into job_type (name)
 values
-  ('export_interlinear_pdf'),
-  ('cleanup_exports')
+  ('export_interlinear_pdf')
 on conflict (name) do nothing;
-

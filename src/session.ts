@@ -75,13 +75,7 @@ interface Session {
   };
 }
 
-// `cache` is provided by Next's React runtime; fallback to no caching in non-Next contexts (e.g. vitest).
-const cache: <T extends (...args: any[]) => any>(fn: T) => T =
-  typeof (React as any).cache === "function" ?
-    (React as any).cache
-  : (fn: any) => fn;
-
-const fetchSession = cache(
+const fetchSession = React.cache(
   async (sessionId: string): Promise<Session | undefined> => {
     const result = await query<Session>(
       `

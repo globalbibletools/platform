@@ -7,14 +7,7 @@ import { verifySession } from "@/session";
 import { Policy } from "@/modules/access";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import bookQueryService from "../data-access/BookQueryService";
-import languageLookupQueryService from "../data-access/LanguageLookupQueryService";
-import RequestInterlinearExport, {
-  ExportLanguageNotFoundError,
-  NoBooksAvailableForExportError,
-  NoChaptersAvailableForExportError,
-} from "../use-cases/RequestInterlinearExport";
-import { enqueueJob } from "@/shared/jobs/enqueueJob";
+import { requestInterlinearExport } from "../use-cases/RequestInterlinearExport";
 
 const exportPolicy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
@@ -25,15 +18,7 @@ const requestSchema = z.object({
   languageCode: z.string().min(1),
 });
 
-type RequestInterlinearExportResult = FormState & {
-  requestIds?: { id: string; bookId: number | null }[];
-};
-
-const requestInterlinearExportUseCase = new RequestInterlinearExport({
-  bookQueryService,
-  languageLookupQueryService,
-  enqueueJob,
-});
+type RequestInterlinearExportResult = FormState;
 
 export async function requestInterlinearExport(
   arg1: FormState | FormData,
@@ -80,34 +65,15 @@ export async function requestInterlinearExport(
   }
 
   try {
-    const { jobId, bookId } = await requestInterlinearExportUseCase.execute({
+    await requestInterlinearExport({
       languageCode: parsed.data.languageCode,
       requestedBy: userId,
     });
 
     return {
       state: "success",
-      requestIds: [{ id: jobId, bookId }],
     };
   } catch (error) {
-    if (error instanceof ExportLanguageNotFoundError) {
-      return {
-        state: "error",
-        validation: { languageCode: [t("errors.language_not_found")] },
-      };
-    }
-    if (error instanceof NoBooksAvailableForExportError) {
-      return {
-        state: "error",
-        validation: { bookIds: [t("errors.no_books_available")] },
-      };
-    }
-    if (error instanceof NoChaptersAvailableForExportError) {
-      return {
-        state: "error",
-        validation: { chapters: [t("errors.no_chapters_available")] },
-      };
-    }
     logger.error({ err: error }, "failed to request export");
     return { state: "error", error: t("errors.export_failed") };
   }

@@ -661,25 +661,15 @@
     "title": "تصدير PDF بين السطور",
     "description": "إنشاء ملف PDF بين السطور لكل الأسفار.",
     "form": {
-      "books_label": "الأسفار",
-      "books_placeholder": "كل الأسفار (الافتراضي)",
-      "books_help": "اتركه فارغًا لتصدير كل الأسفار.",
-      "chapters_label": "الإصحاحات (مفصولة بفواصل أو نطاقات)",
-      "chapters_placeholder": "مثال: 1,2,4-6 (اتركه فارغًا للكل)",
-      "layout_label": "التخطيط",
-      "layout_standard": "قياسي (كلمة بكلمة)",
-      "layout_parallel": "متوازٍ (الأصل | عمود الترجمة)",
       "submit": "إنشاء PDF",
       "queued": "تمت الإضافة للطابور..."
     },
     "status": {
       "title": "الحالة",
-      "all_books": "كل الأسفار",
       "download": "تنزيل PDF",
       "expires": "ينتهي",
       "generating": "جارٍ إنشاء PDF…",
       "failed": "فشل التصدير. حاول مرة أخرى.",
-      "missing": "لم يتم العثور على التصدير. حاول مرة أخرى.",
       "labels": {
         "pending": "في الطابور",
         "in_progress": "قيد المعالجة",
@@ -690,16 +680,7 @@
     "errors": {
       "invalid": "غير صالح",
       "language_required": "اللغة مطلوبة.",
-      "language_not_found": "اللغة غير موجودة.",
-      "no_books_available": "لا توجد أسفار متاحة للتصدير.",
-      "no_chapters_available": "لا توجد إصحاحات مطابقة للأسفار المحددة.",
-      "export_failed": "فشل التصدير.",
-      "chapters_range_invalid": "يجب أن تكون نطاقات الإصحاحات أرقامًا موجبة وأن يكون البدء قبل الانتهاء.",
-      "chapters_numeric_or_ranges": "يجب أن تكون الإصحاحات أرقامًا أو نطاقات.",
-      "chapters_positive": "يجب أن تكون الإصحاحات أرقامًا موجبة.",
-      "chapters_required_or_blank": "أدخل إصحاحًا واحدًا على الأقل أو اتركه فارغًا للكل.",
-      "books_numeric_ids": "يجب أن تكون الأسفار أرقامًا.",
-      "books_required": "اختر سفرًا واحدًا على الأقل."
+      "export_failed": "فشل التصدير."
     }
   }
 }

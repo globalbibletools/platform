@@ -664,25 +664,15 @@
     "title": "Interlinear PDF Export",
     "description": "Generate a PDF interlinear for all books.",
     "form": {
-      "books_label": "Books",
-      "books_placeholder": "All books (default)",
-      "books_help": "Leave blank to export all books.",
-      "chapters_label": "Chapters (comma-separated or ranges)",
-      "chapters_placeholder": "e.g. 1,2,4-6 (leave blank for all)",
-      "layout_label": "Layout",
-      "layout_standard": "Standard (word by word)",
-      "layout_parallel": "Parallel (Original | Gloss column)",
       "submit": "Generate PDF",
       "queued": "Queued..."
     },
     "status": {
       "title": "Status",
-      "all_books": "All books",
       "download": "Download PDF",
       "expires": "Expires",
       "generating": "Generating PDF…",
       "failed": "Export failed. Please try again.",
-      "missing": "Export not found. Please try again.",
       "labels": {
         "pending": "Queued",
         "in_progress": "In progress",
@@ -693,16 +683,7 @@
     "errors": {
       "invalid": "Invalid",
       "language_required": "Language is required.",
-      "language_not_found": "Language not found.",
-      "no_books_available": "No books available for export.",
-      "no_chapters_available": "No matching chapters found for the selected books.",
-      "export_failed": "Export failed.",
-      "chapters_range_invalid": "Chapter ranges must be positive numbers, and start must be before end.",
-      "chapters_numeric_or_ranges": "Chapters must be numeric or ranges.",
-      "chapters_positive": "Chapters must be positive numbers.",
-      "chapters_required_or_blank": "Please enter at least one chapter or leave blank for all.",
-      "books_numeric_ids": "Books must be numeric ids.",
-      "books_required": "Please choose at least one book."
+      "export_failed": "Export failed."
     }
   }
 }

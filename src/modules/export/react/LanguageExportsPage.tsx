@@ -2,7 +2,6 @@ import ViewTitle from "@/components/ViewTitle";
 import { getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
 import InterlinearExportPanel from "./InterlinearExportPanel";
-import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
 
 interface Props {
   params: { code: string };
@@ -27,12 +26,7 @@ export default async function LanguageExportsPage({ params }: Props) {
     <div className="px-8 py-6 w-fit overflow-y-auto h-full">
       <div className="max-w-[1000px]">
         <ViewTitle className="mb-4">{t("title")}</ViewTitle>
-        <FeatureFlagged
-          feature="ff-interlinear-pdf-export"
-          enabledChildren={
-            <InterlinearExportPanel languageCode={params.code} />
-          }
-        />
+        <InterlinearExportPanel languageCode={params.code} />
       </div>
     </div>
   );
