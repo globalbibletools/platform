@@ -10,9 +10,9 @@ import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import RemoveLanguageMember from "../use-cases/RemoveLanguageMember";
 import languageRepository from "../data-access/languageRepository";
-import languageMemberRepository from "../data-access/LanguageMemberRepository";
+import languageMemberRepository from "../data-access/languageMemberRepository";
 import { NotFoundError } from "@/shared/errors";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -21,7 +21,6 @@ const requestSchema = z.object({
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
-  languageRoles: [Policy.LanguageRole.Admin],
 });
 
 const removeLanguageMemberUseCase = new RemoveLanguageMember(

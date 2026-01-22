@@ -10,8 +10,8 @@ export default async function LandingPage() {
   ]);
 
   return (
-    <div className="flex flex-col h-screen text-gray-800">
-      <nav className="bg-white flex items-center h-20 border-b border-gray-200 relative flex-shrink-0 px-4 md:px-8">
+    <div className="text-gray-800">
+      <nav className="min-[800px]:sticky top-0 z-10 bg-white flex items-center h-20 border-b border-gray-200 relative flex-shrink-0 px-4 md:px-8">
         <a href="#hero" className="flex items-center mr-2 md:mr-4 lg:mr-12">
           <img
             src="https://assets.globalbibletools.com/landing/logo.png"
@@ -54,7 +54,7 @@ export default async function LandingPage() {
           {session ? "Go to Dashboard" : "Reader's Bible"}
         </a>
       </nav>
-      <main className="flex-grow overflow-auto">
+      <main>
         <section id="hero" className="relative">
           <img
             src="https://assets.globalbibletools.com/landing/hero.png"

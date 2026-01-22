@@ -4,7 +4,6 @@ import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
 import { UserStatusRaw } from "@/modules/users/model/UserStatus";
-import { LanguageMemberRoleRaw } from "../model";
 import { inviteLanguageMember } from "./inviteLanguageMember";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
@@ -15,7 +14,7 @@ import {
   findUserById,
 } from "@/modules/users/test-utils/dbUtils";
 import { userFactory } from "@/modules/users/test-utils/factories";
-import { findLanguageRolesForLanguage } from "../test-utils/dbUtils";
+import { findLanguageMembersForLanguage } from "../test-utils/dbUtils";
 
 initializeDatabase();
 
@@ -42,7 +41,6 @@ test("returns validation error if the request shape doesn't match the schema", a
       state: "error",
       validation: {
         code: ["Invalid"],
-        roles: ["Invalid"],
         email: ["Please enter a valid email."],
       },
     });
@@ -55,14 +53,13 @@ test("returns validation error if the request shape doesn't match the schema", a
       state: "error",
       validation: {
         code: ["Invalid"],
-        roles: ["Invalid"],
         email: ["Please enter a valid email."],
       },
     });
   }
 });
 
-test("returns not found if not a language or platform admin", async () => {
+test("returns not found if not a platform admin", async () => {
   const scenario = await createScenario({
     users: { user: {} },
     languages: { spanish: {} },
@@ -74,12 +71,11 @@ test("returns not found if not a language or platform admin", async () => {
   const formData = new FormData();
   formData.set("code", language.code);
   formData.set("email", "invite@example.com");
-  formData.set("roles[0]", LanguageMemberRoleRaw.Translator);
   const response = inviteLanguageMember({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 
-  const languageRoles = await findLanguageRolesForLanguage(language.id);
-  expect(languageRoles).toEqual([]);
+  const languageMembers = await findLanguageMembersForLanguage(language.id);
+  expect(languageMembers).toEqual([]);
 });
 
 test("returns not found if language does not exist", async () => {
@@ -89,7 +85,6 @@ test("returns not found if language does not exist", async () => {
   const formData = new FormData();
   formData.set("code", "garbage");
   formData.set("email", "invite@example.com");
-  formData.set("roles[0]", LanguageMemberRoleRaw.Translator);
   const response = inviteLanguageMember({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 });
@@ -101,12 +96,9 @@ test("adds existing user to the language", async () => {
   const language = scenario.languages.spanish;
   const user = await userFactory.build();
 
-  const role = LanguageMemberRoleRaw.Translator;
-
   const formData = new FormData();
   formData.set("code", language.code);
   formData.set("email", user.email);
-  formData.set("roles[0]", role);
   const response = inviteLanguageMember({ state: "idle" }, formData);
 
   await expect(response).toBeNextjsRedirect(
@@ -119,17 +111,12 @@ test("adds existing user to the language", async () => {
   const invites = await findInvitationsForUser(updatedUser!.id);
   expect(invites).toEqual([]);
 
-  const languageRoles = await findLanguageRolesForLanguage(language.id);
-  expect(languageRoles).toEqual([
+  const languageMembers = await findLanguageMembersForLanguage(language.id);
+  expect(languageMembers).toEqual([
     {
-      languageId: language.id,
-      userId: updatedUser!.id,
-      role: "VIEWER",
-    },
-    {
-      languageId: language.id,
-      userId: updatedUser!.id,
-      role,
+      language_id: language.id,
+      user_id: updatedUser!.id,
+      invited_at: expect.any(Date),
     },
   ]);
 
@@ -143,12 +130,10 @@ test("invites new user to the language", async () => {
   const language = scenario.languages.spanish;
 
   const email = "testinvite@example.com";
-  const role = LanguageMemberRoleRaw.Translator;
 
   const formData = new FormData();
   formData.set("code", language.code);
   formData.set("email", email);
-  formData.set("roles[0]", role);
   const response = inviteLanguageMember({ state: "idle" }, formData);
 
   await expect(response).toBeNextjsRedirect(
@@ -174,17 +159,12 @@ test("invites new user to the language", async () => {
     },
   ]);
 
-  const languageRoles = await findLanguageRolesForLanguage(language.id);
-  expect(languageRoles).toEqual([
+  const languageMembers = await findLanguageMembersForLanguage(language.id);
+  expect(languageMembers).toEqual([
     {
-      languageId: language.id,
-      userId: createdUser!.id,
-      role: "VIEWER",
-    },
-    {
-      languageId: language.id,
-      userId: createdUser!.id,
-      role,
+      language_id: language.id,
+      user_id: createdUser!.id,
+      invited_at: expect.any(Date),
     },
   ]);
 

@@ -7,8 +7,7 @@ import { parseForm } from "@/form-parser";
 import { createSession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import ResetPassword from "../use-cases/ResetPassword";
-import userRepository from "../data-access/userRepository";
+import { resetPassword as resetPasswordUseCase } from "../use-cases/resetPassword";
 import { NotFoundError } from "@/shared/errors";
 
 const requestSchema = z
@@ -20,8 +19,6 @@ const requestSchema = z
   .refine((data) => data.password === data.confirm_password, {
     path: ["confirm_password"],
   });
-
-const resetPasswordUseCase = new ResetPassword(userRepository);
 
 export async function resetPassword(
   _prevState: FormState,
@@ -60,7 +57,7 @@ export async function resetPassword(
 
   let userId;
   try {
-    const response = await resetPasswordUseCase.execute(request.data);
+    const response = await resetPasswordUseCase(request.data);
     userId = response.userId;
   } catch (error) {
     if (error instanceof NotFoundError) {

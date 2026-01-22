@@ -6,6 +6,7 @@ import { verifySession } from "@/session";
 import ClientTranslateView from "./ClientTranslationView";
 import { translateClient } from "@/google-translate";
 import { logger } from "@/logging";
+import { getCurrentLanguageReadModel } from "@/modules/languages/read-models/getCurrentLanguageReadModel";
 
 interface Props {
   params: { code: string; verseId: string };
@@ -20,7 +21,7 @@ export default async function InterlinearView({ params }: Props) {
 
   const [language, verse, phrases, suggestions, machineSuggestions] =
     await Promise.all([
-      fetchCurrentLanguage(params.code, session?.user.id),
+      getCurrentLanguageReadModel(params.code, session?.user.id),
       fetchVerse(params.verseId, params.code),
       fetchPhrases(params.verseId, params.code, session?.user.id),
       fetchSuggestions(params.verseId, params.code),
@@ -43,11 +44,7 @@ export default async function InterlinearView({ params }: Props) {
           (w) =>
             phrases.find((ph) => ph.wordIds.includes(w.id))?.gloss?.state !==
               "APPROVED" &&
-            machineSuggestions.every(
-              (s) =>
-                s.wordId !== w.id ||
-                s.suggestions.every((sug) => sug.model !== "google-translate"),
-            ) &&
+            machineSuggestions.every((s) => s.wordId !== w.id) &&
             !suggestions.find((s) => s.formId === w.formId)?.suggestions
               .length &&
             !!w.referenceGloss?.match(CHAR_REGEX),
@@ -57,7 +54,7 @@ export default async function InterlinearView({ params }: Props) {
   );
 
   const newMachineSuggestions =
-    language.roles.includes("TRANSLATOR") ?
+    language.isMember && language.referenceLanguage ?
       await machineTranslate(
         wordsToTranslate,
         params.code,
@@ -69,17 +66,9 @@ export default async function InterlinearView({ params }: Props) {
     ...w,
     suggestions:
       suggestions.find((s) => s.formId === w.formId)?.suggestions ?? [],
-    machineSuggestions: [
-      ...(machineSuggestions.find((s) => s.wordId === w.id)?.suggestions ?? []),
-      ...(newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? ""] ?
-        [
-          {
-            model: "google-translate",
-            gloss: newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? ""],
-          },
-        ]
-      : []),
-    ],
+    machineSuggestion:
+      machineSuggestions.find((s) => s.wordId === w.id)?.gloss ??
+      newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? ""],
   }));
 
   return (
@@ -196,14 +185,9 @@ async function fetchPhrases(
   return result.rows;
 }
 
-interface ModelSuggestion {
-  model: string;
-  gloss: string;
-}
-
 interface MachineSuggestion {
   wordId: string;
-  suggestions: ModelSuggestion[];
+  gloss: string;
 }
 
 async function fetchMachineSuggestions(
@@ -212,13 +196,13 @@ async function fetchMachineSuggestions(
 ): Promise<MachineSuggestion[]> {
   const result = await query<MachineSuggestion>(
     `
-        SELECT w.id AS "wordId", JSON_AGG(JSON_BUILD_OBJECT('model', model.code, 'gloss', mg.gloss)) AS suggestions
+        SELECT
+          w.id AS "wordId",
+          mg.gloss
         FROM word AS w
         JOIN machine_gloss AS mg ON mg.word_id = w.id
-        JOIN machine_gloss_model AS model ON mg.model_id = model.id
         WHERE w.verse_id = $1
 			AND mg.language_id = (SELECT id FROM language WHERE code = $2)
-        GROUP BY w.id
         `,
     [verseId, languageCode],
   );
@@ -375,11 +359,10 @@ async function saveMachineTranslations(
   try {
     await query(
       `
-            INSERT INTO machine_gloss (word_id, gloss, language_id, model_id)
+            INSERT INTO machine_gloss (word_id, gloss, language_id)
             SELECT
                 phw.word_id, data.machine_gloss,
                 (SELECT id FROM language WHERE code = $1),
-                (SELECT id FROM machine_gloss_model WHERE code = 'google-translate')
             FROM phrase_word AS phw
             JOIN gloss AS g ON g.phrase_id = phw.phrase_id
             JOIN phrase AS ph ON phw.phrase_id = ph.id
@@ -395,37 +378,4 @@ async function saveMachineTranslations(
   } catch (error) {
     console.log(`Failed to save machine translations: ${error}`);
   }
-}
-
-interface CurrentLanguage {
-  code: string;
-  englishName: string;
-  localName: string;
-  font: string;
-  textDirection: string;
-  translationIds: string[];
-  roles: string[];
-  referenceLanguage: string;
-}
-
-async function fetchCurrentLanguage(
-  code: string,
-  userId?: string,
-): Promise<CurrentLanguage | undefined> {
-  const result = await query<CurrentLanguage>(
-    `
-        SELECT
-            code, english_name AS "englishName", local_name as "localName", font, text_direction AS "textDirection", translation_ids AS "translationIds",
-            ( select code from language where id = l.reference_language_id) as "referenceLanguage",
-            (
-                SELECT COALESCE(JSON_AGG(r."role"), '[]') FROM language_member_role AS r
-                WHERE r.language_id = l.id
-                    AND r.user_id = $2
-            ) AS roles
-        FROM language AS l
-        WHERE code = $1
-        `,
-    [code, userId],
-  );
-  return result.rows[0];
 }

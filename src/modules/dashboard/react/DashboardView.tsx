@@ -3,13 +3,13 @@ import DashboardCard from "./DashboardCard";
 import { languageQueryService } from "@/modules/languages/data-access/LanguageQueryService";
 import { Icon } from "@/components/Icon";
 import { format } from "date-fns";
-import { languageClient } from "@/modules/languages/public/LanguageClient";
 import { verifySession } from "@/session";
 import { redirect } from "next/navigation";
 import reportingQueryService from "@/modules/reporting/ReportingQueryService";
 import DashboardLanguageSelector from "./DashboardLanguageSelector";
 import { cookies } from "next/headers";
 import { getLocale } from "next-intl/server";
+import { getUserLanguagesReadModel } from "@/modules/languages/read-models/getUserLanguagesReadModel";
 
 export default async function DashboardView() {
   const session = await verifySession();
@@ -19,7 +19,7 @@ export default async function DashboardView() {
 
   const browserCookies = cookies();
 
-  const languages = await languageClient.findAllForUser(session.user.id);
+  const languages = await getUserLanguagesReadModel(session.user.id);
   if (languages.length === 0) {
     // TODO: no languages view
     return <div></div>;
@@ -31,23 +31,40 @@ export default async function DashboardView() {
 
   const [currentProgressData, contributionData] = await Promise.all([
     languageQueryService.findProgressByCode(currentLanguage.code),
-    reportingQueryService.findContributionsByUserId(session.user.id),
+    reportingQueryService.findContributionsByLanguageId({
+      languageId: currentLanguage.id,
+      limit: 8,
+    }),
   ]);
 
-  const truncatedContributionData = contributionData.slice(-8);
+  const otBooks = currentProgressData.slice(0, 39);
+  const ntBooks = currentProgressData.slice(39);
+
+  const segregatedContributionData = contributionData.map((week) => ({
+    ...week,
+    currentUser:
+      week.users.find((user) => user.userId === session.user.id)?.glosses ?? 0,
+    otherUsers: week.users.reduce((total, user) => {
+      if (user.userId === session.user.id) {
+        return total;
+      }
+
+      return total + user.glosses;
+    }, 0),
+  }));
   const max = roundMax(
-    truncatedContributionData.reduce(
-      (max, week) => Math.max(max, week.approvedCount),
+    segregatedContributionData.reduce(
+      (max, week) => Math.max(max, week.currentUser + week.otherUsers),
       0,
     ),
   );
-  const lastContribution = contributionData.at(-1)?.approvedCount ?? 0;
+  const lastContribution = segregatedContributionData.at(-1);
 
   const locale = await getLocale();
 
   return (
-    <div className="absolute w-full h-[calc(100%-48px)] flex items-stretch overflow-auto">
-      <div className="px-4 lg:px-8 w-full">
+    <div className="flex-grow flex items-stretch">
+      <div className="px-4 pb-4 lg:px-8 w-full">
         <div className="flex items-center flex-col sm:flex-row mb-6 mt-8">
           <h1 className="text-xl md:text-2xl font-bold flex-grow mb-2 sm:mb-0">
             Welcome back, {session.user.name}!
@@ -115,81 +132,132 @@ export default async function DashboardView() {
           </DashboardCard>
           <DashboardCard className="md:col-span-3 lg:col-span-2 h-60">
             <DashboardCard.Heading>
-              Last week, you contributed {lastContribution} glosses
+              Last week, you contributed {lastContribution?.currentUser ?? 0}{" "}
+              glosses
             </DashboardCard.Heading>
-            <DashboardCard.Body className="flex items-stretch gap-2">
-              {contributionData.length > 0 && (
-                <>
-                  <table className="h-full flex-grow mt-2">
-                    <tbody>
-                      <tr className="h-full border-b-2 border-t border-gray-400 dark:border-gray-700">
-                        {truncatedContributionData.map((week) => (
-                          <td
-                            className="w-12 relative"
-                            key={week.week.toString()}
-                          >
-                            <div className="absolute inset-0 mx-2">
-                              <div
-                                className="absolute bg-blue-800 dark:bg-green-400 bottom-0 inset-x-0"
-                                style={{
-                                  height: `${(100 * week.approvedCount) / max}%`,
-                                }}
-                              />
-                            </div>
-                          </td>
-                        ))}
-                      </tr>
-                      <tr>
-                        {contributionData.slice(-8).map((week) => (
-                          <td
-                            className="w-12 text-center text-xs pt-2"
-                            key={week.week.toString()}
-                          >
-                            {format(week.week, "M/dd")}
-                          </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
-                  <div className="flex-shrink-0 text-xs">{max}</div>
-                </>
-              )}
+            <DashboardCard.Body className="flex flex-col gap-2">
+              <div className="flex-grow flex items-stretch gap-2">
+                {contributionData.length > 0 && (
+                  <>
+                    <table className="h-full flex-grow">
+                      <tbody>
+                        <tr className="h-full border-b-2 border-t border-gray-400 dark:border-gray-700">
+                          {segregatedContributionData.map((week) => (
+                            <td
+                              className="w-12 relative"
+                              key={week.week.toString()}
+                            >
+                              <div className="absolute inset-0 mx-2">
+                                <div
+                                  className="absolute bg-blue-800 bottom-0 inset-x-0"
+                                  style={{
+                                    height: `${(100 * week.currentUser) / max}%`,
+                                  }}
+                                />
+                                <div
+                                  className="absolute bg-green-400 left-0 inset-x-0"
+                                  style={{
+                                    bottom: `${(100 * week.currentUser) / max}%`,
+                                    height: `${(100 * week.otherUsers) / max}%`,
+                                  }}
+                                />
+                              </div>
+                            </td>
+                          ))}
+                        </tr>
+                        <tr>
+                          {segregatedContributionData.slice(-8).map((week) => (
+                            <td
+                              className="w-12 text-center text-xs pt-2"
+                              key={week.week.toString()}
+                            >
+                              {format(week.week, "M/dd")}
+                            </td>
+                          ))}
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div className="flex-shrink-0 text-xs">{max}</div>
+                  </>
+                )}
+              </div>
+              <div className="flex gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-blue-800" />
+                  <div>You</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-400" />
+                  <div>Others</div>
+                </div>
+              </div>
             </DashboardCard.Body>
           </DashboardCard>
           <DashboardCard className="md:col-span-full">
             <DashboardCard.Heading>Total progress</DashboardCard.Heading>
-            <DashboardCard.Body className="grid gap-2 grid-cols-[repeat(auto-fill,minmax(40px,1fr))]">
-              {currentProgressData.map((book, i) => {
-                const completeProgress = book.approvedCount / book.wordCount;
-                const isComplete = book.approvedCount === book.wordCount;
-                const isUnstarted = book.approvedCount === 0;
-                return (
-                  <a
-                    className={`
-                      relative block aspect-square rounded flex flex-col items-center justify-center overflow-hidden
-                      ${
-                        isComplete ?
-                          "text-white dark:text-gray-800 bg-blue-800 dark:bg-green-400"
-                        : "bg-gray-300 dark:bg-gray-700"
-                      }
-                  `}
+            <DashboardCard.Body className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 md:basis-3/5 md:max-w-[calc(60%-1rem)] content-start grid gap-2 grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] md:grid-cols-[repeat(auto-fill,40px)]">
+                {otBooks.map((book) => (
+                  <BookProgressLink
                     key={book.name}
-                    href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
-                  >
-                    {isComplete ?
-                      <Icon icon="check" />
-                    : isUnstarted ?
-                      <Icon icon="xmark" />
-                    : <DonutChart percentage={completeProgress} />}
-                    <span className="text-xs font-bold">{book.name}</span>
-                  </a>
-                );
-              })}
+                    book={book}
+                    locale={locale}
+                    currentLanguage={currentLanguage}
+                  />
+                ))}
+              </div>
+              <div className="flex-1 basis-full flex items-stretch justify-center">
+                <div className="border-t-2 w-full md:w-0 md:border-t-0 md:border-l-2 border-gray-300 dark:border-gray-600"></div>
+              </div>
+              <div className="flex-1 md:basis-2/5 md:max-w-[calc(40%-1rem)] grid gap-2 content-start grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] md:grid-cols-[repeat(auto-fill,39px)]">
+                {ntBooks.map((book) => (
+                  <BookProgressLink
+                    key={book.name}
+                    book={book}
+                    locale={locale}
+                    currentLanguage={currentLanguage}
+                  />
+                ))}
+              </div>
             </DashboardCard.Body>
           </DashboardCard>
         </div>
       </div>
     </div>
+  );
+}
+
+function BookProgressLink({
+  book,
+  locale,
+  currentLanguage,
+}: {
+  book: any;
+  locale: string;
+  currentLanguage: any;
+}) {
+  const completeProgress = book.approvedCount / book.wordCount;
+  const isComplete = book.approvedCount === book.wordCount;
+  const isUnstarted = book.approvedCount === 0;
+  return (
+    <a
+      className={`
+        relative block aspect-square rounded flex flex-col items-center justify-center overflow-hidden
+        ${
+          isComplete ?
+            "text-white dark:text-gray-800 bg-blue-800 dark:bg-green-400"
+          : "bg-gray-300 dark:bg-gray-700"
+        }
+    `}
+      href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
+    >
+      {isComplete ?
+        <Icon icon="check" />
+      : isUnstarted ?
+        <Icon icon="xmark" />
+      : <DonutChart percentage={completeProgress} />}
+      <span className="text-xs font-bold">{book.name}</span>
+    </a>
   );
 }
 

@@ -54,7 +54,7 @@ test("returns validation error if the request shape doesn't match the schema", a
   }
 });
 
-test("returns not found if the user is not a platform or language admin", async () => {
+test("returns not found if the user is not authorized", async () => {
   const scenario = await createScenario({ users: { user: {} } });
   await logIn(scenario.users.user.id);
 

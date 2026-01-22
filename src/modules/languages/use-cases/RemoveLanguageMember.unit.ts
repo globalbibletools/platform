@@ -1,8 +1,8 @@
 import { test, expect } from "vitest";
 import mockLanguageRepo from "../data-access/mockLanguageRepository";
-import mockLanguageMemberRepo from "../data-access/MockLanguageMemberRepository";
+import mockLanguageMemberRepo from "../data-access/mockLanguageMemberRepository";
 import { NotFoundError } from "@/shared/errors";
-import { LanguageMemberRoleRaw, TextDirectionRaw } from "../model";
+import { TextDirectionRaw } from "../model";
 import { ulid } from "@/shared/ulid";
 import RemoveLanguageMember from "./RemoveLanguageMember";
 
@@ -32,7 +32,6 @@ test("removes language member", async () => {
   const languageMember = {
     languageId: language.id,
     userId: ulid(),
-    roles: [LanguageMemberRoleRaw.Translator],
   };
   mockLanguageRepo.languages = [language];
   mockLanguageMemberRepo.members = [languageMember];

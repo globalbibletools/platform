@@ -1,4 +1,5 @@
 import verseCounts from "@/data/verse-counts.json";
+import bookKeys from "@/data/book-keys.json";
 import fuzzysort from "fuzzysort";
 
 export interface VerseInfo {
@@ -91,6 +92,33 @@ export function parseReference(
       clamp(parseInt(verseStr), 1, verseCount(bookId, chapterNumber))
     : 1;
   return `${bookId.toString().padStart(2, "0")}${chapterNumber.toString().padStart(3, "0")}${verseNumber.toString().padStart(3, "0")}`;
+}
+
+const PERMALINK_REFERENCE_REGEX = /^([^.]+)\.(\d+)$/;
+
+export function parseChapterPermalinkReference(reference: string) {
+  const match = reference.match(PERMALINK_REFERENCE_REGEX);
+  if (!match) {
+    return null;
+  }
+
+  const [, bookName, chapter] = match;
+  const bookId = 1 + bookKeys.findIndex((name) => name === bookName);
+  if (bookId <= 0) {
+    return null;
+  }
+
+  const chapterNumber = parseInt(chapter);
+
+  if (
+    chapterNumber % 1 !== 0 ||
+    chapterNumber <= 0 ||
+    chapterNumber > chapterCount(bookId)
+  ) {
+    return null;
+  }
+
+  return `${bookId.toString().padStart(2, "0")}${chapterNumber.toString().padStart(3, "0")}`;
 }
 
 export function parseVerseId(verseId: string): VerseInfo {

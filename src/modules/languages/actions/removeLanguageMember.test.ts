@@ -3,11 +3,11 @@ import { ulid } from "@/shared/ulid";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { expect, test } from "vitest";
 import { removeLanguageMember } from "./removeLanguageMember";
-import { LanguageMemberRoleRaw } from "../model";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import logIn from "@/tests/vitest/login";
-import { findLanguageRolesForUser } from "../test-utils/dbUtils";
+import { findLanguageMembersForUser } from "../test-utils/dbUtils";
+import { getDb } from "@/db";
 
 initializeDatabase();
 
@@ -20,12 +20,7 @@ const scenarioDefinition: ScenarioDefinition = {
   },
   languages: {
     spanish: {
-      members: [
-        {
-          userId: "member",
-          roles: [LanguageMemberRoleRaw.Translator],
-        },
-      ],
+      members: ["member"],
     },
   },
 };
@@ -42,7 +37,7 @@ test("returns validation error if the request shape doesn't match the schema", a
   });
 });
 
-test("returns not found if not a language or platform admin", async () => {
+test("returns not found if not a platform admin", async () => {
   const scenario = await createScenario(scenarioDefinition);
   await logIn(scenario.users.member.id);
 
@@ -101,6 +96,12 @@ test("removes user from language", async () => {
     message: "User removed successfully.",
   });
 
-  const languageRoles = await findLanguageRolesForUser(user.id);
+  const languageRoles = await findLanguageMembersForUser(user.id);
   expect(languageRoles).toEqual([]);
+
+  const languageMembers = await getDb()
+    .selectFrom("language_member")
+    .selectAll()
+    .execute();
+  expect(languageMembers).toEqual([]);
 });

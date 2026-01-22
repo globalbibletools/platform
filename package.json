@@ -10,7 +10,8 @@
     "check-types": "tsc --noEmit",
     "prepare": "husky || true",
     "postinstall": "patch-package",
-    "test": "vitest"
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.678.0",

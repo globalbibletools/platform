@@ -2,7 +2,7 @@
 
 import { query } from "@/db";
 import { parseForm } from "@/form-parser";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 import { serverActionLogger } from "@/server-action";
 import { verifySession } from "@/session";
 import { getLocale } from "next-intl/server";
@@ -19,7 +19,7 @@ const requestSchema = z.object({
 });
 
 const policy = new Policy({
-  languageRoles: [Policy.LanguageRole.Translator],
+  languageMember: true,
 });
 
 export async function updateTranslatorNoteAction(

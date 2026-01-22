@@ -2,10 +2,8 @@
 -- PostgreSQL database dump
 --
 
-\restrict 2qeteeXoD7uK9iOO1lki31b8mNCLFSpwYPGZ5a3UBnQbWwi3QfR5fwPndsXl4rB
-
--- Dumped from database version 14.19 (Debian 14.19-1.pgdg13+1)
--- Dumped by pg_dump version 14.19 (Debian 14.19-1.pgdg13+1)
+-- Dumped from database version 14.18 (Debian 14.18-1.pgdg120+1)
+-- Dumped by pg_dump version 14.18 (Debian 14.18-1.pgdg120+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -571,6 +569,17 @@ CREATE TABLE public.language_import_job (
 
 
 --
+-- Name: language_member; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.language_member (
+    language_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    invited_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: language_member_role; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -739,44 +748,8 @@ CREATE TABLE public.machine_gloss (
     word_id text NOT NULL,
     language_id uuid NOT NULL,
     gloss text,
-    id integer NOT NULL,
-    model_id integer NOT NULL,
-    updated_at timestamp without time zone,
-    updated_by uuid
+    id integer NOT NULL
 );
-
-
---
--- Name: machine_gloss_history; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.machine_gloss_history (
-    id integer NOT NULL,
-    machine_gloss_id integer NOT NULL,
-    gloss text NOT NULL,
-    updated_at timestamp without time zone,
-    updated_by uuid
-);
-
-
---
--- Name: machine_gloss_history_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.machine_gloss_history_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: machine_gloss_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.machine_gloss_history_id_seq OWNED BY public.machine_gloss_history.id;
 
 
 --
@@ -797,36 +770,6 @@ CREATE SEQUENCE public.machine_gloss_id_seq
 --
 
 ALTER SEQUENCE public.machine_gloss_id_seq OWNED BY public.machine_gloss.id;
-
-
---
--- Name: machine_gloss_model; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.machine_gloss_model (
-    id integer NOT NULL,
-    code text NOT NULL
-);
-
-
---
--- Name: machine_gloss_model_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.machine_gloss_model_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: machine_gloss_model_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.machine_gloss_model_id_seq OWNED BY public.machine_gloss_model.id;
 
 
 --
@@ -988,6 +931,28 @@ ALTER SEQUENCE public.verse_audio_timing_id_seq OWNED BY public.verse_audio_timi
 
 
 --
+-- Name: verse_commentary; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.verse_commentary (
+    verse_id text NOT NULL,
+    content text NOT NULL
+);
+
+
+--
+-- Name: verse_question; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.verse_question (
+    verse_id text NOT NULL,
+    sort_order integer NOT NULL,
+    question text NOT NULL,
+    response text NOT NULL
+);
+
+
+--
 -- Name: weekly_contribution_statistics; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1059,6 +1024,16 @@ ALTER SEQUENCE public.weekly_gloss_statistics_id_seq OWNED BY public.weekly_glos
 
 
 --
+-- Name: word_lexicon; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.word_lexicon (
+    word_id text NOT NULL,
+    content text NOT NULL
+);
+
+
+--
 -- Name: gloss_history id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1084,20 +1059,6 @@ ALTER TABLE ONLY public.lemma_form_suggestion ALTER COLUMN id SET DEFAULT nextva
 --
 
 ALTER TABLE ONLY public.machine_gloss ALTER COLUMN id SET DEFAULT nextval('public.machine_gloss_id_seq'::regclass);
-
-
---
--- Name: machine_gloss_history id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss_history ALTER COLUMN id SET DEFAULT nextval('public.machine_gloss_history_id_seq'::regclass);
-
-
---
--- Name: machine_gloss_model id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss_model ALTER COLUMN id SET DEFAULT nextval('public.machine_gloss_model_id_seq'::regclass);
 
 
 --
@@ -1193,6 +1154,14 @@ ALTER TABLE ONLY public.language_import_job
 
 
 --
+-- Name: language_member language_member_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.language_member
+    ADD CONSTRAINT language_member_pkey PRIMARY KEY (language_id, user_id);
+
+
+--
 -- Name: language_member_role language_member_role_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1249,35 +1218,11 @@ ALTER TABLE ONLY public.lemma_resource
 
 
 --
--- Name: machine_gloss_history machine_gloss_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss_history
-    ADD CONSTRAINT machine_gloss_history_pkey PRIMARY KEY (id);
-
-
---
--- Name: machine_gloss_model machine_gloss_model_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss_model
-    ADD CONSTRAINT machine_gloss_model_pkey PRIMARY KEY (id);
-
-
---
 -- Name: machine_gloss machine_gloss_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.machine_gloss
     ADD CONSTRAINT machine_gloss_pkey PRIMARY KEY (id);
-
-
---
--- Name: machine_gloss machine_gloss_word_id_language_id_model_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss
-    ADD CONSTRAINT machine_gloss_word_id_language_id_model_id_key UNIQUE (word_id, language_id, model_id);
 
 
 --
@@ -1385,11 +1330,27 @@ ALTER TABLE ONLY public.verse_audio_timing
 
 
 --
+-- Name: verse_commentary verse_commentary_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse_commentary
+    ADD CONSTRAINT verse_commentary_pkey PRIMARY KEY (verse_id);
+
+
+--
 -- Name: verse verse_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.verse
     ADD CONSTRAINT verse_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: verse_question verse_question_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse_question
+    ADD CONSTRAINT verse_question_pkey PRIMARY KEY (verse_id, sort_order);
 
 
 --
@@ -1422,6 +1383,14 @@ ALTER TABLE ONLY public.weekly_gloss_statistics
 
 ALTER TABLE ONLY public.weekly_gloss_statistics
     ADD CONSTRAINT weekly_gloss_statistics_week_language_id_book_id_user_id_key UNIQUE (week, language_id, book_id, user_id);
+
+
+--
+-- Name: word_lexicon word_lexicon_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.word_lexicon
+    ADD CONSTRAINT word_lexicon_pkey PRIMARY KEY (word_id);
 
 
 --
@@ -1651,6 +1620,14 @@ ALTER TABLE ONLY public.language_import_job
 
 
 --
+-- Name: language_member language_member_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.language_member
+    ADD CONSTRAINT language_member_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id);
+
+
+--
 -- Name: language_member_role language_member_role_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1664,6 +1641,14 @@ ALTER TABLE ONLY public.language_member_role
 
 ALTER TABLE ONLY public.language_member_role
     ADD CONSTRAINT language_member_role_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: language_member language_member_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.language_member
+    ADD CONSTRAINT language_member_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -1707,43 +1692,11 @@ ALTER TABLE ONLY public.lemma_resource
 
 
 --
--- Name: machine_gloss_history machine_gloss_history_machine_gloss_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss_history
-    ADD CONSTRAINT machine_gloss_history_machine_gloss_id_fkey FOREIGN KEY (machine_gloss_id) REFERENCES public.machine_gloss(id);
-
-
---
--- Name: machine_gloss_history machine_gloss_history_updated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss_history
-    ADD CONSTRAINT machine_gloss_history_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id);
-
-
---
 -- Name: machine_gloss machine_gloss_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.machine_gloss
     ADD CONSTRAINT machine_gloss_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: machine_gloss machine_gloss_model_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss
-    ADD CONSTRAINT machine_gloss_model_id_fkey FOREIGN KEY (model_id) REFERENCES public.machine_gloss_model(id);
-
-
---
--- Name: machine_gloss machine_gloss_updated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss
-    ADD CONSTRAINT machine_gloss_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id);
 
 
 --
@@ -1875,6 +1828,22 @@ ALTER TABLE ONLY public.verse
 
 
 --
+-- Name: verse_commentary verse_commentary_verse_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse_commentary
+    ADD CONSTRAINT verse_commentary_verse_id_fkey FOREIGN KEY (verse_id) REFERENCES public.verse(id);
+
+
+--
+-- Name: verse_question verse_question_verse_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.verse_question
+    ADD CONSTRAINT verse_question_verse_id_fkey FOREIGN KEY (verse_id) REFERENCES public.verse(id);
+
+
+--
 -- Name: weekly_contribution_statistics weekly_contribution_statistics_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1923,6 +1892,14 @@ ALTER TABLE ONLY public.word
 
 
 --
+-- Name: word_lexicon word_lexicon_word_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.word_lexicon
+    ADD CONSTRAINT word_lexicon_word_id_fkey FOREIGN KEY (word_id) REFERENCES public.word(id);
+
+
+--
 -- Name: word word_verse_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1933,6 +1910,4 @@ ALTER TABLE ONLY public.word
 --
 -- PostgreSQL database dump complete
 --
-
-\unrestrict 2qeteeXoD7uK9iOO1lki31b8mNCLFSpwYPGZ5a3UBnQbWwi3QfR5fwPndsXl4rB
 

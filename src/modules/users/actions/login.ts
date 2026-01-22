@@ -6,8 +6,7 @@ import { createSession } from "@/session";
 import { redirect } from "next/navigation";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import userRepository from "@/modules/users/data-access/userRepository";
-import LogIn from "../use-cases/LogIn";
+import { logIn as logInUseCase } from "../use-cases/logIn";
 import { IncorrectPasswordError } from "../model/errors";
 import { NotFoundError } from "@/shared/errors";
 
@@ -15,8 +14,6 @@ const loginSchema = z.object({
   email: z.string().min(1),
   password: z.string().min(1),
 });
-
-const logIn = new LogIn(userRepository);
 
 export async function login(
   _state: FormState,
@@ -53,7 +50,7 @@ export async function login(
 
   let userId;
   try {
-    const result = await logIn.execute(request.data);
+    const result = await logInUseCase(request.data);
     userId = result.userId;
   } catch (error) {
     if (error instanceof IncorrectPasswordError) {

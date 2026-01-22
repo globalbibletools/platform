@@ -8,8 +8,7 @@ import { parseForm } from "@/form-parser";
 import { serverActionLogger } from "@/server-action";
 import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
-import UpdateProfile from "../use-cases/UpdateProfile";
-import userRepository from "../data-access/userRepository";
+import { updateProfile as updateProfileUseCase } from "../use-cases/updateProfile";
 
 const profileValidationSchema = z
   .object({
@@ -21,8 +20,6 @@ const profileValidationSchema = z
   .refine((data) => data.password === data.confirm_password, {
     path: ["confirm_password"],
   });
-
-const updateProfileUseCase = new UpdateProfile(userRepository);
 
 export async function updateProfile(
   _prevState: FormState,
@@ -62,7 +59,7 @@ export async function updateProfile(
   const session = await verifySession();
   if (!session) notFound();
 
-  await updateProfileUseCase.execute({
+  await updateProfileUseCase({
     id: session.user.id,
     ...request.data,
   });

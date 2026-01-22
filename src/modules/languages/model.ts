@@ -5,11 +5,6 @@ export enum TextDirectionRaw {
   RTL = "rtl",
 }
 
-export enum LanguageMemberRoleRaw {
-  Translator = "TRANSLATOR",
-  Admin = "ADMIN",
-}
-
 export class LanguageAlreadyExistsError extends Error {
   constructor(public code: string) {
     super();

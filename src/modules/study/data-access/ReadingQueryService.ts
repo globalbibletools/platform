@@ -11,6 +11,7 @@ interface Verse {
     lemma: string;
     grammar: string;
     footnote?: string;
+    nativeLexicon?: string;
   }[];
 }
 
@@ -42,7 +43,8 @@ const readingQueryService = {
                 'linkedWords', ph.linked_words,
                 'footnote', fn.content,
                 'lemma', lf.lemma_id,
-                'grammar', lf.grammar
+                'grammar', lf.grammar,
+                'nativeLexicon', wl.content
               )) ORDER BY w.id) AS words
             FROM word AS w
             LEFT JOIN LATERAL (
@@ -58,6 +60,7 @@ const readingQueryService = {
                 AND ph.deleted_at IS NULL
                 AND ph.language_id = (SELECT id FROM language WHERE code = $3)
             ) AS ph ON true
+            LEFT JOIN word_lexicon AS wl on wl.word_id = w.id
             LEFT JOIN gloss AS g ON g.phrase_id = ph.id AND g.state = 'APPROVED'
             LEFT JOIN footnote AS fn ON fn.phrase_id = ph.id
             JOIN lemma_form AS lf ON lf.id = w.form_id

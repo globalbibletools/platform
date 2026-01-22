@@ -7,7 +7,7 @@ import { Icon } from "@/components/Icon";
 import TextInput from "@/components/TextInput";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { approveAll } from "../actions/approveAll";
 import { changeInterlinearLocation } from "../actions/changeInterlinearLocation";
 import { linkWords } from "../actions/linkWords";
@@ -25,11 +25,12 @@ import TranslationProgressBar from "./TranslationProgressBar";
 import { useSWRConfig } from "swr";
 import { useFlash } from "@/flash";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
-import AudioDialog from "@/modules/study/components/AudioDialog";
+import AudioDialog from "@/modules/study/react/AudioDialog";
+import { useElementDimensions } from "@/utils/measure-element";
 
 export interface TranslationToolbarProps {
   languages: { englishName: string; localName: string; code: string }[];
-  currentLanguage?: { roles: string[] };
+  currentLanguage: { isMember: boolean } | null;
   userRoles: string[];
 }
 
@@ -48,8 +49,7 @@ export default function TranslationToolbar({
   const { mutate } = useSWRConfig();
   const flash = useFlash();
 
-  const isTranslator = !!currentLanguage?.roles.includes("TRANSLATOR");
-  const isLanguageAdmin = !!currentLanguage?.roles.includes("ADMIN");
+  const isTranslator = currentLanguage?.isMember;
   const isPlatformAdmin = userRoles.includes("ADMIN");
 
   const {
@@ -209,21 +209,37 @@ export default function TranslationToolbar({
 
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
 
+  const [toolbarRef, { blockSize: toolbarHeight }] = useElementDimensions();
+  useLayoutEffect(() => {
+    document.body.style.setProperty("--translate-nav-h", `${toolbarHeight}px`);
+  }, [toolbarHeight]);
+
   return (
-    <div>
-      <div className="flex items-center shadow-md dark:shadow-none dark:border-b dark:border-gray-700 px-6 md:px-8 py-4">
-        <form action={changeInterlinearLocation}>
-          <div className={isTranslator ? "me-2" : "me-16"}>
-            <FormLabel htmlFor="verse-reference">{t("verse")}</FormLabel>
+    <>
+      <div
+        ref={toolbarRef}
+        className="
+          sticky top-[--heading-height] z-10
+          flex items-center flex-wrap gap-y-2 gap-x-10 items-center justify-center
+          bg-white dark:bg-gray-900
+          shadow-md dark:shadow-none dark:border-b dark:border-gray-700
+          px-6 md:px-8 pt-4 pb-5
+        "
+      >
+        <div className="flex-shrink-0 flex items-center">
+          <form
+            action={changeInterlinearLocation}
+            className={isTranslator ? "me-2" : ""}
+          >
             <input type="hidden" value={code} name="language" />
             <div className="relative">
               <TextInput
-                id="verse-reference"
                 className="pe-16 placeholder-current w-56"
                 value={reference}
                 onChange={(e) => setReference(e.target.value)}
                 name="reference"
                 autoComplete="off"
+                aria-label={t("verse")}
                 onFocus={(e) => e.target.select()}
               />
               <Button
@@ -244,48 +260,45 @@ export default function TranslationToolbar({
                 <span className="sr-only">{t("next_verse")}</span>
               </Button>
             </div>
-          </div>
-        </form>
-        {isTranslator && (
-          <div className="me-16 pt-6">
-            <Button
-              variant="tertiary"
-              disabled={!verseId}
-              onClick={navigateToNextUnapprovedVerse}
-            >
-              {t("next_unapproved")}
-              <Icon icon="arrow-right" className="ms-1 rtl:hidden" />
-              <Icon icon="arrow-left" className="ms-1 ltr:hidden" />
-            </Button>
-          </div>
-        )}
-        <div className="me-16">
-          <FormLabel htmlFor="target-language">{t("language")}</FormLabel>
-          <div className="flex">
-            <ComboboxInput
-              id="target-language"
-              items={languages.map((l) => ({
-                label: l.localName,
-                value: l.code,
-              }))}
-              value={code}
-              onChange={(code) => router.push(`../${code}/${verseId}`)}
-              className="w-40"
-              autoComplete="off"
-            />
-            {isLanguageAdmin && (
+          </form>
+          {isTranslator && (
+            <div>
               <Button
-                className="ms-2"
                 variant="tertiary"
-                href={`/admin/languages/${code}/settings`}
+                disabled={!verseId}
+                onClick={navigateToNextUnapprovedVerse}
               >
-                <Icon icon="sliders" className="me-1" />
-                {t("manage_language")}
+                {t("next_unapproved")}
+                <Icon icon="arrow-right" className="ms-1 rtl:hidden" />
+                <Icon icon="arrow-left" className="ms-1 ltr:hidden" />
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
-        <div className="pt-6 flex items-center">
+        <div className="flex-shrink-0 flex">
+          <ComboboxInput
+            aria-label={t("language")}
+            items={languages.map((l) => ({
+              label: l.localName,
+              value: l.code,
+            }))}
+            value={code}
+            onChange={(code) => router.push(`../${code}/${verseId}`)}
+            className="w-40"
+            autoComplete="off"
+          />
+          {(isTranslator || isPlatformAdmin) && (
+            <Button
+              className="ms-2"
+              variant="tertiary"
+              href={`/admin/languages/${code}/settings`}
+            >
+              <Icon icon="sliders" className="me-1" />
+              {t("manage_language")}
+            </Button>
+          )}
+        </div>
+        <div className="flex flex-shrink-0 items-center">
           {isTranslator && (
             <>
               <Button
@@ -349,8 +362,10 @@ export default function TranslationToolbar({
             </>
           )}
         </div>
+        {verseId && (
+          <TranslationProgressBar className="absolute bottom-0 left-0 right-0" />
+        )}
       </div>
-      {verseId && <TranslationProgressBar />}
       {showAudioPlayer && (
         <AudioDialog
           className="bottom-12 w-[calc(100%-1rem)] mx-2 sm:w-80 sm:mx-auto"
@@ -358,6 +373,6 @@ export default function TranslationToolbar({
           onClose={() => setShowAudioPlayer(false)}
         />
       )}
-    </div>
+    </>
   );
 }

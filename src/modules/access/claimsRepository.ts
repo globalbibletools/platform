@@ -1,54 +1,40 @@
-import { query } from "@/db";
+import { getDb } from "@/db";
 import { LanguageClaims, ActorClaims } from "./model";
 
 const claimsRepository = {
   async findActorClaims(userId: string): Promise<ActorClaims> {
-    const result = await query<ActorClaims>(
-      `
-        select
-          u.id as "userId",
-          (
-            select coalesce(json_agg(r.role), '[]')
-            from user_system_role r
-            where r.user_id = u.id
-          ) as "systemRoles"
-        from users u
-        where u.id = $1
-      `,
-      [userId],
-    );
+    const result = await getDb()
+      .selectFrom("user_system_role")
+      .where("user_id", "=", userId)
+      .select("role")
+      .execute();
 
-    return (
-      result.rows[0] ?? {
-        id: userId,
-        systemRoles: [],
-      }
-    );
+    return {
+      id: userId,
+      systemRoles: result.map((r) => r.role),
+    };
   },
 
   async findLanguageClaims(
     languageCode: string,
     actorId: string,
   ): Promise<LanguageClaims> {
-    const result = await query<LanguageClaims>(
-      `
-        select
-          $1 as code,
-          coalesce(json_agg(r.role), '[]') as roles
-        from language_member_role r
-        where r.user_id = $2
-          and r.language_id = (select id from language where code = $1)
-        group by r.language_id
-      `,
-      [languageCode, actorId],
-    );
+    const result = await getDb()
+      .selectFrom("language_member")
+      .where("user_id", "=", actorId)
+      .where(({ eb, selectFrom }) =>
+        eb(
+          "language_id",
+          "=",
+          selectFrom("language").select("id").where("code", "=", languageCode),
+        ),
+      )
+      .executeTakeFirst();
 
-    return (
-      result.rows[0] ?? {
-        id: "unknown",
-        roles: [],
-      }
-    );
+    return {
+      code: languageCode,
+      isMember: Boolean(result),
+    };
   },
 };
 export default claimsRepository;

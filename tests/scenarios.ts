@@ -1,8 +1,7 @@
 import { DbLanguage } from "@/modules/languages/data-access/types";
-import { LanguageMemberRoleRaw } from "@/modules/languages/model";
 import {
   languageFactory,
-  languageRoleFactory,
+  languageMemberFactory,
 } from "@/modules/languages/test-utils/factories";
 import { DbUser } from "@/modules/users/data-access/types";
 import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
@@ -16,7 +15,7 @@ export interface UserScenarioDefinition {
 }
 
 export interface LanguageScenarioDefinition {
-  members?: { userId: string; roles?: LanguageMemberRoleRaw[] }[];
+  members?: string[];
 }
 
 export interface ScenarioDefinition {
@@ -58,22 +57,13 @@ export async function createScenario(
         const language = await languageFactory.build();
         scenario.languages[id] = language;
         if (languageDefinition.members) {
-          for (const memberDefinition of languageDefinition.members) {
-            const user = scenario.users[memberDefinition.userId];
-            await languageRoleFactory.build({
-              userId: user.id,
+          for (const userId of languageDefinition.members) {
+            const user = scenario.users[userId];
+
+            await languageMemberFactory.build({
               languageId: language.id,
-              role: "VIEWER",
+              userId: user.id,
             });
-            if (memberDefinition.roles) {
-              for (const role of memberDefinition.roles) {
-                await languageRoleFactory.build({
-                  userId: user.id,
-                  languageId: language.id,
-                  role,
-                });
-              }
-            }
           }
         }
       }

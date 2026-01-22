@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { verifySession } from "@/session";
 import { Metadata, ResolvingMetadata } from "next";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 import { languageQueryService } from "../data-access/LanguageQueryService";
 import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
 
@@ -19,7 +19,7 @@ interface LanguageLayoutProps {
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
-  languageRoles: [Policy.LanguageRole.Admin],
+  languageMember: true,
 });
 
 export async function generateMetadata(
@@ -56,8 +56,13 @@ export default async function LanguageLayout({
   }
 
   return (
-    <div className="absolute w-full h-full flex items-stretch">
-      <div className="w-56 flex-shrink-0 bg-brown-100 dark:bg-gray-800 p-6 pt-7">
+    <div className="flex-grow flex items-stretch">
+      <div
+        className="
+          sticky h-[calc(100dvh-var(--heading-height))] top-[--heading-height]
+          w-56 flex-shrink-0 bg-brown-100 dark:bg-gray-800 p-6 pt-7
+        "
+      >
         <div className="px-3 mb-4">
           <h2 className="font-bold text-lg">{language.englishName}</h2>
         </div>
@@ -76,14 +81,6 @@ export default async function LanguageLayout({
             >
               <Icon icon="user" className="w-4 me-2" />
               {t("links.users")}
-            </SidebarLink>
-          </li>
-          <li>
-            <SidebarLink
-              href={`/${params.locale}/admin/languages/${params.code}/reports`}
-            >
-              <Icon icon="chart-bar" className="w-4 me-2" />
-              {t("links.reports")}
             </SidebarLink>
           </li>
           <li>

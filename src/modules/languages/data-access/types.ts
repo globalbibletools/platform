@@ -1,14 +1,21 @@
 import { Generated } from "kysely";
-import { LanguageMemberRoleRaw, TextDirectionRaw } from "../model";
+import { TextDirectionRaw } from "../model";
 
 export interface LanguageTable {
   id: Generated<string>;
   code: string;
-  name: string;
+  local_name: string;
+  english_name: string;
   font: Generated<string>;
   text_direction: Generated<TextDirectionRaw>;
   translation_ids: Generated<Array<string>> | null;
   reference_language_id: string | null;
+}
+
+export interface LanguageMemberTable {
+  user_id: string;
+  language_id: string;
+  invited_at: Date;
 }
 
 export interface DbLanguage {
@@ -22,17 +29,15 @@ export interface DbLanguage {
   referenceLanguageId?: string | null;
 }
 
-export interface DbLanguageRole {
+export interface DbLanguageMember {
   languageId: string;
   userId: string;
-  role: LanguageMemberRoleRaw | "VIEWER";
+  invitedAt: Date;
 }
 
 export type Language = DbLanguage;
 
-export type LanguageMember = Omit<DbLanguageRole, "role"> & {
-  roles: LanguageMemberRoleRaw[];
-};
+export type LanguageMember = Omit<DbLanguageMember, "invitedAt">;
 
 export interface LanguageRepository {
   existsById(id: string): Promise<boolean>;
@@ -45,7 +50,6 @@ export interface LanguageRepository {
 export interface LanguageMemberRepository {
   exists(languageId: string, memberId: string): Promise<boolean>;
   create(member: LanguageMember): Promise<void>;
-  update(member: LanguageMember): Promise<void>;
   delete(languageId: string, memberId: string): Promise<void>;
   deleteAll(memberId: string): Promise<void>;
 }

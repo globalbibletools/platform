@@ -35,7 +35,7 @@ const fakeClaimsRepository = {
     return (
       config?.languages?.find((l) => l.code === languageCode) ?? {
         code: languageCode,
-        roles: [],
+        isMember: false,
       }
     );
   },

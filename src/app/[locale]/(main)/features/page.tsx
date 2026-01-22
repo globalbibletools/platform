@@ -1,0 +1,17 @@
+import ViewTitle from "@/components/ViewTitle";
+import FeatureSwitch from "./FeatureSwitch";
+
+export default function FeaturesPage() {
+  return (
+    <div className="flex-grow flex items-start justify-center">
+      <div
+        className="flex-shrink p-6 m-4 w-96
+        border border-gray-300 rounded shadow-md
+        dark:bg-gray-800 dark:border-gray-700 dark:shadow-none"
+      >
+        <ViewTitle>Features</ViewTitle>
+        <FeatureSwitch feature="ff-snapshots" label="Snapshots" />
+      </div>
+    </div>
+  );
+}

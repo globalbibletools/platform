@@ -9,27 +9,22 @@ import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import InviteLanguageMember from "../use-cases/InviteLanguageMember";
 import languageRepository from "../data-access/languageRepository";
-import languageMemberRepository from "../data-access/LanguageMemberRepository";
-import { userClient } from "@/modules/users/public/UserClient";
-import { LanguageMemberRoleRaw } from "../model";
+import languageMemberRepository from "../data-access/languageMemberRepository";
 import { NotFoundError } from "@/shared/errors";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string(),
   email: z.string().email().min(1),
-  roles: z.array(z.nativeEnum(LanguageMemberRoleRaw)),
 });
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
-  languageRoles: [Policy.LanguageRole.Admin],
 });
 
 const inviteLanguageMemberUseCase = new InviteLanguageMember(
   languageRepository,
   languageMemberRepository,
-  userClient,
 );
 
 export async function inviteLanguageMember(

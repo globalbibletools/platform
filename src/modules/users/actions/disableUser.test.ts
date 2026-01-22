@@ -16,7 +16,7 @@ import {
 } from "../test-utils/factories";
 import {
   languageFactory,
-  languageRoleFactory,
+  languageMemberFactory,
 } from "@/modules/languages/test-utils/factories";
 import { SystemRoleRaw } from "../model/SystemRole";
 import {
@@ -26,7 +26,7 @@ import {
   findSessionsForUser,
   findUserById,
 } from "../test-utils/dbUtils";
-import { findLanguageRolesForUser } from "@/modules/languages/test-utils/dbUtils";
+import { findLanguageMembersForUser } from "@/modules/languages/test-utils/dbUtils";
 
 initializeDatabase();
 
@@ -85,7 +85,7 @@ test("disable active user and removes all related data", async () => {
     sessionFactory.build({ userId: user.id }),
     emailVerificationFactory.build({ userId: user.id }),
     passwordResetFactory.build({ userId: user.id }),
-    languageRoleFactory.build({
+    languageMemberFactory.build({
       userId: user.id,
       languageId: language.id,
     }),
@@ -108,7 +108,7 @@ test("disable active user and removes all related data", async () => {
 
   expect(await findPasswordResetsForUser(user.id)).toEqual([]);
   expect(await findEmailVerificationForUser(user.id)).toBeUndefined();
-  expect(await findLanguageRolesForUser(user.id)).toEqual([]);
+  expect(await findLanguageMembersForUser(user.id)).toEqual([]);
   expect(await findSessionsForUser(user.id)).toEqual([]);
 });
 

@@ -1,20 +1,11 @@
-export enum LanguageRole {
-  Admin = "ADMIN",
-  Translator = "TRANSLATOR",
-  Viewer = "VIEWER",
-}
-
-export enum SystemRole {
-  Admin = "ADMIN",
-  User = "USER",
-}
+import { SystemRoleRaw } from "@/modules/users";
 
 export interface ActorClaims {
   id: string;
-  systemRoles: SystemRole[];
+  systemRoles: SystemRoleRaw[];
 }
 
 export interface LanguageClaims {
   code: string;
-  roles: LanguageRole[];
+  isMember: boolean;
 }

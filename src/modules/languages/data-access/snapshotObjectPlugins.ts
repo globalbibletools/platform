@@ -57,12 +57,12 @@ export const languageSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
     },
   },
   {
-    resourceName: "language_member_role",
+    resourceName: "language_member",
     async read(languageId: string): Promise<Readable> {
       return queryStream(
         `
           select *
-          from language_member_role
+          from language_member
           where language_id = $1
         `,
         [languageId],
@@ -71,7 +71,7 @@ export const languageSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
     async clear(languageId: string): Promise<void> {
       await query(
         `
-          delete from language_member_role
+          delete from language_member
           where language_id = $1
         `,
         [languageId],
@@ -79,12 +79,12 @@ export const languageSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
     },
     async write(stream: Readable): Promise<void> {
       await copyStream(
-        "language_member_role",
+        "language_member",
         stream.pipe(
           new PostgresTextFormatTransform([
-            (role) => role.user_id,
             (role) => role.language_id,
-            (role) => role.role,
+            (role) => role.user_id,
+            (role) => role.invited_at,
           ]),
         ),
       );

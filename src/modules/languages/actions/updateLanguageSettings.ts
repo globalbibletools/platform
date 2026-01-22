@@ -10,7 +10,7 @@ import UpdateLanguageSettings from "../use-cases/UpdateLanguageSettings";
 import languageRepository from "../data-access/languageRepository";
 import { TextDirectionRaw } from "../model";
 import { NotFoundError } from "@/shared/errors";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -24,7 +24,7 @@ const requestSchema = z.object({
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
-  languageRoles: [Policy.LanguageRole.Admin],
+  languageMember: true,
 });
 
 const updateLanguageSettingsUseCase = new UpdateLanguageSettings(

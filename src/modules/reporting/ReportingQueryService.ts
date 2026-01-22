@@ -1,11 +1,8 @@
 import { query } from "@/db";
 
-export interface ContributionRecord {
+export interface LanguageContributions {
   week: Date;
-  approvedCount: number;
-  revokedCount: number;
-  editedApprovedCount: number;
-  editedUnapprovedCount: number;
+  users: Array<{ userId: string; glosses: number }>;
 }
 
 export interface ReportingContribution {
@@ -59,32 +56,30 @@ export interface ApprovalStats {
 }
 
 const reportingQueryService = {
-  async findContributionsByUserId(
-    userId: string,
-  ): Promise<ContributionRecord[]> {
-    const result = await query<ContributionRecord>(
+  async findContributionsByLanguageId({
+    languageId,
+    limit,
+  }: {
+    languageId: string;
+    limit: number;
+  }): Promise<LanguageContributions[]> {
+    const result = await query<LanguageContributions>(
       `
-        with week as (
-		    select
-				min(week) + interval '7 days' * generate_series(0, floor(extract(day from(now() - min(week) + interval '7 days') / 7) - 1)) as date
-			from weekly_contribution_statistics
-			where user_id = $1
-		)
-		select
+        select
 		  week.date as week,
-		  sum(coalesce(approved_count, 0)) as "approvedCount",
-		  sum(coalesce(revoked_count, 0)) as "revokedCount",
-		  sum(coalesce(edited_approved_count, 0)) as "editedApprovedCount", 
-		  sum(coalesce(edited_unapproved_count, 0)) as "editedUnapprovedCount"
-		from week
+		  json_agg(json_build_object('glosses', approved_count, 'userId', user_id)) as users
+		from (
+          select
+            (current_date - extract(dow from current_date) * interval '1 day')
+              - interval '7 days' * generate_series(0, $2) as date
+		) as week
 		left join weekly_contribution_statistics s
-          on s.week = week.date and s.user_id = $1
+          on s.week = week.date and s.language_id = $1
 		group by week.date
-        order by week.date
+        order by week.date;
       `,
-      [userId],
+      [languageId, limit - 1],
     );
-
     return result.rows;
   },
 

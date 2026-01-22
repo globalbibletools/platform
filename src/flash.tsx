@@ -106,7 +106,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
   return (
     <FlashContext.Provider value={contextValue}>
       {children}
-      <div className="fixed top-0 w-full flex justify-center items-start z-10 pointer-events-none">
+      <div className="fixed top-0 w-full flex justify-center items-start z-20 pointer-events-none">
         {messages.slice(0, 1).map((message) => {
           return (
             <Transition

@@ -7,11 +7,10 @@ import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import ChangeUserRoles from "../use-cases/ChangeUserRoles";
-import userRepository from "../data-access/userRepository";
+import { changeUserRoles as changeUserRolesUseCase } from "../use-cases/changeUserRoles";
 import { SystemRoleRaw } from "../model/SystemRole";
 import { NotFoundError } from "@/shared/errors";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   userId: z.string().min(1),
@@ -21,8 +20,6 @@ const requestSchema = z.object({
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
-
-const changeUserRolesUseCase = new ChangeUserRoles(userRepository);
 
 export async function changeUserRoles(
   _prevState: FormState,
@@ -51,7 +48,7 @@ export async function changeUserRoles(
   }
 
   try {
-    await changeUserRolesUseCase.execute(request.data);
+    await changeUserRolesUseCase(request.data);
   } catch (error) {
     if (error instanceof NotFoundError) {
       logger.error("user not found");

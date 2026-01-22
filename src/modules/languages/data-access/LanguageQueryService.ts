@@ -32,24 +32,6 @@ type LanguageProgressQueryResult = Pick<DbLanguage, "englishName"> & {
   nextVerse: string | null;
 };
 
-interface LanguageTimeseriesProgressQueryResult {
-  contributors: Pick<DbUser, "id" | "name">[];
-  books: (Pick<DbBook, "id" | "name"> & {
-    wordCount: number;
-  })[];
-  data: {
-    week: Date;
-    books: {
-      bookId: DbBook["id"];
-      users: {
-        userId: DbUser["id"] | null;
-        approvedCount: number;
-        unapprovedCount: number;
-      }[];
-    }[];
-  }[];
-}
-
 export type LanguageSettingsQueryResult = Pick<
   DbLanguage,
   | "englishName"
@@ -179,67 +161,5 @@ export const languageQueryService = {
       [code],
     );
     return request.rows;
-  },
-
-  async findTimeseriesProgressByCode(
-    code: string,
-  ): Promise<LanguageTimeseriesProgressQueryResult> {
-    const request = await query<LanguageTimeseriesProgressQueryResult>(
-      `select
-      (
-        select json_agg(book) from (
-          select json_build_object('id', book.id, 'name', book.name, 'wordCount', count(*)) as book from book
-          join verse on verse.book_id = book.id
-          join word on word.verse_id = verse.id
-          group by book.id
-          order by book.id
-        ) book
-      ) as books,
-      (
-        select json_agg(json_build_object('id', id, 'name', name))
-        from (
-          select distinct on (u.id) u.id, u.name from weekly_gloss_statistics s
-          join users u on u.id = s.user_id
-          where s.language_id = (select id from language where code = $1)
-          order by u.id asc
-        ) u
-      ) as contributors,
-      (
-        select json_agg(json_build_object('week', week, 'books', books) order by week asc) from (
-          select
-            week,
-            json_agg(json_build_object('bookId', book_id, 'users', users) order by book_id asc) as books
-          from (
-            select
-              week, book_id,
-              json_agg(json_build_object('userId', user_id, 'approvedCount', approved_count, 'unapprovedCount', unapproved_count)) as users
-            from weekly_gloss_statistics
-            where language_id = (select id from language where code = $1)
-            group by week, book_id
-          ) book_week
-          group by week
-        ) week
-      ) as data;
-    `,
-      [code],
-    );
-    return request.rows[0];
-  },
-
-  async findForMember(userId: string): Promise<LanguageQueryResult[]> {
-    const result = await query<LanguageQueryResult>(
-      `
-        select id, code, english_name as "englishName", local_name as "localName"
-        from language
-        where exists (
-            select * from language_member_role
-            where language_id = language.id
-              and user_id = $1
-        )
-        order by "englishName"
-      `,
-      [userId],
-    );
-    return result.rows;
   },
 };

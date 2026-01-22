@@ -10,11 +10,14 @@ import { verifySession } from "@/session";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { serverActionLogger } from "@/server-action";
+import { Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string(),
   language: z.string(),
 });
+
+const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
 export async function importLanguage(
   _state: FormState,
@@ -26,7 +29,10 @@ export async function importLanguage(
   const locale = await getLocale();
 
   const session = await verifySession();
-  if (!session) {
+  const isAuthorized = policy.authorize({
+    actorId: session?.user.id,
+  });
+  if (!isAuthorized) {
     logger.error("unauthorized");
     redirect(`${locale}/login`);
   }
@@ -48,21 +54,13 @@ export async function importLanguage(
     };
   }
 
-  const languageQuery = await query<{ id: string; roles: string[] }>(
-    `SELECT 
-            l.id,
-            (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') AS roles
-            FROM language_member_role AS r WHERE r.language_id = l.id AND r.user_id = $2)
-        FROM language AS l WHERE l.code = $1`,
-    [request.data.code, session.user.id],
+  const languageQuery = await query<{ id: string }>(
+    `select l.id, from language where code = $1`,
+    [request.data.code],
   );
   const language = languageQuery.rows[0];
-  if (
-    !language ||
-    (!session?.user.roles.includes("ADMIN") &&
-      !language.roles.includes("ADMIN"))
-  ) {
-    logger.error("unauthorized");
+  if (!language) {
+    logger.error("not found");
     notFound();
   }
 
@@ -77,7 +75,7 @@ export async function importLanguage(
             user_id = $2
         WHERE job.succeeded IS NOT NULL
         `,
-    [language.id, session.user.id],
+    [language.id, session!.user.id],
   );
 
   if ((result.rowCount ?? 0) > 0) {

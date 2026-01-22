@@ -20,7 +20,7 @@ import { redirect } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import Pagination from "@/components/Pagination";
 import { inviteUser } from "@/modules/users/actions/inviteUser";
-import userQueryService from "@/modules/users/data-access/UserQueryService";
+import { searchUsersReadModel } from "../read-models/searchUsersReadModel";
 
 export async function generateMetadata(
   _: any,
@@ -49,7 +49,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPage) {
     redirect("./users?page=1");
   }
 
-  const { page: users, total } = await userQueryService.search({
+  const { page: users, total } = await searchUsersReadModel({
     page: page - 1,
     limit: LIMIT,
   });
@@ -131,10 +131,6 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPage) {
                       <span className="mx-1">|</span>
                     </>
                   )}
-                  <Button variant="link" href={`./users/${user.id}/reports`}>
-                    {t("links.reports")}
-                  </Button>
-                  <span className="mx-1">|</span>
                   <ServerAction
                     variant="tertiary"
                     destructive

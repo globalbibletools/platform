@@ -9,7 +9,7 @@ import { serverActionLogger } from "@/server-action";
 import CreateLanguage from "../use-cases/CreateLanguage";
 import { LanguageAlreadyExistsError } from "../model";
 import languageRepository from "../data-access/languageRepository";
-import Policy from "@/modules/access/public/Policy";
+import { Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string().length(3),

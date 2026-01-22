@@ -5,7 +5,10 @@ import { logger } from "./logging";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 
-import { LanguageTable } from "@/modules/languages/data-access/types";
+import {
+  LanguageMemberTable,
+  LanguageTable,
+} from "@/modules/languages/data-access/types";
 import { Kysely, PostgresDialect } from "kysely";
 import {
   ResetPasswordTokenTable,
@@ -15,19 +18,30 @@ import {
   UserSystemRoleTable,
   UserTable,
 } from "./modules/users/data-access/types";
+import {
+  BookTable,
+  VerseCommentaryTable,
+  VerseQuestionTable,
+  VerseTable,
+  WordLexiconTable,
+  WordTable,
+} from "./modules/bible-core/db/schema";
 
 export interface Database {
+  book: BookTable;
   language: LanguageTable;
-  users: UserTable;
+  language_member: LanguageMemberTable;
   reset_password_token: ResetPasswordTokenTable;
+  session: SessionTable;
   user_email_verification: UserEmailVerificationTable;
   user_invitation: UserInvitationTable;
   user_system_role: UserSystemRoleTable;
-  session: SessionTable;
-}
-
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL env var missing");
+  users: UserTable;
+  verse: VerseTable;
+  verse_commentary: VerseCommentaryTable;
+  verse_question: VerseQuestionTable;
+  word: WordTable;
+  word_lexicon: WordLexiconTable;
 }
 
 // Convert BigInts to Javascript numbers.
@@ -35,33 +49,44 @@ pg.types.setTypeParser(pg.types.builtins.INT8, function (val) {
   return parseInt(val, 10);
 });
 
-let pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 20 });
+let _pool: pg.Pool | undefined;
+export function getPool(): pg.Pool {
+  if (!_pool) {
+    if (!process.env.DATABASE_URL) {
+      throw new Error("DATABASE_URL env var missing");
+    }
 
-function onError(error: unknown) {
-  logger.error(error);
+    _pool = new pg.Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: 20,
+    });
+    _pool.on("error", (error) => logger.error(error));
+  }
+  return _pool;
 }
-pool.on("error", onError);
 
-let db = new Kysely<Database>({
-  dialect: new PostgresDialect({ pool }),
-});
-
+let _db: Kysely<Database> | undefined;
 export function getDb(): Kysely<Database> {
-  return db;
+  if (!_db) {
+    _db = new Kysely<Database>({
+      dialect: new PostgresDialect({ pool: getPool() }),
+    });
+  }
+  return _db;
 }
 
 export async function query<T extends QueryResultRow>(
   text: string,
   params: any,
 ): Promise<QueryResult<T>> {
-  return pool.query(text, params);
+  return getPool().query(text, params);
 }
 
 export async function queryStream(
   text: string,
   params: any,
 ): Promise<QueryStream> {
-  const client = await pool.connect();
+  const client = await getPool().connect();
 
   const query = new QueryStream(text, params);
   const stream = client.query(query);
@@ -77,7 +102,7 @@ export async function copyStream(
   table: string,
   stream: Readable,
 ): Promise<void> {
-  const client = await pool.connect();
+  const client = await getPool().connect();
 
   try {
     const dbStream = client.query(copyFrom(`copy ${table} from stdin`));
@@ -90,7 +115,7 @@ export async function copyStream(
 export async function transaction<T>(
   tx: (q: typeof query) => Promise<T>,
 ): Promise<T> {
-  const client = await pool.connect();
+  const client = await getPool().connect();
 
   try {
     await client.query("BEGIN");
@@ -108,17 +133,14 @@ export async function transaction<T>(
 }
 
 export async function close() {
-  await pool.end();
+  await _pool?.end();
 }
 
 export async function reconnect() {
   try {
-    await pool.end();
+    await _pool?.end();
   } catch (_) {}
-  pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 20 });
-  pool.on("error", onError);
 
-  db = new Kysely({
-    dialect: new PostgresDialect({ pool }),
-  });
+  _db = undefined;
+  _pool = undefined;
 }

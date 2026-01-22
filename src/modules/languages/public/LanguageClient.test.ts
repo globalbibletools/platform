@@ -1,9 +1,8 @@
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
-import { LanguageMemberRoleRaw } from "../model";
 import { languageClient } from "./LanguageClient";
 import { createScenario } from "@/tests/scenarios";
-import { findLanguageRolesForUser } from "../test-utils/dbUtils";
+import { findLanguageMembersForUser } from "../test-utils/dbUtils";
 
 initializeDatabase();
 
@@ -14,12 +13,10 @@ test("removes user from all languages", async () => {
     },
     languages: {
       spanish: {
-        members: [
-          { userId: "user", roles: [LanguageMemberRoleRaw.Translator] },
-        ],
+        members: ["user"],
       },
       italian: {
-        members: [{ userId: "user" }],
+        members: ["user"],
       },
     },
   });
@@ -27,6 +24,6 @@ test("removes user from all languages", async () => {
 
   await languageClient.removeUserFromLanguages(user.id);
 
-  const languageMemberRoles = await findLanguageRolesForUser(user.id);
+  const languageMemberRoles = await findLanguageMembersForUser(user.id);
   expect(languageMemberRoles).toEqual([]);
 });
