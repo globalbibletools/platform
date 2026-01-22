@@ -1,4 +1,3 @@
-import { useTranslations } from "next-intl";
 import Button from "@/components/Button";
 import FormLabel from "@/components/FormLabel";
 import TextInput from "@/components/TextInput";
@@ -35,7 +34,7 @@ const policy = new Policy({
 export default async function InviteLanguageUserPage({
   params,
 }: InviteLanguageUserPageProps) {
-  const t = useTranslations("InviteLanguageUserPage");
+  const t = await getTranslations("InviteLanguageUserPage");
 
   const session = await verifySession();
   const isAuthorized = await policy.authorize({
