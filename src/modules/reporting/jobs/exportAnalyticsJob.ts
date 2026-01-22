@@ -124,7 +124,7 @@ async function updateUsersSheet(logger: pino.Logger) {
 
 async function updateLanguagesSheet(logger: pino.Logger) {
   const languages = await reportingQueryService.findLanguages();
-  const data = languages.map((lang) => [lang.id, lang.name, lang.code]);
+  const data = languages.map((lang) => [lang.id, lang.englishName, lang.code]);
   data.unshift(["ID", "Name", "Code"]);
   await sheets.spreadsheets.values.update({
     spreadsheetId: ANALYTICS_SPREADSHEET_ID,

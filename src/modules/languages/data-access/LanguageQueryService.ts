@@ -26,7 +26,8 @@ interface LanguagePageQueryResult {
   page: PaginatedLanguage[];
 }
 
-type LanguageProgressQueryResult = Pick<DbLanguage, "englishName"> & {
+type LanguageProgressQueryResult = {
+  name: string;
   wordCount: number;
   approvedCount: number;
   nextVerse: string | null;
