@@ -49,7 +49,7 @@ export default async function LandingPage() {
         <div className="md:flex-grow"></div>
         <a
           href={session ? "/dashboard" : "/read"}
-          className="rounded-lg bg-blue-800 text-white font-bold shadow-md px-4 flex items-center justify-center h-8 md:mt-[4px] ms-1"
+          className="flex-shrink-0 rounded-lg bg-blue-800 text-white font-bold shadow-md px-4 flex items-center justify-center h-8 md:mt-[4px] ms-1"
         >
           {session ? "Go to Dashboard" : "Reader's Bible"}
         </a>
