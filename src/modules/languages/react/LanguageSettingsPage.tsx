@@ -114,7 +114,7 @@ export default async function LanguageSettingsPage({
               />
               <FieldError id="local-name-error" name="localName" />
             </div>
-            <div className="mb-4">
+            <div>
               <FormLabel htmlFor="code">
                 {t("form.code").toUpperCase()}
               </FormLabel>
