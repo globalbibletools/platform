@@ -69,7 +69,10 @@ describe("findByCode", () => {
   test("returns language model if it exists", async () => {
     await expect(languageRepository.findByCode(language.code)).resolves.toEqual(
       {
-        ...language,
+        id: language.id,
+        code: language.code,
+        englishName: language.english_name,
+        localName: language.local_name,
         font: "Noto Sans",
         referenceLanguageId: null,
         textDirection: TextDirectionRaw.LTR,
@@ -96,7 +99,8 @@ describe("create", () => {
       .execute();
     expect(dbLanguages).toEqual([
       {
-        ...language,
+        id: language.id,
+        code: language.code,
         english_name: language.englishName,
         local_name: language.localName,
         font: "Noto Sans",

@@ -30,7 +30,8 @@ test("returns validation error if the request shape doesn't match the schema", a
       state: "error",
       validation: {
         code: ["Invalid"],
-        name: ["Please enter the language name."],
+        englishName: ["Please enter the language's English name."],
+        localName: ["Please enter the language's local name."],
         font: ["Please select a font."],
         textDirection: ["Please select a text direction."],
       },
@@ -47,7 +48,8 @@ test("returns validation error if the request shape doesn't match the schema", a
     expect(response).toEqual({
       state: "error",
       validation: {
-        name: ["Please enter the language name."],
+        englishName: ["Please enter the language's English name."],
+        localName: ["Please enter the language's local name."],
         font: ["Please select a font."],
       },
     });
