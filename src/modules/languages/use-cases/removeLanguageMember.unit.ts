@@ -1,18 +1,27 @@
-import { test, expect } from "vitest";
+import { test, expect, vi } from "vitest";
 import mockLanguageRepo from "../data-access/mockLanguageRepository";
 import mockLanguageMemberRepo from "../data-access/mockLanguageMemberRepository";
 import { NotFoundError } from "@/shared/errors";
 import { TextDirectionRaw } from "../model";
 import { ulid } from "@/shared/ulid";
-import RemoveLanguageMember from "./RemoveLanguageMember";
+import { removeLanguageMember } from "./RemoveLanguageMember";
 
-const removeLanguageMember = new RemoveLanguageMember(
-  mockLanguageRepo,
-  mockLanguageMemberRepo,
-);
+vi.mock("../data-access/languageRepository", async () => {
+  const mockLanguageRepo = await vi.importActual(
+    "../data-access/mockLanguageRepository",
+  );
+  return mockLanguageRepo;
+});
+
+vi.mock("../data-access/languageMemberRepository", async () => {
+  const mockLanguageMemberRepo = await vi.importActual(
+    "../data-access/mockLanguageMemberRepository",
+  );
+  return mockLanguageMemberRepo;
+});
 
 test("throws error if language could not be found", async () => {
-  const result = removeLanguageMember.execute({
+  const result = removeLanguageMember({
     code: "spa",
     userId: ulid(),
   });
@@ -36,7 +45,7 @@ test("removes language member", async () => {
   mockLanguageRepo.languages = [language];
   mockLanguageMemberRepo.members = [languageMember];
 
-  await removeLanguageMember.execute({
+  await removeLanguageMember({
     code: language.code,
     userId: languageMember.userId,
   });

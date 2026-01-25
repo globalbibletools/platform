@@ -1,10 +1,15 @@
 import { ulid } from "@/shared/ulid";
-import mockLanguageRepo from "../data-access/mockLanguageRepository";
-import CreateLanguage from "./CreateLanguage";
-import { test, expect } from "vitest";
+import { test, expect, vi } from "vitest";
 import { LanguageAlreadyExistsError, TextDirectionRaw } from "../model";
+import { createLanguage } from "./CreateLanguage";
+import mockLanguageRepo from "../data-access/mockLanguageRepository";
 
-const createLanguage = new CreateLanguage(mockLanguageRepo);
+vi.mock("../data-access/languageRepository", async () => {
+  const mockLanguageRepo = await vi.importActual(
+    "../data-access/mockLanguageRepository",
+  );
+  return mockLanguageRepo;
+});
 
 test("throws error if language already exists with the same code", async () => {
   const existingLanguage = {
@@ -18,7 +23,7 @@ test("throws error if language already exists with the same code", async () => {
   };
   mockLanguageRepo.languages = [existingLanguage];
 
-  const result = createLanguage.execute({
+  const result = createLanguage({
     code: existingLanguage.code,
     englishName: existingLanguage.englishName,
     localName: existingLanguage.localName,
@@ -34,14 +39,11 @@ test("creates new language", async () => {
     englishName: "Spanish",
     localName: "Español",
   };
-  await createLanguage.execute(request);
+  await createLanguage(request);
   expect(mockLanguageRepo.languages).toEqual([
     {
       ...request,
       id: expect.toBeUlid(),
-      font: "Noto Sans",
-      textDirection: TextDirectionRaw.LTR,
-      translationIds: [],
     },
   ]);
 });

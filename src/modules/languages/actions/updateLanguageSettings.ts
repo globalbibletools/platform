@@ -6,8 +6,7 @@ import { notFound } from "next/navigation";
 import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import UpdateLanguageSettings from "../use-cases/UpdateLanguageSettings";
-import languageRepository from "../data-access/languageRepository";
+import { updateLanguageSettings as updateLanguageSettingsUseCase } from "../use-cases/updateLanguageSettings";
 import { TextDirectionRaw } from "../model";
 import { NotFoundError } from "@/shared/errors";
 import { Policy } from "@/modules/access";
@@ -26,10 +25,6 @@ const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
   languageMember: true,
 });
-
-const updateLanguageSettingsUseCase = new UpdateLanguageSettings(
-  languageRepository,
-);
 
 export async function updateLanguageSettings(
   _prevState: FormState,
@@ -88,7 +83,7 @@ export async function updateLanguageSettings(
   }
 
   try {
-    await updateLanguageSettingsUseCase.execute({
+    await updateLanguageSettingsUseCase({
       ...request.data,
       translationIds: request.data.translationIds ?? [],
     });

@@ -1,5 +1,5 @@
 import { test, expect, vi } from "vitest";
-import InviteLanguageMember from "./InviteLanguageMember";
+import { inviteLanguageMember } from "./InviteLanguageMember";
 import mockLanguageRepo from "../data-access/mockLanguageRepository";
 import mockLanguageMemberRepo from "../data-access/mockLanguageMemberRepository";
 import { inviteUser } from "@/modules/users";
@@ -11,13 +11,22 @@ vi.mock("@/modules/users", () => ({
   inviteUser: vi.fn(),
 }));
 
-const inviteLanguageMember = new InviteLanguageMember(
-  mockLanguageRepo,
-  mockLanguageMemberRepo,
-);
+vi.mock("../data-access/languageRepository", async () => {
+  const mockLanguageRepo = await vi.importActual(
+    "../data-access/mockLanguageRepository",
+  );
+  return mockLanguageRepo;
+});
+
+vi.mock("../data-access/languageMemberRepository", async () => {
+  const mockLanguageMemberRepo = await vi.importActual(
+    "../data-access/mockLanguageMemberRepository",
+  );
+  return mockLanguageMemberRepo;
+});
 
 test("throws error if language could not be found", async () => {
-  const response = inviteLanguageMember.execute({
+  const response = inviteLanguageMember({
     code: "spa",
     email: "invited@example.com",
   });
@@ -39,7 +48,7 @@ test("invites language member", async () => {
   };
   mockLanguageRepo.languages = [language];
 
-  const response = await inviteLanguageMember.execute({
+  const response = await inviteLanguageMember({
     code: "spa",
     email: "invited@example.com",
   });

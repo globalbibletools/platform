@@ -7,9 +7,7 @@ import { parseForm } from "@/form-parser";
 import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import InviteLanguageMember from "../use-cases/InviteLanguageMember";
-import languageRepository from "../data-access/languageRepository";
-import languageMemberRepository from "../data-access/languageMemberRepository";
+import { inviteLanguageMember as inviteLanguageMemberUseCase } from "../use-cases/inviteLanguageMember";
 import { NotFoundError } from "@/shared/errors";
 import { Policy } from "@/modules/access";
 
@@ -21,11 +19,6 @@ const requestSchema = z.object({
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
-
-const inviteLanguageMemberUseCase = new InviteLanguageMember(
-  languageRepository,
-  languageMemberRepository,
-);
 
 export async function inviteLanguageMember(
   _prevState: FormState,
@@ -67,7 +60,7 @@ export async function inviteLanguageMember(
   }
 
   try {
-    await inviteLanguageMemberUseCase.execute(request.data);
+    await inviteLanguageMemberUseCase(request.data);
   } catch (error) {
     if (error instanceof NotFoundError) {
       logger.error("language not found");

@@ -8,9 +8,7 @@ import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import RemoveLanguageMember from "../use-cases/RemoveLanguageMember";
-import languageRepository from "../data-access/languageRepository";
-import languageMemberRepository from "../data-access/languageMemberRepository";
+import { removeLanguageMember as removeLanguageMemberUseCase } from "../use-cases/removeLanguageMember";
 import { NotFoundError } from "@/shared/errors";
 import { Policy } from "@/modules/access";
 
@@ -22,11 +20,6 @@ const requestSchema = z.object({
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
-
-const removeLanguageMemberUseCase = new RemoveLanguageMember(
-  languageRepository,
-  languageMemberRepository,
-);
 
 export async function removeLanguageMember(
   _prevState: FormState,
@@ -56,7 +49,7 @@ export async function removeLanguageMember(
   }
 
   try {
-    await removeLanguageMemberUseCase.execute(request.data);
+    await removeLanguageMemberUseCase(request.data);
   } catch (error) {
     if (error instanceof NotFoundError) {
       notFound();

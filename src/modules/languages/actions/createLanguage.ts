@@ -6,9 +6,8 @@ import { notFound, redirect } from "next/navigation";
 import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import CreateLanguage from "../use-cases/CreateLanguage";
+import { createLanguage as createLanguageUseCase } from "../use-cases/createLanguage";
 import { LanguageAlreadyExistsError } from "../model";
-import languageRepository from "../data-access/languageRepository";
 import { Policy } from "@/modules/access";
 
 const requestSchema = z.object({
@@ -20,8 +19,6 @@ const requestSchema = z.object({
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
-
-const createLanguageUseCase = new CreateLanguage(languageRepository);
 
 export async function createLanguage(
   _prevState: FormState,
@@ -70,7 +67,7 @@ export async function createLanguage(
   }
 
   try {
-    await createLanguageUseCase.execute(request.data);
+    await createLanguageUseCase(request.data);
   } catch (error) {
     if (error instanceof LanguageAlreadyExistsError) {
       logger.error("language already exists");

@@ -1,11 +1,14 @@
-import { test, expect } from "vitest";
+import { test, expect, vi } from "vitest";
 import mockLanguageMemberRepo from "../data-access/mockLanguageMemberRepository";
 import { ulid } from "@/shared/ulid";
-import RemoveUserFromLanguages from "./RemoveUserFromLanguages";
+import { removeUserFromLanguages } from "./RemoveUserFromLanguages";
 
-const removeUserFromLanguages = new RemoveUserFromLanguages(
-  mockLanguageMemberRepo,
-);
+vi.mock("../data-access/languageMemberRepository", async () => {
+  const mockLanguageMemberRepo = await vi.importActual(
+    "../data-access/mockLanguageMemberRepository",
+  );
+  return mockLanguageMemberRepo;
+});
 
 test("removes user from all languages", async () => {
   const userId = ulid();
@@ -25,7 +28,7 @@ test("removes user from all languages", async () => {
     otherMember,
   ];
 
-  await removeUserFromLanguages.execute({
+  await removeUserFromLanguages({
     userId,
   });
 

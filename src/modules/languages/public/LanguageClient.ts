@@ -1,14 +1,9 @@
-import languageMemberRepository from "../data-access/languageMemberRepository";
-import RemoveUserFromLanguages from "../use-cases/RemoveUserFromLanguages";
-
-const removeUserFromLanguagesUseCase = new RemoveUserFromLanguages(
-  languageMemberRepository,
-);
+import { removeUserFromLanguages } from "../use-cases/removeUserFromLanguages";
 
 export const languageClient = {
   // Eventually, this should be handled by an event from the user system
   // rather than a direct call.
   async removeUserFromLanguages(userId: string): Promise<void> {
-    await removeUserFromLanguagesUseCase.execute({ userId });
+    await removeUserFromLanguages({ userId });
   },
 };

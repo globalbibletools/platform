@@ -1,14 +1,19 @@
 import { ulid } from "@/shared/ulid";
 import mockLanguageRepo from "../data-access/mockLanguageRepository";
-import { test, expect } from "vitest";
+import { test, expect, vi } from "vitest";
 import { SourceLanguageMissingError, TextDirectionRaw } from "../model";
-import UpdateLanguageSettings from "./UpdateLanguageSettings";
+import { updateLanguageSettings } from "./UpdateLanguageSettings";
 import { NotFoundError } from "@/shared/errors";
 
-const updateLanguageSettings = new UpdateLanguageSettings(mockLanguageRepo);
+vi.mock("../data-access/languageRepository", async () => {
+  const mockLanguageRepo = await vi.importActual(
+    "../data-access/mockLanguageRepository",
+  );
+  return mockLanguageRepo;
+});
 
 test("throws error if language does not exist", async () => {
-  const result = updateLanguageSettings.execute({
+  const result = updateLanguageSettings({
     code: "spa",
     englishName: "Spanish",
     localName: "Español",
@@ -40,7 +45,7 @@ test("throws error if the source langauge does not exist", async () => {
     translationIds: ["translation-id-1"],
     referenceLanguageId: ulid(),
   };
-  const result = updateLanguageSettings.execute(request);
+  const result = updateLanguageSettings(request);
   await expect(result).rejects.toThrow(
     new SourceLanguageMissingError(request.referenceLanguageId),
   );
@@ -78,7 +83,7 @@ test("updates language settings", async () => {
     translationIds: ["translation-id-1"],
     referenceLanguageId: sourceLanguage.id,
   };
-  await updateLanguageSettings.execute(request);
+  await updateLanguageSettings(request);
 
   expect(mockLanguageRepo.languages).toEqual([
     {
