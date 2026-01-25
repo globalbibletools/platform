@@ -27,7 +27,8 @@ const languageRepository = {
       .select([
         "id",
         "code",
-        "name",
+        "local_name as localName",
+        "english_name as englishName",
         "font",
         "text_direction as textDirection",
         sql<
@@ -44,14 +45,15 @@ const languageRepository = {
   },
 
   async create(
-    language: Pick<Language, "id" | "code" | "name">,
+    language: Pick<Language, "id" | "code" | "englishName" | "localName">,
   ): Promise<void> {
     await getDb()
       .insertInto("language")
       .values({
         id: language.id,
         code: language.code,
-        name: language.name,
+        local_name: language.localName,
+        english_name: language.englishName,
       })
       .execute();
   },
@@ -60,7 +62,8 @@ const languageRepository = {
     await getDb()
       .updateTable("language")
       .set({
-        name: language.name,
+        local_name: language.localName,
+        english_name: language.englishName,
         font: language.font,
         text_direction: language.textDirection,
         translation_ids: language.translationIds,

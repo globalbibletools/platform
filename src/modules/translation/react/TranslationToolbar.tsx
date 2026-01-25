@@ -29,7 +29,7 @@ import AudioDialog from "@/modules/study/react/AudioDialog";
 import { useElementDimensions } from "@/utils/measure-element";
 
 export interface TranslationToolbarProps {
-  languages: { name: string; code: string }[];
+  languages: { englishName: string; localName: string; code: string }[];
   currentLanguage: { isMember: boolean } | null;
   userRoles: string[];
 }
@@ -279,7 +279,7 @@ export default function TranslationToolbar({
           <ComboboxInput
             aria-label={t("language")}
             items={languages.map((l) => ({
-              label: l.name,
+              label: l.englishName,
               value: l.code,
             }))}
             value={code}

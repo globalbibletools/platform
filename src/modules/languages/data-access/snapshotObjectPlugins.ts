@@ -27,11 +27,12 @@ export const languageSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
               `
                 update language set
                   code = $2,
-                  name = $3,
+                  english_name = $3,
                   font = $4,
                   translation_ids = $5,
                   text_direction = $6,
-                  reference_language_id = $7
+                  reference_language_id = $7,
+                  local_name = $8,
                 where id = $1
               `,
               [
@@ -42,6 +43,7 @@ export const languageSnapshotObjectPlugins: SnapshotObjectPlugin[] = [
                 language.translation_ids,
                 language.text_direction,
                 language.reference_language_id,
+                language.local_name,
               ],
             );
           }

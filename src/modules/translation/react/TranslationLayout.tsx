@@ -46,13 +46,14 @@ export default async function InterlinearLayout({ children, params }: Props) {
 
 interface Language {
   code: string;
-  name: string;
+  englishName: string;
+  localName: string;
 }
 
 // TODO: cache this, it will only change when languages are added or reconfigured
 async function fetchLanguages(): Promise<Language[]> {
   const result = await query<Language>(
-    `SELECT code, name FROM language ORDER BY name`,
+    `SELECT code, english_name AS "englishName", local_name AS "localName" FROM language ORDER BY "englishName"`,
     [],
   );
   return result.rows;

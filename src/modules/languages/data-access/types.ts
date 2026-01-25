@@ -4,7 +4,8 @@ import { TextDirectionRaw } from "../model";
 export interface LanguageTable {
   id: Generated<string>;
   code: string;
-  name: string;
+  local_name: string;
+  english_name: string;
   font: Generated<string>;
   text_direction: Generated<TextDirectionRaw>;
   translation_ids: Generated<Array<string>> | null;
@@ -20,7 +21,8 @@ export interface LanguageMemberTable {
 export interface DbLanguage {
   id: string;
   code: string;
-  name: string;
+  englishName: string;
+  localName: string;
   font: string;
   textDirection: TextDirectionRaw;
   translationIds: string[];

@@ -11,7 +11,8 @@ describe("existsById", () => {
   const language = {
     id: ulid(),
     code: "spa",
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Espanol",
   };
   beforeEach(async () => {
     await getDb().insertInto("language").values(language).execute();
@@ -32,7 +33,8 @@ describe("existsByCode", () => {
   const language = {
     id: ulid(),
     code: "spa",
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Espanol",
   };
   beforeEach(async () => {
     await getDb().insertInto("language").values(language).execute();
@@ -53,7 +55,8 @@ describe("findByCode", () => {
   const language = {
     id: ulid(),
     code: "spa",
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Espanol",
   };
   beforeEach(async () => {
     await getDb().insertInto("language").values(language).execute();
@@ -66,7 +69,10 @@ describe("findByCode", () => {
   test("returns language model if it exists", async () => {
     await expect(languageRepository.findByCode(language.code)).resolves.toEqual(
       {
-        ...language,
+        id: language.id,
+        code: language.code,
+        englishName: language.english_name,
+        localName: language.local_name,
         font: "Noto Sans",
         referenceLanguageId: null,
         textDirection: TextDirectionRaw.LTR,
@@ -81,7 +87,8 @@ describe("create", () => {
     const language = {
       id: ulid(),
       code: "spa",
-      name: "Spanish",
+      englishName: "Spanish",
+      localName: "Espanol",
     };
 
     await expect(languageRepository.create(language)).resolves.toBeUndefined();
@@ -92,7 +99,10 @@ describe("create", () => {
       .execute();
     expect(dbLanguages).toEqual([
       {
-        ...language,
+        id: language.id,
+        code: language.code,
+        english_name: language.englishName,
+        local_name: language.localName,
         font: "Noto Sans",
         reference_language_id: null,
         text_direction: TextDirectionRaw.LTR,
@@ -105,12 +115,18 @@ describe("create", () => {
     const language = {
       id: ulid(),
       code: "spa",
-      name: "Spanish",
+      english_name: "Spanish",
+      local_name: "Spanish",
     };
     await getDb().insertInto("language").values(language).execute();
 
     await expect(
-      languageRepository.create({ ...language, id: ulid() }),
+      languageRepository.create({
+        ...language,
+        id: ulid(),
+        englishName: language.english_name,
+        localName: language.local_name,
+      }),
     ).rejects.toThrowError(
       expect.objectContaining({
         message:
@@ -138,7 +154,8 @@ describe("update", () => {
   const language = {
     id: ulid(),
     code: "spa",
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Spanish",
   };
   beforeEach(async () => {
     await getDb().insertInto("language").values(language).execute();
@@ -147,7 +164,8 @@ describe("update", () => {
   test("updates language if it exists", async () => {
     const updatedLanguage = {
       code: language.code,
-      name: "Spanish changed",
+      localName: "Spanish changed",
+      englishName: "Espanol changed",
       font: "New font",
       textDirection: TextDirectionRaw.RTL,
       translationIds: ["new"],
@@ -166,7 +184,8 @@ describe("update", () => {
       {
         id: language.id,
         code: language.code,
-        name: updatedLanguage.name,
+        english_name: updatedLanguage.englishName,
+        local_name: updatedLanguage.localName,
         font: updatedLanguage.font,
         reference_language_id: updatedLanguage.referenceLanguageId,
         text_direction: updatedLanguage.textDirection,
@@ -178,7 +197,8 @@ describe("update", () => {
   test("makes no change if language does not exist", async () => {
     const updatedLanguage = {
       code: "xxx",
-      name: "Spanish changed",
+      localName: "Spanish changed",
+      englishName: "Espanol changed",
       font: "New font",
       textDirection: TextDirectionRaw.RTL,
       translationIds: ["new"],

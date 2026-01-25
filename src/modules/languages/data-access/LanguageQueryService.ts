@@ -8,9 +8,15 @@ export interface DbBook {
   name: string;
 }
 
-export type LanguageQueryResult = Pick<DbLanguage, "id" | "code" | "name">;
+export type LanguageQueryResult = Pick<
+  DbLanguage,
+  "id" | "code" | "englishName" | "localName"
+>;
 
-export type PaginatedLanguage = Pick<DbLanguage, "code" | "name"> & {
+export type PaginatedLanguage = Pick<
+  DbLanguage,
+  "code" | "englishName" | "localName"
+> & {
   otProgress: number;
   ntProgress: number;
 };
@@ -20,7 +26,8 @@ interface LanguagePageQueryResult {
   page: PaginatedLanguage[];
 }
 
-type LanguageProgressQueryResult = Pick<DbLanguage, "name"> & {
+type LanguageProgressQueryResult = {
+  name: string;
   wordCount: number;
   approvedCount: number;
   nextVerse: string | null;
@@ -28,7 +35,8 @@ type LanguageProgressQueryResult = Pick<DbLanguage, "name"> & {
 
 export type LanguageSettingsQueryResult = Pick<
   DbLanguage,
-  | "name"
+  | "englishName"
+  | "localName"
   | "code"
   | "font"
   | "textDirection"
@@ -53,14 +61,15 @@ export const languageQueryService = {
             from (
               select
                 json_build_object(
-                  'name', l.name, 
+                  'englishName', l.english_name, 
+                  'localName', l.local_name, 
                   'code', l.code,
                   'otProgress', coalesce(p.ot_progress, 0),
                   'ntProgress', coalesce(p.nt_progress, 0)
                 ) as json
               from language as l
               left join language_progress as p on p.code = l.code
-              order by l.name
+              order by l.english_name
               offset $1
               limit $2
             ) as l
@@ -74,9 +83,9 @@ export const languageQueryService = {
   async findAll(): Promise<LanguageQueryResult[]> {
     const result = await query<LanguageQueryResult>(
       `
-        select id, code, name
+        select id, code, english_name as "englishName", local_name as "localName"
         from language
-        order by name
+        order by "englishName"
       `,
       [],
     );
@@ -86,7 +95,7 @@ export const languageQueryService = {
   async findById(id: string): Promise<LanguageQueryResult | undefined> {
     const result = await query<LanguageQueryResult>(
       `
-        select id, code, name
+        select id, code, english_name as "englishName", local_name as "localName"
         from language
         where id = $1
       `,
@@ -98,7 +107,7 @@ export const languageQueryService = {
   async findByCode(code: string): Promise<LanguageQueryResult | undefined> {
     const result = await query<LanguageQueryResult>(
       `
-        select id, code, name
+        select id, code, english_name as "englishName", local_name as "localName"
         from language
         where code = $1
       `,
@@ -113,7 +122,7 @@ export const languageQueryService = {
     const result = await query<LanguageSettingsQueryResult>(
       `
         select
-          name, code, font,
+          english_name as "englishName", local_name as "localName", code, font,
           text_direction as "textDirection",
           translation_ids as "translationIds",
           reference_language_id as "referenceLanguageId"

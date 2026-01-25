@@ -546,11 +546,12 @@ ALTER SEQUENCE public.job_type_id_seq OWNED BY public.job_type.id;
 CREATE TABLE public.language (
     id uuid DEFAULT public.generate_ulid() NOT NULL,
     code text NOT NULL,
-    name text NOT NULL,
+    english_name text NOT NULL,
     font text DEFAULT 'Noto Sans'::text NOT NULL,
     translation_ids text[],
     text_direction public.text_direction DEFAULT 'ltr'::public.text_direction NOT NULL,
-    reference_language_id uuid
+    reference_language_id uuid,
+    local_name text NOT NULL
 );
 
 

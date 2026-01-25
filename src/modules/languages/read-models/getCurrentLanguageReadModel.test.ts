@@ -20,7 +20,8 @@ test("returns undefined if the language does not exist", async () => {
 test("returns language when no user is provided", async () => {
   const language = await languageFactory.build({
     code: "spa",
-    name: "Spanish",
+    englishName: "Spanish",
+    localName: "Español",
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
   });
@@ -29,7 +30,8 @@ test("returns language when no user is provided", async () => {
 
   expect(result).toEqual({
     code: language.code,
-    name: language.name,
+    englishName: language.englishName,
+    localName: language.localName,
     font: language.font,
     textDirection: language.textDirection,
     translationIds: language.translationIds,
@@ -46,7 +48,8 @@ test("returns language when user is not a member", async () => {
 
   expect(result).toEqual({
     code: language.code,
-    name: language.name,
+    englishName: language.englishName,
+    localName: language.localName,
     font: language.font,
     textDirection: language.textDirection,
     translationIds: language.translationIds,
@@ -67,7 +70,8 @@ test("returns language when user is a member", async () => {
 
   expect(result).toEqual({
     code: language.code,
-    name: language.name,
+    englishName: language.englishName,
+    localName: language.localName,
     font: language.font,
     textDirection: language.textDirection,
     translationIds: language.translationIds,
@@ -79,7 +83,8 @@ test("returns language when user is a member", async () => {
 test("returns language with translation ids", async () => {
   const language = await languageFactory.build({
     code: "spa",
-    name: "Spanish",
+    englishName: "Spanish",
+    localName: "Español",
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: ["esv", "kjv"],
@@ -90,7 +95,8 @@ test("returns language with translation ids", async () => {
 
   expect(result).toEqual({
     code: language.code,
-    name: language.name,
+    englishName: language.englishName,
+    localName: language.localName,
     font: language.font,
     textDirection: language.textDirection,
     translationIds: language.translationIds,
@@ -102,11 +108,13 @@ test("returns language with translation ids", async () => {
 test("returns language with reference language", async () => {
   const referenceLanguage = await languageFactory.build({
     code: "eng",
-    name: "English",
+    englishName: "English",
+    localName: "English",
   });
   const language = await languageFactory.build({
     code: "spa",
-    name: "Spanish",
+    englishName: "Spanish",
+    localName: "Español",
     referenceLanguageId: referenceLanguage.id,
   });
 
@@ -114,7 +122,8 @@ test("returns language with reference language", async () => {
 
   expect(result).toEqual({
     code: language.code,
-    name: language.name,
+    englishName: language.englishName,
+    localName: language.localName,
     font: language.font,
     textDirection: language.textDirection,
     translationIds: language.translationIds,

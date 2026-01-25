@@ -14,7 +14,8 @@ import { Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string(),
-  name: z.string().min(1),
+  localName: z.string().min(1),
+  englishName: z.string().min(1),
   font: z.string().min(1),
   textDirection: z.nativeEnum(TextDirectionRaw),
   translationIds: z.array(z.string()).optional(),
@@ -41,7 +42,8 @@ export async function updateLanguageSettings(
   const request = requestSchema.safeParse(
     {
       code: formData.get("code"),
-      name: formData.get("name"),
+      englishName: formData.get("englishName"),
+      localName: formData.get("localName"),
       font: formData.get("font"),
       textDirection: formData.get("text_direction"),
       translationIds: formData
@@ -53,8 +55,10 @@ export async function updateLanguageSettings(
     },
     {
       errorMap: (error) => {
-        if (error.path.toString() === "name") {
-          return { message: t("errors.name_required") };
+        if (error.path.toString() === "englishName") {
+          return { message: t("errors.english_name_required") };
+        } else if (error.path.toString() === "localName") {
+          return { message: t("errors.local_name_required") };
         } else if (error.path.toString() === "font") {
           return { message: t("errors.font_required") };
         } else if (error.path.toString() === "textDirection") {

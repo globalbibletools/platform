@@ -30,7 +30,8 @@ test("invites language member", async () => {
 
   const language = {
     id: ulid(),
-    name: "Spanish",
+    englishName: "Spanish",
+    localName: "Español",
     code: "spa",
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
