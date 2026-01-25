@@ -279,7 +279,7 @@ export default function TranslationToolbar({
           <ComboboxInput
             aria-label={t("language")}
             items={languages.map((l) => ({
-              label: l.localName,
+              label: l.englishName,
               value: l.code,
             }))}
             value={code}

@@ -23,7 +23,7 @@ export default function DashboardLanguageSelector({
       className="w-48"
       value={code}
       items={languages.map((lang) => ({
-        label: lang.localName,
+        label: lang.englishName,
         value: lang.code,
       }))}
       onChange={(newCode) => {
