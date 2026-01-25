@@ -173,25 +173,52 @@ export default async function LandingPage() {
             <h2 className="text-3xl md:text-5xl font-bold mb-8 text-white text-white">
               Contribute
             </h2>
-            <ul className="flex flex-col md:grid lg:flex lg:flex-row grid-cols-2  gap-8 mb-16">
+            <ul className="flex flex-col md:grid grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+              <li className="w-full rounded-[16px] bg-white p-6 shadow md:text-center">
+                <h4 className="text-lg font-bold mb-3">Pray</h4>
+                <p>
+                  Please pray for the translators, software engineers, and
+                  others in this work.
+                </p>
+              </li>
               <li className="w-full rounded-[16px] bg-white p-6 shadow md:text-center">
                 <h4 className="text-lg font-bold mb-3">Give</h4>
                 <p>
-                  Please give through{" "}
+                  Give through{" "}
                   <a
                     className="font-bold text-blue-800 underline"
-                    href="https://freehebrew.online/give/"
+                    href="https://www.zeffy.com/en-US/donation-form/give-biblical-language-tools-to-the-world"
                   >
                     Betheden Ministries
                   </a>{" "}
-                  to fund this work. Email{" "}
+                  to support translators and ongoing software development.
+                </p>
+              </li>
+              <li className="w-full rounded-[16px] bg-white p-6 shadow md:text-center">
+                <h4 className="text-lg font-bold mb-3">Stay Informed</h4>
+                <p>
+                  Sign up for our{" "}
                   <a
                     className="font-bold text-blue-800 underline"
-                    href="mailto:andrewdcase@gmail.com"
+                    href="https://www.zeffy.com/en-US/newsletter-form/get-updates-on-global-bible-tools"
                   >
-                    Andrew Case
+                    newsletter
                   </a>{" "}
-                  to indicate that your donation is for Global Bible Tools.
+                  to receive future updates on what we are working on.
+                </p>
+              </li>
+              <li className="w-full rounded-[16px] bg-white p-6 shadow md:text-center">
+                <h4 className="text-lg font-bold mb-3">Translation</h4>
+                <p>
+                  If you can help translate glosses for the Reader&apos;s Hebrew
+                  or Greek Bible, please{" "}
+                  <a
+                    className="font-bold text-blue-800 underline"
+                    href="https://docs.google.com/forms/d/e/1FAIpQLSer70LItS-738tlwL3bDuku1qRpoWTmQBNfFd9b3NbPIH3G9w/viewform"
+                  >
+                    fill out this form
+                  </a>
+                  .
                 </p>
               </li>
               <li className="w-full rounded-[16px] bg-white p-6 shadow md:text-center">
@@ -204,20 +231,6 @@ export default async function LandingPage() {
                     href="https://github.com/globalbibletools/platform"
                   >
                     GitHub repository
-                  </a>
-                  .
-                </p>
-              </li>
-              <li className="w-full rounded-[16px] bg-white p-6 shadow md:text-center">
-                <h4 className="text-lg font-bold mb-3">Reader&apos;s Bible</h4>
-                <p>
-                  If you can help translate glosses for the Reader&apos;s Hebrew
-                  or Greek Bible, please{" "}
-                  <a
-                    className="font-bold text-blue-800 underline"
-                    href="https://docs.google.com/forms/d/e/1FAIpQLSer70LItS-738tlwL3bDuku1qRpoWTmQBNfFd9b3NbPIH3G9w/viewform"
-                  >
-                    fill out this form
                   </a>
                   .
                 </p>
