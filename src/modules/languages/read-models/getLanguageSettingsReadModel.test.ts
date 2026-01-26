@@ -13,6 +13,9 @@ test("returns null if the language does not exist", async () => {
 });
 
 test("returns language settings by code when it exists", async () => {
+  const refLanguage = await languageFactory.build({
+    code: "eng",
+  });
   const language = await languageFactory.build({
     code: "spa",
     englishName: "Spanish",
@@ -20,7 +23,7 @@ test("returns language settings by code when it exists", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: ["en-ESV", "es-RVR1960"],
-    referenceLanguageId: "some-ref-id",
+    referenceLanguageId: refLanguage.id,
   });
 
   const result = await getLanguageSettingsReadModel("spa");
