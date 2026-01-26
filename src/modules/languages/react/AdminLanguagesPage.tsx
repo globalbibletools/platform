@@ -14,7 +14,7 @@ import { Metadata, ResolvingMetadata } from "next";
 import { redirect } from "next/navigation";
 import Pagination from "@/components/Pagination";
 import { NextIntlClientProvider } from "next-intl";
-import { languageQueryService } from "../data-access/LanguageQueryService";
+import { searchLanguagesReadModel } from "../read-models/searchLanguagesReadModel";
 
 interface AdminLanguagePageProps {
   params: { locale: string };
@@ -47,7 +47,7 @@ export default async function AdminLanguagesPage({
     redirect("./languages?page=1");
   }
 
-  const { page: languages, total } = await languageQueryService.search({
+  const { page: languages, total } = await searchLanguagesReadModel({
     page: page - 1,
     limit: LIMIT,
   });

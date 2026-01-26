@@ -94,6 +94,8 @@ services:
     restart: always
     shm_size: 128mb
     user: postgres
+    volumes:
+      - ./db:/db
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=asdfasdf

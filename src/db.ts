@@ -7,6 +7,7 @@ import { pipeline } from "stream/promises";
 
 import {
   LanguageMemberTable,
+  LanguageProgressView,
   LanguageTable,
 } from "@/modules/languages/data-access/types";
 import { Kysely, PostgresDialect } from "kysely";
@@ -31,6 +32,7 @@ export interface Database {
   book: BookTable;
   language: LanguageTable;
   language_member: LanguageMemberTable;
+  language_progress: LanguageProgressView;
   reset_password_token: ResetPasswordTokenTable;
   session: SessionTable;
   user_email_verification: UserEmailVerificationTable;
