@@ -19,6 +19,7 @@ import { updateLanguageSettings } from "@/modules/languages/actions/updateLangua
 import Form from "@/components/Form";
 import { languageQueryService } from "../data-access/LanguageQueryService";
 import { notFound } from "next/navigation";
+import { getAllLanguagesReadModel } from "../read-models/getAllLanguagesReadModel";
 
 interface LanguageSettingsPageProps {
   params: { code: string };
@@ -43,7 +44,7 @@ export default async function LanguageSettingsPage({
 
   const [languageSettings, languages, translations] = await Promise.all([
     languageQueryService.findSettingsByCode(params.code),
-    languageQueryService.findAll(),
+    getAllLanguagesReadModel(),
     fetchTranslations(params.code),
   ]);
   if (!languageSettings) {
