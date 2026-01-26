@@ -9,7 +9,7 @@ import {
   LanguageMemberTable,
   LanguageProgressView,
   LanguageTable,
-} from "@/modules/languages/data-access/types";
+} from "@/modules/languages/db/schema";
 import { Kysely, PostgresDialect } from "kysely";
 import {
   ResetPasswordTokenTable,
