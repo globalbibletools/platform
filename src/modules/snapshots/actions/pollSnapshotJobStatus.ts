@@ -7,7 +7,7 @@ import { serverActionLogger } from "@/server-action";
 import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
 import * as z from "zod";
-import { languageQueryService } from "@/modules/languages/data-access/LanguageQueryService";
+import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
 import { snapshotQueryService } from "../data-access/snapshotQueryService";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
@@ -42,7 +42,7 @@ export async function pollSnapshotJobStatus(
     notFound();
   }
 
-  const language = await languageQueryService.findByCode(request.data.code);
+  const language = await getLanguageByCodeReadModel(request.data.code);
   if (!language) {
     logger.error(`language with code ${request.data.code} not found`);
     notFound();

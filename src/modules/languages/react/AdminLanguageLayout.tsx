@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { verifySession } from "@/session";
 import { Metadata, ResolvingMetadata } from "next";
 import { Policy } from "@/modules/access";
-import { languageQueryService } from "../data-access/LanguageQueryService";
+import { getLanguageByCodeReadModel } from "../read-models/getLanguageByCodeReadModel";
 import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
 
 interface LanguageLayoutProps {
@@ -28,7 +28,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { title } = await parent;
 
-  const language = await languageQueryService.findByCode(params.code);
+  const language = await getLanguageByCodeReadModel(params.code);
 
   return {
     title: `${language?.englishName ?? "Language"} | ${title?.absolute}`,
@@ -50,7 +50,7 @@ export default async function LanguageLayout({
     notFound();
   }
 
-  const language = await languageQueryService.findByCode(params.code);
+  const language = await getLanguageByCodeReadModel(params.code);
   if (!language) {
     notFound();
   }

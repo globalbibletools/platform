@@ -9,7 +9,7 @@ import { enqueueJob } from "@/shared/jobs/enqueueJob";
 import { notFound } from "next/navigation";
 import * as z from "zod";
 import { SNAPSHOT_JOB_TYPES } from "../jobs/jobTypes";
-import { languageQueryService } from "@/modules/languages/data-access/LanguageQueryService";
+import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
 import { snapshotQueryService } from "../data-access/snapshotQueryService";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
@@ -44,7 +44,7 @@ export async function createLanguageSnapshotAction(
     notFound();
   }
 
-  const language = await languageQueryService.findByCode(request.data.code);
+  const language = await getLanguageByCodeReadModel(request.data.code);
   if (!language) {
     logger.error(`language with code ${request.data.code} not found`);
     notFound();

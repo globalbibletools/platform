@@ -31,18 +31,6 @@ export type LanguageSettingsQueryResult = Pick<
 >;
 
 export const languageQueryService = {
-  async findByCode(code: string): Promise<LanguageQueryResult | undefined> {
-    const result = await query<LanguageQueryResult>(
-      `
-        select id, code, english_name as "englishName", local_name as "localName"
-        from language
-        where code = $1
-      `,
-      [code],
-    );
-    return result.rows[0];
-  },
-
   async findSettingsByCode(
     code: string,
   ): Promise<LanguageSettingsQueryResult | undefined> {
