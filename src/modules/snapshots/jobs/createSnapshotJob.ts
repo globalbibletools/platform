@@ -1,11 +1,11 @@
 import { logger } from "@/logging";
 import { Job } from "@/shared/jobs/model";
 import { SNAPSHOT_JOB_TYPES } from "./jobTypes";
-import { languageQueryService } from "@/modules/languages/data-access/LanguageQueryService";
 import { Snapshot } from "../model";
 import { ulid } from "@/shared/ulid";
 import { snapshotRepository } from "../data-access/SnapshotRepository";
 import { snapshotObjectRepository } from "../data-access/snapshotObjectRepository";
+import languageRepository from "@/modules/languages/data-access/languageRepository";
 
 export type CreateSnapshotJob = Job<{
   languageId: string;
@@ -29,8 +29,10 @@ export async function createSnapshotJob(job: CreateSnapshotJob) {
     );
   }
 
-  const language = languageQueryService.findById(job.payload.languageId);
-  if (!language) {
+  const languageExists = await languageRepository.existsById(
+    job.payload.languageId,
+  );
+  if (!languageExists) {
     throw new Error(`Language ${job.payload.languageId} not found`);
   }
 
