@@ -9,7 +9,7 @@ import DashboardLanguageSelector from "./DashboardLanguageSelector";
 import { cookies } from "next/headers";
 import { getLocale } from "next-intl/server";
 import { getUserLanguagesReadModel } from "@/modules/languages/read-models/getUserLanguagesReadModel";
-import { getLanguageProgressByCodeReadModel } from "@/modules/languages/read-models/getLanguageProgressByCodeReadModel";
+import { getLanguageProgressReadModel } from "@/modules/languages/read-models/getLanguageProgressReadModel";
 
 export default async function DashboardView() {
   const session = await verifySession();
@@ -30,7 +30,7 @@ export default async function DashboardView() {
     languages.find((lang) => lang.code === cookieLanguageCode) ?? languages[0];
 
   const [currentProgressData, contributionData] = await Promise.all([
-    getLanguageProgressByCodeReadModel(currentLanguage.code),
+    getLanguageProgressReadModel(currentLanguage.code),
     reportingQueryService.findContributionsByLanguageId({
       languageId: currentLanguage.id,
       limit: 8,

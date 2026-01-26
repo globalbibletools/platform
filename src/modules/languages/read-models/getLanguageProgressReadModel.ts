@@ -7,7 +7,7 @@ export interface LanguageProgressReadModel {
   nextVerse: string | null;
 }
 
-export async function getLanguageProgressByCodeReadModel(
+export async function getLanguageProgressReadModel(
   code: string,
 ): Promise<LanguageProgressReadModel[]> {
   const result = await query<LanguageProgressReadModel>(
