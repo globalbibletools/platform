@@ -17,9 +17,9 @@ import { Metadata, ResolvingMetadata } from "next";
 import { fontMap } from "@/fonts";
 import { updateLanguageSettings } from "@/modules/languages/actions/updateLanguageSettings";
 import Form from "@/components/Form";
-import { languageQueryService } from "../data-access/LanguageQueryService";
 import { notFound } from "next/navigation";
 import { getAllLanguagesReadModel } from "../read-models/getAllLanguagesReadModel";
+import { getLanguageSettingsReadModel } from "../read-models/getLanguageSettingsReadModel";
 
 interface LanguageSettingsPageProps {
   params: { code: string };
@@ -43,7 +43,7 @@ export default async function LanguageSettingsPage({
   const t = await getTranslations("LanguageSettingsPage");
 
   const [languageSettings, languages, translations] = await Promise.all([
-    languageQueryService.findSettingsByCode(params.code),
+    getLanguageSettingsReadModel(params.code),
     getAllLanguagesReadModel(),
     fetchTranslations(params.code),
   ]);
