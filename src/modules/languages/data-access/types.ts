@@ -18,6 +18,12 @@ export interface LanguageMemberTable {
   invited_at: Date;
 }
 
+export interface LanguageProgressView {
+  code: string;
+  nt_progress: number;
+  ot_progress: number;
+}
+
 export interface DbLanguage {
   id: string;
   code: string;

@@ -1,6 +1,5 @@
 import { query } from "@/db";
 import { DbLanguage } from "./types";
-import { DbUser } from "@/modules/users/data-access/types";
 
 // TODO: move this once there is a more appropriate module
 export interface DbBook {
@@ -12,19 +11,6 @@ export type LanguageQueryResult = Pick<
   DbLanguage,
   "id" | "code" | "englishName" | "localName"
 >;
-
-export type PaginatedLanguage = Pick<
-  DbLanguage,
-  "code" | "englishName" | "localName"
-> & {
-  otProgress: number;
-  ntProgress: number;
-};
-
-interface LanguagePageQueryResult {
-  total: number;
-  page: PaginatedLanguage[];
-}
 
 type LanguageProgressQueryResult = {
   name: string;
@@ -45,41 +31,6 @@ export type LanguageSettingsQueryResult = Pick<
 >;
 
 export const languageQueryService = {
-  async search(options: {
-    page: number;
-    limit: number;
-  }): Promise<LanguagePageQueryResult> {
-    const languagesQuery = await query<LanguagePageQueryResult>(
-      `
-        select
-          (
-            select count(*) from language
-          ) as total,
-          (
-            select
-              coalesce(json_agg(l.json), '[]')
-            from (
-              select
-                json_build_object(
-                  'englishName', l.english_name, 
-                  'localName', l.local_name, 
-                  'code', l.code,
-                  'otProgress', coalesce(p.ot_progress, 0),
-                  'ntProgress', coalesce(p.nt_progress, 0)
-                ) as json
-              from language as l
-              left join language_progress as p on p.code = l.code
-              order by l.english_name
-              offset $1
-              limit $2
-            ) as l
-          ) as page
-        `,
-      [options.page * options.limit, options.limit],
-    );
-    return languagesQuery.rows[0];
-  },
-
   async findAll(): Promise<LanguageQueryResult[]> {
     const result = await query<LanguageQueryResult>(
       `

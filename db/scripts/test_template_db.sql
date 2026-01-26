@@ -5,3 +5,4 @@ CREATE DATABASE test_template;
 
 \c test_template
 \i db/scripts/schema.sql
+\i db/scripts/refresh_views.sql
