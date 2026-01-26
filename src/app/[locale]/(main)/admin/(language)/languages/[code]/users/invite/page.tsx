@@ -1,1 +1,1 @@
-export { default } from "@/modules/languages/react/InviteLanguageUserPage";
+export { default } from "@/modules/languages/ui/InviteLanguageUserPage";
