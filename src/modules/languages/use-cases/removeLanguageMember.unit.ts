@@ -4,7 +4,7 @@ import mockLanguageMemberRepo from "../data-access/mockLanguageMemberRepository"
 import { NotFoundError } from "@/shared/errors";
 import { TextDirectionRaw } from "../model";
 import { ulid } from "@/shared/ulid";
-import { removeLanguageMember } from "./RemoveLanguageMember";
+import { removeLanguageMember } from "./removeLanguageMember";
 
 vi.mock("../data-access/languageRepository", async () => {
   const mockLanguageRepo = await vi.importActual(
