@@ -1,8 +1,6 @@
-import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { getCurrentLanguageReadModel } from "./getCurrentLanguageReadModel";
-import { createScenario } from "@/tests/scenarios";
 import {
   languageFactory,
   languageMemberFactory,
