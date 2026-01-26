@@ -1,5 +1,5 @@
 import { test, expect, vi } from "vitest";
-import { inviteLanguageMember } from "./InviteLanguageMember";
+import { inviteLanguageMember } from "./inviteLanguageMember";
 import mockLanguageRepo from "../data-access/mockLanguageRepository";
 import mockLanguageMemberRepo from "../data-access/mockLanguageMemberRepository";
 import { inviteUser } from "@/modules/users";

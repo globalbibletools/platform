@@ -2,7 +2,7 @@ import { ulid } from "@/shared/ulid";
 import mockLanguageRepo from "../data-access/mockLanguageRepository";
 import { test, expect, vi } from "vitest";
 import { SourceLanguageMissingError, TextDirectionRaw } from "../model";
-import { updateLanguageSettings } from "./UpdateLanguageSettings";
+import { updateLanguageSettings } from "./updateLanguageSettings";
 import { NotFoundError } from "@/shared/errors";
 
 vi.mock("../data-access/languageRepository", async () => {

@@ -1,7 +1,7 @@
 import { test, expect, vi } from "vitest";
 import mockLanguageMemberRepo from "../data-access/mockLanguageMemberRepository";
 import { ulid } from "@/shared/ulid";
-import { removeUserFromLanguages } from "./RemoveUserFromLanguages";
+import { removeUserFromLanguages } from "./removeUserFromLanguages";
 
 vi.mock("../data-access/languageMemberRepository", async () => {
   const mockLanguageMemberRepo = await vi.importActual(

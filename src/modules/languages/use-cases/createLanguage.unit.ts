@@ -1,7 +1,7 @@
 import { ulid } from "@/shared/ulid";
 import { test, expect, vi } from "vitest";
 import { LanguageAlreadyExistsError, TextDirectionRaw } from "../model";
-import { createLanguage } from "./CreateLanguage";
+import { createLanguage } from "./createLanguage";
 import mockLanguageRepo from "../data-access/mockLanguageRepository";
 
 vi.mock("../data-access/languageRepository", async () => {
