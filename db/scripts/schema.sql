@@ -1423,6 +1423,13 @@ CREATE INDEX gloss_phrase_id_idx ON public.gloss USING btree (phrase_id);
 
 
 --
+-- Name: idx_machine_gloss_language_word; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_machine_gloss_language_word ON public.machine_gloss USING btree (language_id, word_id);
+
+
+--
 -- Name: language_code_idx; Type: INDEX; Schema: public; Owner: -
 --
 
