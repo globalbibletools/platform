@@ -5,7 +5,7 @@ import FieldError from "@/components/FieldError";
 import ViewTitle from "@/components/ViewTitle";
 import { Metadata, ResolvingMetadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { inviteLanguageMember } from "@/modules/languages/actions/inviteLanguageMember";
+import { inviteLanguageMember } from "../actions/inviteLanguageMember";
 import Form from "@/components/Form";
 import { Policy } from "@/modules/access";
 import { verifySession } from "@/session";

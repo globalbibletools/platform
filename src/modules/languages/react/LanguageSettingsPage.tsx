@@ -15,7 +15,7 @@ import { BibleClient } from "@gracious.tech/fetch-client";
 import SavingIndicator from "./SavingIndicator";
 import { Metadata, ResolvingMetadata } from "next";
 import { fontMap } from "@/fonts";
-import { updateLanguageSettings } from "@/modules/languages/actions/updateLanguageSettings";
+import { updateLanguageSettings } from "../actions/updateLanguageSettings";
 import Form from "@/components/Form";
 import { notFound } from "next/navigation";
 import { getAllLanguagesReadModel } from "../read-models/getAllLanguagesReadModel";
