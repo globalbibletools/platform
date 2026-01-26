@@ -1,4 +1,3 @@
-import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { getLanguageSettingsReadModel } from "./getLanguageSettingsReadModel";
