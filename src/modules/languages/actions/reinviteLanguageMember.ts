@@ -1,3 +1,5 @@
+"use server";
+
 import * as z from "zod";
 import { notFound } from "next/navigation";
 import { parseForm } from "@/form-parser";
@@ -21,7 +23,7 @@ export async function reinviteLanguageMemberAction(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const logger = serverActionLogger("inviteUser");
+  const logger = serverActionLogger("reinviteUser");
 
   const request = requestSchema.safeParse(parseForm(formData));
   if (!request.success) {
@@ -52,5 +54,5 @@ export async function reinviteLanguageMemberAction(
     }
   }
 
-  return { state: "success" };
+  return { state: "success", message: "User invite resent" };
 }
