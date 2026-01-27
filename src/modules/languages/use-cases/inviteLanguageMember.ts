@@ -23,6 +23,14 @@ export async function inviteLanguageMember(
     returnIfActive: true,
   });
 
+  const memberExists = await languageMemberRepository.exists(
+    language.id,
+    userId,
+  );
+  if (memberExists) {
+    return { userId };
+  }
+
   await languageMemberRepository.create({
     languageId: language.id,
     userId,

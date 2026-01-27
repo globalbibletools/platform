@@ -1493,13 +1493,6 @@ CREATE UNIQUE INDEX user_email_verification_token_key ON public.user_email_verif
 
 
 --
--- Name: user_invitation_user_id_pkey; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX user_invitation_user_id_pkey ON public.user_invitation USING btree (user_id);
-
-
---
 -- Name: verse_book_id_chapter_number_key; Type: INDEX; Schema: public; Owner: -
 --
 

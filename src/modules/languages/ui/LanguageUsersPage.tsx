@@ -12,8 +12,8 @@ import ViewTitle from "@/components/ViewTitle";
 import { getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
 import { removeLanguageMember } from "../actions/removeLanguageMember";
+import { inviteLanguageMember } from "../actions/inviteLanguageMember";
 import ServerAction from "@/components/ServerAction";
-import { inviteUserAction } from "@/modules/users";
 import { verifySession } from "@/session";
 import { Policy } from "@/modules/access";
 import { notFound } from "next/navigation";
@@ -83,8 +83,8 @@ export default async function LanguageUsersPage({
                     <ServerAction
                       variant="tertiary"
                       className="ms-4"
-                      actionData={{ email: user.email }}
-                      action={inviteUserAction}
+                      actionData={{ code: params.code, email: user.email }}
+                      action={inviteLanguageMember}
                     >
                       {t("links.resend_invite")}
                     </ServerAction>
