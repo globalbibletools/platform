@@ -61,5 +61,5 @@ test("invites language member", async () => {
       userId: response.userId,
     },
   ]);
-  expect(inviteUser).toHaveBeenCalledWith({ email });
+  expect(inviteUser).toHaveBeenCalledWith({ email, returnIfActive: true });
 });
