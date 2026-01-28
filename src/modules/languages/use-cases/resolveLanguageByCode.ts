@@ -15,7 +15,7 @@ export async function resolveLanguageByCode(
     `
       select id,
              code,
-             name,
+             local_name as name,
              text_direction as "textDirection"
       from language
       where code = $1

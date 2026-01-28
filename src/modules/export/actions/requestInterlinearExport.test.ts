@@ -1,13 +1,20 @@
 import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { describe, expect, test, vi } from "vitest";
+
+const { enqueueJobMock } = vi.hoisted(() => ({
+  enqueueJobMock: vi.fn(),
+}));
+
+vi.mock("@/shared/jobs/enqueueJob", () => ({
+  enqueueJob: enqueueJobMock,
+}));
+
 import { requestInterlinearExport } from "./requestInterlinearExport";
 import { createScenario } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
 import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
-
-vi.mock("@/shared/jobs/enqueueJob");
 
 initializeDatabase();
 
