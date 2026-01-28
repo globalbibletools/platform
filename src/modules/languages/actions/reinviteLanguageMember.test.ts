@@ -173,7 +173,10 @@ test("successfully reinvites a language member and sends email", async () => {
     formData,
   );
 
-  expect(response).toEqual({ state: "success" });
+  expect(response).toEqual({
+    state: "success",
+    message: "User invitation resent",
+  });
 
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({

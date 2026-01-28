@@ -1,31 +1,35 @@
 "use server";
 
 import * as z from "zod";
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { parseForm } from "@/form-parser";
 import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
+import { reinviteUser as reinviteUserUseCase } from "../use-cases/reinviteUser";
+import { UserAlreadyActiveError } from "../model/errors";
 import { NotFoundError } from "@/shared/errors";
 import { Policy } from "@/modules/access";
-import { reinviteLanguageMember } from "../use-cases/reinviteLanguageMember";
 
 const requestSchema = z.object({
-  code: z.string(),
-  userId: z.string(),
+  userId: z.string().min(1),
 });
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
 
-export async function reinviteLanguageMemberAction(
+export async function reinviteUserAction(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const logger = serverActionLogger("reinviteUser");
+  const logger = serverActionLogger("reinviteUserAction");
 
-  const request = requestSchema.safeParse(parseForm(formData));
+  const t = await getTranslations("InviteUserPage");
+
+  const request = requestSchema.safeParse({
+    userId: formData.get("userId"),
+  });
   if (!request.success) {
     logger.error("request parse error");
     return {
@@ -36,7 +40,6 @@ export async function reinviteLanguageMemberAction(
   const session = await verifySession();
   const authorized = await policy.authorize({
     actorId: session?.user.id,
-    languageCode: request.data.code,
   });
   if (!authorized) {
     logger.error("unauthorized");
@@ -44,11 +47,17 @@ export async function reinviteLanguageMemberAction(
   }
 
   try {
-    await reinviteLanguageMember(request.data);
+    await reinviteUserUseCase({ userId: request.data.userId });
   } catch (error) {
     if (error instanceof NotFoundError) {
-      logger.error("language not found");
+      logger.error("user not found");
       notFound();
+    } else if (error instanceof UserAlreadyActiveError) {
+      logger.error("user already active");
+      return {
+        state: "error",
+        error: t("errors.user_exists"),
+      };
     } else {
       throw error;
     }
