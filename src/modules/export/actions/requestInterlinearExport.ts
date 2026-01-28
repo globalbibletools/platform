@@ -7,7 +7,7 @@ import { verifySession } from "@/session";
 import { Policy } from "@/modules/access";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import { requestInterlinearExport } from "../use-cases/RequestInterlinearExport";
+import { requestInterlinearExport as requestInterlinearExportUseCase } from "../use-cases/RequestInterlinearExport";
 
 const exportPolicy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
@@ -65,7 +65,7 @@ export async function requestInterlinearExport(
   }
 
   try {
-    await requestInterlinearExport({
+    await requestInterlinearExportUseCase({
       languageCode: parsed.data.languageCode,
       requestedBy: userId,
     });
