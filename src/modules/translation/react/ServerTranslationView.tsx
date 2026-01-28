@@ -370,7 +370,7 @@ async function saveMachineTranslations(
                 ON LOWER(g.gloss) = data.ref_gloss
             WHERE ph.deleted_at IS NULL
                 AND ph.language_id = (SELECT id FROM language WHERE code = 'eng')
-            ON CONFLICT (word_id, language_id)
+            ON CONFLICT (language_id, word_id)
             DO UPDATE SET gloss = EXCLUDED.gloss
             `,
       [code, referenceGlosses, machineGlosses],

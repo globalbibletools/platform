@@ -18,6 +18,7 @@ import { verifySession } from "@/session";
 import { Policy } from "@/modules/access";
 import { notFound } from "next/navigation";
 import { getLanguageMembersReadModel } from "../read-models/getLanguageMembersReadModel";
+import { reinviteLanguageMemberAction } from "../actions/reinviteLanguageMember";
 
 interface LanguageUsersPageProps {
   params: { code: string };
@@ -83,8 +84,8 @@ export default async function LanguageUsersPage({
                     <ServerAction
                       variant="tertiary"
                       className="ms-4"
-                      actionData={{ code: params.code, email: user.email }}
-                      action={inviteLanguageMember}
+                      actionData={{ userId: user.id, code: params.code }}
+                      action={reinviteLanguageMemberAction}
                     >
                       {t("links.resend_invite")}
                     </ServerAction>
