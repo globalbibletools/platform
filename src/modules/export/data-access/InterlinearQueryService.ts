@@ -40,7 +40,7 @@ const interlinearQueryService = {
       textDirection: TextDirectionRaw;
     }>(
       `
-        select id, code, name, text_direction as "textDirection"
+        select id, code, local_name as name, text_direction as "textDirection"
         from language
         where code = $1
       `,
