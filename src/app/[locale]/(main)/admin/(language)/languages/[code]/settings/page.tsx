@@ -1,1 +1,1 @@
-export { default } from "@/modules/languages/react/LanguageSettingsPage";
+export { default } from "@/modules/languages/ui/LanguageSettingsPage";

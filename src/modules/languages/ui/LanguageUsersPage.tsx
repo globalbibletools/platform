@@ -11,9 +11,8 @@ import {
 import ViewTitle from "@/components/ViewTitle";
 import { getTranslations } from "next-intl/server";
 import { Metadata, ResolvingMetadata } from "next";
-import { removeLanguageMember } from "@/modules/languages/actions/removeLanguageMember";
+import { removeLanguageMember } from "../actions/removeLanguageMember";
 import ServerAction from "@/components/ServerAction";
-import { inviteUser } from "@/modules/users/actions/inviteUser";
 import { verifySession } from "@/session";
 import { Policy } from "@/modules/access";
 import { notFound } from "next/navigation";

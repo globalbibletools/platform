@@ -48,9 +48,10 @@ test("invites language member", async () => {
   };
   mockLanguageRepo.languages = [language];
 
+  const email = "invited@example.com";
   const response = await inviteLanguageMember({
-    code: "spa",
-    email: "invited@example.com",
+    code: language.code,
+    email,
   });
   expect(response).toEqual({ userId });
 
@@ -60,4 +61,5 @@ test("invites language member", async () => {
       userId: response.userId,
     },
   ]);
+  expect(inviteUser).toHaveBeenCalledWith({ email, returnIfActive: true });
 });
