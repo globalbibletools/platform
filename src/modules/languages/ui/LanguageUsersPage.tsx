@@ -59,7 +59,7 @@ export default async function LanguageUsersPage({
         <div className="flex items-baseline mb-4">
           <ViewTitle>{t("title")}</ViewTitle>
           <div className="flex-grow" />
-          <Button href="./users/invite" variant="primary">
+          <Button href="./users/invite" variant="primary" className="ms-4">
             <Icon icon="plus" className="me-1" />
             {t("links.invite_user")}
           </Button>
