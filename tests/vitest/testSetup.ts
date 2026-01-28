@@ -1,5 +1,5 @@
 import { webcrypto } from "node:crypto";
-import * as React from "react";
+import { vi } from "vitest";
 import "./matchers";
 
 // Necessary for @oslo/password to run in tests
@@ -12,6 +12,13 @@ if (!globalThis.crypto) {
 process.env.ORIGIN = "globalbibletools.com";
 process.env.LOG_LEVEL = "silent";
 
-if (typeof React.cache !== "function") {
-  (React as any).cache = <T extends (...args: any[]) => any>(fn: T) => fn;
-}
+vi.mock("react", async () => {
+  const actual = await vi.importActual<typeof import("react")>("react");
+  return {
+    ...actual,
+    cache:
+      typeof actual.cache === "function" ?
+        actual.cache
+      : <T extends (...args: any[]) => any>(fn: T) => fn,
+  };
+});
