@@ -11,6 +11,10 @@ export default function FeaturesPage() {
       >
         <ViewTitle>Features</ViewTitle>
         <FeatureSwitch feature="ff-snapshots" label="Snapshots" />
+        <FeatureSwitch
+          feature="ff-interlinear-pdf-export"
+          label="Interlinear PDF Export"
+        />
       </div>
     </div>
   );

@@ -3,7 +3,7 @@
 import { query } from "@/db";
 import { randomBytes } from "crypto";
 import { cookies } from "next/headers";
-import { cache } from "react";
+import * as React from "react";
 
 const DAY_FROM_MS = 24 * 60 * 60 * 1000;
 const EXPIRES_IN =
@@ -75,7 +75,7 @@ interface Session {
   };
 }
 
-const fetchSession = cache(
+const fetchSession = React.cache(
   async (sessionId: string): Promise<Session | undefined> => {
     const result = await query<Session>(
       `
