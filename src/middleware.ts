@@ -27,6 +27,40 @@ export default async function middleware(request: NextRequest) {
         { headers: response.headers },
       );
     }
+
+    // Redirect for /read
+    if (pathname === "/read") {
+      const lastRead = request.cookies.get("LAST_READ")?.value;
+      if (lastRead) {
+        const [code, chapterId] = lastRead.split(",");
+        if (code && chapterId) {
+          return NextResponse.redirect(
+            new URL(`/${locale}/read/${code}/${chapterId}`, request.url),
+          );
+        }
+      }
+      // fallback
+      return NextResponse.redirect(
+        new URL(`/${locale}/read/eng/01001`, request.url),
+      );
+    }
+
+    // Redirect for /translate
+    if (pathname === "/translate") {
+      const lastTranslation = request.cookies.get("LAST_TRANSLATION")?.value;
+      if (lastTranslation) {
+        const [code, verseId] = lastTranslation.split(",");
+        if (code && verseId) {
+          return NextResponse.redirect(
+            new URL(`/${locale}/translate/${code}/${verseId}`, request.url),
+          );
+        }
+      }
+      // fallback
+      return NextResponse.redirect(
+        new URL(`/${locale}/translate/eng/01001001`, request.url),
+      );
+    }
   }
 
   return response;

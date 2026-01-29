@@ -17,11 +17,21 @@ export function HeaderLink({
   className = "",
   newTab = false,
   children,
+  href,
   ...props
 }: HeaderLinkProps) {
+  const handleClick = (e: React.MouseEvent) => {
+    if (href.includes("/read") || href.includes("/translate")) {
+      e.preventDefault();
+      window.location.href = href;
+    }
+  };
+
   return (
     <NavLink
       {...props}
+      href={href}
+      onClick={handleClick}
       className={(isActive) => `
             h-full px-2 text-center block pt-5 font-bold border-b-4
             text-blue-800 dark:text-green-400
