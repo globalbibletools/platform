@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { sql } from "kysely";
+import { jsonArrayFrom, jsonBuildObject } from "kysely/helpers/postgres";
 
 export interface VerseWordReadModel {
   id: string;
@@ -19,65 +19,70 @@ export async function getVerseWordsReadModel(
   verseId: string,
   code: string,
 ): Promise<VerseWordsReadModel | undefined> {
-  const result = await getDb()
-    .selectFrom(
-      sql<VerseWordsReadModel>`
-        (
-          SELECT
-            (
-              SELECT
-                JSON_AGG(JSON_BUILD_OBJECT(
-                  'id', w.id, 
-                  'text', w.text,
-                  'referenceGloss', ph.gloss,
-                  'lemma', lf.lemma_id,
-                  'formId', lf.id,
-                  'grammar', lf.grammar,
-                  'resource', lemma_resource.resource
-                ) ORDER BY w.id)
-              FROM word AS w
+  const db = getDb();
 
-              LEFT JOIN LATERAL (
-                SELECT g.gloss FROM phrase_word AS phw
-                JOIN phrase AS ph ON ph.id = phw.phrase_id
-                JOIN gloss AS g ON g.phrase_id = ph.id
-                WHERE phw.word_id = w.id
-                  AND ph.language_id = (
-                    select
-                      case when reference_language_id is null then
-                        (SELECT id FROM language WHERE code = 'eng')
-                      else reference_language_id
-                      end
-                    from language where code = ${code}
+  const referenceLanguageIdSubquery = db
+    .selectFrom("language")
+    .where("code", "=", code)
+    .select((eb) =>
+      eb
+        .case()
+        .when("reference_language_id", "is", null)
+        .then(eb.selectFrom("language").where("code", "=", "eng").select("id"))
+        .else(eb.ref("reference_language_id"))
+        .end()
+        .as("ref_lang_id"),
+    );
+
+  const result = await db
+    .selectFrom("verse as v")
+    .where("v.id", "=", verseId)
+    .select((eb) => [
+      jsonArrayFrom(
+        eb
+          .selectFrom("word as w")
+          .innerJoin("lemma_form as lf", "lf.id", "w.form_id")
+          .where("w.verse_id", "=", eb.ref("v.id"))
+          .orderBy("w.id")
+          .select((wordEb) => [
+            "w.id",
+            "w.text",
+            "lf.lemma_id as lemma",
+            "lf.id as formId",
+            "lf.grammar",
+            wordEb
+              .selectFrom("phrase_word as phw")
+              .innerJoin("phrase as ph", "ph.id", "phw.phrase_id")
+              .innerJoin("gloss as g", "g.phrase_id", "ph.id")
+              .where("phw.word_id", "=", wordEb.ref("w.id"))
+              .where("ph.language_id", "=", referenceLanguageIdSubquery)
+              .where("ph.deleted_at", "is", null)
+              .select("g.gloss")
+              .limit(1)
+              .as("referenceGloss"),
+            wordEb
+              .selectFrom("lemma_resource as lr")
+              .where("lr.lemma_id", "=", wordEb.ref("lf.lemma_id"))
+              .select((lrEb) =>
+                lrEb
+                  .case()
+                  .when("lr.resource_code", "is not", null)
+                  .then(
+                    jsonBuildObject({
+                      name: lrEb.ref("lr.resource_code"),
+                      entry: lrEb.ref("lr.content"),
+                    }),
                   )
-                  AND ph.deleted_at IS NULL
-              ) AS ph ON true
-
-              JOIN lemma_form AS lf ON lf.id = w.form_id
-              LEFT JOIN LATERAL (
-                SELECT
-                  CASE
-                    WHEN lr.resource_code IS NOT NULL
-                    THEN JSON_BUILD_OBJECT(
-                      'name', lr.resource_code,
-                      'entry', lr.content
-                    )
-                    ELSE NULL
-                  END AS resource
-                FROM lemma_resource AS lr
-                WHERE lr.lemma_id = lf.lemma_id
-                LIMIT 1
-              ) AS lemma_resource ON true
-        
-              WHERE w.verse_id = v.id
-            ) AS words
-          FROM verse AS v
-          WHERE v.id = ${verseId}
-        )
-      `.as("result"),
-    )
-    .selectAll()
+                  .else(null)
+                  .end()
+                  .as("resource"),
+              )
+              .limit(1)
+              .as("resource"),
+          ]),
+      ).as("words"),
+    ])
     .executeTakeFirst();
 
-  return result;
+  return result as VerseWordsReadModel | undefined;
 }
