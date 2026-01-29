@@ -7,6 +7,7 @@ import ClientTranslateView from "./ClientTranslationView";
 import { translateClient } from "@/google-translate";
 import { logger } from "@/logging";
 import { getCurrentLanguageReadModel } from "@/modules/languages/read-models/getCurrentLanguageReadModel";
+import { getVerseWordsReadModel } from "../read-models/getVerseWordsReadModel";
 
 interface Props {
   params: { code: string; verseId: string };
@@ -22,7 +23,7 @@ export default async function InterlinearView({ params }: Props) {
   const [language, verse, phrases, suggestions, machineSuggestions] =
     await Promise.all([
       getCurrentLanguageReadModel(params.code, session?.user.id),
-      fetchVerse(params.verseId, params.code),
+      getVerseWordsReadModel(params.verseId, params.code),
       fetchPhrases(params.verseId, params.code, session?.user.id),
       fetchSuggestions(params.verseId, params.code),
       fetchMachineSuggestions(params.verseId, params.code),
@@ -235,84 +236,6 @@ async function fetchSuggestions(
     [verseId, languageCode],
   );
   return result.rows;
-}
-
-interface VerseWord {
-  id: string;
-  text: string;
-  referenceGloss?: string;
-  lemma: string;
-  formId: string;
-  grammar: string;
-  resource?: { name: string; entry: string };
-}
-
-interface Verse {
-  words: VerseWord[];
-}
-
-// TODO: cache this, it should almost never change
-async function fetchVerse(
-  verseId: string,
-  code: string,
-): Promise<Verse | undefined> {
-  const result = await query<Verse>(
-    `
-        SELECT
-            (
-                SELECT
-                    JSON_AGG(JSON_BUILD_OBJECT(
-                        'id', w.id, 
-                        'text', w.text,
-                        'referenceGloss', ph.gloss,
-                        'lemma', lf.lemma_id,
-                        'formId', lf.id,
-                        'grammar', lf.grammar,
-                        'resource', lemma_resource.resource
-                    ) ORDER BY w.id)
-                FROM word AS w
-
-                LEFT JOIN LATERAL (
-                    SELECT g.gloss FROM phrase_word AS phw
-                    JOIN phrase AS ph ON ph.id = phw.phrase_id
-                    JOIN gloss AS g ON g.phrase_id = ph.id
-                    WHERE phw.word_id = w.id
-                        AND ph.language_id = (
-                            select
-                                case when reference_language_id is null then
-                                    (SELECT id FROM language WHERE code = 'eng')
-                                else reference_language_id
-                                end
-                            from language where code = $2
-                        )
-                        AND ph.deleted_at IS NULL
-                ) AS ph ON true
-
-                JOIN lemma_form AS lf ON lf.id = w.form_id
-                LEFT JOIN LATERAL (
-                    SELECT
-                        CASE
-                            WHEN lr.resource_code IS NOT NULL
-                            THEN JSON_BUILD_OBJECT(
-                              'name', lr.resource_code,
-                              'entry', lr.content
-                            )
-                            ELSE NULL
-                        END AS resource
-                    FROM lemma_resource AS lr
-                    WHERE lr.lemma_id = lf.lemma_id
-                    LIMIT 1
-                ) AS lemma_resource ON true
-     
-                WHERE w.verse_id = v.id
-            ) AS words
-        FROM verse AS v
-        WHERE v.id = $1
-        `,
-    [verseId, code],
-  );
-
-  return result.rows[0];
 }
 
 async function machineTranslate(

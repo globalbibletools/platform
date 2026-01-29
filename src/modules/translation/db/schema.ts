@@ -42,3 +42,8 @@ export interface FootnoteTable {
   timestamp: Date;
   content: string;
 }
+
+export interface PhraseWordTable {
+  phrase_id: number;
+  word_id: string;
+}

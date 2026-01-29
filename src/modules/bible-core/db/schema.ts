@@ -33,3 +33,19 @@ export interface WordLexiconTable {
   word_id: string;
   content: string;
 }
+
+export interface Lemma {
+  id: string;
+}
+
+export interface LemmaFormTable {
+  id: string;
+  grammar: string;
+  lemma_id: string;
+}
+
+export interface LemmaResourceTable {
+  lemma_id: string;
+  resource_code: string;
+  content: string;
+}

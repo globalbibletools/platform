@@ -21,6 +21,8 @@ import {
 } from "./modules/users/data-access/types";
 import {
   BookTable,
+  LemmaFormTable,
+  LemmaResourceTable,
   VerseCommentaryTable,
   VerseQuestionTable,
   VerseTable,
@@ -32,6 +34,7 @@ import {
   GlossHistoryTable,
   GlossTable,
   PhraseTable,
+  PhraseWordTable,
   TranslatorNoteTable,
 } from "./modules/translation/db/schema";
 
@@ -43,7 +46,10 @@ export interface Database {
   language: LanguageTable;
   language_member: LanguageMemberTable;
   language_progress: LanguageProgressView;
+  lemma_form: LemmaFormTable;
+  lemma_resource: LemmaResourceTable;
   phrase: PhraseTable;
+  phrase_word: PhraseWordTable;
   reset_password_token: ResetPasswordTokenTable;
   session: SessionTable;
   translator_note: TranslatorNoteTable;
