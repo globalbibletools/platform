@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX idx_machine_gloss_language_word ON machine_gloss(language_id, word_id);

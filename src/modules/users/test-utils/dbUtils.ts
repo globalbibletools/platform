@@ -45,6 +45,7 @@ export async function findInvitationsForUser(
             timestamp '1970-01-01' + make_interval(0, 0, 0, 0, 0, 0, expires / 1000) as "expiresAt"
         from user_invitation
         where user_id = $1
+        order by expires
     `,
     [userId],
   );

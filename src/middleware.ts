@@ -33,5 +33,5 @@ export default async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next|api|email|p|.*\\.(?:ico|png|ttf)).*)"],
+  matcher: ["/((?!_next|api|email|p|.*\\.(?:ico|png|ttf|txt)).*)"],
 };

@@ -2,7 +2,8 @@ import { getDb } from "@/db";
 
 export interface UserLanguageReadModel {
   id: string;
-  name: string;
+  englishName: string;
+  localName: string;
   code: string;
 }
 
@@ -18,8 +19,13 @@ export async function getUserLanguagesReadModel(
           .where("user_id", "=", userId),
       ),
     )
-    .orderBy("name")
-    .select(["id", "name", "code"])
+    .orderBy("english_name")
+    .select([
+      "id",
+      "english_name as englishName",
+      "local_name as localName",
+      "code",
+    ])
     .execute();
   return result;
 }

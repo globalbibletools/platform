@@ -25,7 +25,8 @@ export interface ReportingUser {
 
 export interface ReportingLanguage {
   id: string;
-  name: string;
+  englishName: string;
+  localName: string;
   code: string;
 }
 
@@ -66,7 +67,15 @@ const reportingQueryService = {
       `
         select
 		  week.date as week,
-		  json_agg(json_build_object('glosses', approved_count, 'userId', user_id)) as users
+          coalesce(
+            json_agg(
+              json_build_object(
+                'glosses', s.approved_count,
+                'userId', s.user_id
+              )
+            ) filter (where s.user_id is not null),
+            '[]'::json
+          ) as users
 		from (
           select
             (current_date - extract(dow from current_date) * interval '1 day')
@@ -128,7 +137,7 @@ const reportingQueryService = {
 
   async findLanguages(): Promise<ReportingLanguage[]> {
     const result = await query<ReportingLanguage>(
-      `select id, name, code from language`,
+      `select id, english_name as "englishName", local_name as "localName", code from language`,
       [],
     );
     return result.rows;

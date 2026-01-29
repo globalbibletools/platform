@@ -1,26 +1,10 @@
-import { Generated } from "kysely";
 import { TextDirectionRaw } from "../model";
-
-export interface LanguageTable {
-  id: Generated<string>;
-  code: string;
-  name: string;
-  font: Generated<string>;
-  text_direction: Generated<TextDirectionRaw>;
-  translation_ids: Generated<Array<string>> | null;
-  reference_language_id: string | null;
-}
-
-export interface LanguageMemberTable {
-  user_id: string;
-  language_id: string;
-  invited_at: Date;
-}
 
 export interface DbLanguage {
   id: string;
   code: string;
-  name: string;
+  englishName: string;
+  localName: string;
   font: string;
   textDirection: TextDirectionRaw;
   translationIds: string[];

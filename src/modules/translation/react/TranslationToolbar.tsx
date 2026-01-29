@@ -29,7 +29,7 @@ import AudioDialog from "@/modules/study/react/AudioDialog";
 import { useElementDimensions } from "@/utils/measure-element";
 
 export interface TranslationToolbarProps {
-  languages: { name: string; code: string }[];
+  languages: { englishName: string; localName: string; code: string }[];
   currentLanguage: { isMember: boolean } | null;
   userRoles: string[];
 }
@@ -214,6 +214,74 @@ export default function TranslationToolbar({
     document.body.style.setProperty("--translate-nav-h", `${toolbarHeight}px`);
   }, [toolbarHeight]);
 
+  const buttons = [];
+
+  if (isTranslator) {
+    buttons.push(
+      <Button
+        key="approve-all"
+        variant="tertiary"
+        disabled={!verseId}
+        onClick={approveAllGlosses}
+      >
+        <Icon icon="check" className="me-1" />
+        {t("approve_all")}
+      </Button>,
+    );
+
+    if (!canUnlinkWords || canLinkWords) {
+      buttons.push(
+        <Button
+          key="word-linking"
+          variant="tertiary"
+          disabled={!canLinkWords || !verseId}
+          onClick={onLinkWords}
+        >
+          <Icon icon="link" className="me-1" />
+          {t("link_words")}
+        </Button>,
+      );
+    } else {
+      <Button
+        key="word-linking"
+        variant="tertiary"
+        disabled={!verseId}
+        onClick={onUnlinkWords}
+      >
+        <Icon icon="unlink" className="me-1" />
+        {t("unlink_words")}
+      </Button>;
+    }
+  }
+
+  buttons.push(
+    <Button
+      key="audio"
+      variant="tertiary"
+      onClick={() => setShowAudioPlayer(true)}
+    >
+      <Icon icon="circle-play" className="me-1" />
+      {t("audio")}
+    </Button>,
+  );
+
+  if (isPlatformAdmin) {
+    buttons.push(
+      <Button
+        key="sanity-check"
+        variant="tertiary"
+        disabled={!verseId}
+        onClick={onSanityCheck}
+      >
+        <Icon
+          icon={runningSanityCheck ? "arrows-rotate" : "clipboard-check"}
+          className="me-1"
+        />
+        {t("sanity_check")}
+      </Button>,
+    );
+  }
+
   return (
     <>
       <div
@@ -279,7 +347,7 @@ export default function TranslationToolbar({
           <ComboboxInput
             aria-label={t("language")}
             items={languages.map((l) => ({
-              label: l.name,
+              label: l.englishName,
               value: l.code,
             }))}
             value={code}
@@ -299,68 +367,23 @@ export default function TranslationToolbar({
           )}
         </div>
         <div className="flex flex-shrink-0 items-center">
-          {isTranslator && (
-            <>
-              <Button
-                variant="tertiary"
-                disabled={!verseId}
-                onClick={approveAllGlosses}
-              >
-                <Icon icon="check" className="me-1" />
-                {t("approve_all")}
-              </Button>
-              <span className="mx-1 dark:text-gray-300" aria-hidden="true">
-                |
-              </span>
-              {!canUnlinkWords || canLinkWords ?
-                <Button
-                  variant="tertiary"
-                  disabled={!canLinkWords || !verseId}
-                  onClick={onLinkWords}
+          {buttons.reduce<JSX.Element[]>((elements, el, i) => {
+            if (i > 0) {
+              elements.push(
+                <span
+                  key={`separator-${i}`}
+                  className="mx-1 dark:text-gray-300"
+                  aria-hidden="true"
                 >
-                  <Icon icon="link" className="me-1" />
-                  {t("link_words")}
-                </Button>
-              : <Button
-                  variant="tertiary"
-                  disabled={!verseId}
-                  onClick={onUnlinkWords}
-                >
-                  <Icon icon="unlink" className="me-1" />
-                  {t("unlink_words")}
-                </Button>
-              }
-            </>
-          )}
-          <span className="mx-1 dark:text-gray-300" aria-hidden="true">
-            |
-          </span>
-          <Button variant="tertiary" onClick={() => setShowAudioPlayer(true)}>
-            <Icon icon="circle-play" className="me-1" />
-            {t("audio")}
-          </Button>
-          {isPlatformAdmin && (
-            <>
-              {isTranslator && (
-                <span className="mx-1 dark:text-gray-300" aria-hidden="true">
                   |
-                </span>
-              )}
-              <Button
-                variant="tertiary"
-                disabled={!verseId}
-                onClick={onSanityCheck}
-              >
-                <Icon
-                  icon={
-                    runningSanityCheck ? "arrows-rotate" : "clipboard-check"
-                  }
-                  className="me-1"
-                />
-                {t("sanity_check")}
-              </Button>
-            </>
-          )}
+                </span>,
+              );
+            }
+
+            elements.push(el);
+
+            return elements;
+          }, [])}
         </div>
         {verseId && (
           <TranslationProgressBar className="absolute bottom-0 left-0 right-0" />

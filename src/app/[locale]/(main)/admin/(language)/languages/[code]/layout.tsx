@@ -1,1 +1,1 @@
-export { default } from "@/modules/languages/react/AdminLanguageLayout";
+export { default } from "@/modules/languages/ui/AdminLanguageLayout";

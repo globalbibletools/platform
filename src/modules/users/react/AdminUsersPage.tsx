@@ -21,6 +21,7 @@ import { NextIntlClientProvider } from "next-intl";
 import Pagination from "@/components/Pagination";
 import { inviteUser } from "@/modules/users/actions/inviteUser";
 import { searchUsersReadModel } from "../read-models/searchUsersReadModel";
+import { reinviteUserAction } from "../actions/reinviteUser";
 
 export async function generateMetadata(
   _: any,
@@ -123,8 +124,8 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPage) {
                     <>
                       <ServerAction
                         variant="tertiary"
-                        actionData={{ email: user.email }}
-                        action={inviteUser}
+                        actionData={{ userId: user.id }}
+                        action={reinviteUserAction}
                       >
                         {t("links.resend_invite")}
                       </ServerAction>

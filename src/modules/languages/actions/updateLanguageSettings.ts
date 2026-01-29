@@ -6,15 +6,15 @@ import { notFound } from "next/navigation";
 import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import UpdateLanguageSettings from "../use-cases/UpdateLanguageSettings";
-import languageRepository from "../data-access/languageRepository";
+import { updateLanguageSettings as updateLanguageSettingsUseCase } from "../use-cases/updateLanguageSettings";
 import { TextDirectionRaw } from "../model";
 import { NotFoundError } from "@/shared/errors";
 import { Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string(),
-  name: z.string().min(1),
+  localName: z.string().min(1),
+  englishName: z.string().min(1),
   font: z.string().min(1),
   textDirection: z.nativeEnum(TextDirectionRaw),
   translationIds: z.array(z.string()).optional(),
@@ -25,10 +25,6 @@ const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
   languageMember: true,
 });
-
-const updateLanguageSettingsUseCase = new UpdateLanguageSettings(
-  languageRepository,
-);
 
 export async function updateLanguageSettings(
   _prevState: FormState,
@@ -41,7 +37,8 @@ export async function updateLanguageSettings(
   const request = requestSchema.safeParse(
     {
       code: formData.get("code"),
-      name: formData.get("name"),
+      englishName: formData.get("englishName"),
+      localName: formData.get("localName"),
       font: formData.get("font"),
       textDirection: formData.get("text_direction"),
       translationIds: formData
@@ -53,8 +50,10 @@ export async function updateLanguageSettings(
     },
     {
       errorMap: (error) => {
-        if (error.path.toString() === "name") {
-          return { message: t("errors.name_required") };
+        if (error.path.toString() === "englishName") {
+          return { message: t("errors.english_name_required") };
+        } else if (error.path.toString() === "localName") {
+          return { message: t("errors.local_name_required") };
         } else if (error.path.toString() === "font") {
           return { message: t("errors.font_required") };
         } else if (error.path.toString() === "textDirection") {
@@ -84,7 +83,7 @@ export async function updateLanguageSettings(
   }
 
   try {
-    await updateLanguageSettingsUseCase.execute({
+    await updateLanguageSettingsUseCase({
       ...request.data,
       translationIds: request.data.translationIds ?? [],
     });

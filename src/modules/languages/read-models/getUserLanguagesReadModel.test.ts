@@ -25,10 +25,14 @@ test("returns empty array if user is not a member of any languages", async () =>
 test("returns array of languages where the user is a member", async () => {
   const user = await userFactory.build();
   const memberLanguage1 = await languageFactory.build({
-    name: "English",
+    code: "eng",
+    englishName: "English",
+    localName: "English",
   });
   const memberLanguage2 = await languageFactory.build({
-    name: "Spanish",
+    code: "spa",
+    englishName: "Spanish",
+    localName: "Español",
   });
 
   // This one should not be included in the result.
@@ -47,12 +51,14 @@ test("returns array of languages where the user is a member", async () => {
   expect(result).toEqual([
     {
       id: memberLanguage1.id,
-      name: memberLanguage1.name,
+      englishName: memberLanguage1.englishName,
+      localName: memberLanguage1.localName,
       code: memberLanguage1.code,
     },
     {
       id: memberLanguage2.id,
-      name: memberLanguage2.name,
+      englishName: memberLanguage2.englishName,
+      localName: memberLanguage2.localName,
       code: memberLanguage2.code,
     },
   ]);

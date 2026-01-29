@@ -5,7 +5,8 @@ import { Chart } from "chart.js/auto";
 
 interface LanguageProgressStats {
   code: string;
-  name: string;
+  englishName: string;
+  localName: string;
   ntProgress: number;
   otProgress: number;
 }
@@ -30,7 +31,7 @@ export default function ProgressChart({ languageStats }: ProgressChartProps) {
       const chart = new Chart(chartRoot.current, {
         type: "bar",
         data: {
-          labels: languageStats.map((lang) => lang.name),
+          labels: languageStats.map((lang) => lang.englishName),
           datasets: [
             {
               label: "Old Testament",

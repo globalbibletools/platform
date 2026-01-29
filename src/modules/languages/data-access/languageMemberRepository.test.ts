@@ -9,7 +9,8 @@ initializeDatabase();
 const language = {
   id: ulid(),
   code: "spa",
-  name: "Spanish",
+  english_name: "Spanish",
+  local_name: "Español",
 };
 const user = {
   id: ulid(),
@@ -179,7 +180,8 @@ describe("delete", () => {
 describe("deleteAll", () => {
   const otherLanguage = {
     id: ulid(),
-    name: "English",
+    english_name: "English",
+    local_name: "English",
     code: "eng",
   };
   const languageMembers = [

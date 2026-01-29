@@ -77,7 +77,11 @@ export const invitationFactory = Async.makeFactoryWithRequired<
   "userId"
 >({
   token: Async.each(() => faker.string.alphanumeric(20)),
-  expiresAt: Async.each(() => faker.date.soon()),
+  expiresAt: Async.each(() => {
+    const date = faker.date.soon();
+    date.setMilliseconds(0);
+    return date;
+  }),
 }).transform(async (invite) => {
   await query(
     `

@@ -4,7 +4,7 @@ import ServerAction from "@/components/ServerAction";
 import { createLanguageSnapshotAction } from "../actions/createLanguageSnapshot";
 import { notFound } from "next/navigation";
 import { snapshotQueryService } from "../data-access/snapshotQueryService";
-import { languageQueryService } from "@/modules/languages/data-access/LanguageQueryService";
+import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
 import {
   List,
   ListBody,
@@ -50,7 +50,7 @@ export default async function LanguageSettingsPage({
     page = 1;
   }
 
-  const language = await languageQueryService.findByCode(params.code);
+  const language = await getLanguageByCodeReadModel(params.code);
   if (!language) {
     notFound();
   }

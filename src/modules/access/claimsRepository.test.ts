@@ -60,7 +60,8 @@ describe("findLanguageClaims", () => {
   };
   const language = {
     id: ulid(),
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Español",
     code: "spa",
   };
   beforeEach(async () => {

@@ -546,11 +546,12 @@ ALTER SEQUENCE public.job_type_id_seq OWNED BY public.job_type.id;
 CREATE TABLE public.language (
     id uuid DEFAULT public.generate_ulid() NOT NULL,
     code text NOT NULL,
-    name text NOT NULL,
+    english_name text NOT NULL,
     font text DEFAULT 'Noto Sans'::text NOT NULL,
     translation_ids text[],
     text_direction public.text_direction DEFAULT 'ltr'::public.text_direction NOT NULL,
-    reference_language_id uuid
+    reference_language_id uuid,
+    local_name text NOT NULL
 );
 
 
@@ -1422,6 +1423,13 @@ CREATE INDEX gloss_phrase_id_idx ON public.gloss USING btree (phrase_id);
 
 
 --
+-- Name: idx_machine_gloss_language_word; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_machine_gloss_language_word ON public.machine_gloss USING btree (language_id, word_id);
+
+
+--
 -- Name: language_code_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1489,13 +1497,6 @@ CREATE UNIQUE INDEX user_email_key ON public.users USING btree (email);
 --
 
 CREATE UNIQUE INDEX user_email_verification_token_key ON public.user_email_verification USING btree (token);
-
-
---
--- Name: user_invitation_user_id_pkey; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX user_invitation_user_id_pkey ON public.user_invitation USING btree (user_id);
 
 
 --

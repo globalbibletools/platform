@@ -9,13 +9,20 @@ services:
       DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
       TEST_DATABASE_URL: postgresql://postgres:asdfasdf@test_db:5432/postgres
       JOB_FUNCTION_URL: http://job_worker:8080/2015-03-31/functions/function/invocations
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_ENDPOINT_URL_S3: http://localstack:4566
+      AWS_S3_FORCE_PATH_STYLE: "true"
     volumes:
       - ./:/app
-      - server-node-modules:/app/node_modules
+      - platform-node-modules:/app/node_modules
     ports:
       - 3000:3000
     depends_on:
       db:
+        condition: service_healthy
+      localstack:
         condition: service_healthy
   job_worker:
     build:
@@ -25,17 +32,41 @@ services:
     restart: always
     environment:
       DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_ENDPOINT_URL_S3: http://localstack:4566
+      AWS_S3_FORCE_PATH_STYLE: "true"
+      EXPORT_PUBLIC_S3_ENDPOINT: http://localhost:4566
     volumes:
       - ./:/app
-      - job-worker-node-modules:/app/node_modules
+      - platform-node-modules:/app/node_modules
     ports:
       - 9000:8080
     depends_on:
       db:
         condition: service_healthy
+      localstack:
+        condition: service_healthy
     env_file:
       - path: .env
         required: false
+  localstack:
+    image: localstack/localstack:4
+    environment:
+      - SERVICES=s3
+      - DEFAULT_REGION=us-east-1
+      - LS_LOG=warn
+    volumes:
+      - ./localstack/data:/var/lib/localstack
+      - ./localstack/init:/etc/localstack/init
+    ports:
+      - 4566:4566
+    healthcheck:
+      test: ["CMD", "bash", "-c", "awslocal s3 ls >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   db:
     build:
       dockerfile: db/Dockerfile
@@ -63,6 +94,8 @@ services:
     restart: always
     shm_size: 128mb
     user: postgres
+    volumes:
+      - ./db:/db
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=asdfasdf
@@ -75,7 +108,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  docs:
+    build:
+      context: .
+      dockerfile: docs/Dockerfile
+    restart: always
+    volumes:
+      - ./:/app
+      - docs-node-modules:/app/docs/node_modules
+    ports:
+      - 4000:3000
 volumes:
   db-data:
-  job-worker-node-modules:
-  server-node-modules:
+  platform-node-modules:
+  docs-node-modules:

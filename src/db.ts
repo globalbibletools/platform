@@ -7,8 +7,9 @@ import { pipeline } from "stream/promises";
 
 import {
   LanguageMemberTable,
+  LanguageProgressView,
   LanguageTable,
-} from "@/modules/languages/data-access/types";
+} from "@/modules/languages/db/schema";
 import { Kysely, PostgresDialect } from "kysely";
 import {
   ResetPasswordTokenTable,
@@ -26,13 +27,26 @@ import {
   WordLexiconTable,
   WordTable,
 } from "./modules/bible-core/db/schema";
+import {
+  FootnoteTable,
+  GlossHistoryTable,
+  GlossTable,
+  PhraseTable,
+  TranslatorNoteTable,
+} from "./modules/translation/db/schema";
 
 export interface Database {
   book: BookTable;
+  footnote: FootnoteTable;
+  gloss: GlossTable;
+  gloss_history: GlossHistoryTable;
   language: LanguageTable;
   language_member: LanguageMemberTable;
+  language_progress: LanguageProgressView;
+  phrase: PhraseTable;
   reset_password_token: ResetPasswordTokenTable;
   session: SessionTable;
+  translator_note: TranslatorNoteTable;
   user_email_verification: UserEmailVerificationTable;
   user_invitation: UserInvitationTable;
   user_system_role: UserSystemRoleTable;

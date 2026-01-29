@@ -7,7 +7,8 @@ interface LanguageMember {
 interface Language {
   id: string;
   code: string;
-  name: string;
+  englishName: string;
+  localName: string;
   members: LanguageMember[];
 }
 

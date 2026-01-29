@@ -30,7 +30,8 @@ test("returns validation error if the request shape doesn't match the schema", a
       state: "error",
       validation: {
         code: ["Invalid"],
-        name: ["Please enter the language name."],
+        englishName: ["Please enter the language's English name."],
+        localName: ["Please enter the language's local name."],
         font: ["Please select a font."],
         textDirection: ["Please select a text direction."],
       },
@@ -39,14 +40,16 @@ test("returns validation error if the request shape doesn't match the schema", a
   {
     const formData = new FormData();
     formData.set("code", "spa");
-    formData.set("name", "");
+    formData.set("englishName", "");
+    formData.set("localName", "");
     formData.set("font", "");
     formData.set("text_direction", TextDirectionRaw.LTR);
     const response = await updateLanguageSettings({ state: "idle" }, formData);
     expect(response).toEqual({
       state: "error",
       validation: {
-        name: ["Please enter the language name."],
+        englishName: ["Please enter the language's English name."],
+        localName: ["Please enter the language's local name."],
         font: ["Please select a font."],
       },
     });
@@ -61,7 +64,8 @@ test("returns not found if the user is not authorized", async () => {
 
   const formData = new FormData();
   formData.set("code", language.code);
-  formData.set("name", "Spanish");
+  formData.set("englishName", "Spanish");
+  formData.set("localName", "Español");
   formData.set("text_direction", TextDirectionRaw.LTR);
   formData.set("font", "Noto Sans");
   const response = updateLanguageSettings({ state: "idle" }, formData);
@@ -74,7 +78,8 @@ test("returns not found if the language does not exist", async () => {
 
   const formData = new FormData();
   formData.set("code", "random");
-  formData.set("name", "Spanish");
+  formData.set("englishName", "Spanish");
+  formData.set("localName", "Español");
   formData.set("text_direction", TextDirectionRaw.LTR);
   formData.set("font", "Noto Sans");
   const response = updateLanguageSettings({ state: "idle" }, formData);
@@ -87,14 +92,16 @@ test("updates the language settings", async () => {
 
   const language = await languageFactory.build({
     code: "spa",
-    name: "Spanish",
+    englishName: "Spanish",
+    localName: "Español",
     textDirection: TextDirectionRaw.LTR,
     font: "Noto Sans",
   });
   const referenceLanguage = await languageFactory.build();
 
   const request = {
-    name: "Espanol",
+    localName: "Espanol",
+    englishName: "Spanish",
     textDirection: TextDirectionRaw.LTR,
     font: "Noto Sans Arabic",
     translationIds: ["asdf1234", "qwer1234"],
@@ -102,7 +109,8 @@ test("updates the language settings", async () => {
   };
   const formData = new FormData();
   formData.set("code", language.code);
-  formData.set("name", request.name);
+  formData.set("englishName", request.englishName);
+  formData.set("localName", request.localName);
   formData.set("text_direction", request.textDirection);
   formData.set("font", request.font);
   formData.set("bible_translations", request.translationIds.join(","));

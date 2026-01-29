@@ -6,21 +6,19 @@ import { notFound, redirect } from "next/navigation";
 import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import CreateLanguage from "../use-cases/CreateLanguage";
+import { createLanguage as createLanguageUseCase } from "../use-cases/createLanguage";
 import { LanguageAlreadyExistsError } from "../model";
-import languageRepository from "../data-access/languageRepository";
 import { Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string().length(3),
-  name: z.string().min(1),
+  englishName: z.string().min(1),
+  localName: z.string().min(1),
 });
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
-
-const createLanguageUseCase = new CreateLanguage(languageRepository);
 
 export async function createLanguage(
   _prevState: FormState,
@@ -33,14 +31,17 @@ export async function createLanguage(
   const request = requestSchema.safeParse(
     {
       code: formData.get("code"),
-      name: formData.get("name"),
+      englishName: formData.get("englishName"),
+      localName: formData.get("localName"),
     },
     {
       errorMap: (error) => {
         if (error.path.toString() === "code") {
           return { message: t("errors.code_size") };
-        } else if (error.path.toString() === "name") {
-          return { message: t("errors.name_required") };
+        } else if (error.path.toString() === "englishName") {
+          return { message: t("errors.english_name_required") };
+        } else if (error.path.toString() === "localName") {
+          return { message: t("errors.local_name_required") };
         } else {
           return { message: "Invalid" };
         }
@@ -66,7 +67,7 @@ export async function createLanguage(
   }
 
   try {
-    await createLanguageUseCase.execute(request.data);
+    await createLanguageUseCase(request.data);
   } catch (error) {
     if (error instanceof LanguageAlreadyExistsError) {
       logger.error("language already exists");

@@ -10,7 +10,8 @@ initializeDatabase();
 test("returns language members", async () => {
   const language = {
     id: ulid(),
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Español",
     code: "spa",
   };
   const memberUser1 = {
@@ -71,7 +72,8 @@ test("returns language members", async () => {
 test("returns language members with invites", async () => {
   const language = {
     id: ulid(),
-    name: "Spanish",
+    english_name: "Spanish",
+    local_name: "Español",
     code: "spa",
   };
   const user = {

@@ -3,7 +3,8 @@ import { sql } from "kysely";
 
 export interface CurrentLanguageReadModel {
   code: string;
-  name: string;
+  localName: string;
+  englishName: string;
   font: string;
   textDirection: string;
   translationIds: string[];
@@ -20,7 +21,8 @@ export async function getCurrentLanguageReadModel(
     .where("code", "=", languageCode)
     .select(({ selectFrom, lit, exists, fn }) => [
       "code",
-      "name",
+      "english_name as englishName",
+      "local_name as localName",
       "font",
       "text_direction as textDirection",
       fn
