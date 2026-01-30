@@ -64,20 +64,11 @@ export async function getVerseWordsReadModel(
               .selectFrom("lemma_resource as lr")
               .where("lr.lemma_id", "=", wordEb.ref("lf.lemma_id"))
               .select((lrEb) =>
-                lrEb
-                  .case()
-                  .when("lr.resource_code", "is not", null)
-                  .then(
-                    jsonBuildObject({
-                      name: lrEb.ref("lr.resource_code"),
-                      entry: lrEb.ref("lr.content"),
-                    }),
-                  )
-                  .else(null)
-                  .end()
-                  .as("resource"),
+                jsonBuildObject({
+                  name: lrEb.ref("lr.resource_code"),
+                  entry: lrEb.ref("lr.content"),
+                }).as("resource"),
               )
-              .limit(1)
               .as("resource"),
           ]),
       ).as("words"),
