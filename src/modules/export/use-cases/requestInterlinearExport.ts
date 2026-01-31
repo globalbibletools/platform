@@ -17,7 +17,7 @@ export async function requestInterlinearExport(
 ): Promise<RequestInterlinearExportResult> {
   const language = await resolveLanguageByCode(request.languageCode);
   if (!language) {
-    throw new NotFoundError("Language not found.");
+    throw new NotFoundError("Language");
   }
 
   const job = await enqueueJob(EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF, {

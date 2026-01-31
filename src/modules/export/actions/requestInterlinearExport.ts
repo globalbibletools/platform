@@ -7,7 +7,7 @@ import { verifySession } from "@/session";
 import { Policy } from "@/modules/access";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
-import { requestInterlinearExport as requestInterlinearExportUseCase } from "../use-cases/RequestInterlinearExport";
+import { requestInterlinearExport as requestInterlinearExportUseCase } from "../use-cases/requestInterlinearExport";
 
 const exportPolicy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
