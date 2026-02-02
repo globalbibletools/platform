@@ -110,6 +110,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
         {messages.slice(0, 1).map((message) => {
           return (
             <Transition
+              as="div"
               key={message.id}
               appear={message.state === "unshown"}
               show={message.state !== "dismissed"}

@@ -2,7 +2,7 @@
 
 import { ReactNode, createContext, useContext, useState } from "react";
 import NavLink, { NavLinkProps } from "@/components/NavLink";
-import { Menu } from "@headlessui/react";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 
@@ -49,7 +49,7 @@ export interface HeaderDropdownProps {
 export function HeaderDropdown({ button, items }: HeaderDropdownProps) {
   return (
     <Menu as="div" className="relative h-full hidden sm:block">
-      <Menu.Button
+      <MenuButton
         className="h-full ps-2 font-bold focus:outline-none focus:underline text-blue-800 dark:text-green-400
         "
       >
@@ -59,8 +59,8 @@ export function HeaderDropdown({ button, items }: HeaderDropdownProps) {
             <Icon className="ms-2" icon={open ? "caret-up" : "caret-down"} />
           </>
         )}
-      </Menu.Button>
-      <Menu.Items
+      </MenuButton>
+      <MenuItems
         className="
                 absolute -end-4 flex flex-col pt-3 pb-2 w-fit min-w-[calc(100%+32px)] bg-white z-10
                 focus:outline-none
@@ -69,7 +69,7 @@ export function HeaderDropdown({ button, items }: HeaderDropdownProps) {
             "
       >
         {items}
-      </Menu.Items>
+      </MenuItems>
     </Menu>
   );
 }
@@ -81,7 +81,7 @@ export function HeaderDropdownItem({
   ...props
 }: HeaderLinkProps) {
   return (
-    <Menu.Item>
+    <MenuItem>
       <Link
         {...props}
         className={`
@@ -93,7 +93,7 @@ export function HeaderDropdownItem({
       >
         {children}
       </Link>
-    </Menu.Item>
+    </MenuItem>
   );
 }
 

@@ -24,7 +24,7 @@ export default async function PrimaryNavigation() {
   return (
     <nav
       className="
-        sticky top-0 z-20
+        sticky top-0 z-30
         bg-white flex items-center h-[--heading-height] border-b border-gray-200 relative px-4 lg:px-8
         dark:bg-gray-900 dark:border-gray-700
       "

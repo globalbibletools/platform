@@ -1,6 +1,12 @@
 "use client";
 
-import { Combobox } from "@headlessui/react";
+import {
+  Combobox,
+  ComboboxButton,
+  ComboboxOption,
+  ComboboxOptions,
+  ComboboxInput as BaseComboboxInput,
+} from "@headlessui/react";
 import {
   ComponentProps,
   KeyboardEventHandler,
@@ -27,7 +33,7 @@ interface BaseComboboxInputProps
   up?: boolean;
   autosubmit?: boolean;
   onBlur?(): void;
-  onChange?(value: string): void;
+  onChange?(value?: string): void;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
 }
 
@@ -83,6 +89,9 @@ const ComboboxInput = forwardRef<HTMLInputElement, BaseComboboxInputProps>(
           value={value}
           defaultValue={defaultValue}
           onChange={(value) => {
+            // Comboboxes always have a value
+            if (!value) return;
+
             if (autosubmit) {
               // We have to wait a tick so that the internal input element is updated when we submit the form
               setTimeout(() => {
@@ -106,7 +115,7 @@ const ComboboxInput = forwardRef<HTMLInputElement, BaseComboboxInputProps>(
               }
           `}
           >
-            <Combobox.Input
+            <BaseComboboxInput
               {...props}
               onChange={(event) =>
                 setNormalizedInputValue(event.target.value.normalize("NFD"))
@@ -123,11 +132,11 @@ const ComboboxInput = forwardRef<HTMLInputElement, BaseComboboxInputProps>(
               }}
               ref={ref}
             />
-            <Combobox.Button className="w-8">
+            <ComboboxButton className="w-8">
               {({ open }) => <Icon icon={open ? "caret-up" : "caret-down"} />}
-            </Combobox.Button>
+            </ComboboxButton>
           </div>
-          <Combobox.Options
+          <ComboboxOptions
             className={`
               z-10 absolute w-full max-h-80 bg-white overflow-auto mt-1 rounded border border-gray-400 shadow
               dark:bg-gray-800 dark:border-gray-700
@@ -135,15 +144,15 @@ const ComboboxInput = forwardRef<HTMLInputElement, BaseComboboxInputProps>(
             `}
           >
             {filteredItems.map((item) => (
-              <Combobox.Option
+              <ComboboxOption
                 className="px-3 py-2 ui-active:bg-green-200 dark:ui-active:green-400 dark:ui-active:text-gray-900"
                 key={item.value}
                 value={item.value}
               >
                 {item.label}
-              </Combobox.Option>
+              </ComboboxOption>
             ))}
-          </Combobox.Options>
+          </ComboboxOptions>
         </Combobox>
       </div>
     );

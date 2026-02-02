@@ -1,7 +1,7 @@
 "use client";
 
 import RichText from "@/components/RichText";
-import { Tab } from "@headlessui/react";
+import { Tab, TabPanels, TabPanel, TabList, TabGroup } from "@headlessui/react";
 import DOMPurify from "isomorphic-dompurify";
 import { useTranslations } from "next-intl";
 import { forwardRef, Fragment, memo, useMemo, useRef, useState } from "react";
@@ -87,8 +87,12 @@ const WordDetails = forwardRef<WordDetailsRef, WordDetailsProps>(
 
         {mode === "standard" && (
           <div className="grow flex flex-col min-h-0">
-            <Tab.Group selectedIndex={tabIndex} onChange={setTabIndex}>
-              <Tab.List className="flex flex-row items-end">
+            <TabGroup
+              as={Fragment}
+              selectedIndex={tabIndex}
+              onChange={setTabIndex}
+            >
+              <TabList className="flex flex-row items-end">
                 <div className="border-b border-blue-800 dark:border-green-400 h-full w-2"></div>
                 {[
                   t("tabs.lexicon"),
@@ -107,9 +111,9 @@ const WordDetails = forwardRef<WordDetailsRef, WordDetailsProps>(
                   </Fragment>
                 ))}
                 <div className="border-b border-blue-800 dark:border-green-400 h-full grow"></div>
-              </Tab.List>
-              <Tab.Panels className="overflow-y-auto grow px-4 pt-4 mb-4">
-                <Tab.Panel unmount={false}>
+              </TabList>
+              <TabPanels className="overflow-y-auto grow px-4 pt-4 mb-4">
+                <TabPanel unmount={false}>
                   <div>
                     {isLoading && <LoadingSpinner />}
                     {!isLoading && data && (
@@ -148,12 +152,12 @@ const WordDetails = forwardRef<WordDetailsRef, WordDetailsProps>(
                       </>
                     )}
                   </div>
-                </Tab.Panel>
-                <Tab.Panel unmount={false}>
+                </TabPanel>
+                <TabPanel unmount={false}>
                   <RichText className="pb-2" content={word.footnote ?? ""} />
-                </Tab.Panel>
-              </Tab.Panels>
-            </Tab.Group>
+                </TabPanel>
+              </TabPanels>
+            </TabGroup>
           </div>
         )}
       </div>
