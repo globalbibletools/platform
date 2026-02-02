@@ -33,7 +33,7 @@ interface BaseComboboxInputProps
   up?: boolean;
   autosubmit?: boolean;
   onBlur?(): void;
-  onChange?(value?: string): void;
+  onChange?(value: string): void;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
 }
 
