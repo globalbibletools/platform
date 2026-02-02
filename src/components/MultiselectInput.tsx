@@ -1,7 +1,13 @@
 "use client";
 
-import { ChangeEvent, forwardRef, useMemo, useRef } from "react";
-import { Combobox } from "@headlessui/react";
+import { forwardRef, useMemo, useRef } from "react";
+import {
+  Combobox,
+  ComboboxButton,
+  ComboboxInput,
+  ComboboxOption,
+  ComboboxOptions,
+} from "@headlessui/react";
 import { Icon } from "./Icon";
 import { useFormContext } from "./Form";
 import debounce from "./debounce";
@@ -73,7 +79,7 @@ const MultiselectInput = forwardRef<HTMLInputElement, MultiselectInputProps>(
             }
           `}
           >
-            <Combobox.Input
+            <ComboboxInput
               className="w-full py-2 px-3 h-full flex-grow focus:outline-none bg-transparent rounded"
               readOnly
               ref={ref}
@@ -85,18 +91,18 @@ const MultiselectInput = forwardRef<HTMLInputElement, MultiselectInputProps>(
               }
               placeholder={placeholder}
             />
-            <Combobox.Button className="w-8">
+            <ComboboxButton className="w-8">
               {({ open }) => <Icon icon={open ? "caret-up" : "caret-down"} />}
-            </Combobox.Button>
+            </ComboboxButton>
           </div>
-          <Combobox.Options
+          <ComboboxOptions
             className="
               absolute z-20 mt-1 max-h-80 w-full overflow-auto rounded border border-gray-400 bg-white shadow
               dark:bg-gray-800 dark:border-gray-700
             "
           >
             {items.map((item) => (
-              <Combobox.Option
+              <ComboboxOption
                 className="px-3 py-2 ui-active:bg-green-200 dark:ui-active:green-400 dark:ui-active:text-gray-900"
                 key={item.value}
                 value={item.value}
@@ -109,9 +115,9 @@ const MultiselectInput = forwardRef<HTMLInputElement, MultiselectInputProps>(
                     {item.label}
                   </>
                 )}
-              </Combobox.Option>
+              </ComboboxOption>
             ))}
-          </Combobox.Options>
+          </ComboboxOptions>
         </Combobox>
       </div>
     );

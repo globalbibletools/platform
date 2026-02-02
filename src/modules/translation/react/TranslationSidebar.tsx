@@ -3,7 +3,7 @@
 import { Icon } from "@/components/Icon";
 import RichText from "@/components/RichText";
 import RichTextInput, { RichTextInputRef } from "@/components/RichTextInput";
-import { Tab } from "@headlessui/react";
+import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import DOMPurify from "isomorphic-dompurify";
 import { throttle } from "lodash";
 import { useTranslations } from "next-intl";
@@ -187,8 +187,8 @@ const TranslationSidebar = forwardRef<
       </div>
 
       <div className="grow flex flex-col min-h-0">
-        <Tab.Group selectedIndex={tabIndex} onChange={setTabIndex}>
-          <Tab.List className="flex flex-row">
+        <TabGroup as={Fragment} selectedIndex={tabIndex} onChange={setTabIndex}>
+          <TabList className="flex flex-row">
             <div className="border-b border-blue-800 dark:border-green-400 h-full w-2"></div>
             {[t("tabs.lexicon"), t("tabs.notes")].map((title) => (
               <Fragment key={title}>
@@ -204,9 +204,9 @@ const TranslationSidebar = forwardRef<
               </Fragment>
             ))}
             <div className="border-b border-blue-800 dark:border-green-400 h-full grow"></div>
-          </Tab.List>
-          <Tab.Panels className="overflow-y-auto grow px-4 pt-4 pb-10 mb-4">
-            <Tab.Panel unmount={false}>
+          </TabList>
+          <TabPanels className="overflow-y-auto grow px-4 pt-4 pb-10 mb-4">
+            <TabPanel unmount={false}>
               <div>
                 {word.resource && (
                   <>
@@ -244,8 +244,8 @@ const TranslationSidebar = forwardRef<
                   </>
                 )}
               </div>
-            </Tab.Panel>
-            <Tab.Panel unmount={false}>
+            </TabPanel>
+            <TabPanel unmount={false}>
               <div className="flex flex-col gap-6 pb-2">
                 {canReadTranslatorNotes && (
                   <div className="flex flex-col gap-2">
@@ -315,9 +315,9 @@ const TranslationSidebar = forwardRef<
                   : <RichText content={footnoteContent} />}
                 </div>
               </div>
-            </Tab.Panel>
-          </Tab.Panels>
-        </Tab.Group>
+            </TabPanel>
+          </TabPanels>
+        </TabGroup>
       </div>
     </div>
   );

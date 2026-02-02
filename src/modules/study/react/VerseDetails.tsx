@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Fragment } from "react";
-import { Tab } from "@headlessui/react";
+import { Tab, TabPanels, TabPanel, TabList, TabGroup } from "@headlessui/react";
 import { useTranslations } from "next-intl";
 import useSWR from "swr";
 import { VerseImmersiveContentReadModel } from "@/modules/bible-core/read-models/getVerseImmersiveContentReadModel";
@@ -76,8 +76,8 @@ export default function VerseDetails({
       </div>
 
       <div className="grow flex flex-col min-h-0">
-        <Tab.Group selectedIndex={tabIndex} onChange={setTabIndex}>
-          <Tab.List className="flex flex-row items-end">
+        <TabGroup as={Fragment} selectedIndex={tabIndex} onChange={setTabIndex}>
+          <TabList className="flex flex-row items-end">
             <div className="border-b border-blue-800 dark:border-green-400 h-full w-2"></div>
             {[t("tabs.questions"), "Commentary"].map((title) => (
               <Fragment key={title}>
@@ -93,9 +93,9 @@ export default function VerseDetails({
               </Fragment>
             ))}
             <div className="border-b border-blue-800 dark:border-green-400 h-full grow"></div>
-          </Tab.List>
-          <Tab.Panels className="overflow-y-auto grow px-4 pt-4 mb-4">
-            <Tab.Panel>
+          </TabList>
+          <TabPanels className="overflow-y-auto grow px-4 pt-4 mb-4">
+            <TabPanel>
               {(() => {
                 if (isLoading) {
                   return <LoadingSpinner />;
@@ -114,8 +114,8 @@ export default function VerseDetails({
                   );
                 }
               })()}
-            </Tab.Panel>
-            <Tab.Panel>
+            </TabPanel>
+            <TabPanel>
               {(() => {
                 if (isLoading) {
                   return <LoadingSpinner />;
@@ -123,9 +123,9 @@ export default function VerseDetails({
                   return <p className="font-mixed">{data.commentary}</p>;
                 }
               })()}
-            </Tab.Panel>
-          </Tab.Panels>
-        </Tab.Group>
+            </TabPanel>
+          </TabPanels>
+        </TabGroup>
       </div>
     </div>
   );
