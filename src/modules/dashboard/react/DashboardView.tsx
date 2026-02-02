@@ -17,7 +17,7 @@ export default async function DashboardView() {
     redirect("/");
   }
 
-  const browserCookies = cookies();
+  const browserCookies = await cookies();
 
   const languages = await getUserLanguagesReadModel(session.user.id);
   if (languages.length === 0) {

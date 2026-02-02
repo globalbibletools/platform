@@ -35,15 +35,16 @@ export async function generateMetadata(
   };
 }
 
-interface AdminUsersPage {
-  searchParams: { page?: string };
+interface AdminUsersPageProps {
+  searchParams: Promise<{ page?: string }>;
 }
 
 const LIMIT = 20;
 
-export default async function AdminUsersPage({ searchParams }: AdminUsersPage) {
+export default async function AdminUsersPage(props: AdminUsersPageProps) {
   const t = await getTranslations("AdminUsersPage");
   const messages = await getMessages();
+  const searchParams = await props.searchParams;
 
   let page = parseInt(searchParams.page ?? "");
   if (page <= 0 || isNaN(page) || page.toString() !== searchParams.page) {

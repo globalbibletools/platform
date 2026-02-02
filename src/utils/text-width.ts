@@ -14,7 +14,7 @@ export interface UseTextWidthOptions {
  * @returns The width of the text, in pixels.
  */
 export function useTextWidth(options: UseTextWidthOptions): number {
-  const el = useRef<HTMLDivElement>();
+  const el = useRef<HTMLDivElement | undefined>(undefined);
 
   useLayoutEffect(() => {
     const div = document.createElement("div");

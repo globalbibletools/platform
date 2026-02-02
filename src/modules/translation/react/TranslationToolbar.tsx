@@ -2,12 +2,17 @@
 
 import Button from "@/components/Button";
 import ComboboxInput from "@/components/ComboboxInput";
-import FormLabel from "@/components/FormLabel";
 import { Icon } from "@/components/Icon";
 import TextInput from "@/components/TextInput";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  type JSX,
+} from "react";
 import { approveAll } from "../actions/approveAll";
 import { changeInterlinearLocation } from "../actions/changeInterlinearLocation";
 import { linkWords } from "../actions/linkWords";

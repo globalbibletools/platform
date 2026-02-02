@@ -1,3 +1,4 @@
+import { use } from "react";
 import type { Metadata } from "next";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import { NextIntlClientProvider, useMessages } from "next-intl";
@@ -18,13 +19,16 @@ export async function generateMetadata(): Promise<Metadata> {
 
 config.autoAddCss = false;
 
-export default function RootLayout({
-  children,
-  params,
-}: Readonly<{
-  children: React.ReactNode;
-  params: { locale: string };
-}>) {
+export default function RootLayout(
+  props: Readonly<{
+    children: React.ReactNode;
+    params: { locale: string };
+  }>,
+) {
+  const params = use(props.params);
+
+  const { children } = props;
+
   const messages = useMessages();
 
   const language = languages[params.locale as keyof typeof languages];

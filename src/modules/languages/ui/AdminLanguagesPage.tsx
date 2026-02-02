@@ -17,8 +17,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { searchLanguagesReadModel } from "../read-models/searchLanguagesReadModel";
 
 interface AdminLanguagePageProps {
-  params: { locale: string };
-  searchParams: { page?: string };
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ page?: string }>;
 }
 
 export async function generateMetadata(
@@ -35,12 +35,13 @@ export async function generateMetadata(
 
 const LIMIT = 20;
 
-export default async function AdminLanguagesPage({
-  params,
-  searchParams,
-}: AdminLanguagePageProps) {
+export default async function AdminLanguagesPage(
+  props: AdminLanguagePageProps,
+) {
   const t = await getTranslations("AdminLanguagesPage");
   const messages = await getMessages();
+  const params = await props.params;
+  const searchParams = await props.searchParams;
 
   let page = parseInt(searchParams.page ?? "");
   if (page <= 0 || isNaN(page) || page.toString() !== searchParams.page) {

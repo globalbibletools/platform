@@ -22,7 +22,7 @@ import { getAllLanguagesReadModel } from "../read-models/getAllLanguagesReadMode
 import { getLanguageSettingsReadModel } from "../read-models/getLanguageSettingsReadModel";
 
 interface LanguageSettingsPageProps {
-  params: { code: string };
+  params: Promise<{ code: string }>;
 }
 
 export async function generateMetadata(
@@ -37,10 +37,11 @@ export async function generateMetadata(
   };
 }
 
-export default async function LanguageSettingsPage({
-  params,
-}: LanguageSettingsPageProps) {
+export default async function LanguageSettingsPage(
+  props: LanguageSettingsPageProps,
+) {
   const t = await getTranslations("LanguageSettingsPage");
+  const params = await props.params;
 
   const [languageSettings, languages, translations] = await Promise.all([
     getLanguageSettingsReadModel(params.code),

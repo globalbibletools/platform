@@ -18,7 +18,7 @@ import { notFound } from "next/navigation";
 const IMPORT_SERVER = "https://hebrewgreekbible.online";
 
 interface LanguageImportPageProps {
-  params: { code: string };
+  params: Promise<{ code: string }>;
 }
 
 export async function generateMetadata(
@@ -35,10 +35,11 @@ export async function generateMetadata(
 
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
-export default async function LanguageImportPage({
-  params,
-}: LanguageImportPageProps) {
+export default async function LanguageImportPage(
+  props: LanguageImportPageProps,
+) {
   const t = await getTranslations("LanguageImportPage");
+  const params = await props.params;
 
   const session = await verifySession();
   const isAuthorized = await policy.authorize({

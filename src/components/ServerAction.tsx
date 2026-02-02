@@ -1,9 +1,8 @@
 "use client";
 
-import { useFormState } from "react-dom";
 import Button, { ActionProps } from "./Button";
 import { FormState } from "./Form";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useActionState } from "react";
 import { useFlash } from "../flash";
 import ConfirmModal, { ConfirmModalRef } from "./ConfirmModal";
 
@@ -23,7 +22,7 @@ export default function ServerAction({
   confirm = false,
   ...props
 }: ServerActionProps) {
-  const [state, serverAction] = useFormState(action, { state: "idle" });
+  const [state, serverAction] = useActionState(action, { state: "idle" });
   const flash = useFlash();
 
   const confirmModal = useRef<ConfirmModalRef>(null);

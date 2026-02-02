@@ -30,7 +30,8 @@ export async function createSession(userId?: string) {
     );
   }
 
-  cookies().set("session", session.id, {
+  const cookieStore = await cookies();
+  cookieStore.set("session", session.id, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     expires: session.expiresAt,
@@ -46,14 +47,18 @@ export async function clearSessionsForUser(userId: string) {
 }
 
 export async function clearSession() {
-  const sessionId = cookies().get("session")?.value;
+  const cookieStore = await cookies();
+
+  const sessionId = cookieStore.get("session")?.value;
   if (!sessionId) return;
 
-  cookies().delete("session");
+  cookieStore.delete("session");
 }
 
 export async function verifySession() {
-  const sessionId = cookies().get("session")?.value;
+  const cookieStore = await cookies();
+
+  const sessionId = cookieStore.get("session")?.value;
   if (!sessionId) return;
 
   const session = await fetchSession(sessionId);

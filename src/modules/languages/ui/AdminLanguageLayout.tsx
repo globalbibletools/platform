@@ -11,10 +11,10 @@ import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
 
 interface LanguageLayoutProps {
   children: ReactNode;
-  params: {
+  params: Promise<{
     locale: string;
     code: string;
-  };
+  }>;
 }
 
 const policy = new Policy({
@@ -23,9 +23,10 @@ const policy = new Policy({
 });
 
 export async function generateMetadata(
-  { params }: LanguageLayoutProps,
+  props: LanguageLayoutProps,
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
+  const params = await props.params;
   const { title } = await parent;
 
   const language = await getLanguageByCodeReadModel(params.code);
@@ -37,9 +38,10 @@ export async function generateMetadata(
 
 export default async function LanguageLayout({
   children,
-  params,
+  ...props
 }: LanguageLayoutProps) {
   const t = await getTranslations("LanguageLayout");
+  const params = await props.params;
 
   const session = await verifySession();
   const authorized = await policy.authorize({

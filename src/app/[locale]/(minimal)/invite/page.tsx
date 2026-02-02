@@ -11,8 +11,8 @@ import { acceptInvite } from "@/modules/users/actions/acceptInvite";
 import Form from "@/components/Form";
 
 interface Props {
-  params: { locale: string };
-  searchParams: { token?: string };
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ token?: string }>;
 }
 
 export async function generateMetadata(
@@ -27,7 +27,9 @@ export async function generateMetadata(
   };
 }
 
-export default async function LoginPage({ params, searchParams }: Props) {
+export default async function LoginPage(props: Props) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const t = await getTranslations("AcceptInvitePage");
 
   if (!searchParams.token) {

@@ -4,7 +4,7 @@ import { Metadata, ResolvingMetadata } from "next";
 import InterlinearExportPanel from "./InterlinearExportPanel";
 
 interface Props {
-  params: { code: string };
+  params: Promise<{ code: string }>;
 }
 
 export async function generateMetadata(
@@ -19,8 +19,9 @@ export async function generateMetadata(
   };
 }
 
-export default async function LanguageExportsPage({ params }: Props) {
+export default async function LanguageExportsPage(props: Props) {
   const t = await getTranslations("LanguageExportsPage");
+  const params = await props.params;
 
   return (
     <div className="px-8 py-6 w-fit overflow-y-auto h-full">
