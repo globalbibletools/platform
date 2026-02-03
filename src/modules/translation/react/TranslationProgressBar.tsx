@@ -72,7 +72,7 @@ export default function TranslationProgressBar({
   return (
     <div className={`h-2 ${className}`}>
       <div
-        className={`absolute group w-full h-2 hover:h-6 top-0 start-0 z-[1] ${isLoading ? "bg-gray-100" : "bg-brown-100"}`}
+        className={`absolute group w-full h-2 hover:h-6 top-0 start-0 z-1 ${isLoading ? "bg-gray-100" : "bg-brown-100"}`}
       >
         <div
           ref={progressElementRef}

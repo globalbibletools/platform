@@ -37,7 +37,7 @@ function Body({
   className?: string;
 }) {
   return (
-    <div className={`p-6 sm:p-7 pt-3 sm:pt-4 flex-grow ${className}`}>
+    <div className={`p-6 sm:p-7 pt-3 sm:pt-4 grow ${className}`}>
       {children}
     </div>
   );

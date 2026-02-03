@@ -25,7 +25,7 @@ export function HeaderLink({
       className={(isActive) => `
             h-full px-2 text-center block pt-5 font-bold border-b-4
             text-blue-800 dark:text-green-400
-            hover:underline focus:underline focus:outline-none
+            hover:underline focus:underline outline-none
             ${
               isActive ?
                 "border-green-300 dark:border-blue-800"
@@ -50,7 +50,7 @@ export function HeaderDropdown({ button, items }: HeaderDropdownProps) {
   return (
     <Menu as="div" className="relative h-full hidden sm:block">
       <MenuButton
-        className="h-full ps-2 font-bold focus:outline-none focus:underline text-blue-800 dark:text-green-400
+        className="h-full ps-2 font-bold outline-none focus:underline text-blue-800 dark:text-green-400
         "
       >
         {({ open }) => (
@@ -63,7 +63,7 @@ export function HeaderDropdown({ button, items }: HeaderDropdownProps) {
       <MenuItems
         className="
                 absolute -end-4 flex flex-col pt-3 pb-2 w-fit min-w-[calc(100%+32px)] bg-white z-10
-                focus:outline-none
+                outline-none
                 rounded-b border border-gray-200 shadow-md
                 dark:bg-gray-800 dark:border-gray-700 dark:shadow-none
             "
@@ -85,7 +85,7 @@ export function HeaderDropdownItem({
       <Link
         {...props}
         className={`
-                h-8 px-4 py-1 whitespace-nowrap ui-active:underline hover:underline text-blue-800 dark:text-green-400
+                h-8 px-4 py-1 whitespace-nowrap data-focus:underline hover:underline text-blue-800 dark:text-green-400
                 ${className}
             `}
         target={newTab ? "_blank" : props.target}
@@ -179,7 +179,7 @@ export function HeaderMenuItem({
     <Link
       {...props}
       className={`
-                h-8 px-4 py-1 whitespace-nowrap focus:underline hover:underline focus:outline-none text-blue-800 dark:text-green-400
+                h-8 px-4 py-1 whitespace-nowrap focus:underline hover:underline outline-hidden text-blue-800 dark:text-green-400
                 ${className}
             `}
       target={newTab ? "_blank" : props.target}

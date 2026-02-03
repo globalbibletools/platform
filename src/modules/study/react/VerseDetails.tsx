@@ -83,7 +83,7 @@ export default function VerseDetails({
               <Fragment key={title}>
                 <Tab
                   className="
-                                  px-4 py-1 text-blue-800 font-bold rounded-t-lg border border-blue-800 ui-selected:border-b-transparent outline-green-300 focus-visible:outline outline-2
+                                  px-4 py-1 text-blue-800 font-bold rounded-t-lg border border-blue-800 data-selected:border-b-transparent outline-green-300 focus-visible:outline-2
                                   dark:text-green-400 dark:border-green-400
                                 "
                 >

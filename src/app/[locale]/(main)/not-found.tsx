@@ -18,7 +18,7 @@ export default function RootNotFoundPage() {
   const t = useTranslations("RootNotFoundPage");
 
   return (
-    <div className="flex-grow flex items-center justify-center">
+    <div className="grow flex items-center justify-center">
       <h1 className="text-lg font-bold">{t("title")}</h1>
     </div>
   );

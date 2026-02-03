@@ -21,13 +21,13 @@ const ConfirmModal = forwardRef<ConfirmModalRef, ConfirmModalProps>(
         {...props}
         className="
           relative max-w-[400px]
-          rounded-lg shadow-md border border-gray-200 bg-white mx-auto p-8 focus-visible:outline outline-green-300 outline-2
+          rounded-lg shadow-md border border-gray-200 bg-white mx-auto p-8 focus-visible:outline-2 outline-green-301
           dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300
         "
       >
         <button
           type="button"
-          className="absolute text-red-700 top-1 end-1 w-8 h-8 outline-green-300 outline-2 rounded"
+          className="absolute text-red-700 top-1 end-1 w-8 h-8 outline-green-300 outline-2 rounded-sm"
           onClick={(e) => {
             e.currentTarget.closest("dialog")?.close();
           }}

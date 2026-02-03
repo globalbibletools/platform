@@ -11,7 +11,7 @@ export default async function LandingPage() {
 
   return (
     <div className="text-gray-800">
-      <nav className="min-[800px]:sticky top-0 z-10 bg-white flex items-center h-20 border-b border-gray-200 relative flex-shrink-0 px-4 md:px-8">
+      <nav className="min-[800px]:sticky top-0 z-10 bg-white flex items-center h-20 border-b border-gray-200 relative shrink-0 px-4 md:px-8">
         <a href="#hero" className="flex items-center mr-2 md:mr-4 lg:mr-12">
           <img
             src="https://assets.globalbibletools.com/landing/logo.png"
@@ -21,7 +21,7 @@ export default async function LandingPage() {
             Global Bible Tools
           </h1>
         </a>
-        <div className="flex-grow md:flex-grow-0"></div>
+        <div className="grow md:grow-0"></div>
         <a
           className="h-full text-center hidden min-[800px]:block pt-[30px] font-bold mx-3"
           href="#vision"
@@ -46,10 +46,10 @@ export default async function LandingPage() {
         >
           About
         </a>
-        <div className="md:flex-grow"></div>
+        <div className="md:grow"></div>
         <a
           href={session ? "/dashboard" : "/read"}
-          className="flex-shrink-0 rounded-lg bg-blue-800 text-white font-bold shadow-md px-4 flex items-center justify-center h-8 md:mt-[4px] ms-1"
+          className="shrink-0 rounded-lg bg-blue-800 text-white font-bold shadow-md px-4 flex items-center justify-center h-8 md:mt-[4px] ms-1"
         >
           {session ? "Go to Dashboard" : "Reader's Bible"}
         </a>
@@ -106,7 +106,7 @@ export default async function LandingPage() {
               <h3 className="text-center text-xl font-bold border-b-4 border-black pb-2 mx-4">
                 Language Learning
               </h3>
-              <div className="rounded-[16px] bg-white p-6 shadow">
+              <div className="rounded-[16px] bg-white p-6 shadow-sm">
                 <h4 className="text-lg font-bold mb-3">Language Lessons</h4>
                 <p>
                   YouTube courses{" "}
@@ -126,7 +126,7 @@ export default async function LandingPage() {
                   provide free Greek and Hebrew training to everyone.
                 </p>
               </div>
-              <div className="rounded-[16px] bg-white p-6 shadow">
+              <div className="rounded-[16px] bg-white p-6 shadow-sm">
                 <h4 className="text-lg font-bold mb-3">Reader&apos;s Bible</h4>
                 <p>
                   A digital reader’s Bible helps language learners accelerate
@@ -137,21 +137,21 @@ export default async function LandingPage() {
               <h3 className="text-center text-xl font-bold border-b-4 border-black pb-2 mx-4 md:col-start-2">
                 Biblical Study
               </h3>
-              <div className="rounded-[16px] bg-white p-6 shadow md:col-start-2">
+              <div className="rounded-[16px] bg-white p-6 shadow-sm md:col-start-2">
                 <h4 className="text-lg font-bold mb-3">Lexicons</h4>
                 <p>
                   Lexicons are needed in biblical study to explore the range of
                   meaning for Greek and Hebrew words.
                 </p>
               </div>
-              <div className="rounded-[16px] bg-white p-6 shadow md:col-start-2">
+              <div className="rounded-[16px] bg-white p-6 shadow-sm md:col-start-2">
                 <h4 className="text-lg font-bold mb-3">Grammars</h4>
                 <p>
                   Grammars are used in biblical study to learn the structure of
                   the biblical languages.
                 </p>
               </div>
-              <div className="rounded-[16px] bg-white p-6 shadow md:col-start-2">
+              <div className="rounded-[16px] bg-white p-6 shadow-sm md:col-start-2">
                 <h4 className="text-lg font-bold mb-3">Text Critical Notes</h4>
                 <p>
                   Text critical notes contribute to biblical study by explaining
@@ -174,14 +174,14 @@ export default async function LandingPage() {
               Contribute
             </h2>
             <ul className="flex flex-col md:grid grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              <li className="w-full rounded-[16px] bg-white p-6 shadow md:text-center">
+              <li className="w-full rounded-[16px] bg-white p-6 shadow-sm md:text-center">
                 <h4 className="text-lg font-bold mb-3">Pray</h4>
                 <p>
                   Please pray for the translators, software engineers, and
                   others in this work.
                 </p>
               </li>
-              <li className="w-full rounded-[16px] bg-white p-6 shadow md:text-center">
+              <li className="w-full rounded-[16px] bg-white p-6 shadow-sm md:text-center">
                 <h4 className="text-lg font-bold mb-3">Give</h4>
                 <p>
                   Give through{" "}
@@ -194,7 +194,7 @@ export default async function LandingPage() {
                   to support translators and ongoing software development.
                 </p>
               </li>
-              <li className="w-full rounded-[16px] bg-white p-6 shadow md:text-center">
+              <li className="w-full rounded-[16px] bg-white p-6 shadow-sm md:text-center">
                 <h4 className="text-lg font-bold mb-3">Stay Informed</h4>
                 <p>
                   Sign up for our{" "}
@@ -207,7 +207,7 @@ export default async function LandingPage() {
                   to receive future updates on what we are working on.
                 </p>
               </li>
-              <li className="w-full rounded-[16px] bg-white p-6 shadow md:text-center">
+              <li className="w-full rounded-[16px] bg-white p-6 shadow-sm md:text-center">
                 <h4 className="text-lg font-bold mb-3">Translation</h4>
                 <p>
                   If you can help translate glosses for the Reader&apos;s Hebrew
@@ -221,7 +221,7 @@ export default async function LandingPage() {
                   .
                 </p>
               </li>
-              <li className="w-full rounded-[16px] bg-white p-6 shadow md:text-center">
+              <li className="w-full rounded-[16px] bg-white p-6 shadow-sm md:text-center">
                 <h4 className="text-lg font-bold mb-3">Software Development</h4>
                 <p>
                   If you can help with software development or UI design, check
@@ -235,7 +235,7 @@ export default async function LandingPage() {
                   .
                 </p>
               </li>
-              <li className="w-full rounded-[16px] bg-white p-6 shadow md:text-center">
+              <li className="w-full rounded-[16px] bg-white p-6 shadow-sm md:text-center">
                 <h4 className="text-lg font-bold mb-3">Resources</h4>
                 <p>
                   If you have original language study resources you would like
@@ -274,7 +274,7 @@ export default async function LandingPage() {
         >
           <div className="w-full max-w-[1000px] mx-auto">
             <h2 className="text-3xl md:text-5xl font-bold mb-8">Progress</h2>
-            <div className="bg-white rounded-[16px] shadow p-6 max-h-[80vh] overflow-y-auto">
+            <div className="bg-white rounded-[16px] shadow-sm p-6 max-h-[80vh] overflow-y-auto">
               <h3 className="text-lg text-center font-bold mb-4">
                 Reader&apos;s Bible Translation
               </h3>
@@ -326,14 +326,14 @@ export default async function LandingPage() {
               Core Values
             </h3>
             <ul className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              <li className="w-full rounded-[16px] bg-white p-6 shadow sm:text-center">
+              <li className="w-full rounded-[16px] bg-white p-6 shadow-sm sm:text-center">
                 <h4 className="text-lg font-bold mb-3">Pursuit of Joy</h4>
                 <p>
                   All of life should be lived, not out of fear, but as a pursuit
                   of joy in God.
                 </p>
               </li>
-              <li className="w-full rounded-[16px] bg-white p-6 shadow sm:text-center">
+              <li className="w-full rounded-[16px] bg-white p-6 shadow-sm sm:text-center">
                 <h4 className="text-lg font-bold mb-3">Partnership</h4>
                 <p>
                   Because Scripture teaches that we are part of a larger Body,
@@ -341,14 +341,14 @@ export default async function LandingPage() {
                   relationships.
                 </p>
               </li>
-              <li className="w-full rounded-[16px] bg-white p-6 shadow sm:text-center">
+              <li className="w-full rounded-[16px] bg-white p-6 shadow-sm sm:text-center">
                 <h4 className="text-lg font-bold mb-3">Eagerness to Learn</h4>
                 <p>
                   We want to innovate with excellence, which requires continuous
                   curiosity and study.
                 </p>
               </li>
-              <li className="w-full rounded-[16px] bg-white p-6 shadow sm:text-center">
+              <li className="w-full rounded-[16px] bg-white p-6 shadow-sm sm:text-center">
                 <h4 className="text-lg font-bold mb-3">Humility</h4>
                 <p>
                   Our hope is to serve the global Church, which requires the
@@ -357,7 +357,7 @@ export default async function LandingPage() {
                   God’s grace.
                 </p>
               </li>
-              <li className="w-full rounded-[16px] bg-white p-6 shadow sm:text-center">
+              <li className="w-full rounded-[16px] bg-white p-6 shadow-sm sm:text-center">
                 <h4 className="text-lg font-bold mb-3">Freely Giving</h4>
                 <p>
                   Because we have received everything from God as a gift, we are
@@ -365,7 +365,7 @@ export default async function LandingPage() {
                   everyone, and encouraging others to do the same.
                 </p>
               </li>
-              <li className="w-full rounded-[16px] bg-white p-6 shadow sm:text-center">
+              <li className="w-full rounded-[16px] bg-white p-6 shadow-sm sm:text-center">
                 <h4 className="text-lg font-bold mb-3">
                   Empowering the Under-Resourced
                 </h4>

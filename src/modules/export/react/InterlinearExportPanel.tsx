@@ -27,7 +27,7 @@ export default async function InterlinearExportPanel({
 
   return (
     <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 pb-8 px-10 border-b border-b-green-300 dark:border-b-blue-800">
-      <div className="flex-grow">
+      <div className="grow">
         <h3 className="font-bold text-lg mb-2 flex items-start gap-2">
           <Icon icon="file-arrow-down" className="mt-1" />
           <span>{t("title")}</span>
@@ -35,7 +35,7 @@ export default async function InterlinearExportPanel({
         <p className="text-sm max-w-xl">{t("description")}</p>
       </div>
 
-      <div className="flex-shrink-0 w-full lg:w-80">
+      <div className="shrink-0 w-full lg:w-80">
         <Form action={requestInterlinearExport} className="grid gap-4">
           <input type="hidden" name="languageCode" value={languageCode} />
           <div>
@@ -63,7 +63,7 @@ export default async function InterlinearExportPanel({
                       <div>
                         <div className="font-semibold">{createdAt}</div>
                       </div>
-                      <span className="uppercase text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700">
+                      <span className="uppercase text-xs px-2 py-1 rounded-sm bg-gray-100 dark:bg-gray-700">
                         {statusLabel}
                       </span>
                     </div>

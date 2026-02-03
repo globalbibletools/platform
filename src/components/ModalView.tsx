@@ -18,11 +18,11 @@ export default function ModalView({
 
   return (
     <div
-      className={`flex-shrink p-6 m-4 bg-white dark:bg-gray-900 rounded-2xl shadow-lg dark:shadow-none ${className}`}
+      className={`shrink p-6 m-4 bg-white dark:bg-gray-900 rounded-2xl shadow-lg dark:shadow-none ${className}`}
     >
       <div className="flex items-center mb-12">
         <Link
-          className="flex items-center rounded focus-visible:outline outline-2 outline-green-300"
+          className="flex items-center rounded-sm focus-visible:outline-2 outline-green-300"
           href="/read"
         >
           <img
@@ -32,7 +32,7 @@ export default function ModalView({
           />
           <h1 className="font-bold mx-2">{t("app_name")}</h1>
         </Link>
-        <div className="flex-grow flex justify-end items-center">{header}</div>
+        <div className="grow flex justify-end items-center">{header}</div>
       </div>
       {children}
       <div className="flex justify-end mt-16">

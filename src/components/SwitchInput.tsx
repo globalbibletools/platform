@@ -21,15 +21,15 @@ export function SwitchInput({
         {...props}
         className={`
           group
-          bg-gray-300 data-[checked]:bg-blue-800 shadow-inner
-          dark:bg-gray-700 dark:data-[checked]:bg-green-400 dark:shadow-none
+          bg-gray-300 data-checked:bg-blue-800 shadow-inner
+          dark:bg-gray-700 dark:data-checked:bg-green-400 dark:shadow-none
           relative inline-flex h-6 w-11 items-center rounded-full
         `}
       >
         <span className="sr-only">children</span>
         <span
           className={`
-            translate-x-1 group-data-[checked]:translate-x-6
+            translate-x-1 group-data-checked:translate-x-6
             inline-block h-4 w-4 transform rounded-full bg-white transition
           `}
         />

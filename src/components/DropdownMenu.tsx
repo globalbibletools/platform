@@ -39,7 +39,7 @@ export default function DropdownMenu({
       onBlur={onBlur}
     >
       <button
-        className={`focus:outline-none hover:underline focus:underline ${buttonClassName}`}
+        className={`outline-none hover:underline focus:underline ${buttonClassName}`}
         type="button"
         onClick={() => setIsOpen((menu) => !menu)}
         aria-expanded={isOpen}
@@ -71,7 +71,7 @@ export interface DropdownMenuItemProps {
 }
 
 const className =
-  "focus:outline-none focus:bg-gray-200 hover:bg-gray-200 block whitespace-nowrap px-4 py-1 text-start w-full";
+  "outline-none focus:bg-gray-200 hover:bg-gray-200 block whitespace-nowrap px-4 py-1 text-start w-full";
 
 export function DropdownMenuItem({
   children,
@@ -138,7 +138,7 @@ export function DropdownMenuSubmenu({
   return (
     <li ref={root} className="relative" onBlur={onBlur}>
       <button
-        className="focus:outline-none focus:underline hover:underline whitespace-nowrap px-4 py-1 text-start w-full"
+        className="outline-none focus:underline hover:underline whitespace-nowrap px-4 py-1 text-start w-full"
         type="button"
         onClick={(e) => {
           e.stopPropagation();

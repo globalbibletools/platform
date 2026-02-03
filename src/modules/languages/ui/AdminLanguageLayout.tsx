@@ -56,11 +56,11 @@ export default async function LanguageLayout({
   }
 
   return (
-    <div className="flex-grow flex items-stretch">
+    <div className="grow flex items-stretch">
       <div
         className="
-          sticky h-[calc(100dvh-var(--heading-height))] top-[--heading-height]
-          w-56 flex-shrink-0 bg-brown-100 dark:bg-gray-800 p-6 pt-7
+          sticky h-[calc(100dvh-var(--heading-height))] top-(--heading-height)
+          w-56 shrink-0 bg-brown-100 dark:bg-gray-800 p-6 pt-7
         "
       >
         <div className="px-3 mb-4">
@@ -119,7 +119,7 @@ export default async function LanguageLayout({
           />
         </ul>
       </div>
-      <div className="flex-grow relative">{children}</div>
+      <div className="grow relative">{children}</div>
     </div>
   );
 }
