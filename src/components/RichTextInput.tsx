@@ -1,4 +1,4 @@
-import { useEditor, EditorContent, Editor } from "@tiptap/react";
+import { useEditor, Tiptap } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Icon } from "@/components/Icon";
 import {
@@ -53,8 +53,11 @@ const RichTextInput = forwardRef<RichTextInputRef, RichTextInputProps>(
 
     useEffect(() => {
       if (value !== editor?.getHTML()) {
-        editor?.commands.setContent(value ?? "", false, {
-          preserveWhitespace: "full",
+        editor?.commands.setContent(value ?? "", {
+          emitUpdate: false,
+          parseOptions: {
+            preserveWhitespace: "full",
+          },
         });
       }
     }, [value, editor]);
@@ -70,68 +73,72 @@ const RichTextInput = forwardRef<RichTextInputRef, RichTextInputProps>(
     return (
       <div
         className="
-        border rounded border-gray-400 has-focus-visible:outline-2 outline-green-300 bg-white
-        dark:border-gray-700 dark:bg-gray-900
-      "
+          border rounded border-gray-400 has-focus-visible:outline-2 outline-green-300 bg-white
+          dark:border-gray-700 dark:bg-gray-900
+        "
       >
-        <div className="border-gray-400 border-b p-1 flex gap-3">
-          <div className="flex gap-1">
-            <RichTextInputButton
-              active={editor?.isActive("bold")}
-              disabled={!editor?.can().toggleBold()}
-              icon="bold"
-              label={t("bold_tooltip")}
-              onClick={() => editor?.chain().focus().toggleBold().run()}
-            />
-            <RichTextInputButton
-              active={editor?.isActive("italic")}
-              disabled={!editor?.can().toggleItalic()}
-              icon="italic"
-              label={t("italic_tooltip")}
-              onClick={() => editor?.chain().focus().toggleItalic().run()}
-            />
-            <RichTextInputButton
-              active={editor?.isActive("strike")}
-              disabled={!editor?.can().toggleStrike()}
-              icon="strikethrough"
-              label={t("strike_tooltip")}
-              onClick={() => editor?.chain().focus().toggleStrike().run()}
-            />
+        <Tiptap instance={editor}>
+          <div className="border-gray-400 border-b p-1 flex gap-3">
+            <div className="flex gap-1">
+              <RichTextInputButton
+                active={editor?.isActive("bold")}
+                disabled={!editor?.can().toggleBold()}
+                icon="bold"
+                label={t("bold_tooltip")}
+                onClick={() => editor?.chain().focus().toggleBold().run()}
+              />
+              <RichTextInputButton
+                active={editor?.isActive("italic")}
+                disabled={!editor?.can().toggleItalic()}
+                icon="italic"
+                label={t("italic_tooltip")}
+                onClick={() => editor?.chain().focus().toggleItalic().run()}
+              />
+              <RichTextInputButton
+                active={editor?.isActive("strike")}
+                disabled={!editor?.can().toggleStrike()}
+                icon="strikethrough"
+                label={t("strike_tooltip")}
+                onClick={() => editor?.chain().focus().toggleStrike().run()}
+              />
+            </div>
+            <div className="flex gap-1">
+              <RichTextInputButton
+                active={editor?.isActive("bulletList")}
+                disabled={!editor?.can().toggleBulletList()}
+                icon="list-ul"
+                label={t("bullet_list_tooltip")}
+                onClick={() => editor?.chain().focus().toggleBulletList().run()}
+              />
+              <RichTextInputButton
+                active={editor?.isActive("orderedList")}
+                disabled={!editor?.can().toggleOrderedList()}
+                icon="list-ol"
+                label={t("ordered_list_tooltip")}
+                onClick={() =>
+                  editor?.chain().focus().toggleOrderedList().run()
+                }
+              />
+              <RichTextInputButton
+                disabled={!editor?.can().sinkListItem("listItem")}
+                icon="indent"
+                label={t("indent_tooltip")}
+                onClick={() =>
+                  editor?.chain().focus().sinkListItem("listItem").run()
+                }
+              />
+              <RichTextInputButton
+                disabled={!editor?.can().liftListItem("listItem")}
+                icon="outdent"
+                label={t("outdent_tooltip")}
+                onClick={() =>
+                  editor?.chain().focus().liftListItem("listItem").run()
+                }
+              />
+            </div>
           </div>
-          <div className="flex gap-1">
-            <RichTextInputButton
-              active={editor?.isActive("bulletList")}
-              disabled={!editor?.can().toggleBulletList()}
-              icon="list-ul"
-              label={t("bullet_list_tooltip")}
-              onClick={() => editor?.chain().focus().toggleBulletList().run()}
-            />
-            <RichTextInputButton
-              active={editor?.isActive("orderedList")}
-              disabled={!editor?.can().toggleOrderedList()}
-              icon="list-ol"
-              label={t("ordered_list_tooltip")}
-              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-            />
-            <RichTextInputButton
-              disabled={!editor?.can().sinkListItem("listItem")}
-              icon="indent"
-              label={t("indent_tooltip")}
-              onClick={() =>
-                editor?.chain().focus().sinkListItem("listItem").run()
-              }
-            />
-            <RichTextInputButton
-              disabled={!editor?.can().liftListItem("listItem")}
-              icon="outdent"
-              label={t("outdent_tooltip")}
-              onClick={() =>
-                editor?.chain().focus().liftListItem("listItem").run()
-              }
-            />
-          </div>
-        </div>
-        <EditorContent editor={editor} className="py-2 px-3 shadow-inner" />
+          <Tiptap.Content className="py-2 px-3 shadow-inner" />
+        </Tiptap>
       </div>
     );
   },
