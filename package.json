@@ -68,7 +68,7 @@
     "@types/aws-lambda": "8.10.147",
     "@types/dompurify": "3.0.5",
     "@types/lodash": "4.17.7",
-    "@types/node": "^20",
+    "@types/node": "20.19.31",
     "@types/nodemailer": "6.4.15",
     "@types/pg": "8.11.6",
     "@types/pg-copy-streams": "1.2.5",
