@@ -3,10 +3,10 @@ import { hasLocale, NextIntlClientProvider, useMessages } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import "@/styles.css";
 import { headFontClass } from "@/fonts";
-import languages from "@/i18n/languages.json";
+import languages from "@/shared/i18n/languages.json";
 import { FlashProvider } from "@/flash";
 import { AnalyticsProvider } from "@/analytics";
-import { routing } from "@/i18n/routing";
+import { routing } from "@/shared/i18n/routing";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata(): Promise<Metadata> {

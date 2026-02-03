@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
-import languages from "@/i18n/languages.json" assert { type: "json" };
+import languages from "@/shared/i18n/languages.json" assert { type: "json" };
 import { useParams, usePathname } from "next/navigation";
 import ComboboxInput from "@/components/ComboboxInput";
 
