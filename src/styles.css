@@ -1,6 +1,59 @@
 @import "tailwindcss";
 @import "@fortawesome/fontawesome-svg-core/styles.css" layer(components);
 
+@layer base {
+  :root {
+    --font-sans: var(--font-noto-sans);
+    --heading-height: 4rem;
+    --read-nav-h: 4rem;
+    --translate-nav-h: 4rem;
+  }
+
+  .locale-en {
+    --font-sans: var(--font-noto-sans);
+  }
+  .locale-ar {
+    --font-sans: var(--font-noto-sans-arabic), var(--font-noto-sans);
+  }
+}
+
+@utility rich-text {
+  @apply font-mixed;
+  & ol {
+    @apply ps-7 list-decimal;
+  }
+  & ul {
+    @apply ps-7 list-disc;
+  }
+}
+
+@utility ref {
+  @apply text-blue-800 dark:text-green-400 font-bold hover:underline cursor-pointer;
+}
+
+@utility font-mixed {
+  unicode-bidi: plaintext;
+}
+
+@custom-variant slider-thumb {
+  &::-webkit-slider-thumb {
+    @slot;
+  }
+
+  &::-moz-range-thumb {
+    @slot;
+  }
+}
+@custom-variant slider-track {
+  &::-webkit-slider-runnable-track {
+    @slot;
+  }
+
+  &::-moz-range-track {
+    @slot;
+  }
+}
+
 @theme {
   --color-*: initial;
 
@@ -78,57 +131,4 @@
 
   --shadow-left: -1px 0 3px 0 rgb(0 0 0 / 0.1), -1px 0 2px -1px rgb(0 0 0 / 0.1);
   --shadow-right: 1px 0 3px 0 rgb(0 0 0 / 0.1), 1px 0 2px -1px rgb(0 0 0 / 0.1);
-}
-
-@utility rich-text {
-  @apply font-mixed;
-  & ol {
-    @apply ps-7 list-decimal;
-  }
-  & ul {
-    @apply ps-7 list-disc;
-  }
-}
-
-@utility ref {
-  @apply text-blue-800 dark:text-green-400 font-bold hover:underline cursor-pointer;
-}
-
-@utility font-mixed {
-  unicode-bidi: plaintext;
-}
-
-@layer base {
-  :root {
-    --font-sans: var(--font-noto-sans);
-    --heading-height: 4rem;
-    --read-nav-h: 4rem;
-    --translate-nav-h: 4rem;
-  }
-
-  .locale-en {
-    --font-sans: var(--font-noto-sans);
-  }
-  .locale-ar {
-    --font-sans: var(--font-noto-sans-arabic), var(--font-noto-sans);
-  }
-}
-
-@custom-variant slider-thumb {
-  &::-webkit-slider-thumb {
-    @slot;
-  }
-
-  &::-moz-range-thumb {
-    @slot;
-  }
-}
-@custom-variant slider-track {
-  &::-webkit-slider-runnable-track {
-    @slot;
-  }
-
-  &::-moz-range-track {
-    @slot;
-  }
 }

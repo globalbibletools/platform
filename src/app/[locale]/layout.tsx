@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider, useMessages } from "next-intl";
 import { getTranslations } from "next-intl/server";
-import "@/globals.css";
+import "@/styles.css";
 import { headFontClass } from "@/fonts";
 import languages from "../../languages.json";
 import { FlashProvider } from "@/flash";
