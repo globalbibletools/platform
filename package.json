@@ -5,7 +5,7 @@
     "build": "next build",
     "build:job-worker": "esbuild src/bin/job-worker.ts --bundle --outfile=dist/job-worker.js --format=cjs --platform=node --target=node18",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "next lint",
     "format": "prettier . --write",
     "check-types": "tsc --noEmit",
     "prepare": "husky || true",
