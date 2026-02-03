@@ -8,7 +8,7 @@ export default async function AuthenticatedLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col dark:bg-gray-900 dark:text-gray-300">
       <PrimaryNavigation />
       {children}
       <Footer />
