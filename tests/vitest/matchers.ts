@@ -1,5 +1,6 @@
 import { expect } from "vitest";
 import { differenceInSeconds } from "date-fns";
+import { notFound, redirect } from "next/navigation";
 
 expect.extend({
   toBeUlid(received: any) {
@@ -68,10 +69,17 @@ expect.extend({
       received = error;
     }
 
+    let expected: any;
+    try {
+      redirect(path);
+    } catch (error) {
+      expected = error;
+    }
+
     return {
       pass:
-        received?.message === "NEXT_REDIRECT" &&
-        received?.digest === `NEXT_REDIRECT;replace;${path};307;`,
+        received?.message === expected.message &&
+        received?.digest === expected.digest,
       message: () =>
         `${received instanceof Error ? received.stack : JSON.stringify(received)} is${this.isNot ? "" : " not"} a Next.js redirect to ${path}`,
     };
@@ -84,8 +92,15 @@ expect.extend({
       received = error;
     }
 
+    let expected: any;
+    try {
+      notFound();
+    } catch (error) {
+      expected = error;
+    }
+
     return {
-      pass: received?.message === "NEXT_NOT_FOUND",
+      pass: received?.message === expected.message,
       message: () =>
         `${received instanceof Error ? received.stack : JSON.stringify(received)} is${this.isNot ? "" : " not"} a Next.js not found redirect`,
     };
