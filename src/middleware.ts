@@ -1,11 +1,8 @@
 import createMiddleware from "next-intl/middleware";
-import languages from "./languages.json" assert { type: "json" };
 import { NextRequest, NextResponse } from "next/server";
+import { routing } from "@/shared/i18n/routing";
 
-const handleI18nRouting = createMiddleware({
-  locales: Object.keys(languages),
-  defaultLocale: "en",
-});
+const handleI18nRouting = createMiddleware(routing);
 
 const LEGACY_READER_URL_REGEX = /^\/read\/(\w{5})$/;
 
