@@ -1,6 +1,7 @@
 @import "tailwindcss";
+@import "@fortawesome/fontawesome-svg-core/styles.css" layer(components);
 
-@config "../../tailwind.config.ts";
+@plugin "@headlessui/tailwindcss";
 
 @theme {
   --color-*: initial;
@@ -81,24 +82,6 @@
   --shadow-right: 1px 0 3px 0 rgb(0 0 0 / 0.1), 1px 0 2px -1px rgb(0 0 0 / 0.1);
 }
 
-/*
-  The default border color has changed to `currentcolor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
-  }
-}
-
 @utility rich-text {
   @apply font-mixed;
   & ol {
@@ -130,5 +113,24 @@
   }
   .locale-ar {
     --font-sans: var(--font-noto-sans-arabic), var(--font-noto-sans);
+  }
+}
+
+@custom-variant slider-thumb {
+  &::-webkit-slider-thumb {
+    @slot;
+  }
+
+  &::-moz-range-thumb {
+    @slot;
+  }
+}
+@custom-variant slider-track {
+  &::-webkit-slider-runnable-track {
+    @slot;
+  }
+
+  &::-moz-range-track {
+    @slot;
   }
 }

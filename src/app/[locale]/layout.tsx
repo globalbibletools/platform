@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { config } from "@fortawesome/fontawesome-svg-core";
 import { NextIntlClientProvider, useMessages } from "next-intl";
 import { getTranslations } from "next-intl/server";
-import "@fortawesome/fontawesome-svg-core/styles.css";
 import "@/globals.css";
 import { headFontClass } from "@/fonts";
 import languages from "../../languages.json";
@@ -15,8 +13,6 @@ export async function generateMetadata(): Promise<Metadata> {
     title: t("app_name"),
   };
 }
-
-config.autoAddCss = false;
 
 export default function RootLayout({
   children,
