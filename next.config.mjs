@@ -25,9 +25,6 @@ const nextConfig = {
   },
   output: "standalone",
   serverExternalPackages: ["@opentelemetry/sdk-node"],
-  experimental: {
-    instrumentationHook: true,
-  },
 };
 
 export default withNextIntl(nextConfig);
