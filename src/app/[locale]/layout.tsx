@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { NextIntlClientProvider, useMessages } from "next-intl";
+import { hasLocale, NextIntlClientProvider, useMessages } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import "@/styles.css";
 import { headFontClass } from "@/fonts";
-import languages from "../../languages.json";
+import languages from "@/shared/i18n/languages.json";
 import { FlashProvider } from "@/flash";
 import { AnalyticsProvider } from "@/analytics";
+import { routing } from "@/shared/i18n/routing";
+import { notFound } from "next/navigation";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("RootLayout");
@@ -21,6 +23,11 @@ export default function RootLayout({
   children: React.ReactNode;
   params: { locale: string };
 }>) {
+  const { locale } = params;
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
+  }
+
   const messages = useMessages();
 
   const language = languages[params.locale as keyof typeof languages];
@@ -35,7 +42,6 @@ export default function RootLayout({
       <body>
         <NextIntlClientProvider
           messages={{
-            DocumentTitle: messages.DocumentTitle,
             Error: messages.Error,
             ModalView: messages.ModalView, // Needed for public error page
             Flash: messages.Flash,
