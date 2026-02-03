@@ -1,11 +1,11 @@
 diff --git a/node_modules/next/dist/server/lib/start-server.js b/node_modules/next/dist/server/lib/start-server.js
-index 3bd2681..7ee15f0 100644
+index 0c0288a..19010da 100644
 --- a/node_modules/next/dist/server/lib/start-server.js
 +++ b/node_modules/next/dist/server/lib/start-server.js
-@@ -39,6 +39,38 @@ const _appinfolog = require("./app-info-log");
- const _turbopackwarning = require("../../lib/turbopack-warning");
+@@ -44,6 +44,38 @@ const _turbopackwarning = require("../../lib/turbopack-warning");
  const _trace = require("../../trace");
- const _ispostpone = require("./router-utils/is-postpone");
+ const _isipv6 = require("./is-ipv6");
+ const _asynccallbackset = require("./async-callback-set");
 +
 +const os = require('os');
 +const { trace } = require("@opentelemetry/api");
@@ -41,8 +41,8 @@ index 3bd2681..7ee15f0 100644
  function _interop_require_default(obj) {
      return obj && obj.__esModule ? obj : {
          default: obj
-@@ -133,6 +165,8 @@ async function startServer(serverOptions) {
-         throw new Error("Using a self signed certificate is only supported with `next dev`.");
+@@ -218,6 +250,8 @@ async function startServer(serverOptions) {
+         });
      }
      async function requestListener(req, res) {
 +        const start = performance.now()
@@ -50,7 +50,7 @@ index 3bd2681..7ee15f0 100644
          try {
              if (handlersPromise) {
                  await handlersPromise;
-@@ -145,6 +179,16 @@ async function startServer(serverOptions) {
+@@ -230,6 +264,16 @@ async function startServer(serverOptions) {
              _log.error(`Failed to handle request for ${req.url}`);
              console.error(err);
          } finally{
