@@ -85,7 +85,7 @@ export function HeaderDropdownItem({
       <Link
         {...props}
         className={`
-                h-8 px-4 py-1 whitespace-nowrap ui-active:underline hover:underline text-blue-800 dark:text-green-400
+                h-8 px-4 py-1 whitespace-nowrap data-focus:underline hover:underline text-blue-800 dark:text-green-400
                 ${className}
             `}
         target={newTab ? "_blank" : props.target}
@@ -179,7 +179,7 @@ export function HeaderMenuItem({
     <Link
       {...props}
       className={`
-                h-8 px-4 py-1 whitespace-nowrap focus:underline hover:underline outline-none text-blue-800 dark:text-green-400
+                h-8 px-4 py-1 whitespace-nowrap focus:underline hover:underline outline-hidden text-blue-800 dark:text-green-400
                 ${className}
             `}
       target={newTab ? "_blank" : props.target}

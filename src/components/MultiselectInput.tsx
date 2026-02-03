@@ -103,7 +103,7 @@ const MultiselectInput = forwardRef<HTMLInputElement, MultiselectInputProps>(
           >
             {items.map((item) => (
               <ComboboxOption
-                className="px-3 py-2 ui-active:bg-green-200 dark:ui-active:green-400 dark:ui-active:text-gray-900"
+                className="px-3 py-2 data-focus:bg-green-200 dark:data-focus:green-400 dark:data-focus:text-gray-900"
                 key={item.value}
                 value={item.value}
               >

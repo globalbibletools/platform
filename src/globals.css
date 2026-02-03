@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "@fortawesome/fontawesome-svg-core/styles.css" layer(components);
 
-@plugin "@headlessui/tailwindcss";
-
 @theme {
   --color-*: initial;
 
