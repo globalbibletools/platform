@@ -5,7 +5,7 @@ import "./matchers";
 // Necessary for @oslo/password to run in tests
 // We can remove this after we upgrade from node 18
 if (!globalThis.crypto) {
-  // @ts-ignore
+  // @ts-expect-error It's for testing purposes so low risk.
   globalThis.crypto = webcrypto;
 }
 

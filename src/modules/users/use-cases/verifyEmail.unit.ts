@@ -45,7 +45,7 @@ test("verfies the email and sends message to user", async () => {
 
   await verifyEmail({ token: props.emailVerification.token });
 
-  // @ts-ignore
+  // @ts-expect-error Need to assert on private state
   expect(mockUserRepo.users[0].props).toEqual({
     ...props,
     email: new UserEmail({

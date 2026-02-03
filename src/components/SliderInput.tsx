@@ -1,11 +1,9 @@
 import { ComponentProps } from "react";
 
-export interface SliderInputProps extends ComponentProps<"input"> {}
-
 export default function SliderInput({
   className = "",
   ...props
-}: SliderInputProps) {
+}: ComponentProps<"input">) {
   return (
     <input
       {...props}

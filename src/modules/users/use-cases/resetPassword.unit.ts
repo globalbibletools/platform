@@ -44,7 +44,7 @@ test("changes password and sends email", async () => {
   });
   expect(result).toEqual({ userId: props.id });
 
-  // @ts-ignore
+  // @ts-expect-error need to assert on private state
   expect(mockUserRepo.users[0].props).toEqual({
     ...props,
     password: new Password({ hash: expect.any(String) }),
