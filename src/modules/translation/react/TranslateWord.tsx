@@ -212,21 +212,22 @@ export default function TranslateWord({
         >
           {word.text}
         </span>
-        <Button
-          className={hasNote ? "inline-block" : "hidden"}
-          title={t("open_note_tooltip")}
-          small
-          variant="tertiary"
-          tabIndex={-1}
-          onClick={(e: MouseEvent) => {
-            if (e.altKey) return;
-            onFocus?.();
-            onShowDetail?.();
-            onOpenNotes?.();
-          }}
-        >
-          <Icon icon="sticky-note" />
-        </Button>
+        {hasNote && (
+          <Button
+            title={t("open_note_tooltip")}
+            small
+            variant="tertiary"
+            tabIndex={-1}
+            onClick={(e: MouseEvent) => {
+              if (e.altKey) return;
+              onFocus?.();
+              onShowDetail?.();
+              onOpenNotes?.();
+            }}
+          >
+            <Icon icon="sticky-note" />
+          </Button>
+        )}
         <div className="grow" />
         {isMultiWord ?
           <Icon
