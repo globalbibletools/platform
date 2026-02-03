@@ -1,7 +1,7 @@
 import createNextIntlPlugin from "next-intl/plugin";
 import { merge } from "webpack-merge";
 
-const withNextIntl = createNextIntlPlugin("./shared/i18n/routing.ts");
+const withNextIntl = createNextIntlPlugin("./src/shared/i18n/request.ts");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
