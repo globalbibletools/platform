@@ -23,8 +23,11 @@ export default function RichText({ content, className = "" }: RichTextProps) {
 
   useEffect(() => {
     if (content !== editor?.getHTML()) {
-      editor?.commands.setContent(content, false, {
-        preserveWhitespace: "full",
+      editor?.commands.setContent(content, {
+        emitUpdate: false,
+        parseOptions: {
+          preserveWhitespace: "full",
+        },
       });
     }
   }, [content, editor]);
