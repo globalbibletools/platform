@@ -51,7 +51,7 @@ test("updates name for the user", async () => {
   };
   await expect(updateProfile(request)).resolves.toBeUndefined();
 
-  // @ts-expect-error Need to assert on private state
+  // @ts-ignore
   expect(user.props).toEqual({
     ...props,
     name: request.name,
@@ -84,11 +84,11 @@ test("updates email for the user if it changes", async () => {
   };
   await expect(updateProfile(request)).resolves.toBeUndefined();
 
-  // @ts-expect-error Need to assert on private state
+  // @ts-ignore
   expect(user.props).toEqual({
     ...props,
     email: new UserEmail({
-      // @ts-expect-error Need to assert on private state
+      // @ts-ignore
       ...props.email.props,
     }),
     emailVerification: new EmailVerification({
@@ -133,7 +133,7 @@ test("updates password for the user if it changes", async () => {
   };
   await expect(updateProfile(request)).resolves.toBeUndefined();
 
-  // @ts-expect-error Need to assert on private state
+  // @ts-ignore
   expect(user.props).toEqual({
     ...props,
     password: new Password({

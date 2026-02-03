@@ -42,7 +42,7 @@ test("marks user's email as bounced", async () => {
     reason: EmailStatusRaw.Bounced,
   });
 
-  // @ts-expect-error Need to assert on private state
+  // @ts-ignore
   expect(mockUserRepo.users[0].props).toEqual({
     ...props,
     email: new UserEmail({

@@ -43,7 +43,7 @@ export default async function AdminLanguagesPage(
   const params = await props.params;
   const searchParams = await props.searchParams;
 
-  const page = parseInt(searchParams.page ?? "");
+  let page = parseInt(searchParams.page ?? "");
   if (page <= 0 || isNaN(page) || page.toString() !== searchParams.page) {
     redirect("./languages?page=1");
   }

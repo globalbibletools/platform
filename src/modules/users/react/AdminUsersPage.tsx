@@ -46,7 +46,7 @@ export default async function AdminUsersPage(props: AdminUsersPageProps) {
   const messages = await getMessages();
   const searchParams = await props.searchParams;
 
-  const page = parseInt(searchParams.page ?? "");
+  let page = parseInt(searchParams.page ?? "");
   if (page <= 0 || isNaN(page) || page.toString() !== searchParams.page) {
     redirect("./users?page=1");
   }
