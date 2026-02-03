@@ -25,7 +25,7 @@ export default async function PrimaryNavigation() {
     <nav
       className="
         sticky top-0 z-30
-        bg-white flex items-center h-[--heading-height] border-b border-gray-200 relative px-4 lg:px-8
+        bg-white flex items-center h-(--heading-height) border-b border-gray-200 relative px-4 lg:px-8
         dark:bg-gray-900 dark:border-gray-700
       "
     >
@@ -41,8 +41,8 @@ export default async function PrimaryNavigation() {
         />
         <h1 className="font-bold ms-2 text-lg">{t("app_name")}</h1>
       </Link>
-      <div className="flex-grow" />
-      <div className="flex-shrink-0 gap-2 md:gap-4 h-full hidden sm:flex">
+      <div className="grow" />
+      <div className="shrink-0 gap-2 md:gap-4 h-full hidden sm:flex">
         <HeaderLink href={`/${locale}/read`}>{t("links.read")}</HeaderLink>
         {(isAdmin || canTranslate) && (
           <HeaderLink href={`/${locale}/translate`}>
@@ -135,7 +135,7 @@ export default async function PrimaryNavigation() {
           </HeaderMenuItem>
           {session && (
             <>
-              <div className="flex-grow" />
+              <div className="grow" />
               <div className="border-b border-gray-200 dark:border-gray-700 mb-2" />
               <HeaderMenuItem href={`/${locale}/logout`} prefetch={false}>
                 <Icon icon="right-from-bracket" className="me-2" fixedWidth />

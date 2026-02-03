@@ -63,7 +63,7 @@ export default function CommandInput() {
   }, [router, chapterId]);
 
   return (
-    <form action={changeChapter} className="relative w-56 flex-shrink">
+    <form action={changeChapter} className="relative w-56 shrink">
       <input type="hidden" value={languageCode} name="language" />
       <TextInput
         id="chapter-reference"
@@ -76,7 +76,7 @@ export default function CommandInput() {
         aria-label={t("chapter")}
       />
       <Button
-        className="absolute end-8 top-1 w-7 !h-7"
+        className="absolute end-8 top-1 w-7 h-7!"
         variant="tertiary"
         href={chapterId ? `./${decrementChapterId(chapterId)}` : "#"}
       >
@@ -84,7 +84,7 @@ export default function CommandInput() {
         <span className="sr-only">{t("previous_chapter")}</span>
       </Button>
       <Button
-        className="absolute end-1 top-1 w-7 !h-7"
+        className="absolute end-1 top-1 w-7 h-7!"
         variant="tertiary"
         href={chapterId ? `./${incrementChapterId(chapterId)}` : "#"}
         prefetch

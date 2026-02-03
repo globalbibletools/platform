@@ -58,7 +58,7 @@ export default async function LanguageUsersPage({
       <div className="px-8 py-6 w-fit">
         <div className="flex items-baseline mb-4">
           <ViewTitle>{t("title")}</ViewTitle>
-          <div className="flex-grow" />
+          <div className="grow" />
           <Button href="./users/invite" variant="primary" className="ms-4">
             <Icon icon="plus" className="me-1" />
             {t("links.invite_user")}

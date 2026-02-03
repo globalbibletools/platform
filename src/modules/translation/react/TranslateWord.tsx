@@ -227,7 +227,7 @@ export default function TranslateWord({
         >
           <Icon icon="sticky-note" />
         </Button>
-        <div className="flex-grow" />
+        <div className="grow" />
         {isMultiWord ?
           <Icon
             title="Linked to another word"
@@ -281,7 +281,7 @@ export default function TranslateWord({
               <div className="group-focus-within/input-row:block hidden">
                 {status !== "approved" && (
                   <Button
-                    className="!bg-green-600 w-9"
+                    className="bg-green-600! w-9"
                     tabIndex={-1}
                     title={t("approve_tooltip") ?? ""}
                     disabled={saving}
@@ -296,7 +296,7 @@ export default function TranslateWord({
                 )}
                 {status === "approved" && (
                   <Button
-                    className="!bg-red-600 w-9"
+                    className="bg-red-600! w-9"
                     tabIndex={-1}
                     title={t("revoke_tooltip") ?? ""}
                     disabled={saving}
@@ -343,7 +343,7 @@ export default function TranslateWord({
                   aria-describedby={`word-help-${word.id}`}
                   aria-labelledby={`word-${word.id}`}
                   onChange={(value) => {
-                    console.log("blur");
+                    console.log("blur-sm");
                     autosaveQueued.current = true;
                     setTimeout(() => {
                       console.log("autosave");

@@ -25,7 +25,7 @@ export interface ActionProps extends ComponentProps<"button"> {
 export type ButtonProps = LinkProps | ActionProps;
 
 const sharedClasses =
-  "inline-flex justify-center items-center rounded-lg font-bold outline-2 disabled:opacity-50 focus-visible:outline";
+  "inline-flex justify-center items-center rounded-lg font-bold outline-2 disabled:opacity-50 focus-visible:outline-solid";
 
 function buttonClasses(
   variant: ButtonVariant,
@@ -57,7 +57,7 @@ function buttonClasses(
       }`;
     }
     case "link": {
-      return `inline font-bold focus:underline disabled:text-gray-400 disabled:dark:text-gray-500
+      return `inline font-bold focus:underline disabled:text-gray-400 dark:disabled:text-gray-500
             ${destructive ? "text-red-800 dark:text-red-700" : "text-blue-800 dark:text-green-400"}
         `;
     }

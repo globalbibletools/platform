@@ -56,7 +56,7 @@ export function ButtonSelectorInput({
       <fieldset
         className={`
           inline-block rounded-lg shadow-md dark:shadow-none
-          has-[:focus-visible]:outline outline-2
+          has-focus-visible:outline-solid outline-2
           whitespace-nowrap
           ${
             hasErrors ?
@@ -89,11 +89,11 @@ export function ButtonSelectorOption({
     <label
       className={`
         inline-flex items-center justify-center px-3 font-bold h-9 bg-white border border-l-0
-        ltr:first:rounded-l-lg ltr:first:border-l ltr:last:rounded-r-lg
-        rtl:last:rounded-l-lg rtl:last:border-l rtl:first:rounded-r-lg
+        first:ltr:rounded-l-lg first:ltr:border-l last:ltr:rounded-r-lg
+        last:rtl:rounded-l-lg last:rtl:border-l first:rtl:rounded-r-lg
         text-blue-800 has-[:not(:checked)]:shadow-inner
-        has-[:checked]:bg-blue-800 has-[:checked]:text-white
-        dark:text-green-400 dark:bg-gray-900 dark:has-[:checked]:bg-green-400 dark:has-[:checked]:text-gray-900 dark:shadow-none
+        has-checked:bg-blue-800 has-checked:text-white
+        dark:text-green-400 dark:bg-gray-900 dark:has-checked:bg-green-400 dark:has-checked:text-gray-900 dark:shadow-none
         ${
           selectorContext.hasErrors ?
             "border-red-700 shadow-red-100"

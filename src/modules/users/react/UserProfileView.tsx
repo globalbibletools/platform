@@ -36,9 +36,9 @@ export default async function ProfileView() {
   const t = await getTranslations("ProfileView");
 
   return (
-    <div className="flex-grow flex items-start justify-center">
+    <div className="grow flex items-start justify-center">
       <div
-        className="flex-shrink p-6 mx-4 my-4 w-96
+        className="shrink p-6 mx-4 my-4 w-96
         border border-gray-300 rounded shadow-md
         dark:bg-gray-800 dark:border-gray-700 dark:shadow-none"
       >

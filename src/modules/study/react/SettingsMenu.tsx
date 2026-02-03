@@ -37,7 +37,7 @@ export default function SettingsMenu({
       <PopoverButton className="text-blue-800 dark:text-green-400">
         <Icon icon="sliders" size="xl" />
       </PopoverButton>
-      <PopoverPanel className="absolute z-10 border border-gray-400 shadow-lg p-4 rounded bg-white -end-1 mt-3 min-w-[200px] flex flex-col gap-4 dark:bg-gray-800 dark:border-gray-700 dark:shadow-none">
+      <PopoverPanel className="absolute z-10 border border-gray-400 shadow-lg p-4 rounded-sm bg-white -end-1 mt-3 min-w-[200px] flex flex-col gap-4 dark:bg-gray-800 dark:border-gray-700 dark:shadow-none">
         <div className="sm:hidden">
           <FormLabel htmlFor="text-size">{t("language")}</FormLabel>
           <div className="w-full">

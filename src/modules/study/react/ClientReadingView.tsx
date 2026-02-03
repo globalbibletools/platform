@@ -91,7 +91,7 @@ export default function ReadingView({
 
   return (
     <>
-      <div className="flex flex-col flex-grow lg:justify-center w-full min-h-0 lg:flex-row">
+      <div className="flex flex-col grow lg:justify-center w-full min-h-0 lg:flex-row">
         <div
           className={`
               max-h-full min-h-0 overflow-auto pt-3 pb-24 px-4 lg:px-8
@@ -114,7 +114,7 @@ export default function ReadingView({
                           popover.selectedWord?.word.id === word.id) ||
                         linkedWords.includes(word.id)
                       ) ?
-                        "bg-green-200 dark:bg-gray-700 rounded-sm"
+                        "bg-green-200 dark:bg-gray-700 rounded-xs"
                       : ""
                     }
                   `}
@@ -183,7 +183,7 @@ export default function ReadingView({
         {showSidebar && (selectedVerseId || selectedWordId) && (
           <div
             className="
-              flex-shrink-0 shadow rounded-2xl bg-brown-100
+              shrink-0 shadow rounded-2xl bg-brown-100
               dark:bg-gray-800 dark:shadow-none
               sticky z-10
               h-[320px] bottom-10 mb-10
@@ -216,7 +216,7 @@ export default function ReadingView({
                 setSelectedWord(null);
               }}
               type="button"
-              className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline outline-2 outline-green-300"
+              className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline-solid outline-2 outline-green-300"
             >
               <Icon icon="xmark" />
               <span className="sr-only">{t("close_sidebar")}</span>
@@ -228,7 +228,7 @@ export default function ReadingView({
         createPortal(
           <div
             className={`
-              bg-brown-100 dark:bg-gray-800 rounded-sm border border-gray-300 dark:border-gray-700 shadow-sm dark:shadow-none px-1 font-bold
+              bg-brown-100 dark:bg-gray-800 rounded-xs border border-gray-300 dark:border-gray-700 shadow-xs dark:shadow-none px-1 font-bold
               ${textSizeMap[textSize]}
             `}
             dir={language.textDirection}

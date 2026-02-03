@@ -70,7 +70,7 @@ const SortableMultiselectInput = forwardRef<
         className={`${className} group/multiselect relative flex flex-col gap-1`}
       >
         <input name={name} ref={input} type="hidden" value={internalValue} />
-        <div className="border rounded flex-col shadow-inner flex border-gray-400 dark:border-gray-700 min-h-20">
+        <div className="border rounded-sm flex-col shadow-inner flex border-gray-400 dark:border-gray-700 min-h-20">
           {internalValue
             .map((v) => items.find((i) => i.value === v))
             .filter((item?: ItemType): item is ItemType => !!item)
@@ -81,7 +81,7 @@ const SortableMultiselectInput = forwardRef<
                 <div className="py-2 px-1 flex items-center" key={item.value}>
                   <span className="grow mx-1">{item.label}</span>
                   <button
-                    className="flex-shrink-0 w-8 h-8 pb-[2px] rounded-md text-blue-800 dark:text-green-400 focus-visible:outline outline-2 outline-green-300 disabled:opacity-25"
+                    className="shrink-0 w-8 h-8 pb-[2px] rounded-md text-blue-800 dark:text-green-400 focus-visible:outline-solid outline-2 outline-green-300 disabled:opacity-25"
                     type="button"
                     disabled={isFirst}
                     onClick={() => moveItem(i, i - 1)}
@@ -90,7 +90,7 @@ const SortableMultiselectInput = forwardRef<
                     {/* <span className="sr-only">{t('common:direction.up')}</span> */}
                   </button>
                   <button
-                    className="flex-shrink-0 w-8 h-8 pb-[2px] rounded-md text-blue-800 dark:text-green-400 focus-visible:outline outline-2 outline-green-300 disabled:opacity-25"
+                    className="shrink-0 w-8 h-8 pb-[2px] rounded-md text-blue-800 dark:text-green-400 focus-visible:outline-solid outline-2 outline-green-300 disabled:opacity-25"
                     type="button"
                     disabled={isLast}
                     onClick={() => moveItem(i, i + 1)}
@@ -99,7 +99,7 @@ const SortableMultiselectInput = forwardRef<
                     {/* <span className="sr-only">{t('common:direction.down')}</span> */}
                   </button>
                   <button
-                    className="flex-shrink-0 w-8 h-8 rounded-md text-red-800 dark:text-red-700 focus-visible:outline outline-2 outline-red-700"
+                    className="shrink-0 w-8 h-8 rounded-md text-red-800 dark:text-red-700 focus-visible:outline-solid outline-2 outline-red-700"
                     type="button"
                     onClick={() => removeItem(i)}
                   >

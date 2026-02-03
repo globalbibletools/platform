@@ -449,7 +449,7 @@ function ScrubBar({
     <div
       ref={root}
       tabIndex={0}
-      className={`${className} group relative bg-gray-400 rounded-full h-2 pointer-cursor focus:outline-none dark:bg-gray-500`}
+      className={`${className} group relative bg-gray-400 rounded-full h-2 pointer-cursor focus:outline-hidden dark:bg-gray-500`}
       onPointerDown={onTouch}
       role="slider"
       aria-label={label}
@@ -466,7 +466,7 @@ function ScrubBar({
         role="presentation"
       />
       <div
-        className="bg-blue-800 dark:bg-green-400 absolute h-4 w-4 -top-1 -ml-2 rounded-full pointer-cursor group-focus:outline outline-green-300 outline-2"
+        className="bg-blue-800 dark:bg-green-400 absolute h-4 w-4 -top-1 -ml-2 rounded-full pointer-cursor group-focus:outline-solid outline-green-300 outline-2"
         style={{
           [thumbKey]: `${percent * 100}%`,
         }}

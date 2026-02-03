@@ -41,7 +41,7 @@ const RichTextInput = forwardRef<RichTextInputRef, RichTextInputProps>(
       extensions,
       editorProps: {
         attributes: {
-          class: "focus:outline-none min-h-[24px] rich-text",
+          class: "focus:outline-hidden min-h-[24px] rich-text",
           ...props,
         },
       },
@@ -70,7 +70,7 @@ const RichTextInput = forwardRef<RichTextInputRef, RichTextInputProps>(
     return (
       <div
         className="
-        border rounded border-gray-400 has-[:focus-visible]:outline outline-2 outline-green-300 bg-white
+        border rounded border-gray-400 has-focus-visible:outline-solid outline-2 outline-green-300 bg-white
         dark:border-gray-700 dark:bg-gray-900
       "
       >
@@ -161,7 +161,7 @@ function RichTextInputButton({
       tabIndex={-1}
       className={`
         w-7 h-7 disabled:text-gray-400 dark:disabled:text-gray-500
-        ${active ? "rounded bg-green-100 dark:bg-green-800" : ""}
+        ${active ? "rounded-sm bg-green-100 dark:bg-green-800" : ""}
       `}
       onClick={onClick}
       disabled={disabled}

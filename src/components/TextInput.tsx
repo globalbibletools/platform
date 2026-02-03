@@ -53,7 +53,7 @@ const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
         ref={mergeRefs(root, ref)}
         className={`
           border rounded shadow-inner px-3 h-9 bg-white
-          focus-visible:outline outline-2
+          focus-visible:outline-solid outline-2
           dark:bg-gray-900 dark:shadow-none
           ${
             hasErrors ?
