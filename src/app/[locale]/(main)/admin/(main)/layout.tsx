@@ -7,13 +7,14 @@ import { notFound } from "next/navigation";
 
 export interface AdminLayoutProps {
   children?: ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }
 
-export default async function AdminLayout({
-  children,
-  params,
-}: AdminLayoutProps) {
+export default async function AdminLayout(props: AdminLayoutProps) {
+  const params = await props.params;
+
+  const { children } = props;
+
   const t = await getTranslations("AdminLayout");
 
   const session = await verifySession();

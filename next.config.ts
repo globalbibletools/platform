@@ -1,10 +1,10 @@
+import { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { merge } from "webpack-merge";
 
 const withNextIntl = createNextIntlPlugin("./src/shared/i18n/request.ts");
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig: NextConfig = {
   webpack: (config, { isServer, nextRuntime }) => {
     if (isServer && nextRuntime === "nodejs") {
       return merge(config, {
@@ -24,10 +24,7 @@ const nextConfig = {
     ];
   },
   output: "standalone",
-  experimental: {
-    instrumentationHook: true,
-    serverComponentsExternalPackages: ["@opentelemetry/sdk-node"],
-  },
+  serverExternalPackages: ["@opentelemetry/sdk-node"],
 };
 
 export default withNextIntl(nextConfig);

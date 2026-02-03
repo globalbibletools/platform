@@ -7,10 +7,14 @@ import { NextIntlClientProvider } from "next-intl";
 
 interface Props {
   children: ReactNode;
-  params: { code: string };
+  params: Promise<{ code: string }>;
 }
 
-export default async function InterlinearLayout({ children, params }: Props) {
+export default async function InterlinearLayout(props: Props) {
+  const params = await props.params;
+
+  const { children } = props;
+
   const messages = await getMessages();
 
   const [languages, currentLanguage] = await Promise.all([

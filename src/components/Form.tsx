@@ -1,6 +1,11 @@
 "use client";
-import { createContext, ReactNode, useContext, useEffect } from "react";
-import { useFormState } from "react-dom";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useActionState,
+} from "react";
 import { useFlash } from "../flash";
 
 export type FormState =
@@ -18,7 +23,7 @@ export interface FormProps {
 }
 
 export default function Form({ className = "", children, action }: FormProps) {
-  const [state, formAction] = useFormState(action, { state: "idle" });
+  const [state, formAction] = useActionState(action, { state: "idle" });
 
   const flash = useFlash();
 

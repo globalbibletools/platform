@@ -1,3 +1,4 @@
+import { use } from "react";
 import type { Metadata } from "next";
 import { hasLocale, NextIntlClientProvider, useMessages } from "next-intl";
 import { getTranslations } from "next-intl/server";
@@ -16,17 +17,16 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
-  children,
-  params,
-}: Readonly<{
+export default function RootLayout(props: {
   children: React.ReactNode;
-  params: { locale: string };
-}>) {
-  const { locale } = params;
-  if (!hasLocale(routing.locales, locale)) {
+  params: Promise<{ locale: string }>;
+}) {
+  const params = use(props.params);
+  if (!hasLocale(routing.locales, params.locale)) {
     notFound();
   }
+
+  const { children } = props;
 
   const messages = useMessages();
 

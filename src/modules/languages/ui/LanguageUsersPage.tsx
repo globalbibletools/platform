@@ -20,7 +20,7 @@ import { getLanguageMembersReadModel } from "../read-models/getLanguageMembersRe
 import { reinviteLanguageMemberAction } from "../actions/reinviteLanguageMember";
 
 interface LanguageUsersPageProps {
-  params: { code: string };
+  params: Promise<{ code: string }>;
 }
 
 export async function generateMetadata(
@@ -37,10 +37,9 @@ export async function generateMetadata(
 
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
-export default async function LanguageUsersPage({
-  params,
-}: LanguageUsersPageProps) {
+export default async function LanguageUsersPage(props: LanguageUsersPageProps) {
   const t = await getTranslations("LanguageUsersPage");
+  const params = await props.params;
 
   const session = await verifySession();
   const isAuthorized = await policy.authorize({

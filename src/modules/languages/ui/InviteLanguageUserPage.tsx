@@ -12,7 +12,7 @@ import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
 
 interface InviteLanguageUserPageProps {
-  params: { code: string };
+  params: Promise<{ code: string }>;
 }
 
 export async function generateMetadata(
@@ -31,10 +31,11 @@ const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
 
-export default async function InviteLanguageUserPage({
-  params,
-}: InviteLanguageUserPageProps) {
+export default async function InviteLanguageUserPage(
+  props: InviteLanguageUserPageProps,
+) {
   const t = await getTranslations("InviteLanguageUserPage");
+  const params = await props.params;
 
   const session = await verifySession();
   const isAuthorized = await policy.authorize({

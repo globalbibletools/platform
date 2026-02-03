@@ -10,7 +10,7 @@ export default async function homeRedirect(): Promise<string> {
     return `/${locale}/dashboard`;
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const lastVisited = cookieStore.get("LAST_READ")?.value;
 
   if (lastVisited) {

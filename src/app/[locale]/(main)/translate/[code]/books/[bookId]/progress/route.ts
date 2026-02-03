@@ -5,8 +5,9 @@ import { NextRequest } from "next/server";
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { bookId: string; code: string; locale: string } },
+  props: { params: Promise<{ bookId: string; code: string; locale: string }> },
 ) {
+  const params = await props.params;
   const bookProgress = await fetchBookProgress(
     parseInt(params.bookId),
     params.code,

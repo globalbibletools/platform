@@ -17,7 +17,7 @@
     "@aws-sdk/client-sqs": "^3.678.0",
     "@google-cloud/translate": "8.5.0",
     "@gracious.tech/fetch-client": "0.8.9",
-    "@next/env": "14.2.12",
+    "@next/env": "15.5.7",
     "@opentelemetry/api-logs": "0.56.0",
     "@opentelemetry/exporter-trace-otlp-http": "0.56.0",
     "@opentelemetry/id-generator-aws-xray": "1.2.2",
@@ -37,7 +37,7 @@
     "googleapis": "148.0.0",
     "install": "0.13.0",
     "isomorphic-dompurify": "2.15.0",
-    "next": "14.2.23",
+    "next": "15.5.7",
     "next-intl": "4.8.2",
     "nodemailer": "6.9.15",
     "oslo": "1.2.1",
@@ -45,9 +45,9 @@
     "pg": "8.12.0",
     "pg-copy-streams": "7.0.0",
     "pino": "9.6.0",
-    "react": "^18",
-    "react-dom": "^18",
-    "swr": "2.2.5",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "swr": "2.4.0",
     "zod": "3.23.8"
   },
   "devDependencies": {
@@ -73,14 +73,14 @@
     "@types/pg": "8.11.6",
     "@types/pg-copy-streams": "1.2.5",
     "@types/pg-query-stream": "1.0.3",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/react": "19.2.10",
+    "@types/react-dom": "19.2.3",
     "aws-lambda": "1.0.7",
     "chart.js": "4.4.4",
     "chartjs-adapter-date-fns": "3.0.0",
     "esbuild": "0.25.1",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.5",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.7",
     "eslint-config-prettier": "9.1.0",
     "factory.ts": "1.4.2",
     "husky": "9.1.7",
@@ -97,5 +97,9 @@
     "vite-tsconfig-paths": "5.1.4",
     "vitest": "3.0.4",
     "webpack-merge": "6.0.1"
+  },
+  "overrides": {
+    "@types/react": "19.2.10",
+    "@types/react-dom": "19.2.3"
   }
 }

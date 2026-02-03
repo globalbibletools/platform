@@ -162,7 +162,7 @@ export default function AudioDialog({
   }, [timeRange, reset]);
 
   const src = `https://assets.globalbibletools.com/audio/${speaker}/${bookKeys[bookId - 1]}/${chapter.toString().padStart(3, "0")}.mp3`;
-  const lastVerseId = useRef<string>();
+  const lastVerseId = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     const el = audio.current;

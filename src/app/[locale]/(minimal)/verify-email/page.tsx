@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { verifyEmail } from "@/modules/users/use-cases/verifyEmail";
 
 interface Props {
-  searchParams: { token?: string };
+  searchParams: Promise<{ token?: string }>;
 }
 
 export async function generateMetadata(
@@ -19,7 +19,8 @@ export async function generateMetadata(
   };
 }
 
-export default async function EmailVerificationView({ searchParams }: Props) {
+export default async function EmailVerificationView(props: Props) {
+  const searchParams = await props.searchParams;
   const t = await getTranslations("EmailVerification");
 
   try {

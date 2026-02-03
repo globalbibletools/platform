@@ -24,11 +24,10 @@ export async function generateMetadata(
   };
 }
 
-export default async function ResetPasswordPage({
-  searchParams,
-}: {
-  searchParams: { token?: string };
+export default async function ResetPasswordPage(props: {
+  searchParams: Promise<{ token?: string }>;
 }) {
+  const searchParams = await props.searchParams;
   const t = await getTranslations("ResetPasswordPage");
   const locale = await getLocale();
 

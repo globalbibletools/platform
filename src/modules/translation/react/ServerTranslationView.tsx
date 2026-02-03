@@ -10,13 +10,14 @@ import { getCurrentLanguageReadModel } from "@/modules/languages/read-models/get
 import { getVerseWordsReadModel } from "../read-models/getVerseWordsReadModel";
 
 interface Props {
-  params: { code: string; verseId: string };
+  params: Promise<{ code: string; verseId: string }>;
 }
 
 const CHAR_REGEX = /\w/;
 
-export default async function InterlinearView({ params }: Props) {
+export default async function InterlinearView(props: Props) {
   const messages = await getMessages();
+  const params = await props.params;
 
   const session = await verifySession();
 

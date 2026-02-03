@@ -10,11 +10,15 @@ import { getCurrentLanguageReadModel } from "@/modules/languages/read-models/get
 
 interface Props {
   children: ReactNode;
-  params: { code: string };
+  params: Promise<{ code: string }>;
 }
 
-export default async function InterlinearLayout({ children, params }: Props) {
+export default async function InterlinearLayout({
+  children,
+  params: propsParams,
+}: Props) {
   const messages = await getMessages();
+  const params = await propsParams;
 
   const session = await verifySession();
   if (!session) {

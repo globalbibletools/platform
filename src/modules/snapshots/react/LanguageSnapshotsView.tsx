@@ -36,14 +36,13 @@ export async function generateMetadata(
 
 const PAGE_SIZE = 10;
 
-export default async function LanguageSettingsPage({
-  params,
-  searchParams,
-}: {
-  params: { code: string };
-  searchParams: { page?: string };
+export default async function LanguageSettingsPage(props: {
+  params: Promise<{ code: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const messages = await getMessages();
+  const params = await props.params;
+  const searchParams = await props.searchParams;
 
   let page = searchParams.page ? parseInt(searchParams.page) : 1;
   if (isNaN(page) || page <= 0) {
@@ -110,7 +109,10 @@ export default async function LanguageSettingsPage({
                     variant="link"
                     destructive
                     action={restoreLanguageSnapshotAction}
-                    actionData={{ code: params.code, snapshotId: snapshot.id }}
+                    actionData={{
+                      code: params.code,
+                      snapshotId: snapshot.id,
+                    }}
                     confirm="Are you sure you want to restore this snapshot?"
                     disabled={!!pendingJob}
                   >

@@ -3,8 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { speaker: string; chapterId: string } },
+  props: { params: Promise<{ speaker: string; chapterId: string }> },
 ) {
+  const params = await props.params;
   const bookId = parseInt(params.chapterId.slice(0, 2)) || 1;
   const chapterNumber = parseInt(params.chapterId.slice(2, 5)) || 1;
 
