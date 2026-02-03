@@ -65,7 +65,7 @@ export default async function LanguageSettingsPage(
           />
         </div>
         <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 pb-8 px-10 border-b border-b-green-300 dark:border-b-blue-800">
-          <div className="flex-grow">
+          <div className="grow">
             <h3 className="font-bold text-lg mb-2">
               {t("headings.identification")}
             </h3>
@@ -87,7 +87,7 @@ export default async function LanguageSettingsPage(
               })}
             </p>
           </div>
-          <div className="flex-shrink-0 w-80">
+          <div className="shrink-0 w-80">
             <div className="mb-4">
               <FormLabel htmlFor="english_name">
                 {t("form.english_name")}
@@ -133,11 +133,11 @@ export default async function LanguageSettingsPage(
           </div>
         </section>
         <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 px-10 border-b border-b-green-300 dark:border-b-blue-800">
-          <div className="flex-grow">
+          <div className="grow">
             <h3 className="font-bold text-lg mb-2">{t("headings.text")}</h3>
             <p className="text-sm">{t("text_description")}</p>
           </div>
-          <div className="flex-shrink-0 w-80">
+          <div className="shrink-0 w-80">
             <div className="mb-4">
               <FormLabel htmlFor="language-font">
                 {t("form.font").toUpperCase()}
@@ -187,13 +187,13 @@ export default async function LanguageSettingsPage(
           </div>
         </section>
         <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 px-10 border-b border-b-green-300 dark:border-b-blue-800">
-          <div className="flex-grow">
+          <div className="grow">
             <h3 className="font-bold text-lg mb-2">
               {t("headings.bible_translation")}
             </h3>
             <p className="text-sm">{t("translation_description")}</p>
           </div>
-          <div className="flex-shrink-0 w-80">
+          <div className="shrink-0 w-80">
             <SortableMultiselectInput
               name="bible_translations"
               className="w-full"
@@ -209,13 +209,13 @@ export default async function LanguageSettingsPage(
           <FieldError id="bible-transations-error" name="bible_translations" />
         </section>
         <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 px-10">
-          <div className="flex-grow">
+          <div className="grow">
             <h3 className="font-bold text-lg mb-2">
               {t("headings.gloss_prediction")}
             </h3>
             <p className="text-sm">{t("gloss_prediction_description")}</p>
           </div>
-          <div className="flex-shrink-0 w-80">
+          <div className="shrink-0 w-80">
             <FormLabel htmlFor="reference-language">
               {t("form.reference_language").toUpperCase()}
             </FormLabel>

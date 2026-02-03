@@ -63,10 +63,10 @@ export default async function DashboardView() {
   const locale = await getLocale();
 
   return (
-    <div className="flex-grow flex items-stretch">
+    <div className="grow flex items-stretch">
       <div className="px-4 pb-4 lg:px-8 w-full">
         <div className="flex items-center flex-col sm:flex-row mb-6 mt-8">
-          <h1 className="text-xl md:text-2xl font-bold flex-grow mb-2 sm:mb-0">
+          <h1 className="text-xl md:text-2xl font-bold grow mb-2 sm:mb-0">
             Welcome back, {session.user.name}!
           </h1>
           <DashboardLanguageSelector
@@ -136,10 +136,10 @@ export default async function DashboardView() {
               glosses
             </DashboardCard.Heading>
             <DashboardCard.Body className="flex flex-col gap-2">
-              <div className="flex-grow flex items-stretch gap-2">
+              <div className="grow flex items-stretch gap-2">
                 {contributionData.length > 0 && (
                   <>
-                    <table className="h-full flex-grow">
+                    <table className="h-full grow">
                       <tbody>
                         <tr className="h-full border-b-2 border-t border-gray-400 dark:border-gray-700">
                           {segregatedContributionData.map((week) => (
@@ -177,7 +177,7 @@ export default async function DashboardView() {
                         </tr>
                       </tbody>
                     </table>
-                    <div className="flex-shrink-0 text-xs">{max}</div>
+                    <div className="shrink-0 text-xs">{max}</div>
                   </>
                 )}
               </div>

@@ -1,9 +1,11 @@
-import { library } from "@fortawesome/fontawesome-svg-core";
+import { config, library } from "@fortawesome/fontawesome-svg-core";
 import * as FaSolid from "@fortawesome/free-solid-svg-icons";
 import * as FaBrands from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export const Icon = FontAwesomeIcon;
+
+config.autoAddCss = false;
 
 library.add(
   FaBrands.faGithub,

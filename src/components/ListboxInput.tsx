@@ -1,8 +1,12 @@
 "use client";
 
-import { Listbox } from "@headlessui/react";
-import { ComponentProps, useRef } from "react";
-import { useFormContext } from "./Form";
+import {
+  Listbox,
+  ListboxButton,
+  ListboxOption,
+  ListboxOptions,
+} from "@headlessui/react";
+import { useRef } from "react";
 import { Icon } from "./Icon";
 
 export interface ListboxItem {
@@ -62,9 +66,9 @@ export default function ListboxInput({
           onChange?.(value);
         }}
       >
-        <Listbox.Button
+        <ListboxButton
           onBlur={onBlur}
-          className="font-bold text-blue-800 dark:text-green-400 w-full outline-2 outline-green-300"
+          className="font-bold text-blue-800 dark:text-green-400 w-full focus-visible:outline-2 outline-green-300"
         >
           {({ value, open }) => (
             <>
@@ -76,8 +80,8 @@ export default function ListboxInput({
               />
             </>
           )}
-        </Listbox.Button>
-        <Listbox.Options
+        </ListboxButton>
+        <ListboxOptions
           className={`
                   z-10 absolute w-full max-h-80 bg-white overflow-auto rounded border border-gray-400 shadow
                   dark:bg-gray-800 dark:border-gray-700
@@ -87,15 +91,15 @@ export default function ListboxInput({
                 `}
         >
           {items.map((item) => (
-            <Listbox.Option
-              className="px-3 py-2 ui-active:bg-green-200 dark:ui-active:green-400 dark:ui-active:text-gray-900"
+            <ListboxOption
+              className="px-3 py-2 data-focus:bg-green-200 dark:data-focus:green-400 dark:data-focus:text-gray-900"
               key={item.value}
               value={item.value}
             >
               {item.label}
-            </Listbox.Option>
+            </ListboxOption>
           ))}
-        </Listbox.Options>
+        </ListboxOptions>
       </Listbox>
     </div>
   );

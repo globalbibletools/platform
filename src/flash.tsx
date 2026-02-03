@@ -110,6 +110,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
         {messages.slice(0, 1).map((message) => {
           return (
             <Transition
+              as="div"
               key={message.id}
               appear={message.state === "unshown"}
               show={message.state !== "dismissed"}
@@ -169,7 +170,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
               </div>
               <button
                 type="button"
-                className="w-10 h-10 rounded focus:outline focus:outline-2 focus:outline-blue-600"
+                className="w-10 h-10 rounded-sm focus:outline-2 focus:outline-blue-600"
                 onClick={() => remove(message.id)}
               >
                 <Icon icon="close" />

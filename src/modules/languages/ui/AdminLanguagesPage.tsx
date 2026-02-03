@@ -61,7 +61,7 @@ export default async function AdminLanguagesPage(
       <div className="px-8 py-6 w-fit">
         <div className="flex items-baseline mb-4">
           <ViewTitle>{t("title")}</ViewTitle>
-          <div className="flex-grow" />
+          <div className="grow" />
           <Button variant="primary" href="./languages/new">
             <Icon icon="plus" className="me-1" />
             {t("actions.add_language")}

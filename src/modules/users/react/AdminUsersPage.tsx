@@ -64,7 +64,7 @@ export default async function AdminUsersPage(props: AdminUsersPageProps) {
       <div className="px-8 py-6 w-fit">
         <div className="flex items-baseline mb-4">
           <ViewTitle>{t("title")}</ViewTitle>
-          <div className="flex-grow" />
+          <div className="grow" />
           <Button variant="primary" href="./users/invite">
             <Icon icon="plus" className="me-1" />
             {t("links.add_user")}
@@ -92,7 +92,7 @@ export default async function AdminUsersPage(props: AdminUsersPageProps) {
                 <ListCell className="p-2">
                   {user.email}
                   {user.emailStatus !== "VERIFIED" && (
-                    <div className="block w-fit text-sm px-2 rounded bg-red-700 text-white">
+                    <div className="block w-fit text-sm px-2 rounded-sm bg-red-700 text-white">
                       <Icon icon="exclamation-triangle" className="me-1" />
                       {t("email_status", {
                         status: user.emailStatus,

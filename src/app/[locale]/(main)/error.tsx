@@ -18,8 +18,8 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="flex-grow flex items-center justify-center">
-      <div className="max-w-[400px] flex-grow mx-4 p-8 rounded-lg border border-gray-300 shadow">
+    <div className="grow flex items-center justify-center">
+      <div className="max-w-[400px] grow mx-4 p-8 rounded-lg border border-gray-300 shadow-sm">
         <h2 className="font-bold text-xl mb-4">{t("title")}</h2>
         <p className="mb-6">{t("help")}</p>
         <Button onClick={() => reset()}>{t("actions.reload")}</Button>

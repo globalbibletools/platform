@@ -1,10 +1,8 @@
 import { use } from "react";
 import type { Metadata } from "next";
-import { config } from "@fortawesome/fontawesome-svg-core";
 import { NextIntlClientProvider, useMessages } from "next-intl";
 import { getTranslations } from "next-intl/server";
-import "@fortawesome/fontawesome-svg-core/styles.css";
-import "@/globals.css";
+import "@/styles.css";
 import { headFontClass } from "@/fonts";
 import languages from "../../languages.json";
 import { FlashProvider } from "@/flash";
@@ -17,14 +15,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-config.autoAddCss = false;
-
-export default function RootLayout(
-  props: Readonly<{
-    children: React.ReactNode;
-    params: { locale: string };
-  }>,
-) {
+export default function RootLayout(props: {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
   const params = use(props.params);
 
   const { children } = props;
@@ -40,7 +34,7 @@ export default function RootLayout(
       dir={language.dir}
     >
       <AnalyticsProvider id={process.env.FATHOM_ID} />
-      <body className="dark:bg-gray-900 dark:text-gray-300">
+      <body>
         <NextIntlClientProvider
           messages={{
             DocumentTitle: messages.DocumentTitle,

@@ -292,14 +292,14 @@ export default function TranslationToolbar({
       <div
         ref={toolbarRef}
         className="
-          sticky top-[--heading-height] z-10
+          sticky top-(--heading-height) z-10
           flex items-center flex-wrap gap-y-2 gap-x-10 items-center justify-center
           bg-white dark:bg-gray-900
           shadow-md dark:shadow-none dark:border-b dark:border-gray-700
           px-6 md:px-8 pt-4 pb-5
         "
       >
-        <div className="flex-shrink-0 flex items-center">
+        <div className="shrink-0 flex items-center">
           <form
             action={changeInterlinearLocation}
             className={isTranslator ? "me-2" : ""}
@@ -316,7 +316,7 @@ export default function TranslationToolbar({
                 onFocus={(e) => e.target.select()}
               />
               <Button
-                className="absolute end-8 top-1 w-7 !h-7"
+                className="absolute end-8 top-1 w-7 h-7!"
                 variant="tertiary"
                 href={verseId ? `./${decrementVerseId(verseId)}` : "#"}
               >
@@ -324,7 +324,7 @@ export default function TranslationToolbar({
                 <span className="sr-only">{t("previous_verse")}</span>
               </Button>
               <Button
-                className="absolute end-1 top-1 w-7 !h-7"
+                className="absolute end-1 top-1 w-7 h-7!"
                 variant="tertiary"
                 href={verseId ? `./${incrementVerseId(verseId)}` : "#"}
                 prefetch
@@ -348,7 +348,7 @@ export default function TranslationToolbar({
             </div>
           )}
         </div>
-        <div className="flex-shrink-0 flex">
+        <div className="shrink-0 flex">
           <ComboboxInput
             aria-label={t("language")}
             items={languages.map((l) => ({
@@ -371,7 +371,7 @@ export default function TranslationToolbar({
             </Button>
           )}
         </div>
-        <div className="flex flex-shrink-0 items-center">
+        <div className="flex shrink-0 items-center">
           {buttons.reduce<JSX.Element[]>((elements, el, i) => {
             if (i > 0) {
               elements.push(

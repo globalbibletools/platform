@@ -6,7 +6,7 @@ import ComboboxInput from "@/components/ComboboxInput";
 import FormLabel from "@/components/FormLabel";
 import { Icon } from "@/components/Icon";
 import SliderInput from "@/components/SliderInput";
-import { Popover } from "@headlessui/react";
+import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 
@@ -34,10 +34,10 @@ export default function SettingsMenu({
 
   return (
     <Popover className="relative">
-      <Popover.Button className="text-blue-800 dark:text-green-400">
+      <PopoverButton className="text-blue-800 dark:text-green-400">
         <Icon icon="sliders" size="xl" />
-      </Popover.Button>
-      <Popover.Panel className="absolute z-10 border border-gray-400 shadow-lg p-4 rounded bg-white -end-1 mt-3 min-w-[200px] flex flex-col gap-4 dark:bg-gray-800 dark:border-gray-700 dark:shadow-none">
+      </PopoverButton>
+      <PopoverPanel className="absolute z-10 border border-gray-400 shadow-lg p-4 rounded-sm bg-white -end-1 mt-3 min-w-[200px] flex flex-col gap-4 dark:bg-gray-800 dark:border-gray-700 dark:shadow-none">
         <div className="sm:hidden">
           <FormLabel htmlFor="text-size">{t("language")}</FormLabel>
           <div className="w-full">
@@ -84,7 +84,7 @@ export default function SettingsMenu({
             />
           </div>
         </div>
-      </Popover.Panel>
+      </PopoverPanel>
     </Popover>
   );
 }

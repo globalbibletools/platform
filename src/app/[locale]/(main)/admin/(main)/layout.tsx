@@ -23,11 +23,11 @@ export default async function AdminLayout(props: AdminLayoutProps) {
   }
 
   return (
-    <div className="flex-grow flex items-stretch">
+    <div className="grow flex items-stretch">
       <div
         className="
-          sticky h-[calc(100dvh-var(--heading-height))] top-[--heading-height]
-          min-w-[280px] flex-shrink-0
+          sticky h-[calc(100dvh-var(--heading-height))] top-(--heading-height)
+          min-w-[280px] shrink-0
           bg-brown-100 dark:bg-gray-800
           p-6 pt-7
         "
@@ -50,7 +50,7 @@ export default async function AdminLayout(props: AdminLayoutProps) {
           </li>
         </ul>
       </div>
-      <div className="flex-grow relative">{children}</div>
+      <div className="grow relative">{children}</div>
     </div>
   );
 }
