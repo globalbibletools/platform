@@ -41,7 +41,7 @@ const RichTextInput = forwardRef<RichTextInputRef, RichTextInputProps>(
       extensions,
       editorProps: {
         attributes: {
-          class: "focus:outline-hidden min-h-[24px] rich-text",
+          class: "outline-none min-h-[24px] rich-text",
           ...props,
         },
       },
@@ -70,7 +70,7 @@ const RichTextInput = forwardRef<RichTextInputRef, RichTextInputProps>(
     return (
       <div
         className="
-        border rounded border-gray-400 has-focus-visible:outline-solid outline-2 outline-green-300 bg-white
+        border rounded border-gray-400 has-focus-visible:outline-2 outline-green-300 bg-white
         dark:border-gray-700 dark:bg-gray-900
       "
       >

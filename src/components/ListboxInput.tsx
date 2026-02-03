@@ -68,7 +68,7 @@ export default function ListboxInput({
       >
         <ListboxButton
           onBlur={onBlur}
-          className="font-bold text-blue-800 dark:text-green-400 w-full outline-2 outline-green-300"
+          className="font-bold text-blue-800 dark:text-green-400 w-full focus-visible:outline-2 outline-green-300"
         >
           {({ value, open }) => (
             <>

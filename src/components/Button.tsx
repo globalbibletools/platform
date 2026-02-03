@@ -25,7 +25,7 @@ export interface ActionProps extends ComponentProps<"button"> {
 export type ButtonProps = LinkProps | ActionProps;
 
 const sharedClasses =
-  "inline-flex justify-center items-center rounded-lg font-bold outline-2 disabled:opacity-50 focus-visible:outline-solid";
+  "inline-flex justify-center items-center rounded-lg font-bold disabled:opacity-50 focus-visible:outline-2";
 
 function buttonClasses(
   variant: ButtonVariant,

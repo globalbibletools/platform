@@ -22,7 +22,7 @@ export default function ModalView({
     >
       <div className="flex items-center mb-12">
         <Link
-          className="flex items-center rounded-sm focus-visible:outline-solid outline-2 outline-green-300"
+          className="flex items-center rounded-sm focus-visible:outline-2 outline-green-300"
           href="/read"
         >
           <img

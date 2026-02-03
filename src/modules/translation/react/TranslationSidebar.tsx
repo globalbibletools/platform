@@ -171,7 +171,7 @@ const TranslationSidebar = forwardRef<
       <button
         onClick={onClose}
         type="button"
-        className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline-solid outline-2 outline-green-300"
+        className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline-2 outline-green-300"
       >
         <Icon icon="xmark" />
         <span className="sr-only">{t("close")}</span>
@@ -194,7 +194,7 @@ const TranslationSidebar = forwardRef<
               <Fragment key={title}>
                 <Tab
                   className="
-                      px-4 py-1 text-blue-800 font-bold rounded-t-lg border border-blue-800 ui-selected:border-b-transparent outline-green-300 focus-visible:outline-solid outline-2
+                      px-4 py-1 text-blue-800 font-bold rounded-t-lg border border-blue-800 ui-selected:border-b-transparent outline-green-300 focus-visible:outline-2
                       dark:text-green-400 dark:border-green-400
                     "
                 >

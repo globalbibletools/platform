@@ -22,7 +22,7 @@ export default function LanguageDialog() {
       <dialog
         ref={dialog}
         className="
-            rounded-lg shadow-md border border-gray-200 bg-white mx-auto p-8 focus-visible:outline-solid outline-green-300 outline-2 start-2 bottom-2 end-auto
+            rounded-lg shadow-md border border-gray-200 bg-white mx-auto p-8 focus-visible:outline-2 outline-green-300 start-3 bottom-2 end-auto
             dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300
           "
       >

@@ -65,7 +65,7 @@ export const VersesPreview = ({
         <button
           onClick={onClose}
           type="button"
-          className="w-9 h-9 text-red-700 dark:text-red-600 rounded-md focus-visible:outline-solid outline-2 outline-green-300"
+          className="w-9 h-9 text-red-700 dark:text-red-600 rounded-md focus-visible:outline-2 outline-green-300"
         >
           <Icon icon="xmark" />
           <span className="sr-only">{t("close")}</span>

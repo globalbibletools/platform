@@ -56,7 +56,7 @@ export function ButtonSelectorInput({
       <fieldset
         className={`
           inline-block rounded-lg shadow-md dark:shadow-none
-          has-focus-visible:outline-solid outline-2
+          has-focus-visible:outline-2
           whitespace-nowrap
           ${
             hasErrors ?

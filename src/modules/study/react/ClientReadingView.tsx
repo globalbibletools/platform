@@ -216,7 +216,7 @@ export default function ReadingView({
                 setSelectedWord(null);
               }}
               type="button"
-              className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline-solid outline-2 outline-green-300"
+              className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline-2 outline-green-300"
             >
               <Icon icon="xmark" />
               <span className="sr-only">{t("close_sidebar")}</span>

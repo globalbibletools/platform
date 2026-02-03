@@ -170,7 +170,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
               </div>
               <button
                 type="button"
-                className="w-10 h-10 rounded-sm focus:outline-solid focus:outline-2 focus:outline-blue-600"
+                className="w-10 h-10 rounded-sm focus:outline-2 focus:outline-blue-600"
                 onClick={() => remove(message.id)}
               >
                 <Icon icon="close" />
