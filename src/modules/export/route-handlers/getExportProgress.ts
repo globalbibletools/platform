@@ -10,8 +10,9 @@ const exportPolicy = new Policy({
 
 export default async function handleGetExportProgress(
   _request: NextRequest,
-  { params }: { params: { code: string } },
+  props: { params: Promise<{ code: string }> },
 ) {
+  const params = await props.params;
   const session = await verifySession();
   const userId = session?.user?.id;
   if (!userId) {
