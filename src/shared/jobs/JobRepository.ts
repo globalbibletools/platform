@@ -27,9 +27,9 @@ const jobRepository = {
   async create(job: Job<any>) {
     await query(
       `
-      insert into job (id, status, payload, created_at, updated_at, type_id)
+      insert into job (id, status, payload, created_at, updated_at, type, type_id)
       values (
-        $1, $2, $3, $4, $5,
+        $1, $2, $3, $4, $5, $6,
         (select id from job_type where name = $6)
       )
     `,
