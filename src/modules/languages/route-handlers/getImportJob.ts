@@ -3,8 +3,9 @@ import { query } from "@/db";
 
 export default async function handleGetImportJob(
   _request: NextRequest,
-  { params }: { params: { code: string } },
+  props: { params: Promise<{ code: string }> },
 ) {
+  const params = await props.params;
   const job = await fetchImportJob(params.code);
 
   return Response.json({
