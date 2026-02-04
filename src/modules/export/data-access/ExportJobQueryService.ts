@@ -30,10 +30,9 @@ const exportJobQueryService = {
           job.data,
           job.created_at as "createdAt",
           job.updated_at as "updatedAt",
-          job_type.name as type
+          job.type
         from job
-        join job_type on job_type.id = job.type_id
-        where job_type.name = $1
+        where job.type = $1
           and job.payload->>'languageCode' = $2
         order by job.created_at desc
         limit $3
@@ -56,10 +55,9 @@ const exportJobQueryService = {
           job.data,
           job.created_at as "createdAt",
           job.updated_at as "updatedAt",
-          job_type.name as type
+          job.type
         from job
-        join job_type on job_type.id = job.type_id
-        where job_type.name = $1
+        where job.type = $1
           and job.payload->>'languageCode' = $2
           and job.status in ($3, $4)
         order by job.created_at desc
