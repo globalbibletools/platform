@@ -2,14 +2,27 @@ import { Async } from "factory.ts";
 import { DbLanguage, DbLanguageMember } from "../data-access/types";
 import { ulid } from "@/shared/ulid";
 import { faker } from "@faker-js/faker/locale/en";
-import localeMap from "@/data/locale-mapping.json";
 import { TextDirectionRaw } from "../model";
 import { getDb, query } from "@/db";
-const locales = Object.keys(localeMap);
+
+const locales = ["eng", "spa", "hin", "arb"];
+let nextLocaleIndex = 0;
+/**
+ * Generate pseudo random locale codes.
+ *
+ * A true random locale selection is likely to create collisions on the unique index,
+ * so this utility iterates through a list of locale codes.
+ * Presently, this can produce up to four unique locale codes before repetition.
+ */
+export function nextLocaleCode(): string {
+  const localeCode = locales[nextLocaleIndex];
+  nextLocaleIndex = (nextLocaleIndex + 1) % locales.length;
+  return localeCode;
+}
 
 export const languageFactory = Async.makeFactory<DbLanguage>({
   id: Async.each(() => ulid()),
-  code: Async.each(() => faker.helpers.arrayElement(locales)),
+  code: Async.each(() => nextLocaleCode()),
   englishName: Async.each(() => faker.lorem.word()),
   localName: Async.each(() => faker.lorem.word()),
   font: "Noto Sans",
