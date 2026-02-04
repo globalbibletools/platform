@@ -9,7 +9,7 @@ const jobRepository = {
       `
         select
             id,
-            (select name from job_type where id = job.type_id) as type,
+            type,
             status,
             payload,
             data,
@@ -27,10 +27,9 @@ const jobRepository = {
   async create(job: Job<any>) {
     await query(
       `
-      insert into job (id, status, payload, created_at, updated_at, type, type_id)
+      insert into job (id, status, payload, created_at, updated_at, type)
       values (
-        $1, $2, $3, $4, $5, $6,
-        (select id from job_type where name = $6)
+        $1, $2, $3, $4, $5, $6
       )
     `,
       [job.id, job.status, job.payload, job.createdAt, job.updatedAt, job.type],

@@ -101,13 +101,10 @@ export const snapshotQueryService = {
       `
         select
           id,
-          (select name from job_type where job_type.id = job.type_id) as type
+          type
         from job
         where
-          type_id IN (
-            select id from job_type
-            where name IN ($2, $3)
-          )
+          type IN ($2, $3)
           and payload->>'languageId' = $1
           and status IN ('pending', 'in-progress')
       `,
