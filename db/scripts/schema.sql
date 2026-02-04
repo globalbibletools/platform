@@ -500,43 +500,13 @@ ALTER SEQUENCE public.gloss_history_id_seq OWNED BY public.gloss_history.id;
 
 CREATE TABLE public.job (
     id uuid NOT NULL,
-    type_id integer NOT NULL,
     status public.job_status NOT NULL,
     payload jsonb,
     data jsonb,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    type text
 );
-
-
---
--- Name: job_type; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.job_type (
-    id integer NOT NULL,
-    name text
-);
-
-
---
--- Name: job_type_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.job_type_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: job_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.job_type_id_seq OWNED BY public.job_type.id;
 
 
 --
@@ -1041,13 +1011,6 @@ ALTER TABLE ONLY public.gloss_history ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
--- Name: job_type id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.job_type ALTER COLUMN id SET DEFAULT nextval('public.job_type_id_seq'::regclass);
-
-
---
 -- Name: lemma_form_suggestion id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1127,22 +1090,6 @@ ALTER TABLE ONLY public.gloss
 
 ALTER TABLE ONLY public.job
     ADD CONSTRAINT job_pkey PRIMARY KEY (id);
-
-
---
--- Name: job_type job_type_name_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.job_type
-    ADD CONSTRAINT job_type_name_key UNIQUE (name);
-
-
---
--- Name: job_type job_type_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.job_type
-    ADD CONSTRAINT job_type_pkey PRIMARY KEY (id);
 
 
 --
@@ -1593,14 +1540,6 @@ ALTER TABLE ONLY public.gloss
 
 ALTER TABLE ONLY public.gloss
     ADD CONSTRAINT gloss_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id);
-
-
---
--- Name: job job_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.job
-    ADD CONSTRAINT job_type_id_fkey FOREIGN KEY (type_id) REFERENCES public.job_type(id);
 
 
 --
