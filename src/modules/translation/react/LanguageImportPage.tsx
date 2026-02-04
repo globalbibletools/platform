@@ -14,8 +14,7 @@ import Poller from "./Poller";
 import { Policy } from "@/modules/access";
 import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
-
-const IMPORT_SERVER = "https://hebrewgreekbible.online";
+import { legacySiteService } from "../data-access/legacySiteService";
 
 interface LanguageImportPageProps {
   params: Promise<{ code: string }>;
@@ -53,7 +52,7 @@ export default async function LanguageImportPage(
   const job = await fetchImportJob(params.code);
 
   if (!job) {
-    const languages = await fetchImportLanguages();
+    const languages = await legacySiteService.fetchImportLanguages();
 
     return (
       <div className="px-8 py-6 w-fit">
@@ -114,21 +113,6 @@ export default async function LanguageImportPage(
       </div>
     );
   }
-}
-
-async function fetchImportLanguages() {
-  const response = await fetch(IMPORT_SERVER);
-  const html = await response.text();
-
-  const regex = /var glossLanguageNames\s*=\s*\[([\s\S]*?)\];/;
-  const matches = html.match(regex);
-  if (!matches?.[1]) return [];
-
-  const languageNames = matches[1]
-    .split(",")
-    .map((name: string) => name.trim().replace(/['"]+/g, ""))
-    .filter((name: string) => name.length > 0);
-  return languageNames;
 }
 
 interface LanguageImportJob {
