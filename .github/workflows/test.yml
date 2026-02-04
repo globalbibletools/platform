@@ -10,7 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: node:18
+      image: node:20
     services:
       postgres:
         image: postgres:14
@@ -33,7 +33,7 @@ jobs:
       - name: Cache node modules
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: "npm"
 
       - name: Install dependencies
