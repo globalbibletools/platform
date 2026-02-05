@@ -8,6 +8,8 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Icon } from "@/components/Icon";
 import LegacyGlossImportForm from "./LegacyImportForm";
+import AIGlossesImportForm from "./AIGlossesImportForm";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface LanguageImportPageProps {
   params: Promise<{ code: string }>;
@@ -63,8 +65,31 @@ export default async function LanguageImportPage(
           </p>
         </div>
         <div className="shrink-0 w-80">
-          <Suspense>
+          <Suspense fallback={<LoadingSpinner className="w-fit" />}>
             <LegacyGlossImportForm code={params.code} />
+          </Suspense>
+        </div>
+      </section>
+      <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 px-10">
+        <div className="grow">
+          <h3 className="font-bold text-lg mb-2">AI Translated Glosses</h3>
+          <p className="text-sm mb-2">
+            Import AI translated glosses from{" "}
+            <Button
+              href="https://global-tools.bible.systems"
+              variant="link"
+              target="_blank"
+              rel="noopener"
+            >
+              global-tools.bible.systems
+              <Icon icon="external-link" className="ms-1" />
+            </Button>
+            .
+          </p>
+        </div>
+        <div className="shrink-0 w-80">
+          <Suspense fallback={<LoadingSpinner className="w-fit" />}>
+            <AIGlossesImportForm code={params.code} />
           </Suspense>
         </div>
       </section>

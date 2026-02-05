@@ -37,12 +37,14 @@ import {
   PhraseWordTable,
   TranslatorNoteTable,
 } from "./modules/translation/db/schema";
+import { JobTable } from "./shared/jobs/db/schema";
 
 export interface Database {
   book: BookTable;
   footnote: FootnoteTable;
   gloss: GlossTable;
   gloss_history: GlossHistoryTable;
+  job: JobTable;
   language: LanguageTable;
   language_member: LanguageMemberTable;
   language_progress: LanguageProgressView;

@@ -24,7 +24,7 @@ export default async function LegacyGlossImportForm({
     const languages = await legacySiteService.fetchImportLanguages();
 
     return (
-      <Form className="max-w-[300px] w-full" action={importLanguage}>
+      <Form action={importLanguage}>
         <input type="hidden" name="code" value={code} />
         <div className="mb-4">
           <FormLabel htmlFor="language">{t("form.language")}</FormLabel>
