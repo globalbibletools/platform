@@ -32,6 +32,7 @@ library.add(
   FaSolid.faArrowLeft,
   FaSolid.faArrowRight,
   FaSolid.faRightFromBracket,
+  FaSolid.faExclamationCircle,
   FaSolid.faExclamationTriangle,
   FaSolid.faFileArrowDown,
   FaSolid.faFileImport,

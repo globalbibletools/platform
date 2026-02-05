@@ -4,6 +4,7 @@ const API_KEY = process.env.BIBLE_SYSTEMS_API_KEY;
 
 export interface Language {
   code: string;
+  name: string;
   glossCount: number;
 }
 
@@ -28,10 +29,12 @@ const getLanguagesResponseSchema = z
     languages_chirho: z.array(
       z
         .object({
+          name_chirho: z.string(),
           code_chirho: z.string(),
           gloss_count_chirho: z.number(),
         })
         .transform<Language>((language) => ({
+          name: language.name_chirho,
           code: language.code_chirho,
           glossCount: language.gloss_count_chirho,
         })),
