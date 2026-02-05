@@ -2,7 +2,7 @@
 
 import Button, { ActionProps } from "./Button";
 import { FormState } from "./Form";
-import { useEffect, useRef, useActionState } from "react";
+import { useEffect, useRef, useActionState, startTransition } from "react";
 import { useFlash } from "../flash";
 import ConfirmModal, { ConfirmModalRef } from "./ConfirmModal";
 
@@ -50,7 +50,10 @@ export default function ServerAction({
         form.set(key, value.toString());
       }
     }
-    serverAction(form);
+
+    startTransition(() => {
+      serverAction(form);
+    });
   }
 
   return (
