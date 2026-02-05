@@ -2,14 +2,14 @@ import { getDb } from "@/db";
 import { TRANSLATION_JOB_TYPES } from "../jobs/jobType";
 import { JobStatus } from "@/shared/jobs/model";
 
-interface AIGlossesImportJobReadModel {
+interface AIGlossImportJobReadModel {
   updatedAt: Date;
   status: JobStatus;
 }
 
-export async function getAIGlossesImportJobReadModel(
+export async function getAIGlossImportJobReadModel(
   code: string,
-): Promise<AIGlossesImportJobReadModel | undefined> {
+): Promise<AIGlossImportJobReadModel | undefined> {
   const job = await getDb()
     .selectFrom("job")
     .where("type", "=", TRANSLATION_JOB_TYPES.IMPORT_AI_GLOSSES)

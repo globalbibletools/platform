@@ -8,7 +8,7 @@ export interface Language {
   glossCount: number;
 }
 
-export const machineGlossGenerationService = {
+export const aiGlossImportService = {
   async getAvailableLanguages(): Promise<Array<Language>> {
     const response = await fetch(
       "https://global-tools.bible.systems/api-chirho/v1-chirho/languages-chirho",

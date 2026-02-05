@@ -9,6 +9,7 @@ import { Suspense } from "react";
 import { Icon } from "@/components/Icon";
 import LegacyGlossImportForm from "./LegacyImportForm";
 import AIGlossesImportForm from "./AIGlossesImportForm";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface LanguageImportPageProps {
   params: Promise<{ code: string }>;
@@ -64,7 +65,7 @@ export default async function LanguageImportPage(
           </p>
         </div>
         <div className="shrink-0 w-80">
-          <Suspense>
+          <Suspense fallback={<LoadingSpinner className="w-fit" />}>
             <LegacyGlossImportForm code={params.code} />
           </Suspense>
         </div>
@@ -87,7 +88,7 @@ export default async function LanguageImportPage(
           </p>
         </div>
         <div className="shrink-0 w-80">
-          <Suspense>
+          <Suspense fallback={<LoadingSpinner className="w-fit" />}>
             <AIGlossesImportForm code={params.code} />
           </Suspense>
         </div>

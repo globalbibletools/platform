@@ -2,16 +2,15 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import Poller from "./Poller";
 import { Icon } from "@/components/Icon";
 import ServerAction from "@/components/ServerAction";
-import { format } from "date-fns";
 import { importAIGlosses } from "../actions/importAIGlosses";
-import { getAIGlossesImportJobReadModel } from "../read-models/getAIGlossesImportJobReadModel";
+import { getAIGlossImportJobReadModel } from "../read-models/getAIGlossImportJobReadModel";
 import { JobStatus } from "@/shared/jobs/model";
-import { getAvailableLanguagesForAIGlossImportReadModel } from "../read-models/getAvailableLanguagesForAIGlossImportReadModel";
+import { getAIGlossImportLanguagesReadModel } from "../read-models/getAIGlossImportLanguagesReadModel";
 import { getClientTimezone } from "@/shared/i18n/getClientTimezone";
 import { getLocale } from "next-intl/server";
 
 export default async function AIGlossesImportForm({ code }: { code: string }) {
-  const job = await getAIGlossesImportJobReadModel(code);
+  const job = await getAIGlossImportJobReadModel(code);
   const tz = await getClientTimezone();
   const locale = await getLocale();
 
@@ -27,8 +26,7 @@ export default async function AIGlossesImportForm({ code }: { code: string }) {
       </>
     );
   } else {
-    const availableLanguages =
-      await getAvailableLanguagesForAIGlossImportReadModel();
+    const availableLanguages = await getAIGlossImportLanguagesReadModel();
     const language = availableLanguages.find((lang) => lang.code === code);
     if (!language) {
       return (
