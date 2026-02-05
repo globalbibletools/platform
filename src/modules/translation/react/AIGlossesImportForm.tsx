@@ -1,15 +1,20 @@
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Poller from "./Poller";
 import { Icon } from "@/components/Icon";
-import { machineGlossGenerationService } from "../data-access/machineGlossGenerationService";
 import ServerAction from "@/components/ServerAction";
 import { format } from "date-fns";
 import { importAIGlosses } from "../actions/importAIGlosses";
+import { getAIGlossesImportJobReadModel } from "../read-models/getAIGlossesImportJobReadModel";
+import { JobStatus } from "@/shared/jobs/model";
+import { getAvailableLanguagesForAIGlossImportReadModel } from "../read-models/getAvailableLanguagesForAIGlossImportReadModel";
 
 export default async function AIGlossesImportForm({ code }: { code: string }) {
-  const job = null as { succeeded?: boolean; completedOn?: Date } | null;
+  const job = await getAIGlossesImportJobReadModel(code);
 
-  if (job && typeof job.succeeded !== "boolean") {
+  if (
+    job?.status === JobStatus.Pending ||
+    job?.status === JobStatus.InProgress
+  ) {
     return (
       <>
         <p className="mb-2">AI gloss import running</p>
@@ -19,7 +24,7 @@ export default async function AIGlossesImportForm({ code }: { code: string }) {
     );
   } else {
     const availableLanguages =
-      await machineGlossGenerationService.getAvailableLanguages();
+      await getAvailableLanguagesForAIGlossImportReadModel();
     const language = availableLanguages.find((lang) => lang.code === code);
     if (!language) {
       return (
@@ -36,9 +41,9 @@ export default async function AIGlossesImportForm({ code }: { code: string }) {
 
     return (
       <>
-        {typeof job?.succeeded === "boolean" && (
+        {job && (
           <div className="mb-4 flex gap-2 items-top">
-            {job.succeeded ?
+            {job.status === JobStatus.Complete ?
               <Icon
                 icon="check-circle"
                 className="text-green-400 mt-[2px]"
@@ -52,12 +57,12 @@ export default async function AIGlossesImportForm({ code }: { code: string }) {
             }
             <div>
               <p>
-                {job.succeeded ?
+                {job.status === JobStatus.Complete ?
                   "Imported AI glosses successfully!"
                 : "Error importing AI glosses"}
               </p>
               <p className="italic text-sm">
-                {job.completedOn && format(job.completedOn, "MMM dd, yyy")}
+                {format(job.updatedAt, "MMM dd, yyy pp")} UTC
               </p>
             </div>
           </div>
@@ -68,7 +73,7 @@ export default async function AIGlossesImportForm({ code }: { code: string }) {
           actionData={{ code }}
           action={importAIGlosses}
         >
-          {typeof job?.succeeded === "boolean" ? "Import Again" : "Import"}
+          {job ? "Import Again" : "Import"}
         </ServerAction>
       </>
     );

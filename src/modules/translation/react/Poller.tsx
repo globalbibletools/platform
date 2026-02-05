@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import useSWR from "swr";
 
 export interface PollerProps {
@@ -10,7 +11,7 @@ export interface PollerProps {
 export default function Poller({ code }: PollerProps) {
   const router = useRouter();
 
-  const { data } = useSWR(
+  useSWR(
     ["import-progress", code],
     async () => {
       const response = await fetch("./import/progress");
@@ -19,12 +20,13 @@ export default function Poller({ code }: PollerProps) {
     },
     {
       refreshInterval: 15000,
+      onSuccess(data) {
+        if (data?.done) {
+          router.refresh();
+        }
+      },
     },
   );
-
-  if (data?.done) {
-    router.refresh();
-  }
 
   return <></>;
 }
