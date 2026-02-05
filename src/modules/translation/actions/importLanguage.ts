@@ -55,7 +55,7 @@ export async function importLanguage(
   }
 
   const languageQuery = await query<{ id: string }>(
-    `select l.id, from language where code = $1`,
+    `select id from language where code = $1`,
     [request.data.code],
   );
   const language = languageQuery.rows[0];

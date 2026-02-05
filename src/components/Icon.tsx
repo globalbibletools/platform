@@ -25,6 +25,7 @@ library.add(
   FaSolid.faClose,
   FaSolid.faPlus,
   FaSolid.faCheck,
+  FaSolid.faCheckCircle,
   FaSolid.faArrowsRotate,
   FaSolid.faArrowUp,
   FaSolid.faArrowDown,

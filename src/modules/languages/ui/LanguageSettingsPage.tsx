@@ -53,7 +53,7 @@ export default async function LanguageSettingsPage(
   }
 
   return (
-    <div className="px-8 py-6 w-fit overflow-y-auto h-full">
+    <div className="px-8 py-6 w-fit">
       <Form action={updateLanguageSettings} className="max-w-[1000px]">
         <div className="flex items-baseline mb-4">
           <ViewTitle>{t("title")}</ViewTitle>
