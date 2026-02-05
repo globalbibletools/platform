@@ -1,20 +1,13 @@
 import Button from "@/components/Button";
-import ComboboxInput from "@/components/ComboboxInput";
-import FieldError from "@/components/FieldError";
-import Form from "@/components/Form";
-import FormLabel from "@/components/FormLabel";
 import ViewTitle from "@/components/ViewTitle";
 import { Metadata, ResolvingMetadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { importLanguage } from "../actions/importLanguage";
-import { resetImport } from "../actions/resetImport";
-import { query } from "@/db";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import Poller from "./Poller";
 import { Policy } from "@/modules/access";
 import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
-import { legacySiteService } from "../data-access/legacySiteService";
+import { Suspense } from "react";
+import { Icon } from "@/components/Icon";
+import LegacyGlossImportForm from "./LegacyImportForm";
 
 interface LanguageImportPageProps {
   params: Promise<{ code: string }>;
@@ -49,88 +42,32 @@ export default async function LanguageImportPage(
     notFound();
   }
 
-  const job = await fetchImportJob(params.code);
-
-  if (!job) {
-    const languages = await legacySiteService.fetchImportLanguages();
-
-    return (
-      <div className="px-8 py-6 w-fit">
-        <ViewTitle>{t("title")}</ViewTitle>
-        <Form className="max-w-[300px] w-full" action={importLanguage}>
-          <input type="hidden" name="code" value={params.code} />
-          <div className="mb-4">
-            <FormLabel htmlFor="language">{t("form.language")}</FormLabel>
-            <ComboboxInput
-              items={languages.map((l) => ({
-                value: l,
-                label: l,
-              }))}
-              id="language"
-              name="language"
-              className="w-full"
-              aria-describedby="language-error"
-            />
-            <FieldError id="language-error" name="language" />
-          </div>
-          <Button destructive type="submit" className="mb-2">
-            {t("form.submit")}
-          </Button>
-        </Form>
-      </div>
-    );
-  } else if (job.succeeded === true) {
-    return (
-      <div className="px-8 py-6 w-fit">
-        <ViewTitle>{t("title")}</ViewTitle>
-        <p className="mb-4">{t("status.success")}</p>
-        <form action={resetImport}>
-          <input type="hidden" name="code" value={params.code} />
-          <Button type="submit">{t("actions.reset")}</Button>
-        </form>
-      </div>
-    );
-  } else if (job.succeeded === false) {
-    return (
-      <div className="px-8 py-6 w-fit">
-        <ViewTitle>{t("title")}</ViewTitle>
-        <p className="mb-4">{t("status.fail")}</p>
-        <form action={resetImport}>
-          <input type="hidden" name="code" value={params.code} />
-          <Button type="submit">{t("actions.reset")}</Button>
-        </form>
-      </div>
-    );
-  } else {
-    return (
-      <div className="px-8 py-6 w-fit">
-        <ViewTitle>{t("title")}</ViewTitle>
-        <p className="mb-4">{t("status.running")}</p>
-        <div className="flex justify-center">
-          <LoadingSpinner />
+  return (
+    <div className="px-8 py-6 max-w-[1000px]">
+      <ViewTitle className="mb-4">{t("title")}</ViewTitle>
+      <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 pb-8 px-10 border-b border-b-green-300 dark:border-b-blue-800">
+        <div className="grow">
+          <h3 className="font-bold text-lg mb-2">Legacy Glosses</h3>
+          <p className="text-sm mb-2">
+            Import glosses from{" "}
+            <Button
+              href="https://hebrewgreekbible.online"
+              variant="link"
+              target="_blank"
+              rel="noopener"
+            >
+              hebrewgreekbible.online
+              <Icon icon="external-link" className="ms-1" />
+            </Button>
+            .
+          </p>
         </div>
-        <Poller code={params.code} />
-      </div>
-    );
-  }
-}
-
-interface LanguageImportJob {
-  startDate: Date;
-  endDate: Date;
-  succeeded?: boolean;
-}
-
-async function fetchImportJob(
-  code: string,
-): Promise<LanguageImportJob | undefined> {
-  const jobQuery = await query<LanguageImportJob>(
-    `
-        SELECT start_date AS "startDate", end_date AS "endDate", succeeded FROM language_import_job AS j
-        JOIN language AS l ON l.id = j.language_id
-        WHERE l.code = $1
-        `,
-    [code],
+        <div className="shrink-0 w-80">
+          <Suspense>
+            <LegacyGlossImportForm code={params.code} />
+          </Suspense>
+        </div>
+      </section>
+    </div>
   );
-  return jobQuery.rows[0];
 }
