@@ -2,7 +2,6 @@
 
 import * as z from "zod";
 import { getLocale } from "next-intl/server";
-import { query } from "@/db";
 import { FormState } from "@/components/Form";
 import { parseForm } from "@/form-parser";
 import { verifySession } from "@/session";
@@ -10,8 +9,8 @@ import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { serverActionLogger } from "@/server-action";
 import { Policy } from "@/modules/access";
-import { enqueueJob } from "@/shared/jobs/enqueueJob";
-import { TRANSLATION_JOB_TYPES } from "../jobs/jobType";
+import { NotFoundError } from "@/shared/errors";
+import { enqueueAIGlossImportJob } from "../use-cases/enqueueAIGlossImportJob";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -44,19 +43,17 @@ export async function importAIGlosses(
     };
   }
 
-  const languageQuery = await query<{ id: string }>(
-    `select id from language where code = $1`,
-    [request.data.code],
-  );
-  const language = languageQuery.rows[0];
-  if (!language) {
-    logger.error("not found");
-    notFound();
+  try {
+    await enqueueAIGlossImportJob({
+      languageCode: request.data.code,
+    });
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      logger.error("not found");
+      notFound();
+    }
+    throw error;
   }
-
-  await enqueueJob(TRANSLATION_JOB_TYPES.IMPORT_AI_GLOSSES, {
-    languageCode: request.data.code,
-  });
 
   revalidatePath(`/${locale}/admin/languages/${request.data.code}/import`);
 
