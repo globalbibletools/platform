@@ -7,9 +7,13 @@ import { importAIGlosses } from "../actions/importAIGlosses";
 import { getAIGlossesImportJobReadModel } from "../read-models/getAIGlossesImportJobReadModel";
 import { JobStatus } from "@/shared/jobs/model";
 import { getAvailableLanguagesForAIGlossImportReadModel } from "../read-models/getAvailableLanguagesForAIGlossImportReadModel";
+import { getClientTimezone } from "@/shared/i18n/getClientTimezone";
+import { getLocale } from "next-intl/server";
 
 export default async function AIGlossesImportForm({ code }: { code: string }) {
   const job = await getAIGlossesImportJobReadModel(code);
+  const tz = await getClientTimezone();
+  const locale = await getLocale();
 
   if (
     job?.status === JobStatus.Pending ||
@@ -62,7 +66,11 @@ export default async function AIGlossesImportForm({ code }: { code: string }) {
                 : "Error importing AI glosses"}
               </p>
               <p className="italic text-sm">
-                {format(job.updatedAt, "MMM dd, yyy pp")} UTC
+                {new Intl.DateTimeFormat(locale, {
+                  timeZone: tz,
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                }).format(job.updatedAt)}
               </p>
             </div>
           </div>

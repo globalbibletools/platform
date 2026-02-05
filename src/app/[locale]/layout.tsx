@@ -9,6 +9,7 @@ import { FlashProvider } from "@/flash";
 import { AnalyticsProvider } from "@/analytics";
 import { routing } from "@/shared/i18n/routing";
 import { notFound } from "next/navigation";
+import TimezoneTracker from "@/shared/i18n/TimezoneTracker";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("RootLayout");
@@ -38,6 +39,7 @@ export default function RootLayout(props: {
       lang={params.locale}
       dir={language.dir}
     >
+      <TimezoneTracker />
       <AnalyticsProvider id={process.env.FATHOM_ID} />
       <body>
         <NextIntlClientProvider
