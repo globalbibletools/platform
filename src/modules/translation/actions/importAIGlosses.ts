@@ -10,6 +10,8 @@ import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { serverActionLogger } from "@/server-action";
 import { Policy } from "@/modules/access";
+import { enqueueJob } from "@/shared/jobs/enqueueJob";
+import { TRANSLATION_JOB_TYPES } from "../jobs/jobType";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -51,6 +53,10 @@ export async function importAIGlosses(
     logger.error("not found");
     notFound();
   }
+
+  await enqueueJob(TRANSLATION_JOB_TYPES.IMPORT_AI_GLOSSES, {
+    languageCode: request.data.code,
+  });
 
   revalidatePath(`/${locale}/admin/languages/${request.data.code}/import`);
 
