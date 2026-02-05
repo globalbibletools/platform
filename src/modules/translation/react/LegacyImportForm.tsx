@@ -6,11 +6,11 @@ import FormLabel from "@/components/FormLabel";
 import { getTranslations } from "next-intl/server";
 import { importLanguage } from "../actions/importLanguage";
 import { resetImport } from "../actions/resetImport";
-import { query } from "@/db";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Poller from "./Poller";
 import { legacySiteService } from "../data-access/legacySiteService";
 import { Icon } from "@/components/Icon";
+import { getLegacyGlossImportJobReadModel } from "../read-models/getLegacyGlossImportJobReadModel";
 
 export default async function LegacyGlossImportForm({
   code,
@@ -18,9 +18,7 @@ export default async function LegacyGlossImportForm({
   code: string;
 }) {
   const t = await getTranslations("LanguageImportPage");
-  const job = await fetchImportJob(code);
-
-  await new Promise((resolve) => setTimeout(resolve, 10000));
+  const job = await getLegacyGlossImportJobReadModel(code);
 
   if (!job) {
     const languages = await legacySiteService.fetchImportLanguages();
@@ -86,24 +84,4 @@ export default async function LegacyGlossImportForm({
       </>
     );
   }
-}
-
-interface LanguageImportJob {
-  startDate: Date;
-  endDate: Date;
-  succeeded?: boolean;
-}
-
-async function fetchImportJob(
-  code: string,
-): Promise<LanguageImportJob | undefined> {
-  const jobQuery = await query<LanguageImportJob>(
-    `
-        SELECT start_date AS "startDate", end_date AS "endDate", succeeded FROM language_import_job AS j
-        JOIN language AS l ON l.id = j.language_id
-        WHERE l.code = $1
-        `,
-    [code],
-  );
-  return jobQuery.rows[0];
 }
