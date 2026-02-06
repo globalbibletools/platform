@@ -8,7 +8,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
       TEST_DATABASE_URL: postgresql://postgres:asdfasdf@test_db:5432/postgres
-      JOB_FUNCTION_URL: http://job_worker:8080/2015-03-31/functions/function/invocations
+      JOB_FUNCTION_URL: http://job_worker:3000
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
@@ -40,9 +40,9 @@ services:
       EXPORT_PUBLIC_S3_ENDPOINT: http://localhost:4566
     volumes:
       - ./:/app
-      - platform-node-modules:/app/node_modules
+      - job-worker-node-modules:/app/node_modules
     ports:
-      - 9000:8080
+      - 9000:3000
     depends_on:
       db:
         condition: service_healthy
@@ -121,4 +121,5 @@ services:
 volumes:
   db-data:
   platform-node-modules:
+  job-worker-node-modules:
   docs-node-modules:

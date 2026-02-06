@@ -13,7 +13,11 @@ ENV NODE_ENV=production
 COPY --from=build /app/dist/job-worker.js ${LAMBDA_TASK_ROOT}
 CMD ["job-worker.handler"]
 
-FROM public.ecr.aws/lambda/nodejs:20 AS dev
-COPY --from=build /app/dist/job-worker.js ${LAMBDA_TASK_ROOT}
-CMD ["job-worker.handler"]
+FROM node:20-slim AS dev
+WORKDIR /app
+COPY . .
+ENV PORT=3000
+ENV NODE_ENV=development
+EXPOSE 3000
+CMD npm ci && npm run dev:job-worker
 
