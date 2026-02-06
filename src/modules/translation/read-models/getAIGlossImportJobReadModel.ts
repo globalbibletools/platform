@@ -3,6 +3,7 @@ import { TRANSLATION_JOB_TYPES } from "../jobs/jobType";
 import { JobStatus } from "@/shared/jobs/model";
 
 interface AIGlossImportJobReadModel {
+  id: string;
   updatedAt: Date;
   status: JobStatus;
 }
@@ -16,7 +17,7 @@ export async function getAIGlossImportJobReadModel(
     .where("payload", "@>", { languageCode: code })
     .orderBy("created_at", "desc")
     .limit(1)
-    .select(["status", "updated_at as updatedAt"])
+    .select(["id", "status", "updated_at as updatedAt"])
     .executeTakeFirst();
 
   return job;

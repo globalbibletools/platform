@@ -2,12 +2,13 @@
 
 import * as z from "zod";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { verifySession } from "@/session";
 import { Policy } from "@/modules/access";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import { requestInterlinearExport as requestInterlinearExportUseCase } from "../use-cases/requestInterlinearExport";
+import { revalidatePath } from "next/cache";
 
 const exportPolicy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
@@ -69,14 +70,19 @@ export async function requestInterlinearExport(
       languageCode: parsed.data.languageCode,
       requestedBy: userId,
     });
-
-    return {
-      state: "success",
-    };
   } catch (error) {
     logger.error({ err: error }, "failed to request export");
     return { state: "error", error: t("errors.export_failed") };
   }
+
+  const locale = await getLocale();
+  revalidatePath(
+    `/${locale}/admin/languages/${parsed.data.languageCode}/exports`,
+  );
+
+  return {
+    state: "success",
+  };
 }
 
 export default requestInterlinearExport;

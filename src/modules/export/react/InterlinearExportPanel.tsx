@@ -5,7 +5,7 @@ import Form from "@/components/Form";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import exportJobQueryService from "../data-access/ExportJobQueryService";
-import ExportJobStatusPoller from "./ExportJobStatusPoller";
+import JobStatusPoller from "@/shared/jobs/ui/JobStatusPoller";
 
 export default async function InterlinearExportPanel({
   languageCode,
@@ -102,7 +102,7 @@ export default async function InterlinearExportPanel({
           </div>
         )}
 
-        {pendingJob && <ExportJobStatusPoller code={languageCode} />}
+        {pendingJob && <JobStatusPoller jobId={pendingJob.id} />}
       </div>
     </section>
   );
