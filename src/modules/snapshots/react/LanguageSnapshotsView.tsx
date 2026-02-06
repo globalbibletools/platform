@@ -18,10 +18,10 @@ import Pagination from "@/components/Pagination";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import SnapshotJobStatusPoller from "./SnapshotJobStatusPoller";
 import { restoreLanguageSnapshotAction } from "../actions/restoreLanguageSnapshot";
 import { Icon } from "@/components/Icon";
 import { SNAPSHOT_JOB_TYPES } from "../jobs/jobTypes";
+import JobStatusPoller from "@/shared/jobs/ui/JobStatusPoller";
 
 export async function generateMetadata(
   _: any,
@@ -83,7 +83,7 @@ export default async function LanguageSettingsPage(props: {
               : pendingJob.type === SNAPSHOT_JOB_TYPES.RESTORE_SNAPSHOT ?
                 "Restoring snapshot..."
               : "Unknown snapshot action in progress"}
-              <SnapshotJobStatusPoller code={params.code} />
+              <JobStatusPoller jobId={pendingJob.id} />
             </div>
           : <ServerAction
               action={createLanguageSnapshotAction}
