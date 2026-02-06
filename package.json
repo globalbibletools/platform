@@ -2,8 +2,9 @@
   "name": "platform",
   "scripts": {
     "dev": "next dev",
+    "dev:job-worker": "node src/shared/jobs/bin/workerDevServer.js",
     "build": "next build",
-    "build:job-worker": "esbuild src/shared/jobs/worker.ts --bundle --outfile=dist/job-worker.js --format=cjs --platform=node --target=node20",
+    "build:job-worker": "esbuild src/shared/jobs/bin/worker.ts --bundle --outfile=dist/job-worker.js --format=cjs --platform=node --target=node20",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier . --write",
