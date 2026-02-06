@@ -8,6 +8,7 @@ import { JobStatus } from "@/shared/jobs/model";
 import { getAIGlossImportLanguagesReadModel } from "../read-models/getAIGlossImportLanguagesReadModel";
 import { getClientTimezone } from "@/shared/i18n/getClientTimezone";
 import { getLocale } from "next-intl/server";
+import JobStatusPoller from "@/shared/jobs/ui/JobStatusPoller";
 
 export default async function AIGlossesImportForm({ code }: { code: string }) {
   const job = await getAIGlossImportJobReadModel(code);
@@ -22,7 +23,7 @@ export default async function AIGlossesImportForm({ code }: { code: string }) {
       <>
         <p className="mb-2">AI gloss import running</p>
         <LoadingSpinner className="w-fit" />
-        <Poller code={code} />
+        <JobStatusPoller jobId={job.id} />
       </>
     );
   } else {
