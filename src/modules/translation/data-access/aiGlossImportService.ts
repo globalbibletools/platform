@@ -1,4 +1,5 @@
 import * as z from "zod";
+import verseCounts from "@/data/verse-counts.json";
 
 const API_KEY = process.env.BIBLE_SYSTEMS_API_KEY;
 
@@ -27,25 +28,22 @@ export const aiGlossImportService = {
     return getLanguagesResponseSchema.parse(rawData);
   },
 
-  async getGlossesForChapter({
-    bookId,
-    chapter,
-    languageCode,
-  }: {
-    bookId: number;
-    chapter: number;
-    languageCode: string;
-  }): Promise<Array<AIGloss>> {
-    const response = await fetch(
-      `https://global-tools.bible.systems/api-chirho/v1-chirho/glosses-chirho/${languageCode}/${bookId}/${chapter}`,
-      {
-        headers: {
-          Authorization: `Bearer ${API_KEY}`,
-        },
-      },
-    );
-    const rawData = await response.json();
-    return getChapterGlossesResponseSchema.parse(rawData);
+  async *streamGlosses(languageCode: string): AsyncGenerator<Array<AIGloss>> {
+    for (let bookId = 0; bookId < verseCounts.length; bookId++) {
+      const chapters = verseCounts[bookId];
+      for (let chapter = 0; chapter < chapters.length; chapter++) {
+        const response = await fetch(
+          `https://global-tools.bible.systems/api-chirho/v1-chirho/glosses-chirho/${languageCode}/${bookId + 1}/${chapter + 1}`,
+          {
+            headers: {
+              Authorization: `Bearer ${API_KEY}`,
+            },
+          },
+        );
+        const rawData = await response.json();
+        yield getChapterGlossesResponseSchema.parse(rawData);
+      }
+    }
   },
 };
 
