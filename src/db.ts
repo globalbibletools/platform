@@ -23,6 +23,7 @@ import {
   BookTable,
   LemmaFormTable,
   LemmaResourceTable,
+  LemmaTable,
   VerseCommentaryTable,
   VerseQuestionTable,
   VerseTable,
@@ -49,6 +50,7 @@ export interface Database {
   language: LanguageTable;
   language_member: LanguageMemberTable;
   language_progress: LanguageProgressView;
+  lemma: LemmaTable;
   lemma_form: LemmaFormTable;
   lemma_resource: LemmaResourceTable;
   machine_gloss: MachineGlossTable;
