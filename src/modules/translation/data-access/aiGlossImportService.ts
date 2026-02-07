@@ -73,11 +73,11 @@ const getChapterGlossesResponseSchema = z
           z
             .object({
               id_chirho: z.string(),
-              text_chirho: z.string().optional(),
+              gloss_chirho: z.string().optional(),
             })
             .transform((word) => ({
               wordId: word.id_chirho,
-              gloss: word.text_chirho,
+              gloss: word.gloss_chirho,
             })),
         ),
       }),

@@ -1,4 +1,4 @@
-import { copyStreamV2 } from "@/db";
+import { copyStreamV2, getDb } from "@/db";
 import { Readable } from "stream";
 
 interface StreamedMachineGloss {
@@ -14,6 +14,11 @@ export const machineGlossRepository = {
     languageId: string;
     stream: Readable;
   }): Promise<void> {
+    await getDb()
+      .deleteFrom("machine_gloss")
+      .where("language_id", "=", languageId)
+      .execute();
+
     await copyStreamV2<StreamedMachineGloss, "machine_gloss">({
       table: "machine_gloss",
       stream,
