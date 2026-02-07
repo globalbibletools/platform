@@ -47,3 +47,10 @@ export interface PhraseWordTable {
   phrase_id: number;
   word_id: string;
 }
+
+export interface MachineGlossTable {
+  id: Generated<number>;
+  word_id: string;
+  language_id: string;
+  gloss: string;
+}

@@ -403,22 +403,6 @@ END;
 $$;
 
 
---
--- Name: machine_gloss_audit(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.machine_gloss_audit() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-    INSERT INTO machine_gloss_history AS c (machine_gloss_id, gloss, updated_at, updated_by)
-    VALUES (OLD."id", OLD.gloss, OLD.updated_at, OLD.updated_by);
-
-    RETURN NULL;
-END;
-$$;
-
-
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -1493,13 +1477,6 @@ CREATE TRIGGER gloss_audit AFTER DELETE OR UPDATE ON public.gloss FOR EACH ROW E
 --
 
 CREATE TRIGGER increment_suggestion AFTER INSERT OR UPDATE OF gloss, state ON public.gloss FOR EACH ROW EXECUTE FUNCTION public.increment_suggestion();
-
-
---
--- Name: machine_gloss machine_gloss_audit; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER machine_gloss_audit AFTER DELETE OR UPDATE ON public.machine_gloss FOR EACH ROW EXECUTE FUNCTION public.machine_gloss_audit();
 
 
 --

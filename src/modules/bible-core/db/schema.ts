@@ -34,7 +34,7 @@ export interface WordLexiconTable {
   content: string;
 }
 
-export interface Lemma {
+export interface LemmaTable {
   id: string;
 }
 

@@ -2,7 +2,7 @@ import pg, { type QueryResult, type QueryResultRow } from "pg";
 import QueryStream from "pg-query-stream";
 import { from as copyFrom } from "pg-copy-streams";
 import { logger } from "./logging";
-import { Readable } from "stream";
+import { Readable, Transform } from "stream";
 import { pipeline } from "stream/promises";
 
 import {
@@ -10,7 +10,7 @@ import {
   LanguageProgressView,
   LanguageTable,
 } from "@/modules/languages/db/schema";
-import { Kysely, PostgresDialect } from "kysely";
+import { Generated, Kysely, PostgresDialect } from "kysely";
 import {
   ResetPasswordTokenTable,
   SessionTable,
@@ -23,6 +23,7 @@ import {
   BookTable,
   LemmaFormTable,
   LemmaResourceTable,
+  LemmaTable,
   VerseCommentaryTable,
   VerseQuestionTable,
   VerseTable,
@@ -33,6 +34,7 @@ import {
   FootnoteTable,
   GlossHistoryTable,
   GlossTable,
+  MachineGlossTable,
   PhraseTable,
   PhraseWordTable,
   TranslatorNoteTable,
@@ -48,8 +50,10 @@ export interface Database {
   language: LanguageTable;
   language_member: LanguageMemberTable;
   language_progress: LanguageProgressView;
+  lemma: LemmaTable;
   lemma_form: LemmaFormTable;
   lemma_resource: LemmaResourceTable;
+  machine_gloss: MachineGlossTable;
   phrase: PhraseTable;
   phrase_word: PhraseWordTable;
   reset_password_token: ResetPasswordTokenTable;
@@ -165,4 +169,79 @@ export async function reconnect() {
 
   _db = undefined;
   _pool = undefined;
+}
+
+export async function copyStreamV2<
+  Record = unknown,
+  Table extends keyof Database = keyof Database,
+>({
+  table,
+  stream,
+  fields,
+}: {
+  table: Table;
+  stream: Readable;
+  fields: FieldMappers<Record, Database[Table]>;
+}): Promise<void> {
+  const fieldArray = Object.entries<FieldMapper<Record>>(fields);
+  const fieldQuery = fieldArray.map(([name]) => name).join(",");
+  const transform = new PostgresTextFormatTransform(
+    fieldArray.map(([, mapper]) => mapper),
+  );
+
+  const client = await getPool().connect();
+  try {
+    const dbStream = client.query(
+      copyFrom(`copy ${table}(${fieldQuery}) from stdin`),
+    );
+    await pipeline(stream, transform, dbStream);
+  } finally {
+    client.release();
+  }
+}
+
+export type FieldMapper<T> = (record: T) => string;
+
+type IsGenerated<T> = T extends Generated<any> ? true : false;
+type FieldMappers<Record, Table> = {
+  [K in keyof Table as IsGenerated<Table[K]> extends true ? K
+  : never]?: FieldMapper<Record>;
+} & {
+  [K in keyof Table as IsGenerated<Table[K]> extends false ? K
+  : never]: FieldMapper<Record>;
+};
+
+class PostgresTextFormatTransform extends Transform {
+  constructor(private fieldMappers: FieldMapper<any>[]) {
+    super({
+      writableObjectMode: true,
+    });
+  }
+
+  override _transform(
+    chunk: any,
+    _encoding: string,
+    cb: (err?: Error) => void,
+  ) {
+    chunk = Array.isArray(chunk) ? chunk : [chunk];
+
+    for (const record of chunk) {
+      for (let i = 0; i < this.fieldMappers.length; i++) {
+        this.push(this.fieldMappers[i](record) ?? "\\N");
+
+        if (i < this.fieldMappers.length - 1) {
+          this.push("\t");
+        }
+      }
+
+      this.push("\n");
+    }
+
+    cb();
+  }
+
+  override _flush(cb: (err?: Error) => void) {
+    this.push("\\.\n");
+    cb();
+  }
 }
