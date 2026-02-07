@@ -209,7 +209,7 @@ type FieldMappers<Record, Table> = {
   : never]: FieldMapper<Record>;
 };
 
-export class PostgresTextFormatTransform extends Transform {
+class PostgresTextFormatTransform extends Transform {
   constructor(private fieldMappers: FieldMapper<any>[]) {
     super({
       writableObjectMode: true,
