@@ -130,8 +130,8 @@ export default function TranslateWord({
       formData.set("method", GlossApprovalMethodRaw.UserInput);
     }
 
-    // TODO: handle errors in this result
-    const _result = await updateGlossAction(formData);
+    // TODO: handle errors in the result
+    await updateGlossAction(formData);
 
     mutate({
       type: "book-progress",

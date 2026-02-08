@@ -25,7 +25,7 @@ export default async function EmailVerificationView(props: Props) {
 
   try {
     await verifyEmail({ token: searchParams.token ?? "" });
-  } catch (error) {
+  } catch {
     return (
       <ModalView className="max-w-[480px] w-full">
         <p className="max-w-[320px] text-center mx-auto">

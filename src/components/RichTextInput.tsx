@@ -137,7 +137,7 @@ const RichTextInput = forwardRef<RichTextInputRef, RichTextInputProps>(
               />
             </div>
           </div>
-          <Tiptap.Content className="py-2 px-3 shadow-inner" />
+          <Tiptap.Content name={name} className="py-2 px-3 shadow-inner" />
         </Tiptap>
       </div>
     );

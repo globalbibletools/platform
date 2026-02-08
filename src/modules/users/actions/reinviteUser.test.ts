@@ -1,7 +1,6 @@
 import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
-import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { reinviteUserAction } from "./reinviteUser";
@@ -50,7 +49,7 @@ test("returns not found if user is not a platform admin", async () => {
   const existingUser = await userFactory.build({
     hashedPassword: null,
   });
-  const invite = await invitationFactory.build({
+  await invitationFactory.build({
     userId: existingUser.id,
   });
 

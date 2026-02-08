@@ -25,7 +25,7 @@ test("fetches the first page", async () => {
     englishName: "French",
     localName: "Français",
   });
-  const lang3 = await languageFactory.build({
+  await languageFactory.build({
     code: "spa",
     englishName: "Spanish",
     localName: "Español",
@@ -55,12 +55,12 @@ test("fetches the first page", async () => {
 });
 
 test("fetches the second page", async () => {
-  const lang1 = await languageFactory.build({
+  await languageFactory.build({
     code: "deu",
     englishName: "German",
     localName: "Deutsch",
   });
-  const lang2 = await languageFactory.build({
+  await languageFactory.build({
     code: "ita",
     englishName: "Italian",
     localName: "Italiano",

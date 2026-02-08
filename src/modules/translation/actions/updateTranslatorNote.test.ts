@@ -156,7 +156,7 @@ test("updates an existing gloss for the phrase", async () => {
   const phrase = await phraseFactory.build({
     languageId: language.id,
   });
-  const translatorNote = await translatorNoteFactory.build({
+  await translatorNoteFactory.build({
     phraseId: phrase.id,
     authorId: translator.id,
   });

@@ -1,4 +1,3 @@
-import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect, vi, vitest } from "vitest";
 import mockUserRepo from "../data-access/mockUserRepository";
 import { startPasswordReset } from "./startPasswordReset";

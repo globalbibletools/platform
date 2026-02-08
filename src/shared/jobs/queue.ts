@@ -62,9 +62,8 @@ export class LocalQueue implements Queue {
     });
   }
 
-  async extendTimeout(_handle: string, _timeout: number) {
-    // Nothing to do since the local queue isn't really a queue.
-  }
+  // Nothing to do since the local queue isn't really a queue.
+  async extendTimeout() {}
 }
 
 const sqsCredentials =

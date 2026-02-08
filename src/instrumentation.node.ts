@@ -1,4 +1,3 @@
-import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { AWSXRayIdGenerator } from "@opentelemetry/id-generator-aws-xray";
 import { AwsInstrumentation } from "@opentelemetry/instrumentation-aws-sdk";
@@ -13,6 +12,7 @@ import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 console.log("Starting tracing");
 
 // Uncomment to view what would be sent to otel collector
+// import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
 // diag.setLogger(new DiagConsoleLogger(), {
 //     logLevel: DiagLogLevel.ALL
 // })

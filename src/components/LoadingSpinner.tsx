@@ -4,7 +4,6 @@ export interface LoadingSpinnerProps {
 }
 
 export default function LoadingSpinner({
-  dark = false,
   className = "",
 }: LoadingSpinnerProps) {
   return (

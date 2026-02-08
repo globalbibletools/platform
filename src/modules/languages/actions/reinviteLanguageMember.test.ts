@@ -2,8 +2,6 @@ import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
-import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
-import { UserStatusRaw } from "@/modules/users/model/UserStatus";
 import { reinviteLanguageMemberAction } from "./reinviteLanguageMember";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
