@@ -23,6 +23,17 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "assets.globalbibletools.com",
+        port: "",
+        pathname: "/**",
+        search: "",
+      },
+    ],
+  },
   output: "standalone",
   serverExternalPackages: ["@opentelemetry/sdk-node"],
 };

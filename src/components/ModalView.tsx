@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import LanguageDialog from "../shared/ui/LanguageDialog";
+import Image from "next/image";
 
 export interface ModalViewProps {
   className?: string;
@@ -25,10 +26,12 @@ export default function ModalView({
           className="flex items-center rounded-sm focus-visible:outline-2 outline-green-300"
           href="/read"
         >
-          <img
+          <Image
             src="https://assets.globalbibletools.com/landing/logo.png"
             alt=""
             className="w-10 h-10"
+            width={440}
+            height={440}
           />
           <h1 className="font-bold mx-2">{t("app_name")}</h1>
         </Link>

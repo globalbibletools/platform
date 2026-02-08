@@ -11,6 +11,7 @@ import {
   HeaderMenuItems,
 } from "./HeaderLink";
 import { verifySession } from "@/session";
+import Image from "next/image";
 
 export default async function PrimaryNavigation() {
   const t = await getTranslations("PrimaryNavigation");
@@ -33,11 +34,12 @@ export default async function PrimaryNavigation() {
         href={session ? `/${locale}/dashboard` : "/"}
         className="flex items-center me-8"
       >
-        <img
+        <Image
           src="https://assets.globalbibletools.com/landing/logo.png"
           className="w-10 h-10"
           alt=""
-          aria-hidden="true"
+          width={440}
+          height={440}
         />
         <h1 className="font-bold ms-2 text-lg">{t("app_name")}</h1>
       </Link>

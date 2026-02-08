@@ -2,6 +2,7 @@ import { query } from "@/db";
 import ProgressChart from "./ProgressChart";
 import { Icon } from "@/components/Icon";
 import { verifySession } from "@/session";
+import Image from "next/image";
 
 export default async function LandingPage() {
   const [session, stats] = await Promise.all([
@@ -13,9 +14,12 @@ export default async function LandingPage() {
     <div className="text-gray-800">
       <nav className="min-[800px]:sticky top-0 z-10 bg-white flex items-center h-20 border-b border-gray-200 relative shrink-0 px-4 md:px-8">
         <a href="#hero" className="flex items-center mr-2 md:mr-4 lg:mr-12">
-          <img
+          <Image
             src="https://assets.globalbibletools.com/landing/logo.png"
             className="w-8 h-8 sm:w-10 sm:h-10 lg:w-14 lg:h-14"
+            alt="logo"
+            width={440}
+            height={440}
           />
           <h1 className="font-bold ms-2 text-base sm:text-lg lg:text-2xl">
             Global Bible Tools
@@ -56,9 +60,12 @@ export default async function LandingPage() {
       </nav>
       <main>
         <section id="hero" className="relative">
-          <img
+          <Image
             src="https://assets.globalbibletools.com/landing/hero.png"
             className="w-full brightness-90"
+            alt=""
+            width={1191}
+            height={744}
           />
           <div className="absolute top-0 bottom-0 w-full flex flex-col items-center justify-center sm:mb-10 md:mb-20 px-8">
             <p className="text-white text-center font-bold text-md sm:text-lg md:text-xl lg:text-2xl max-w-[600px] mb-6 sm:mb-16">
