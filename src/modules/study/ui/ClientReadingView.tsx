@@ -1,10 +1,10 @@
 "use client";
 
 import { isOldTestament } from "@/verse-utils";
-import { Fragment, MouseEvent, useEffect, useRef, useState } from "react";
+import { Fragment, MouseEvent, useEffect, useState } from "react";
 import { useFloating, autoUpdate, shift } from "@floating-ui/react-dom";
 import { createPortal } from "react-dom";
-import WordDetails, { WordDetailsRef } from "./WordDetails";
+import WordDetails from "./WordDetails";
 import { useReadingContext } from "./ReadingToolbar";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "next-intl";
@@ -38,16 +38,6 @@ export interface ReadingViewProps {
   language: Language;
   verses: Verse[];
 }
-
-type SelectedElement =
-  | {
-      type: "word";
-      element: VerseWord;
-    }
-  | {
-      type: "verse";
-      element: Verse;
-    };
 
 const textSizeMap: Record<number, string> = {
   1: "text-xs",
