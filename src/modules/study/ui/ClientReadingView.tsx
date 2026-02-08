@@ -87,8 +87,6 @@ export default function ReadingView({
     (w) => w.id === selectedWordId,
   );
 
-  const sidebarRef = useRef<WordDetailsRef>(null);
-
   return (
     <>
       <div className="flex flex-col grow lg:justify-center w-full min-h-0 lg:flex-row">
@@ -194,7 +192,6 @@ export default function ReadingView({
           >
             {selectedWord ?
               <WordDetails
-                ref={sidebarRef}
                 language={language}
                 word={selectedWord}
                 mode={mode}
