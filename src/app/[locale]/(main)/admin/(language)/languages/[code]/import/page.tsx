@@ -1,1 +1,1 @@
-export { default } from "@/modules/translation/react/LanguageImportPage";
+export { default } from "@/modules/translation/ui/LanguageImportPage";

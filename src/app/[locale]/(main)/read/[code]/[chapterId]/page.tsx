@@ -1,1 +1,1 @@
-export { default } from "@/modules/study/react/ServerReadingView";
+export { default } from "@/modules/study/ui/ServerReadingView";

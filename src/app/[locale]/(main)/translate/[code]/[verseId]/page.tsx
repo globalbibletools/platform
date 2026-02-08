@@ -1,1 +1,1 @@
-export { default } from "@/modules/translation/react/ServerTranslationView";
+export { default } from "@/modules/translation/ui/ServerTranslationView";

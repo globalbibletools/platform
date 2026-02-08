@@ -1,1 +1,1 @@
-export { default } from "@/modules/users/react/UserProfileView";
+export { default } from "@/modules/users/ui/UserProfileView";

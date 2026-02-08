@@ -1,1 +1,1 @@
-export { default } from "@/modules/dashboard/react/DashboardView";
+export { default } from "@/modules/dashboard/ui/DashboardView";
