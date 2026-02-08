@@ -1,1 +1,1 @@
-export { default } from "@/modules/users/react/InviteUserPage";
+export { default } from "@/modules/users/ui/InviteUserPage";

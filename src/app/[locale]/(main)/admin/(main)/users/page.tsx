@@ -1,1 +1,1 @@
-export { default } from "@/modules/users/react/AdminUsersPage";
+export { default } from "@/modules/users/ui/AdminUsersPage";
