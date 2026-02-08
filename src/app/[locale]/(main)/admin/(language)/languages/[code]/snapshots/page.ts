@@ -1,1 +1,1 @@
-export { default } from "@/modules/snapshots/react/LanguageSnapshotsView";
+export { default } from "@/modules/snapshots/ui/LanguageSnapshotsView";
