@@ -162,8 +162,8 @@ describe("delete", () => {
       language_id: language.id,
       invited_at: new Date(),
     };
-    await getDb().insertInto("users").values(otherUser).execute(),
-      await getDb().insertInto("language_member").values(otherMember).execute();
+    await getDb().insertInto("users").values(otherUser).execute();
+    await getDb().insertInto("language_member").values(otherMember).execute();
 
     await expect(
       languageMemberRepository.delete(language.id, user.id),
@@ -214,8 +214,8 @@ describe("deleteAll", () => {
       language_id: language.id,
       invited_at: new Date(),
     };
-    await getDb().insertInto("users").values(otherUser).execute(),
-      await getDb().insertInto("language_member").values(otherMember).execute();
+    await getDb().insertInto("users").values(otherUser).execute();
+    await getDb().insertInto("language_member").values(otherMember).execute();
 
     await expect(
       languageMemberRepository.deleteAll(user.id),

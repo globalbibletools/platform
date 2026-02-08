@@ -251,7 +251,7 @@ const userRepository = {
 export default userRepository;
 
 function selectUserFields(
-  query: SelectQueryBuilder<Database, "users", {}>,
+  query: SelectQueryBuilder<Database, "users", any>,
 ): SelectQueryBuilder<Database, "users", DbUserModel> {
   return query.select((eb) => [
     "users.id",
