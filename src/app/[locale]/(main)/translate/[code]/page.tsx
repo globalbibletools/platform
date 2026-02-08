@@ -9,7 +9,7 @@ export default async function Redirect(props: {
   const lastVisited = cookieStore.get("LAST_TRANSLATION")?.value;
 
   if (lastVisited) {
-    const [_, verseId] = lastVisited.split(",");
+    const [verseId] = lastVisited.split(",");
     if (verseId) {
       redirect(`./${params.code}/${verseId}`);
     }

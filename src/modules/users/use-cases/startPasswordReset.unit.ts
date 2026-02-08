@@ -1,4 +1,3 @@
-import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect, vi, vitest } from "vitest";
 import mockUserRepo from "../data-access/mockUserRepository";
 import { startPasswordReset } from "./startPasswordReset";
@@ -40,7 +39,7 @@ test("swallows errors from password reset", async () => {
   mockUserRepo.users = [user];
 
   await startPasswordReset({ email: props.email.address });
-  // @ts-ignore
+  // @ts-expect-error assert on private state
   expect(mockUserRepo.users[0].props).toEqual(props);
   expect(enqueueJob).not.toHaveBeenCalled();
 });
@@ -63,7 +62,7 @@ test("sends password reset email", async () => {
   mockUserRepo.users = [user];
 
   await startPasswordReset({ email: props.email.address });
-  // @ts-ignore
+  // @ts-expect-error assert on private state
   expect(mockUserRepo.users[0].props).toEqual({
     ...props,
     passwordResets: [

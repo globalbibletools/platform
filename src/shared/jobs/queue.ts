@@ -15,7 +15,7 @@ export interface QueuedJob<Payload> {
 }
 
 export interface Queue {
-  add(job: QueuedJob<any>): Promise<void>;
+  add<Payload>(job: QueuedJob<Payload>): Promise<void>;
   extendTimeout(handle: string, timeout: number): Promise<void>;
 }
 
@@ -29,7 +29,7 @@ export class SQSQueue implements Queue {
     this.client = new SQSClient({ credentials });
   }
 
-  async add(job: QueuedJob<any>) {
+  async add<Payload>(job: QueuedJob<Payload>) {
     await this.client.send(
       new SendMessageCommand({
         QueueUrl: this.queueUrl,
@@ -52,7 +52,7 @@ export class SQSQueue implements Queue {
 export class LocalQueue implements Queue {
   constructor(private readonly functionUrl: string) {}
 
-  async add(job: QueuedJob<any>) {
+  async add<Payload>(job: QueuedJob<Payload>) {
     // Queues are fire and forget so we don't await it's return here
     fetch(this.functionUrl, {
       method: "post",
@@ -62,9 +62,8 @@ export class LocalQueue implements Queue {
     });
   }
 
-  async extendTimeout(_handle: string, _timeout: number) {
-    // Nothing to do since the local queue isn't really a queue.
-  }
+  // Nothing to do since the local queue isn't really a queue.
+  async extendTimeout() {}
 }
 
 const sqsCredentials =

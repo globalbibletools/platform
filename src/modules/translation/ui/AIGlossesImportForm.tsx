@@ -1,5 +1,4 @@
 import LoadingSpinner from "@/components/LoadingSpinner";
-import Poller from "./Poller";
 import { Icon } from "@/components/Icon";
 import ServerAction from "@/components/ServerAction";
 import { importAIGlosses } from "../actions/importAIGlosses";

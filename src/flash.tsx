@@ -132,7 +132,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
               leaveTo="opacity-0"
               afterEnter={() => {
                 setMessages((messages) =>
-                  messages.map((m, i) => ({
+                  messages.map((m) => ({
                     ...m,
                     state: "shown",
                   })),

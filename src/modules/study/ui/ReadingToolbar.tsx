@@ -142,7 +142,7 @@ export function useClipboardCopy({
       try {
         await navigator.clipboard.writeText(value);
         flash.success(messageOnSuccess);
-      } catch (error) {
+      } catch {
         flash.error(messageOnError);
       }
     },

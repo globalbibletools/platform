@@ -19,7 +19,6 @@ import ServerAction from "@/components/ServerAction";
 import { redirect } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import Pagination from "@/components/Pagination";
-import { inviteUser } from "@/modules/users/actions/inviteUser";
 import { searchUsersReadModel } from "../read-models/searchUsersReadModel";
 import { reinviteUserAction } from "../actions/reinviteUser";
 
@@ -46,7 +45,7 @@ export default async function AdminUsersPage(props: AdminUsersPageProps) {
   const messages = await getMessages();
   const searchParams = await props.searchParams;
 
-  let page = parseInt(searchParams.page ?? "");
+  const page = parseInt(searchParams.page ?? "");
   if (page <= 0 || isNaN(page) || page.toString() !== searchParams.page) {
     redirect("./users?page=1");
   }

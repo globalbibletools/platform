@@ -1,5 +1,5 @@
 import { query } from "@/db";
-import { getLocale, getMessages } from "next-intl/server";
+import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ReactNode } from "react";
 import TranslationToolbar from "./TranslationToolbar";

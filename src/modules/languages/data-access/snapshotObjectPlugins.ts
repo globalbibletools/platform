@@ -1,5 +1,5 @@
 import { copyStream, query, queryStream } from "@/db";
-import { Readable, Transform } from "stream";
+import { Readable } from "stream";
 import {
   PostgresTextFormatTransform,
   SnapshotObjectPlugin,
