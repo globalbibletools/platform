@@ -1,4 +1,3 @@
-import { SQSRecord } from "aws-lambda";
 import { JobStatus } from "./model";
 import jobRepo from "./JobRepository";
 import jobMap from "./jobMap";
@@ -6,10 +5,23 @@ import queue, { QueuedJob } from "./queue";
 import { logger } from "@/logging";
 import { ulid } from "../ulid";
 
+// These are the only fields from the SQSRecord we care about
+// Typing it like this makes testing in typescript easier.
+interface SQSRecord {
+  body: string;
+  receiptHandle?: string;
+}
+
+const queuedJobSchema = z.object({
+  id: z.string().optional(),
+  type: z.string(),
+  payload: z.any(),
+});
+
 export async function processJob(message: SQSRecord) {
   const jobLogger = logger.child({});
 
-  let queuedJob: QueuedJob<any>;
+  let queuedJob: QueuedJob<unknown>;
   try {
     queuedJob = JSON.parse(message.body);
     jobLogger.debug({ parsedJob: queuedJob }, "Job parsed");

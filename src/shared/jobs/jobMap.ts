@@ -9,26 +9,28 @@ import { EXPORT_JOB_TYPES } from "@/modules/export/jobs/jobTypes";
 import exportInterlinearPdfJob from "@/modules/export/jobs/exportInterlinearPdfJob";
 import { TRANSLATION_JOB_TYPES } from "@/modules/translation/jobs/jobType";
 import { importAIGlosses } from "@/modules/translation/jobs/importAIGlosses";
+import * as z from "zod";
 
 export type JobHandler<Payload, Data = unknown> = (
   job: Job<Payload, Data>,
 ) => Promise<Data>;
+type JobMapEntry<Payload, Data = unknown> = {
+  handler: JobHandler<Payload, Data>;
+  payloadSchema?: z.Schema<Payload>;
+  timeout?: number;
+};
+type JobMap = Record<string, JobMapEntry<any, any>>;
 
-type JobMapEntry<Payload, Data = unknown> =
-  | {
-      handler: JobHandler<Payload, Data>;
-      timeout?: number;
-    }
-  | JobHandler<Payload, Data>;
-
-const jobMap: Record<string, JobMapEntry<any>> = {
+const jobMap = {
   send_email: {
     handler: sendEmailJob,
     timeout: 60 * 5, // 5 minutes
+    payloadSchema: z.any(),
   },
   [REPORTING_JOB_TYPES.EXPORT_ANALYTICS]: {
     handler: exportAnalyticsJob,
     timeout: 60 * 5, // 5 minutes
+    payloadSchema: z.void(),
   },
   [EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF]: {
     handler: exportInterlinearPdfJob,
@@ -46,6 +48,6 @@ const jobMap: Record<string, JobMapEntry<any>> = {
     handler: importAIGlosses,
     timeout: 60 * 15, // 15 minutes
   },
-};
+} as const satisfies JobMap;
 
 export default jobMap;

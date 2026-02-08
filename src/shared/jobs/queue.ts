@@ -11,7 +11,7 @@ export interface QueuedJob<Payload> {
   // Instead we generate it when the job is processed.
   id?: string;
   type: string;
-  payload: Payload;
+  payload?: Payload;
 }
 
 export interface Queue {

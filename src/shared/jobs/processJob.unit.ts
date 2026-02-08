@@ -31,9 +31,11 @@ vitest.mock("./JobRepository", () => ({
   },
 }));
 
-const mockedJob = vitest.mocked<JobHandler<any>>(jobMap.test_job as any);
-const mockedJobWithTimeout = vitest.mocked<JobHandler<any>>(
-  (jobMap.test_job_with_timeout as any).handler,
+const mockedJob = vitest.mocked<JobHandler<void>>(
+  jobMap.test_job as JobHandler<void>,
+);
+const mockedJobWithTimeout = vitest.mocked<JobHandler<void>>(
+  (jobMap.test_job_with_timeout as { handler: JobHandler<void> }).handler,
 );
 const mockedUpdateJob = vitest.mocked(jobRepository.update);
 const mockedCreateJob = vitest.mocked(jobRepository.create);
@@ -75,7 +77,7 @@ test("fails if job has already been executed", async () => {
 
   await processJob({
     body: JSON.stringify(queuedJob),
-  } as any);
+  });
 
   expect(mockedJob).not.toHaveBeenCalled();
   expect(mockedJobWithTimeout).not.toHaveBeenCalled();
@@ -102,7 +104,7 @@ test("fails job if handler is not found", async () => {
 
   await processJob({
     body: JSON.stringify(queuedJob),
-  } as any);
+  });
 
   expect(mockedJob).not.toHaveBeenCalled();
   expect(mockedJobWithTimeout).not.toHaveBeenCalled();
@@ -128,7 +130,7 @@ test("creates job if it does not already exist", async () => {
 
   await processJob({
     body: JSON.stringify(queuedJob),
-  } as any);
+  });
 
   expect(mockedJob).toHaveBeenCalledExactlyOnceWith({
     ...queuedJob,
@@ -174,7 +176,7 @@ test("handles successful job", async () => {
 
   await processJob({
     body: JSON.stringify(queuedJob),
-  } as any);
+  });
 
   expect(mockedJob).toHaveBeenCalledExactlyOnceWith(job);
   expect(mockedJobWithTimeout).not.toHaveBeenCalled();
@@ -215,7 +217,7 @@ test("handles failed job", async () => {
 
   await processJob({
     body: JSON.stringify(queuedJob),
-  } as any);
+  });
 
   expect(mockedJob).toHaveBeenCalledExactlyOnceWith(job);
   expect(mockedJobWithTimeout).not.toHaveBeenCalled();
@@ -254,7 +256,7 @@ test("extends visibility timeout before starting job", async () => {
   await processJob({
     body: JSON.stringify(queuedJob),
     receiptHandle: handle,
-  } as any);
+  });
 
   expect(mockedJobWithTimeout).toHaveBeenCalledExactlyOnceWith(job);
   expect(mockedJob).not.toHaveBeenCalled();
