@@ -225,7 +225,7 @@ export default function ReadingView({
         createPortal(
           <div
             className={`
-              bg-brown-100 dark:bg-gray-800 rounded-xs border border-gray-300 dark:border-gray-700 shadow-xs dark:shadow-none px-1 font-bold
+              bg-brown-100 dark:bg-gray-800 dark:text-gray-300 rounded-xs border border-gray-300 dark:border-gray-700 shadow-xs dark:shadow-none px-1 font-bold z-20
               ${textSizeMap[textSize]}
             `}
             dir={language.textDirection}
