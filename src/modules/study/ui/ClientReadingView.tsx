@@ -1,10 +1,10 @@
 "use client";
 
 import { isOldTestament } from "@/verse-utils";
-import { Fragment, MouseEvent, useEffect, useRef, useState } from "react";
+import { Fragment, MouseEvent, useEffect, useState } from "react";
 import { useFloating, autoUpdate, shift } from "@floating-ui/react-dom";
 import { createPortal } from "react-dom";
-import WordDetails, { WordDetailsRef } from "./WordDetails";
+import WordDetails from "./WordDetails";
 import { useReadingContext } from "./ReadingToolbar";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "next-intl";
@@ -38,16 +38,6 @@ export interface ReadingViewProps {
   language: Language;
   verses: Verse[];
 }
-
-type SelectedElement =
-  | {
-      type: "word";
-      element: VerseWord;
-    }
-  | {
-      type: "verse";
-      element: Verse;
-    };
 
 const textSizeMap: Record<number, string> = {
   1: "text-xs",
@@ -86,8 +76,6 @@ export default function ReadingView({
   const selectedWord = selectedVerse?.words.find(
     (w) => w.id === selectedWordId,
   );
-
-  const sidebarRef = useRef<WordDetailsRef>(null);
 
   return (
     <>
@@ -194,7 +182,6 @@ export default function ReadingView({
           >
             {selectedWord ?
               <WordDetails
-                ref={sidebarRef}
                 language={language}
                 word={selectedWord}
                 mode={mode}
@@ -228,7 +215,7 @@ export default function ReadingView({
         createPortal(
           <div
             className={`
-              bg-brown-100 dark:bg-gray-800 rounded-xs border border-gray-300 dark:border-gray-700 shadow-xs dark:shadow-none px-1 font-bold
+              bg-brown-100 dark:bg-gray-800 dark:text-gray-300 rounded-xs border border-gray-300 dark:border-gray-700 shadow-xs dark:shadow-none px-1 font-bold z-20
               ${textSizeMap[textSize]}
             `}
             dir={language.textDirection}

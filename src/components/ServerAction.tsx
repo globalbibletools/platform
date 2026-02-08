@@ -33,7 +33,7 @@ export default function ServerAction({
     } else if (state.state === "success" && state.message) {
       flash.success(state.message);
     }
-  }, [state]);
+  }, [state, flash]);
 
   function onModalClose() {
     const result = confirmModal.current?.returnValue;
