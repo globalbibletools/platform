@@ -146,7 +146,7 @@ export function useClipboardCopy({
         flash.error(messageOnError);
       }
     },
-    [flash.error, flash.success, messageOnSuccess, messageOnError],
+    [flash, messageOnSuccess, messageOnError],
   );
 
   return copy;

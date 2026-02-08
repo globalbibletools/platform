@@ -31,7 +31,7 @@ export default function CommandInput() {
   const [reference, setReference] = useState("");
   useEffect(() => {
     setReference(t("verse_reference", { bookId, chapter }));
-  }, [bookId, chapter]);
+  }, [bookId, chapter, t]);
 
   useEffect(() => {
     if (!chapterId) return;

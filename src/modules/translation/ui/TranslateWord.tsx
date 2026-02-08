@@ -171,7 +171,7 @@ export default function TranslateWord({
         llmGloss.current?.clientWidth ?? 0,
       ),
     );
-  }, [hasNote, glossWidth, hasMachineSuggestion, isMultiWord]);
+  }, [hasNote, glossWidth, hasMachineSuggestion, isMultiWord, editable]);
 
   return (
     <li

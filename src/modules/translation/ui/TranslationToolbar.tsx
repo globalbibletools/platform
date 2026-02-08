@@ -84,7 +84,7 @@ export default function TranslationToolbar({
     if (error) {
       flash.success(error);
     }
-  }, [verseId, code]);
+  }, [verseId, code, flash]);
 
   const approveAllGlosses = useCallback(async () => {
     const inputs = document.querySelectorAll("[data-phrase]");
@@ -162,7 +162,7 @@ export default function TranslationToolbar({
       setBacktranslations(result.data);
     }
     setRunningSanityCheck(false);
-  }, [code, verseId]);
+  }, [code, verseId, flash, setBacktranslations]);
 
   useEffect(() => {
     if (!verseId) return;

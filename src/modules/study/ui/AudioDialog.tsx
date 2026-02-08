@@ -515,5 +515,5 @@ function useTimeRange({
       end,
       length: end - start,
     };
-  }, [timings, verseId]);
+  }, [timings, verseId, length]);
 }
