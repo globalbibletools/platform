@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata(
-  _props: void,
+  _props: unknown,
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const t = await getTranslations("RootNotFoundPage");
