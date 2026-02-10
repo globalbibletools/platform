@@ -4,13 +4,7 @@ import { enqueueJob } from "./enqueueJob";
 import queue from "./queue";
 import jobRepository from "./data-access/jobRepository";
 
-vitest.mock("./data-access/jobRepository", () => {
-  return {
-    default: {
-      create: vitest.fn(),
-    },
-  };
-});
+vitest.mock("./data-access/jobRepository");
 vitest.mock("./queue", async () => ({
   default: {
     add: vitest.fn(),

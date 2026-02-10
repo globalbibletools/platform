@@ -23,13 +23,7 @@ vitest.mock("./jobMap", () => ({
     },
   },
 }));
-vitest.mock("./data-access/jobRepository", () => ({
-  default: {
-    update: vitest.fn(),
-    create: vitest.fn(),
-    getById: vitest.fn(),
-  },
-}));
+vitest.mock("./data-access/jobRepository");
 
 const mockedJob = vitest.mocked<JobHandler<any>>(jobMap.test_job as any);
 const mockedJobWithTimeout = vitest.mocked<JobHandler<any>>(
