@@ -12,7 +12,7 @@ import { ulid } from "../ulid";
 import { processJob } from "./processJob";
 import jobMap, { JobHandler } from "./jobMap";
 import queue, { QueuedJob } from "./queue";
-import jobRepository from "./JobRepository";
+import jobRepository from "./data-access/jobRepository";
 
 vitest.mock("./jobMap", () => ({
   default: {
@@ -23,7 +23,7 @@ vitest.mock("./jobMap", () => ({
     },
   },
 }));
-vitest.mock("./JobRepository", () => ({
+vitest.mock("./data-access/jobRepository", () => ({
   default: {
     update: vitest.fn(),
     create: vitest.fn(),

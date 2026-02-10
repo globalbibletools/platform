@@ -1,5 +1,5 @@
 import { query } from "@/db";
-import { Job, JobStatus } from "./model";
+import { Job, JobStatus } from "../model";
 
 const jobRepository = {
   async getById<Payload, Data = unknown>(
