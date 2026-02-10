@@ -1,7 +1,7 @@
 import { logger } from "@/logging";
 import { ulid } from "../ulid";
 import { Job, JobStatus } from "./model";
-import jobRepo from "./JobRepository";
+import jobRepo from "./data-access/jobRepository";
 import queue from "./queue";
 
 export async function enqueueJob(type: string): Promise<Job<void>>;

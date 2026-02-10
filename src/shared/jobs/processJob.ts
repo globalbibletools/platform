@@ -1,6 +1,6 @@
 import { SQSRecord } from "aws-lambda";
 import { JobStatus } from "./model";
-import jobRepo from "./JobRepository";
+import jobRepo from "./data-access/jobRepository";
 import jobMap from "./jobMap";
 import queue, { QueuedJob } from "./queue";
 import { logger } from "@/logging";

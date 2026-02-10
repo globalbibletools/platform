@@ -12,7 +12,7 @@ import { ulid } from "../ulid";
 import { processJob } from "./processJob";
 import jobMap, { JobHandler } from "./jobMap";
 import queue, { QueuedJob } from "./queue";
-import jobRepository from "./JobRepository";
+import jobRepository from "./data-access/jobRepository";
 
 vitest.mock("./jobMap", () => ({
   default: {
@@ -23,13 +23,7 @@ vitest.mock("./jobMap", () => ({
     },
   },
 }));
-vitest.mock("./JobRepository", () => ({
-  default: {
-    update: vitest.fn(),
-    create: vitest.fn(),
-    getById: vitest.fn(),
-  },
-}));
+vitest.mock("./data-access/jobRepository");
 
 const mockedJob = vitest.mocked<JobHandler<any>>(jobMap.test_job as any);
 const mockedJobWithTimeout = vitest.mocked<JobHandler<any>>(
