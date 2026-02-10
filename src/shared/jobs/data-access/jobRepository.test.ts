@@ -122,6 +122,7 @@ describe("update", () => {
       id: ulid(),
       type: "test_job",
       status: JobStatus.Pending,
+      data: { updated: false },
       created_at: new Date(),
       updated_at: new Date(),
     };
@@ -140,7 +141,7 @@ describe("update", () => {
       type: job.type,
       status: newStatus,
       payload: null,
-      data: null,
+      data: { updated: false },
       created_at: job.created_at,
       updated_at: expect.toBeNow(),
     });
