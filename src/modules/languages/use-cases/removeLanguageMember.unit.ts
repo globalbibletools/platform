@@ -1,24 +1,13 @@
 import { test, expect, vi } from "vitest";
-import mockLanguageRepo from "../data-access/mockLanguageRepository";
-import mockLanguageMemberRepo from "../data-access/mockLanguageMemberRepository";
+import mockLanguageRepo from "../data-access/__mocks__/languageRepository";
+import mockLanguageMemberRepo from "../data-access/__mocks__/languageMemberRepository";
 import { NotFoundError } from "@/shared/errors";
 import { TextDirectionRaw } from "../model";
 import { ulid } from "@/shared/ulid";
 import { removeLanguageMember } from "./removeLanguageMember";
 
-vi.mock("../data-access/languageRepository", async () => {
-  const mockLanguageRepo = await vi.importActual(
-    "../data-access/mockLanguageRepository",
-  );
-  return mockLanguageRepo;
-});
-
-vi.mock("../data-access/languageMemberRepository", async () => {
-  const mockLanguageMemberRepo = await vi.importActual(
-    "../data-access/mockLanguageMemberRepository",
-  );
-  return mockLanguageMemberRepo;
-});
+vi.mock("../data-access/languageRepository");
+vi.mock("../data-access/languageMemberRepository");
 
 test("throws error if language could not be found", async () => {
   const result = removeLanguageMember({

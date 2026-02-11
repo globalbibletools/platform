@@ -1,16 +1,11 @@
 import { ulid } from "@/shared/ulid";
-import mockLanguageRepo from "../data-access/mockLanguageRepository";
+import mockLanguageRepo from "../data-access/__mocks__/languageRepository";
 import { test, expect, vi } from "vitest";
 import { SourceLanguageMissingError, TextDirectionRaw } from "../model";
 import { updateLanguageSettings } from "./updateLanguageSettings";
 import { NotFoundError } from "@/shared/errors";
 
-vi.mock("../data-access/languageRepository", async () => {
-  const mockLanguageRepo = await vi.importActual(
-    "../data-access/mockLanguageRepository",
-  );
-  return mockLanguageRepo;
-});
+vi.mock("../data-access/languageRepository");
 
 test("throws error if language does not exist", async () => {
   const result = updateLanguageSettings({

@@ -1,14 +1,9 @@
 import { test, expect, vi } from "vitest";
-import mockLanguageMemberRepo from "../data-access/mockLanguageMemberRepository";
+import mockLanguageMemberRepo from "../data-access/__mocks__/languageMemberRepository";
 import { ulid } from "@/shared/ulid";
 import { removeUserFromLanguages } from "./removeUserFromLanguages";
 
-vi.mock("../data-access/languageMemberRepository", async () => {
-  const mockLanguageMemberRepo = await vi.importActual(
-    "../data-access/mockLanguageMemberRepository",
-  );
-  return mockLanguageMemberRepo;
-});
+vi.mock("../data-access/languageMemberRepository");
 
 test("removes user from all languages", async () => {
   const userId = ulid();

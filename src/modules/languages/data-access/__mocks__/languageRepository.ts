@@ -1,5 +1,5 @@
 import { beforeEach } from "vitest";
-import { Language } from "../model";
+import { Language } from "../../model";
 
 const mockLanguageRepo = {
   languages: [] as Language[],

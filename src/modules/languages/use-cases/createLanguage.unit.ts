@@ -2,14 +2,9 @@ import { ulid } from "@/shared/ulid";
 import { test, expect, vi } from "vitest";
 import { LanguageAlreadyExistsError, TextDirectionRaw } from "../model";
 import { createLanguage } from "./createLanguage";
-import mockLanguageRepo from "../data-access/mockLanguageRepository";
+import mockLanguageRepo from "../data-access/__mocks__/languageRepository";
 
-vi.mock("../data-access/languageRepository", async () => {
-  const mockLanguageRepo = await vi.importActual(
-    "../data-access/mockLanguageRepository",
-  );
-  return mockLanguageRepo;
-});
+vi.mock("../data-access/languageRepository");
 
 test("throws error if language already exists with the same code", async () => {
   const existingLanguage = {

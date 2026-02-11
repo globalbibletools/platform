@@ -1,5 +1,5 @@
 import { beforeEach } from "vitest";
-import { LanguageMember } from "../model";
+import { LanguageMember } from "../../model";
 
 const mockLanguageMemberRepo = {
   members: [] as LanguageMember[],
