@@ -178,7 +178,8 @@
       "english_name_required": "يرجى إدخال الاسم الإنجليزي للغة.",
       "local_name_required": "يرجى إدخال الاسم المحلي لللغة.",
       "font_required": "يرجى اختيار خط.",
-      "text_direction_required": "يرجى اختيار اتجاه النص."
+      "text_direction_required": "يرجى اختيار اتجاه النص.",
+      "machine_gloss_strategy_required": "يرجى اختيار استراتيجية التفسير الآلي."
     },
     "headings": {
       "identification": "التعريف",

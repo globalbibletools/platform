@@ -179,7 +179,8 @@
       "english_name_required": "Please enter the language's English name.",
       "local_name_required": "Please enter the language's local name.",
       "font_required": "Please select a font.",
-      "text_direction_required": "Please select a text direction."
+      "text_direction_required": "Please select a text direction.",
+      "machine_gloss_strategy_required": "Please select a machine gloss strategy."
     },
     "headings": {
       "identification": "Identification",
