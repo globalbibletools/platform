@@ -1,5 +1,5 @@
 import { Generated } from "kysely";
-import { TextDirectionRaw } from "../model";
+import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 
 export interface LanguageTable {
   id: Generated<string>;
@@ -10,6 +10,7 @@ export interface LanguageTable {
   text_direction: Generated<TextDirectionRaw>;
   translation_ids: Generated<Array<string>> | null;
   reference_language_id: string | null;
+  machine_gloss_strategy: Generated<MachineGlossStrategy>;
 }
 
 export interface LanguageMemberTable {

@@ -3,6 +3,14 @@ export enum TextDirectionRaw {
   RTL = "rtl",
 }
 
+export const MachineGlossStrategy = {
+  Google: "google",
+  LLM: "ai-import",
+  None: "none",
+} as const;
+export type MachineGlossStrategy =
+  (typeof MachineGlossStrategy)[keyof typeof MachineGlossStrategy];
+
 export class LanguageAlreadyExistsError extends Error {
   constructor(public code: string) {
     super();
@@ -24,6 +32,7 @@ export interface Language {
   textDirection: TextDirectionRaw;
   translationIds: string[];
   referenceLanguageId?: string | null;
+  machineGlossStrategy: MachineGlossStrategy;
 }
 
 export interface LanguageMember {
