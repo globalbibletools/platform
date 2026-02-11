@@ -5,7 +5,7 @@ export enum TextDirectionRaw {
 
 export const MachineGlossStrategy = {
   Google: "google",
-  LLM: "ai-import",
+  LLM: "llm",
   None: "none",
 } as const;
 export type MachineGlossStrategy =

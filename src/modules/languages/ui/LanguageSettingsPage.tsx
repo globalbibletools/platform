@@ -20,6 +20,7 @@ import Form from "@/components/Form";
 import { notFound } from "next/navigation";
 import { getAllLanguagesReadModel } from "../read-models/getAllLanguagesReadModel";
 import { getLanguageSettingsReadModel } from "../read-models/getLanguageSettingsReadModel";
+import { MachineGlossStrategy } from "../model";
 
 interface LanguageSettingsPageProps {
   params: Promise<{ code: string }>;
@@ -216,23 +217,56 @@ export default async function LanguageSettingsPage(
             <p className="text-sm">{t("gloss_prediction_description")}</p>
           </div>
           <div className="shrink-0 w-80">
-            <FormLabel htmlFor="reference-language">
-              {t("form.reference_language").toUpperCase()}
-            </FormLabel>
-            <ComboboxInput
-              id="reference-language"
-              name="reference_language_id"
-              items={languages.map((language) => ({
-                label: language.englishName,
-                value: language.id,
-              }))}
-              className="block w-64"
-              defaultValue={languageSettings.referenceLanguageId ?? undefined}
-              autosubmit
-              aria-describedby="reference_language_error"
-            />
+            <div className="mb-4">
+              <FormLabel id="machine-gloss-strategy-label">
+                {t("form.machine_gloss_strategy").toUpperCase()}
+              </FormLabel>
+              <div>
+                <ButtonSelectorInput
+                  name="machineGlossStrategy"
+                  aria-labelledby="machine-gloss-strategy-label"
+                  aria-describedby="machine_gloss_strategy_error"
+                  defaultValue={languageSettings.machineGlossStrategy}
+                  autosubmit
+                >
+                  <ButtonSelectorOption value={MachineGlossStrategy.None}>
+                    None
+                  </ButtonSelectorOption>
+                  <ButtonSelectorOption value={MachineGlossStrategy.Google}>
+                    Google
+                  </ButtonSelectorOption>
+                  <ButtonSelectorOption value={MachineGlossStrategy.LLM}>
+                    LLM
+                  </ButtonSelectorOption>
+                </ButtonSelectorInput>
+              </div>
+              <FieldError
+                id="machine_gloss_strategy_error"
+                name="machineGlossStrategy"
+              />
+            </div>
+            <div>
+              <FormLabel htmlFor="reference-language">
+                {t("form.reference_language").toUpperCase()}
+              </FormLabel>
+              <ComboboxInput
+                id="reference-language"
+                name="reference_language_id"
+                items={languages.map((language) => ({
+                  label: language.englishName,
+                  value: language.id,
+                }))}
+                className="block w-64"
+                defaultValue={languageSettings.referenceLanguageId ?? undefined}
+                autosubmit
+                aria-describedby="reference_language_error"
+              />
+              <FieldError
+                id="reference_language_error"
+                name="reference_language"
+              />
+            </div>
           </div>
-          <FieldError id="reference_language_error" name="reference_language" />
         </section>
       </Form>
     </div>
