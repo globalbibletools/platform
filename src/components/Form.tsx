@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useActionState,
+  startTransition,
 } from "react";
 import { useFlash } from "../flash";
 
@@ -36,7 +37,14 @@ export default function Form({ className = "", children, action }: FormProps) {
   }, [state, flash]);
 
   return (
-    <form className={className} action={formAction}>
+    <form
+      className={className}
+      onSubmit={(e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        startTransition(() => formAction(formData));
+      }}
+    >
       <FormContext.Provider value={state}>{children}</FormContext.Provider>
     </form>
   );
