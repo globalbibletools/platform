@@ -1,6 +1,10 @@
 import { NotFoundError } from "@/shared/errors";
 import languageRepository from "../data-access/languageRepository";
-import { SourceLanguageMissingError, TextDirectionRaw } from "../model";
+import {
+  MachineGlossStrategy,
+  SourceLanguageMissingError,
+  TextDirectionRaw,
+} from "../model";
 
 export interface UpdateLanguageSettingsRequest {
   code: string;
@@ -10,6 +14,7 @@ export interface UpdateLanguageSettingsRequest {
   textDirection: TextDirectionRaw;
   translationIds: string[];
   referenceLanguageId?: string;
+  machineGlossStrategy: MachineGlossStrategy;
 }
 
 export async function updateLanguageSettings(

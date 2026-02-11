@@ -1,7 +1,11 @@
 import { ulid } from "@/shared/ulid";
 import mockLanguageRepo from "../data-access/__mocks__/languageRepository";
 import { test, expect, vi } from "vitest";
-import { SourceLanguageMissingError, TextDirectionRaw } from "../model";
+import {
+  SourceLanguageMissingError,
+  TextDirectionRaw,
+  MachineGlossStrategy,
+} from "../model";
 import { updateLanguageSettings } from "./updateLanguageSettings";
 import { NotFoundError } from "@/shared/errors";
 
@@ -15,11 +19,12 @@ test("throws error if language does not exist", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
+    machineGlossStrategy: MachineGlossStrategy.LLM,
   });
   await expect(result).rejects.toThrow(new NotFoundError("Language"));
 });
 
-test("throws error if the source langauge does not exist", async () => {
+test("throws error if the source languuge does not exist", async () => {
   const language = {
     id: ulid(),
     code: "spa",
@@ -28,6 +33,7 @@ test("throws error if the source langauge does not exist", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
+    machineGlossStrategy: MachineGlossStrategy.None,
   };
   mockLanguageRepo.languages = [language];
 
@@ -39,6 +45,7 @@ test("throws error if the source langauge does not exist", async () => {
     textDirection: TextDirectionRaw.RTL,
     translationIds: ["translation-id-1"],
     referenceLanguageId: ulid(),
+    machineGlossStrategy: MachineGlossStrategy.LLM,
   };
   const result = updateLanguageSettings(request);
   await expect(result).rejects.toThrow(
@@ -57,6 +64,7 @@ test("updates language settings", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
+    machineGlossStrategy: MachineGlossStrategy.None,
   };
   const sourceLanguage = {
     id: ulid(),
@@ -66,6 +74,7 @@ test("updates language settings", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
+    machineGlossStrategy: MachineGlossStrategy.None,
   };
   mockLanguageRepo.languages = [language, sourceLanguage];
 
@@ -77,6 +86,7 @@ test("updates language settings", async () => {
     textDirection: TextDirectionRaw.RTL,
     translationIds: ["translation-id-1"],
     referenceLanguageId: sourceLanguage.id,
+    machineGlossStrategy: MachineGlossStrategy.LLM,
   };
   await updateLanguageSettings(request);
 
