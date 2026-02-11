@@ -506,7 +506,7 @@ CREATE TABLE public.language (
     text_direction public.text_direction DEFAULT 'ltr'::public.text_direction NOT NULL,
     reference_language_id uuid,
     local_name text NOT NULL,
-    machine_gloss_strategy text
+    machine_gloss_strategy text DEFAULT 'google'::text NOT NULL
 );
 
 
