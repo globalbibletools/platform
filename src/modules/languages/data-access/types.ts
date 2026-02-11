@@ -1,4 +1,4 @@
-import { TextDirectionRaw } from "../model";
+import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 
 export interface DbLanguage {
   id: string;
@@ -9,6 +9,7 @@ export interface DbLanguage {
   textDirection: TextDirectionRaw;
   translationIds: string[];
   referenceLanguageId?: string | null;
+  machineGlossStrategy: MachineGlossStrategy;
 }
 
 export interface DbLanguageMember {
