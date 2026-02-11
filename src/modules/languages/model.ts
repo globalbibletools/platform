@@ -1,5 +1,3 @@
-export { type Language, type LanguageMember } from "./data-access/types";
-
 export enum TextDirectionRaw {
   LTR = "ltr",
   RTL = "rtl",
@@ -15,4 +13,20 @@ export class SourceLanguageMissingError extends Error {
   constructor(public languageId: string) {
     super();
   }
+}
+
+export interface Language {
+  id: string;
+  code: string;
+  englishName: string;
+  localName: string;
+  font: string;
+  textDirection: TextDirectionRaw;
+  translationIds: string[];
+  referenceLanguageId?: string | null;
+}
+
+export interface LanguageMember {
+  languageId: string;
+  userId: string;
 }
