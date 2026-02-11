@@ -1,7 +1,13 @@
 import { beforeEach } from "vitest";
 import { LanguageMember } from "../../model";
+import languageMemberRepository from "../languageMemberRepository";
 
-const mockLanguageMemberRepo = {
+type MockLanguageMemberRepo = typeof languageMemberRepository & {
+  members: LanguageMember[];
+  reset(): void;
+};
+
+const mockLanguageMemberRepo: MockLanguageMemberRepo = {
   members: [] as LanguageMember[],
 
   reset() {

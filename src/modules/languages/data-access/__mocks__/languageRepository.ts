@@ -1,7 +1,13 @@
 import { beforeEach } from "vitest";
 import { Language } from "../../model";
+import languageRepository from "../languageRepository";
 
-const mockLanguageRepo = {
+type MockLanguageRepo = typeof languageRepository & {
+  languages: Language[];
+  reset(): void;
+};
+
+const mockLanguageRepo: MockLanguageRepo = {
   languages: [] as Language[],
 
   async existsById(id: string): Promise<boolean> {
