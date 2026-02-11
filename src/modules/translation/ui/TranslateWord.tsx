@@ -14,6 +14,7 @@ import { useSWRConfig } from "swr";
 import { useParams } from "next/navigation";
 import { GlossApprovalMethodRaw } from "../types";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
+import { MachineGlossStrategy } from "@/modules/languages/model";
 
 export interface TranslateWordProps {
   verseId: string;
@@ -41,6 +42,7 @@ export interface TranslateWordProps {
     font: string;
     textDirection: string;
     isMember: boolean;
+    machineGlossStrategy: MachineGlossStrategy;
   };
   isHebrew: boolean;
   wordSelected: boolean;
@@ -86,22 +88,22 @@ export default function TranslateWord({
   const dir = "ltr";
 
   const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
-  const googleTranslateSuggestion = word.machineSuggestion;
+  const machineSuggestion = word.machineSuggestion;
   const hasMachineSuggestion =
+    language.machineGlossStrategy !== MachineGlossStrategy.None &&
     !isMultiWord &&
     !phrase.gloss?.text &&
-    word.suggestions.length === 0 &&
-    !!googleTranslateSuggestion;
+    (language.machineGlossStrategy === MachineGlossStrategy.LLM ||
+      word.suggestions.length === 0) &&
+    !!machineSuggestion;
   const glossValue =
     phrase?.gloss?.text ||
-    (isMultiWord ? undefined : (
-      word.suggestions[0] || googleTranslateSuggestion
-    ));
+    (isMultiWord ? undefined : word.suggestions[0] || machineSuggestion);
 
   let approvalMethod = GlossApprovalMethodRaw.UserInput;
   if (glossValue === word.suggestions[0]) {
     approvalMethod = GlossApprovalMethodRaw.MachineSuggestion;
-  } else if (glossValue === googleTranslateSuggestion) {
+  } else if (glossValue === machineSuggestion) {
     approvalMethod = GlossApprovalMethodRaw.GoogleSuggestion;
   }
 
@@ -124,7 +126,7 @@ export default function TranslateWord({
 
     if (updatedGloss === word.suggestions[0]) {
       formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
-    } else if (updatedGloss === googleTranslateSuggestion) {
+    } else if (updatedGloss === machineSuggestion) {
       formData.set("method", GlossApprovalMethodRaw.GoogleSuggestion);
     } else {
       formData.set("method", GlossApprovalMethodRaw.UserInput);
@@ -324,7 +326,7 @@ export default function TranslateWord({
                   renderOption={(item, i) => (
                     <div
                       className={
-                        googleTranslateSuggestion ?
+                        machineSuggestion ?
                           `relative ${isHebrew ? "pl-5" : "pr-5"}`
                         : ""
                       }
@@ -333,7 +335,14 @@ export default function TranslateWord({
                       {i === word.suggestions.length ?
                         <Icon
                           className={`absolute top-1 ${isHebrew ? "left-0" : "right-0"}`}
-                          icon={["fab", "google"]}
+                          icon={
+                            (
+                              language.machineGlossStrategy ===
+                              MachineGlossStrategy.Google
+                            ) ?
+                              ["fab", "google"]
+                            : "robot"
+                          }
                         />
                       : undefined}
                     </div>
@@ -407,8 +416,8 @@ export default function TranslateWord({
                   }}
                   onFocus={() => onFocus?.()}
                   suggestions={
-                    googleTranslateSuggestion ?
-                      [...word.suggestions, googleTranslateSuggestion]
+                    machineSuggestion ?
+                      [...word.suggestions, machineSuggestion]
                     : word.suggestions
                   }
                   ref={input}
@@ -416,7 +425,14 @@ export default function TranslateWord({
                 {hasMachineSuggestion && (
                   <Icon
                     className={`absolute top-1/2 -translate-y-1/2 ${isHebrew ? "left-3" : "right-3"}`}
-                    icon={["fab", "google"]}
+                    icon={
+                      (
+                        language.machineGlossStrategy ===
+                        MachineGlossStrategy.Google
+                      ) ?
+                        ["fab", "google"]
+                      : "robot"
+                    }
                   />
                 )}
               </div>
