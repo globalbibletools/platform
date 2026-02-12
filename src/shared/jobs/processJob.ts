@@ -32,7 +32,7 @@ export async function processJob(message: SQSRecord) {
         await jobRepo.getById(queuedJob.id)
       : undefined;
     if (job && job.status !== JobStatus.Pending) {
-      jobLogger.info("Job already executed");
+      jobLogger.error("Job already executed");
       return;
     }
 
@@ -72,7 +72,7 @@ export async function processJob(message: SQSRecord) {
     const timeout =
       "timeout" in handlerOrEntry ? handlerOrEntry.timeout : undefined;
     if (timeout) {
-      jobLogger.debug(`Job timeout extended to ${timeout}`);
+      jobLogger.info(`Job timeout extended to ${timeout}`);
       queue.extendTimeout(message.receiptHandle, timeout);
     }
 

@@ -33,6 +33,10 @@ export async function importAIGlosses(job: ImportAIGlossesJob) {
     throw new Error(`Language ${job.payload.languageCode} not found`);
   }
 
+  jobLogger.info(
+    `Starting import of AI glosses for language ${job.payload.languageCode}`,
+  );
+
   const requestStream = aiGlossImportService.streamGlosses(
     job.payload.languageCode,
   );
