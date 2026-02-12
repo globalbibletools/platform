@@ -88,9 +88,11 @@ export default function TranslateWord({
   const dir = "ltr";
 
   const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
-  const machineSuggestion = word.machineSuggestion;
+  const machineSuggestion =
+    language.machineGlossStrategy === MachineGlossStrategy.None ?
+      undefined
+    : word.machineSuggestion;
   const hasMachineSuggestion =
-    language.machineGlossStrategy !== MachineGlossStrategy.None &&
     !isMultiWord &&
     !phrase.gloss?.text &&
     (language.machineGlossStrategy === MachineGlossStrategy.LLM ||
