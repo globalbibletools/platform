@@ -104,6 +104,7 @@ test("returns language with translation ids", async () => {
     translationIds: language.translationIds,
     referenceLanguage: null,
     isMember: false,
+    machineGlossStrategy: language.machineGlossStrategy,
   });
 });
 
@@ -131,5 +132,6 @@ test("returns language with reference language", async () => {
     translationIds: language.translationIds,
     referenceLanguage: referenceLanguage.code,
     isMember: false,
+    machineGlossStrategy: language.machineGlossStrategy,
   });
 });

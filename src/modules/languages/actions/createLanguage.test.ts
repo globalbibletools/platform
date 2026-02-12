@@ -2,12 +2,13 @@ import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { createLanguage } from "./createLanguage";
-import { TextDirectionRaw } from "../model";
+import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import logIn from "@/tests/vitest/login";
 import { languageFactory } from "../test-utils/factories";
 import { findLanguageByCode } from "../test-utils/dbUtils";
+import { machineGlossRepository } from "@/modules/translation/data-access/machineGlossRepository";
 
 initializeDatabase();
 
@@ -108,5 +109,6 @@ test("creates language and redirects to its settings", async () => {
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
     referenceLanguageId: null,
+    machineGlossStrategy: MachineGlossStrategy.Google,
   });
 });
