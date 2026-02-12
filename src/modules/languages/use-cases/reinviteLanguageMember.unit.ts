@@ -4,7 +4,7 @@ import mockLanguageRepo from "../data-access/__mocks__/languageRepository";
 import mockLanguageMemberRepo from "../data-access/__mocks__/languageMemberRepository";
 import { reinviteUser } from "@/modules/users";
 import { NotFoundError } from "@/shared/errors";
-import { TextDirectionRaw } from "../model";
+import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 import { ulid } from "@/shared/ulid";
 
 vi.mock("@/modules/users", () => ({
@@ -31,6 +31,7 @@ test("throws error if user is not a member of the language", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
+    machineGlossStrategy: MachineGlossStrategy.None,
   };
   mockLanguageRepo.languages = [language];
 
@@ -53,6 +54,7 @@ test("reinvites language member", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
+    machineGlossStrategy: MachineGlossStrategy.None,
   };
   mockLanguageRepo.languages = [language];
   mockLanguageMemberRepo.members = [

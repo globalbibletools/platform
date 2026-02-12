@@ -2,7 +2,7 @@ import { test, expect, vi } from "vitest";
 import mockLanguageRepo from "../data-access/__mocks__/languageRepository";
 import mockLanguageMemberRepo from "../data-access/__mocks__/languageMemberRepository";
 import { NotFoundError } from "@/shared/errors";
-import { TextDirectionRaw } from "../model";
+import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 import { ulid } from "@/shared/ulid";
 import { removeLanguageMember } from "./removeLanguageMember";
 
@@ -26,6 +26,7 @@ test("removes language member", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
+    machineGlossStrategy: MachineGlossStrategy.None,
   };
   const languageMember = {
     languageId: language.id,

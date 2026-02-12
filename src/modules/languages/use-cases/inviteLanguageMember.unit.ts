@@ -4,7 +4,7 @@ import mockLanguageRepo from "../data-access/__mocks__/languageRepository";
 import mockLanguageMemberRepo from "../data-access/__mocks__/languageMemberRepository";
 import { inviteUser } from "@/modules/users";
 import { NotFoundError } from "@/shared/errors";
-import { TextDirectionRaw } from "../model";
+import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 import { ulid } from "@/shared/ulid";
 
 vi.mock("@/modules/users", () => ({
@@ -34,6 +34,7 @@ test("invites language member", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
+    machineGlossStrategy: MachineGlossStrategy.None,
   };
   mockLanguageRepo.languages = [language];
 
