@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import languageRepository from "./languageRepository";
 import { ulid } from "@/shared/ulid";
 import { getDb } from "@/db";
-import { TextDirectionRaw } from "../model";
+import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 
 initializeDatabase();
 
@@ -13,6 +13,7 @@ describe("existsById", () => {
     code: "spa",
     english_name: "Spanish",
     local_name: "Espanol",
+    machine_gloss_strategy: MachineGlossStrategy.None,
   };
   beforeEach(async () => {
     await getDb().insertInto("language").values(language).execute();
@@ -35,6 +36,7 @@ describe("existsByCode", () => {
     code: "spa",
     english_name: "Spanish",
     local_name: "Espanol",
+    machine_gloss_strategy: MachineGlossStrategy.None,
   };
   beforeEach(async () => {
     await getDb().insertInto("language").values(language).execute();
@@ -57,6 +59,7 @@ describe("findByCode", () => {
     code: "spa",
     english_name: "Spanish",
     local_name: "Espanol",
+    machine_gloss_strategy: MachineGlossStrategy.None,
   };
   beforeEach(async () => {
     await getDb().insertInto("language").values(language).execute();
@@ -77,6 +80,7 @@ describe("findByCode", () => {
         referenceLanguageId: null,
         textDirection: TextDirectionRaw.LTR,
         translationIds: [],
+        machineGlossStrategy: MachineGlossStrategy.None,
       },
     );
   });
@@ -107,6 +111,7 @@ describe("create", () => {
         reference_language_id: null,
         text_direction: TextDirectionRaw.LTR,
         translation_ids: null,
+        machine_gloss_strategy: MachineGlossStrategy.Google,
       },
     ]);
   });
@@ -117,6 +122,7 @@ describe("create", () => {
       code: "spa",
       english_name: "Spanish",
       local_name: "Spanish",
+      machine_gloss_strategy: MachineGlossStrategy.None,
     };
     await getDb().insertInto("language").values(language).execute();
 
@@ -156,6 +162,7 @@ describe("update", () => {
     code: "spa",
     english_name: "Spanish",
     local_name: "Spanish",
+    machine_gloss_strategy: MachineGlossStrategy.None,
   };
   beforeEach(async () => {
     await getDb().insertInto("language").values(language).execute();
@@ -170,6 +177,7 @@ describe("update", () => {
       textDirection: TextDirectionRaw.RTL,
       translationIds: ["new"],
       referenceLanguageId: language.id,
+      machineGlossStrategy: MachineGlossStrategy.LLM,
     };
 
     await expect(
@@ -190,6 +198,7 @@ describe("update", () => {
         reference_language_id: updatedLanguage.referenceLanguageId,
         text_direction: updatedLanguage.textDirection,
         translation_ids: updatedLanguage.translationIds,
+        machine_gloss_strategy: MachineGlossStrategy.LLM,
       },
     ]);
   });
@@ -203,6 +212,7 @@ describe("update", () => {
       textDirection: TextDirectionRaw.RTL,
       translationIds: ["new"],
       referenceLanguageId: language.id,
+      machineGlossStrategy: MachineGlossStrategy.LLM,
     };
 
     await expect(

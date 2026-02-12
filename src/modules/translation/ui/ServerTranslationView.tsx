@@ -8,6 +8,7 @@ import { translateClient } from "@/google-translate";
 import { logger } from "@/logging";
 import { getCurrentLanguageReadModel } from "@/modules/languages/read-models/getCurrentLanguageReadModel";
 import { getVerseWordsReadModel } from "../read-models/getVerseWordsReadModel";
+import { MachineGlossStrategy } from "@/modules/languages/model";
 
 interface Props {
   params: Promise<{ code: string; verseId: string }>;
@@ -56,7 +57,11 @@ export default async function InterlinearView(props: Props) {
   );
 
   const newMachineSuggestions =
-    language.isMember && language.referenceLanguage ?
+    (
+      language.isMember &&
+      language.referenceLanguage &&
+      language.machineGlossStrategy === MachineGlossStrategy.Google
+    ) ?
       await machineTranslate(
         wordsToTranslate,
         params.code,

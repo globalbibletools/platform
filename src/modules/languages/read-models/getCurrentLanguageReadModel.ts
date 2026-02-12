@@ -1,5 +1,6 @@
 import { getDb } from "@/db";
 import { sql } from "kysely";
+import { MachineGlossStrategy } from "../model";
 
 export interface CurrentLanguageReadModel {
   code: string;
@@ -10,6 +11,7 @@ export interface CurrentLanguageReadModel {
   translationIds: string[];
   referenceLanguage: string | null;
   isMember: boolean;
+  machineGlossStrategy: MachineGlossStrategy;
 }
 
 export async function getCurrentLanguageReadModel(
@@ -39,6 +41,7 @@ export async function getCurrentLanguageReadModel(
             .where("user_id", "=", userId),
         ).as("isMember")
       : lit(false).as("isMember"),
+      "machine_gloss_strategy as machineGlossStrategy",
     ])
     .executeTakeFirst();
 

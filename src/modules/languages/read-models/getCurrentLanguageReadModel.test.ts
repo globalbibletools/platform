@@ -5,7 +5,7 @@ import {
   languageFactory,
   languageMemberFactory,
 } from "../test-utils/factories";
-import { TextDirectionRaw } from "../model";
+import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 import { userFactory } from "@/modules/users/test-utils/factories";
 
 initializeDatabase();
@@ -22,6 +22,7 @@ test("returns language when no user is provided", async () => {
     localName: "Español",
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
+    machineGlossStrategy: MachineGlossStrategy.LLM,
   });
 
   const result = await getCurrentLanguageReadModel("spa");
@@ -33,6 +34,7 @@ test("returns language when no user is provided", async () => {
     font: language.font,
     textDirection: language.textDirection,
     translationIds: language.translationIds,
+    machineGlossStrategy: language.machineGlossStrategy,
     referenceLanguage: null,
     isMember: false,
   });
@@ -51,6 +53,7 @@ test("returns language when user is not a member", async () => {
     font: language.font,
     textDirection: language.textDirection,
     translationIds: language.translationIds,
+    machineGlossStrategy: language.machineGlossStrategy,
     referenceLanguage: null,
     isMember: false,
   });
@@ -73,6 +76,7 @@ test("returns language when user is a member", async () => {
     font: language.font,
     textDirection: language.textDirection,
     translationIds: language.translationIds,
+    machineGlossStrategy: language.machineGlossStrategy,
     referenceLanguage: null,
     isMember: true,
   });
@@ -100,6 +104,7 @@ test("returns language with translation ids", async () => {
     translationIds: language.translationIds,
     referenceLanguage: null,
     isMember: false,
+    machineGlossStrategy: language.machineGlossStrategy,
   });
 });
 
@@ -127,5 +132,6 @@ test("returns language with reference language", async () => {
     translationIds: language.translationIds,
     referenceLanguage: referenceLanguage.code,
     isMember: false,
+    machineGlossStrategy: language.machineGlossStrategy,
   });
 });

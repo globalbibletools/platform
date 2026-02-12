@@ -2,7 +2,7 @@ import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { getLanguageSettingsReadModel } from "./getLanguageSettingsReadModel";
 import { languageFactory } from "../test-utils/factories";
-import { TextDirectionRaw } from "../model";
+import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 
 initializeDatabase();
 
@@ -23,6 +23,7 @@ test("returns language settings by code when it exists", async () => {
     textDirection: TextDirectionRaw.LTR,
     translationIds: ["en-ESV", "es-RVR1960"],
     referenceLanguageId: refLanguage.id,
+    machineGlossStrategy: MachineGlossStrategy.LLM,
   });
 
   const result = await getLanguageSettingsReadModel("spa");
@@ -35,5 +36,6 @@ test("returns language settings by code when it exists", async () => {
     textDirection: language.textDirection,
     translationIds: language.translationIds,
     referenceLanguageId: language.referenceLanguageId,
+    machineGlossStrategy: language.machineGlossStrategy,
   });
 });

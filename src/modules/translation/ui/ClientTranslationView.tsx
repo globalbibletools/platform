@@ -11,6 +11,7 @@ import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import { incrementVerseId } from "@/verse-utils";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
+import { MachineGlossStrategy } from "@/modules/languages/model";
 
 interface Word {
   id: string;
@@ -41,6 +42,7 @@ export interface TranslationViewProps {
     textDirection: string;
     translationIds: string[];
     isMember: boolean;
+    machineGlossStrategy: MachineGlossStrategy;
   };
 }
 

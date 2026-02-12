@@ -2,7 +2,7 @@ import { Async } from "factory.ts";
 import { DbLanguage, DbLanguageMember } from "../data-access/types";
 import { ulid } from "@/shared/ulid";
 import { faker } from "@faker-js/faker/locale/en";
-import { TextDirectionRaw } from "../model";
+import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 import { getDb, query } from "@/db";
 
 const locales = ["eng", "spa", "hin", "arb"];
@@ -29,11 +29,12 @@ export const languageFactory = Async.makeFactory<DbLanguage>({
   textDirection: TextDirectionRaw.LTR,
   translationIds: Async.each(() => []),
   referenceLanguageId: null,
+  machineGlossStrategy: MachineGlossStrategy.None,
 }).transform(async (lang) => {
   await query(
     `
-        insert into language (id, code, english_name, font, text_direction, translation_ids, reference_language_id, local_name)
-        values ($1, $2, $3, $4, $5, $6, $7, $8)
+        insert into language (id, code, english_name, font, text_direction, translation_ids, reference_language_id, local_name, machine_gloss_strategy)
+        values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       `,
     [
       lang.id,
@@ -44,6 +45,7 @@ export const languageFactory = Async.makeFactory<DbLanguage>({
       lang.translationIds,
       lang.referenceLanguageId,
       lang.localName,
+      lang.machineGlossStrategy,
     ],
   );
   return lang;

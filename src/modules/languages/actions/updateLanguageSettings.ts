@@ -7,7 +7,7 @@ import { verifySession } from "@/session";
 import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import { updateLanguageSettings as updateLanguageSettingsUseCase } from "../use-cases/updateLanguageSettings";
-import { TextDirectionRaw } from "../model";
+import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 import { NotFoundError } from "@/shared/errors";
 import { Policy } from "@/modules/access";
 
@@ -19,6 +19,7 @@ const requestSchema = z.object({
   textDirection: z.nativeEnum(TextDirectionRaw),
   translationIds: z.array(z.string()).optional(),
   referenceLanguageId: z.string().optional(),
+  machineGlossStrategy: z.nativeEnum(MachineGlossStrategy),
 });
 
 const policy = new Policy({
@@ -47,6 +48,7 @@ export async function updateLanguageSettings(
         .split(",")
         .filter((id) => id !== ""),
       referenceLanguageId: formData.get("reference_language_id") ?? undefined,
+      machineGlossStrategy: formData.get("machineGlossStrategy"),
     },
     {
       errorMap: (error) => {
@@ -58,6 +60,8 @@ export async function updateLanguageSettings(
           return { message: t("errors.font_required") };
         } else if (error.path.toString() === "textDirection") {
           return { message: t("errors.text_direction_required") };
+        } else if (error.path.toString() === "machineGlossStrategy") {
+          return { message: t("errors.machine_gloss_strategy_required") };
         } else {
           return { message: "Invalid" };
         }

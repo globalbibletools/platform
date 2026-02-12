@@ -1,5 +1,6 @@
 import { getDb } from "@/db";
 import { sql } from "kysely";
+import { MachineGlossStrategy } from "../model";
 
 export interface LanguageSettingsReadModel {
   englishName: string;
@@ -9,6 +10,7 @@ export interface LanguageSettingsReadModel {
   textDirection: string;
   translationIds: string[];
   referenceLanguageId: string | null;
+  machineGlossStrategy: MachineGlossStrategy;
 }
 
 export async function getLanguageSettingsReadModel(
@@ -27,6 +29,7 @@ export async function getLanguageSettingsReadModel(
         .coalesce("translation_ids", sql<string[]>`'{}'`)
         .as("translationIds"),
       "reference_language_id as referenceLanguageId",
+      "machine_gloss_strategy as machineGlossStrategy",
     ])
     .executeTakeFirst();
 

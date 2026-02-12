@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { Language } from "../model";
+import { Language, MachineGlossStrategy } from "../model";
 import { sql } from "kysely";
 
 const languageRepository = {
@@ -37,6 +37,7 @@ const languageRepository = {
           "translationIds",
         ),
         "reference_language_id as referenceLanguageId",
+        "machine_gloss_strategy as machineGlossStrategy",
       ])
       .where("code", "=", code)
       .executeTakeFirst();
@@ -68,6 +69,7 @@ const languageRepository = {
         text_direction: language.textDirection,
         translation_ids: language.translationIds,
         reference_language_id: language.referenceLanguageId ?? undefined,
+        machine_gloss_strategy: language.machineGlossStrategy,
       })
       .where("code", "=", language.code)
       .execute();

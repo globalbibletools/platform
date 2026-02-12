@@ -1,21 +1,27 @@
-import { getDb, query } from "@/db";
+import { getDb } from "@/db";
 import { DbLanguage } from "../data-access/types";
+import { sql } from "kysely";
 
 export async function findLanguageByCode(
   code: string,
 ): Promise<DbLanguage | undefined> {
-  const result = await query<DbLanguage>(
-    `
-        select id, code, english_name as "englishName", local_name as "localName", font,
-          text_direction as "textDirection",
-          coalesce(translation_ids, '{}') as "translationIds",
-          reference_language_id as "referenceLanguageId"
-        from language
-        where code = $1
-    `,
-    [code],
-  );
-  return result.rows[0];
+  const query = getDb()
+    .selectFrom("language")
+    .where("code", "=", code)
+    .select((eb) => [
+      "id",
+      "code",
+      "english_name as englishName",
+      "local_name as localName",
+      "font",
+      "text_direction as textDirection",
+      eb.fn
+        .coalesce("translation_ids", sql<string[]>`'{}'`)
+        .as("translationIds"),
+      "reference_language_id as referenceLanguageId",
+      "machine_gloss_strategy as machineGlossStrategy",
+    ]);
+  return query.executeTakeFirst();
 }
 
 export async function findLanguageMembersForUser(userId: string) {

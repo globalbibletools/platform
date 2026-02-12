@@ -2,7 +2,7 @@ import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { updateLanguageSettings } from "./updateLanguageSettings";
-import { TextDirectionRaw } from "../model";
+import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import logIn from "@/tests/vitest/login";
@@ -34,6 +34,7 @@ test("returns validation error if the request shape doesn't match the schema", a
         localName: ["Please enter the language's local name."],
         font: ["Please select a font."],
         textDirection: ["Please select a text direction."],
+        machineGlossStrategy: ["Please select a machine gloss strategy."],
       },
     });
   }
@@ -44,6 +45,7 @@ test("returns validation error if the request shape doesn't match the schema", a
     formData.set("localName", "");
     formData.set("font", "");
     formData.set("text_direction", TextDirectionRaw.LTR);
+    formData.set("machineGlossStrategy", MachineGlossStrategy.LLM);
     const response = await updateLanguageSettings({ state: "idle" }, formData);
     expect(response).toEqual({
       state: "error",
@@ -68,6 +70,7 @@ test("returns not found if the user is not authorized", async () => {
   formData.set("localName", "Español");
   formData.set("text_direction", TextDirectionRaw.LTR);
   formData.set("font", "Noto Sans");
+  formData.set("machineGlossStrategy", MachineGlossStrategy.LLM);
   const response = updateLanguageSettings({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 });
@@ -82,6 +85,7 @@ test("returns not found if the language does not exist", async () => {
   formData.set("localName", "Español");
   formData.set("text_direction", TextDirectionRaw.LTR);
   formData.set("font", "Noto Sans");
+  formData.set("machineGlossStrategy", MachineGlossStrategy.LLM);
   const response = updateLanguageSettings({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 });
@@ -106,6 +110,7 @@ test("updates the language settings", async () => {
     font: "Noto Sans Arabic",
     translationIds: ["asdf1234", "qwer1234"],
     referenceLanguageId: referenceLanguage.id,
+    machineGlossStrategy: MachineGlossStrategy.LLM,
   };
   const formData = new FormData();
   formData.set("code", language.code);
@@ -115,6 +120,7 @@ test("updates the language settings", async () => {
   formData.set("font", request.font);
   formData.set("bible_translations", request.translationIds.join(","));
   formData.set("reference_language_id", request.referenceLanguageId);
+  formData.set("machineGlossStrategy", request.machineGlossStrategy);
   const response = await updateLanguageSettings({ state: "idle" }, formData);
   expect(response).toEqual({ state: "success" });
 

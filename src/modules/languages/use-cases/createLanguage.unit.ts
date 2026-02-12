@@ -1,6 +1,10 @@
 import { ulid } from "@/shared/ulid";
 import { test, expect, vi } from "vitest";
-import { LanguageAlreadyExistsError, TextDirectionRaw } from "../model";
+import {
+  LanguageAlreadyExistsError,
+  MachineGlossStrategy,
+  TextDirectionRaw,
+} from "../model";
 import { createLanguage } from "./createLanguage";
 import mockLanguageRepo from "../data-access/__mocks__/languageRepository";
 
@@ -15,6 +19,7 @@ test("throws error if language already exists with the same code", async () => {
     font: "Noto Sans",
     textDirection: TextDirectionRaw.LTR,
     translationIds: [],
+    machineGlossStrategy: MachineGlossStrategy.None,
   };
   mockLanguageRepo.languages = [existingLanguage];
 
