@@ -126,12 +126,19 @@ export default function TranslateWord({
 
     formData.set("gloss", updatedGloss);
 
-    if (updatedGloss === word.suggestions[0]) {
-      formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
-    } else if (updatedGloss === machineSuggestion) {
-      formData.set("method", GlossApprovalMethodRaw.GoogleSuggestion);
-    } else {
-      formData.set("method", GlossApprovalMethodRaw.UserInput);
+    formData.set("method", GlossApprovalMethodRaw.UserInput);
+    if (language.machineGlossStrategy === MachineGlossStrategy.Google) {
+      if (updatedGloss === word.suggestions[0]) {
+        formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
+      } else if (updatedGloss === machineSuggestion) {
+        formData.set("method", GlossApprovalMethodRaw.GoogleSuggestion);
+      }
+    } else if (language.machineGlossStrategy === MachineGlossStrategy.LLM) {
+      if (updatedGloss === machineSuggestion) {
+        formData.set("method", GlossApprovalMethodRaw.GoogleSuggestion);
+      } else if (updatedGloss === word.suggestions[0]) {
+        formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
+      }
     }
 
     // TODO: handle errors in the result
@@ -355,10 +362,8 @@ export default function TranslateWord({
                   aria-describedby={`word-help-${word.id}`}
                   aria-labelledby={`word-${word.id}`}
                   onChange={(value) => {
-                    console.log("blur-sm");
                     autosaveQueued.current = true;
                     setTimeout(() => {
-                      console.log("autosave");
                       if (
                         autosaveQueued.current &&
                         value !== phrase.gloss?.text
@@ -368,7 +373,6 @@ export default function TranslateWord({
                     }, 200);
                   }}
                   onSelect={() => {
-                    console.log("select");
                     saveGloss("APPROVED");
 
                     const nextRoot = root.current?.nextElementSibling;
@@ -393,7 +397,6 @@ export default function TranslateWord({
                           }
                         } else {
                           setTimeout(() => {
-                            console.log("enter");
                             saveGloss("APPROVED");
                           });
 
