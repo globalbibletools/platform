@@ -135,7 +135,7 @@ export default function TranslateWord({
       }
     } else if (language.machineGlossStrategy === MachineGlossStrategy.LLM) {
       if (updatedGloss === machineSuggestion) {
-        formData.set("method", GlossApprovalMethodRaw.GoogleSuggestion);
+        formData.set("method", GlossApprovalMethodRaw.LLMSuggestion);
       } else if (updatedGloss === word.suggestions[0]) {
         formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
       }

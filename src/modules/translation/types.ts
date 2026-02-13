@@ -6,8 +6,12 @@ export enum GlossSourceRaw {
   User = "USER",
   Import = "IMPORT",
 }
-export enum GlossApprovalMethodRaw {
-  UserInput = "USER_INPUT",
-  GoogleSuggestion = "GOOGLE_SUGGESTION",
-  MachineSuggestion = "MACHINE_SUGGESTION",
-}
+
+export const GlossApprovalMethodRaw = {
+  UserInput: "USER_INPUT",
+  GoogleSuggestion: "GOOGLE_SUGGESTION",
+  LLMSuggestion: "LLM_SUGGESTION",
+  MachineSuggestion: "MACHINE_SUGGESTION",
+} as const;
+export type GlossApprovalMethodRaw =
+  (typeof GlossApprovalMethodRaw)[keyof typeof GlossApprovalMethodRaw];
