@@ -5,8 +5,14 @@ export const logger = {
   info: vitest.fn(),
   debug: vitest.fn(),
   warn: vitest.fn(),
-  child: vitest.fn((bindings) => {
+  child: vitest.fn((bindings = {}) => {
     return {
+      setBindings: (updatedBindings: object) => {
+        bindings = {
+          ...bindings,
+          ...updatedBindings,
+        };
+      },
       warn: (metaOrMessage: string | object, message?: string) => {
         if (typeof metaOrMessage === "string") {
           return logger.warn(bindings, metaOrMessage);
