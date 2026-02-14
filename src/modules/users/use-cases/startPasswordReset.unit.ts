@@ -8,9 +8,11 @@ import User from "../model/User";
 import PasswordReset from "../model/PasswordReset";
 import UserStatus from "../model/UserStatus";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
+import { logger } from "@/__mocks__/logging";
+import { UserDisabledError, UserPendingInviteError } from "../model/errors";
+import Invitation from "../model/Invitation";
 
 vitest.mock("@/shared/jobs/enqueueJob");
-
 vi.mock(
   "../data-access/userRepository",
   () => import("../data-access/mockUserRepository"),
@@ -19,9 +21,16 @@ vi.mock(
 test("does nothing if user could not be found", async () => {
   await startPasswordReset({ email: "test@example.com" });
   expect(enqueueJob).not.toHaveBeenCalled();
+
+  expect(logger.error).toHaveBeenCalledWith(
+    {
+      useCase: "startPasswordReset",
+    },
+    "User not found",
+  );
 });
 
-test("swallows errors from password reset", async () => {
+test("swallows error when user is disabled", async () => {
   const props = {
     id: "user-id",
     name: "Joe Translator",
@@ -42,6 +51,49 @@ test("swallows errors from password reset", async () => {
   // @ts-expect-error assert on private state
   expect(mockUserRepo.users[0].props).toEqual(props);
   expect(enqueueJob).not.toHaveBeenCalled();
+
+  expect(logger.error).toHaveBeenCalledWith(
+    {
+      useCase: "startPasswordReset",
+      err: new UserDisabledError(),
+    },
+    "Failed to create password reset",
+  );
+});
+
+test("swallows error when user is disabled", async () => {
+  const props = {
+    id: "user-id",
+    name: "Joe Translator",
+    email: new UserEmail({
+      address: "test@example.com",
+      status: EmailStatus.Verified,
+    }),
+    passwordResets: [],
+    invitations: [
+      new Invitation({
+        token: "asdf",
+        expiresAt: new Date(),
+      }),
+    ],
+    status: UserStatus.Active,
+    systemRoles: [],
+  };
+  const user = new User({ ...props });
+  mockUserRepo.users = [user];
+
+  await startPasswordReset({ email: props.email.address });
+  // @ts-expect-error assert on private state
+  expect(mockUserRepo.users[0].props).toEqual(props);
+  expect(enqueueJob).not.toHaveBeenCalled();
+
+  expect(logger.error).toHaveBeenCalledWith(
+    {
+      useCase: "startPasswordReset",
+      err: new UserPendingInviteError(),
+    },
+    "Failed to create password reset",
+  );
 });
 
 test("sends password reset email", async () => {

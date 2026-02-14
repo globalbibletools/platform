@@ -1,6 +1,8 @@
 import { webcrypto } from "node:crypto";
-import { vi } from "vitest";
+import { vi, vitest } from "vitest";
 import "./matchers";
+
+vitest.mock("@/logging");
 
 // Necessary for @oslo/password to run in tests
 // We can remove this after we upgrade from node 18
