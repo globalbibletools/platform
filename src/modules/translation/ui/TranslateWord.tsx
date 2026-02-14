@@ -102,7 +102,7 @@ export default function TranslateWord({
     phrase?.gloss?.text ||
     (isMultiWord ? undefined : word.suggestions[0] || machineSuggestion);
 
-  let approvalMethod = GlossApprovalMethodRaw.UserInput;
+  let approvalMethod: GlossApprovalMethodRaw = GlossApprovalMethodRaw.UserInput;
   if (glossValue === word.suggestions[0]) {
     approvalMethod = GlossApprovalMethodRaw.MachineSuggestion;
   } else if (glossValue === machineSuggestion) {
