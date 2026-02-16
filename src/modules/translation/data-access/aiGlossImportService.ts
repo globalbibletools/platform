@@ -33,7 +33,7 @@ export const aiGlossImportService = {
       const chapters = verseCounts[bookId];
       for (let chapter = 0; chapter < chapters.length; chapter++) {
         const response = await fetch(
-          `https://global-tools.bible.systems/api-chirho/v1-chirho/glosses-chirho/${languageCode}/${bookId + 1}/${chapter + 1}?format=plain`,
+          `https://global-tools.bible.systems/api-chirho/v1-chirho/glosses-upstream-chirho/${languageCode}/${bookId + 1}/${chapter + 1}?format=plain`,
           {
             headers: {
               Authorization: `Bearer ${API_KEY}`,
