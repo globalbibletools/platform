@@ -27,7 +27,7 @@ COPY --from=build --chown=nextjs:nodejs /app/.next/standalone .
 COPY --from=build --chown=nextjs:nodejs /app/.next/static .next/static
 CMD node server.js
 
-FROM node:18 AS dev
+FROM node:20 AS dev
 RUN apt-get update
 RUN apt-get install -y postgresql-contrib
 WORKDIR /app
