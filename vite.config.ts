@@ -12,7 +12,12 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     tsconfigPaths({ projectDiscovery: "lazy" }),
-    tanstackStart(),
+    tanstackStart({
+      router: {
+        semicolons: true,
+        quoteStyle: "double",
+      },
+    }),
     viteReact(),
   ],
 });
