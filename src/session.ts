@@ -1,8 +1,7 @@
 "use server";
 
 import { query } from "@/db";
-import { randomBytes } from "crypto";
-import { cookies } from "next/headers";
+import { useSession } from "@tanstack/react-start/server";
 import * as React from "react";
 
 const DAY_FROM_MS = 24 * 60 * 60 * 1000;
@@ -15,63 +14,41 @@ if (Number.isNaN(EXPIRES_IN)) {
   throw new Error("SESSION_EXPIRATION_DAYS env var must be a number");
 }
 
-export async function createSession(userId?: string) {
-  await clearSession();
-
-  const session = {
-    id: randomBytes(16).toString("hex"),
-    expiresAt: new Date(Date.now() + EXPIRES_IN),
-    userId,
-  };
-  if (userId) {
-    await query(
-      `INSERT INTO session (id, expires_at, user_id) VALUES ($1, $2, $3)`,
-      [session.id, session.expiresAt, session.userId],
-    );
-  }
-
-  const cookieStore = await cookies();
-  cookieStore.set("session", session.id, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    expires: session.expiresAt,
-    sameSite: "lax",
-    path: "/",
+function useAppSession() {
+  return useSession<{ userId: string }>({
+    name: "session",
+    password: "12345678123456781234567812345678",
+    cookie: {
+      expires: new Date(Date.now() + EXPIRES_IN),
+      secure: process.env.NODE_ENV === "production",
+    },
   });
-
-  return session;
 }
 
-export async function clearSessionsForUser(userId: string) {
-  await query(`delete from session where user_id = $1`, [userId]);
+export async function createSession(userId?: string) {
+  const session = await useAppSession();
+  await session.update({ userId });
+
+  return session;
 }
 
 export async function clearSession() {
-  const cookieStore = await cookies();
-
-  const sessionId = cookieStore.get("session")?.value;
-  if (!sessionId) return;
-
-  cookieStore.delete("session");
+  const session = await useAppSession();
+  session.clear();
 }
 
 export async function verifySession() {
-  const cookieStore = await cookies();
+  const session = await useAppSession();
 
-  const sessionId = cookieStore.get("session")?.value;
-  if (!sessionId) return;
+  const { userId } = session.data;
 
-  const session = await fetchSession(sessionId);
-  if (!session || session.expiresAt < new Date()) {
-    return;
-  }
+  if (!userId) return;
 
-  return session;
+  const sessionData = await fetchSession(userId);
+  return sessionData;
 }
 
 interface Session {
-  id: string;
-  expiresAt: Date;
   user: {
     id: string;
     name: string;
@@ -81,20 +58,18 @@ interface Session {
 }
 
 const fetchSession = React.cache(
-  async (sessionId: string): Promise<Session | undefined> => {
+  async (userId: string): Promise<Session | undefined> => {
     const result = await query<Session>(
       `
-            SELECT
-                session.id, expires_at,
-                JSON_BUILD_OBJECT(
-                    'id', users.id, 'email', email, 'name', name,
-                    'roles', (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') FROM user_system_role AS r WHERE r.user_id = users.id)
-                ) AS user
-            FROM session
-            JOIN users ON users.id = session.user_id
-            WHERE session.id = $1
-            `,
-      [sessionId],
+        SELECT
+          JSON_BUILD_OBJECT(
+            'id', users.id, 'email', email, 'name', name,
+            'roles', (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') FROM user_system_role AS r WHERE r.user_id = users.id)
+          ) AS user
+        FROM users
+        WHERE users.id = $1
+      `,
+      [userId],
     );
     return result.rows[0];
   },

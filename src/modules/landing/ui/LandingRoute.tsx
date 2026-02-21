@@ -3,18 +3,21 @@ import { Icon } from "@/components/Icon";
 import { createServerFn } from "@tanstack/react-start";
 import ProgressChart from "./ProgressChart";
 import { getRouteApi } from "@tanstack/react-router";
+import { verifySession } from "@/session";
 
 const Route = getRouteApi("/");
 
 export const fetchLandingPageData = createServerFn().handler(async () => {
-  const [stats] = await Promise.all([fetchLanguageProgressStats()]);
+  const [session, stats] = await Promise.all([
+    verifySession(),
+    fetchLanguageProgressStats(),
+  ]);
 
-  return { stats };
+  return { session, stats };
 });
 
 export function LandingPage() {
-  const session = null;
-  const { stats } = Route.useLoaderData();
+  const { session, stats } = Route.useLoaderData();
 
   return (
     <div className="text-gray-800">
