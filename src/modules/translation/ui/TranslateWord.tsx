@@ -103,10 +103,18 @@ export default function TranslateWord({
     (isMultiWord ? undefined : word.suggestions[0] || machineSuggestion);
 
   let approvalMethod: GlossApprovalMethodRaw = GlossApprovalMethodRaw.UserInput;
-  if (glossValue === word.suggestions[0]) {
-    approvalMethod = GlossApprovalMethodRaw.MachineSuggestion;
-  } else if (glossValue === machineSuggestion) {
-    approvalMethod = GlossApprovalMethodRaw.GoogleSuggestion;
+  if (language.machineGlossStrategy === MachineGlossStrategy.Google) {
+    if (glossValue === word.suggestions[0]) {
+      approvalMethod = GlossApprovalMethodRaw.MachineSuggestion;
+    } else if (glossValue === machineSuggestion) {
+      approvalMethod = GlossApprovalMethodRaw.GoogleSuggestion;
+    }
+  } else if (language.machineGlossStrategy === MachineGlossStrategy.LLM) {
+    if (glossValue === machineSuggestion) {
+      approvalMethod = GlossApprovalMethodRaw.LLMSuggestion;
+    } else if (glossValue === word.suggestions[0]) {
+      approvalMethod = GlossApprovalMethodRaw.MachineSuggestion;
+    }
   }
 
   const { locale, code } = useParams<{ locale: string; code: string }>();
