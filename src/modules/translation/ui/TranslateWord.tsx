@@ -256,7 +256,6 @@ export default function TranslateWord({
           />
         : editable && (
             <Checkbox
-              className="invisible group-hover/word:visible group-focus-within/word:visible [&:has(:checked)]:visible"
               aria-label="word selected"
               tabIndex={-1}
               checked={wordSelected}
@@ -289,7 +288,7 @@ export default function TranslateWord({
           {phrase.wordIds.indexOf(word.id) === 0 && (
             <div
               className={`
-                            min-w-[128px] group/input-row flex gap-2 items-center
+                            min-w-[128px] flex gap-2 items-center
                             ${isHebrew ? "flex-row" : "flex-row-reverse"}
                         `}
               // The extra 26 pixels give room for the padding and border.
@@ -298,7 +297,7 @@ export default function TranslateWord({
               }}
               dir={language.textDirection}
             >
-              <div className="group-focus-within/input-row:block hidden">
+              <div className="group-focus-within/word:block hidden">
                 {status !== "approved" && (
                   <Button
                     className="bg-green-600! w-9"
