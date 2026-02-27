@@ -271,14 +271,14 @@ test("creates a new glosses and updates existing glosses for each phrase", async
 
   expect(trackingClient.trackManyEvents).toHaveBeenCalledExactlyOnceWith([
     {
-      type: "approve_gloss",
+      type: "approved_gloss",
       userId: translator.id,
       languageId: language.id,
       phraseId: phrases[1].id,
       method: GlossApprovalMethodRaw.GoogleSuggestion,
     },
     {
-      type: "approve_gloss",
+      type: "approved_gloss",
       userId: translator.id,
       languageId: language.id,
       phraseId: phrases[2].id,
