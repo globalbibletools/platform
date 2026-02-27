@@ -40,6 +40,7 @@ import {
   TranslatorNoteTable,
 } from "./modules/translation/db/schema";
 import { JobTable } from "./shared/jobs/db/schema";
+import { WeeklyGlossStatisticsTable } from "./modules/reporting/data-access/types";
 
 export interface Database {
   book: BookTable;
@@ -68,6 +69,7 @@ export interface Database {
   verse_question: VerseQuestionTable;
   word: WordTable;
   word_lexicon: WordLexiconTable;
+  weekly_gloss_statistics: WeeklyGlossStatisticsTable;
 }
 
 // Convert BigInts to Javascript numbers.
