@@ -19,7 +19,7 @@ export type TrackingEvent =
       phraseId: number;
       wordIds: string[];
       action: "approved" | "revoked" | "edited_approved" | "edited_unapproved";
-      approvalMethod:
+      approvalMethod?:
         | "USER_INPUT"
         | "GOOGLE_SUGGESTION"
         | "LLM_SUGGESTION"

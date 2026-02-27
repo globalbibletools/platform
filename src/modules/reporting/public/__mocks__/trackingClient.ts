@@ -1,10 +1,10 @@
-import { beforeEach, vitest } from "vitest";
-import { BulkEvent, TrackingClient } from "../trackingClient";
+import { beforeEach, MockedObject, vitest } from "vitest";
+import originalTrackingClient from "../trackingClient";
 
-const trackingClient = {
-  trackEvent: vitest.fn<(event: string, data?: any) => Promise<void>>(),
-  trackManyEvents: vitest.fn<(events: BulkEvent[]) => Promise<void>>(),
-} satisfies TrackingClient;
+const trackingClient: MockedObject<typeof originalTrackingClient> = {
+  trackEvent: vitest.fn(),
+  trackManyEvents: vitest.fn(),
+};
 export default trackingClient;
 
 beforeEach(() => {

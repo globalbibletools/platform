@@ -3,28 +3,10 @@ import trackingEventRepository from "../data-access/TrackingEventRepository";
 import { logger } from "@/logging";
 import { TrackingEvent } from "../model";
 
-export type EventData = {
-  [key: string]: any;
-  userId?: string;
-  languageId?: string;
-};
-
-export interface TrackingClient {
-  trackEvent<EventType extends TrackingEvent["type"]>(
-    event: EventType,
-    data?: Omit<
-      Extract<TrackingEvent, { type: EventType }>,
-      "type" | "createdAt"
-    >,
-  ): Promise<void>;
-
-  trackManyEvents(events: Omit<TrackingEvent, "createdAt">[]): Promise<void>;
-}
-
 const trackingClient = {
   async trackEvent<EventType extends TrackingEvent["type"]>(
     event: EventType,
-    data?: Omit<
+    data: Omit<
       Extract<TrackingEvent, { type: EventType }>,
       "type" | "createdAt"
     >,
@@ -70,5 +52,5 @@ const trackingClient = {
       childLogger.error({ err: error }, "Failed to log event");
     }
   },
-} satisfies TrackingClient;
+};
 export default trackingClient;
