@@ -40,6 +40,7 @@ import {
   TranslatorNoteTable,
 } from "./modules/translation/db/schema";
 import { JobTable } from "./shared/jobs/db/schema";
+import { TrackingEventTable } from "./modules/reporting/db/schema";
 
 export interface Database {
   book: BookTable;
@@ -58,6 +59,7 @@ export interface Database {
   phrase_word: PhraseWordTable;
   reset_password_token: ResetPasswordTokenTable;
   session: SessionTable;
+  tracking_event: TrackingEventTable;
   translator_note: TranslatorNoteTable;
   user_email_verification: UserEmailVerificationTable;
   user_invitation: UserInvitationTable;

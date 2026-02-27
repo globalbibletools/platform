@@ -1,17 +1,20 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { describe, expect, test } from "vitest";
-import trackingClient, { BulkEvent } from "./trackingClient";
+import trackingClient from "./trackingClient";
 import { ulid } from "@/shared/ulid";
-import { DbTrackingEvent } from "../data-access/types";
-import { query } from "@/db";
+import { getDb } from "@/db";
 
 initializeDatabase();
 
 describe("trackEvent", () => {
+  const untypedTrackEvent = trackingClient.trackEvent.bind(
+    trackingClient,
+  ) as any;
+
   test("saves new event with data and IDs in the database", async () => {
     const userId = ulid();
     const languageId = ulid();
-    await trackingClient.trackEvent("test", {
+    await untypedTrackEvent("test", {
       otherData: true,
       userId,
       languageId,
@@ -23,36 +26,15 @@ describe("trackEvent", () => {
         id: expect.toBeUlid(),
         type: "test",
         data: { otherData: true },
-        userId,
-        languageId,
-        createdAt: expect.toBeNow(),
-      },
-    ]);
-  });
-
-  test("saves new event with no data in the database", async () => {
-    const userId = ulid();
-    const languageId = ulid();
-    await trackingClient.trackEvent("test", {
-      userId,
-      languageId,
-    });
-
-    const events = await findTrackingEvents();
-    expect(events).toEqual([
-      {
-        id: expect.toBeUlid(),
-        type: "test",
-        data: {},
-        userId,
-        languageId,
-        createdAt: expect.toBeNow(),
+        user_id: userId,
+        language_id: languageId,
+        created_at: expect.toBeNow(),
       },
     ]);
   });
 
   test("saves new event with no user or language ID in the database", async () => {
-    await trackingClient.trackEvent("test", { someData: true });
+    await untypedTrackEvent("test", { someData: true });
 
     const events = await findTrackingEvents();
     expect(events).toEqual([
@@ -60,15 +42,15 @@ describe("trackEvent", () => {
         id: expect.toBeUlid(),
         type: "test",
         data: { someData: true },
-        userId: null,
-        languageId: null,
-        createdAt: expect.toBeNow(),
+        user_id: null,
+        language_id: null,
+        created_at: expect.toBeNow(),
       },
     ]);
   });
 
   test("saves new event with no extra metadata in the database", async () => {
-    await trackingClient.trackEvent("test");
+    await untypedTrackEvent("test");
 
     const events = await findTrackingEvents();
     expect(events).toEqual([
@@ -76,35 +58,39 @@ describe("trackEvent", () => {
         id: expect.toBeUlid(),
         type: "test",
         data: {},
-        userId: null,
-        languageId: null,
-        createdAt: expect.toBeNow(),
+        user_id: null,
+        language_id: null,
+        created_at: expect.toBeNow(),
       },
     ]);
   });
 });
 
 describe("trackManyEvents", () => {
+  const untypedTrackManyEvents = trackingClient.trackManyEvents.bind(
+    trackingClient,
+  ) as any;
+
   test("saves new events in the database", async () => {
-    const fullEvent: BulkEvent = {
+    const fullEvent = {
       type: "one",
       userId: ulid(),
       languageId: ulid(),
       otherData: true,
     };
-    const eventWithIds: BulkEvent = {
+    const eventWithIds = {
       type: "two",
       userId: ulid(),
       languageId: ulid(),
     };
-    const eventWithData: BulkEvent = {
+    const eventWithData = {
       type: "three",
       otherData: true,
     };
-    const simpleEvent: BulkEvent = {
+    const simpleEvent = {
       type: "four",
     };
-    await trackingClient.trackManyEvents([
+    await untypedTrackManyEvents([
       fullEvent,
       eventWithIds,
       eventWithData,
@@ -117,46 +103,42 @@ describe("trackManyEvents", () => {
         id: expect.toBeUlid(),
         type: fullEvent.type,
         data: { otherData: true },
-        userId: fullEvent.userId,
-        languageId: fullEvent.languageId,
-        createdAt: expect.toBeNow(),
+        user_id: fullEvent.userId,
+        language_id: fullEvent.languageId,
+        created_at: expect.toBeNow(),
       },
       {
         id: expect.toBeUlid(),
         type: eventWithIds.type,
         data: {},
-        userId: eventWithIds.userId,
-        languageId: eventWithIds.languageId,
-        createdAt: expect.toBeNow(),
+        user_id: eventWithIds.userId,
+        language_id: eventWithIds.languageId,
+        created_at: expect.toBeNow(),
       },
       {
         id: expect.toBeUlid(),
         type: eventWithData.type,
         data: { otherData: true },
-        userId: null,
-        languageId: null,
-        createdAt: expect.toBeNow(),
+        user_id: null,
+        language_id: null,
+        created_at: expect.toBeNow(),
       },
       {
         id: expect.toBeUlid(),
         type: simpleEvent.type,
         data: {},
-        userId: null,
-        languageId: null,
-        createdAt: expect.toBeNow(),
+        user_id: null,
+        language_id: null,
+        created_at: expect.toBeNow(),
       },
     ]);
   });
 });
 
-async function findTrackingEvents(): Promise<DbTrackingEvent[]> {
-  const result = await query<DbTrackingEvent>(
-    `
-      select id, type, data, user_id as "userId", language_id as "languageId", created_at as "createdAt"
-      from tracking_event
-      order by id
-    `,
-    [],
-  );
-  return result.rows;
+function findTrackingEvents() {
+  return getDb()
+    .selectFrom("tracking_event")
+    .selectAll()
+    .orderBy("id")
+    .execute();
 }

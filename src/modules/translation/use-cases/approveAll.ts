@@ -24,6 +24,11 @@ export async function approveAllUseCase(request: ApproveAllUseCaseRequest) {
     throw new NotFoundError("Phrase");
   }
 
+  const language = await languageRepository.findByCode(request.languageCode);
+  if (!language) {
+    throw new NotFoundError("Language");
+  }
+
   const glosses = await glossRepository.findManyByPhraseId(
     request.phrases.map((phrase) => phrase.id),
   );
@@ -36,21 +41,26 @@ export async function approveAllUseCase(request: ApproveAllUseCaseRequest) {
     updatedBy: request.userId,
   });
 
-  const language = await languageRepository.findByCode(request.languageCode);
   await trackingClient.trackManyEvents(
     request.phrases
-      .filter((phrase) => {
-        if (!phrase.method) return false;
+      .filter(
+        (phrase): phrase is NonNullableFields<typeof phrase, "method"> => {
+          if (!phrase.method) return false;
 
-        const gloss = glosses.find((gloss) => gloss.phraseId === phrase.id);
-        return !gloss || gloss.state === GlossStateRaw.Unapproved;
-      })
+          const gloss = glosses.find((gloss) => gloss.phraseId === phrase.id);
+          return !gloss || gloss.state === GlossStateRaw.Unapproved;
+        },
+      )
       .map((phrase) => ({
         type: "approved_gloss",
         userId: request.userId,
-        languageId: language?.id,
+        languageId: language.id,
         phraseId: phrase.id,
         method: phrase.method,
       })),
   );
 }
+
+type NonNullableFields<T, K extends keyof T> = Omit<T, K> & {
+  [P in K]: NonNullable<T[K]>;
+};
