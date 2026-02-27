@@ -46,7 +46,7 @@ export async function approveAllUseCase(request: ApproveAllUseCaseRequest) {
         return !gloss || gloss.state === GlossStateRaw.Unapproved;
       })
       .map((phrase) => ({
-        type: "approve_gloss",
+        type: "approved_gloss",
         userId: request.userId,
         languageId: language?.id,
         phraseId: phrase.id,
