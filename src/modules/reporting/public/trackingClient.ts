@@ -1,6 +1,7 @@
 import { ulid } from "@/shared/ulid";
 import trackingEventRepository from "../data-access/TrackingEventRepository";
 import { logger } from "@/logging";
+import { TrackingEvent } from "../model";
 
 export type EventData = {
   [key: string]: any;
@@ -8,18 +9,26 @@ export type EventData = {
   languageId?: string;
 };
 
-export type BulkEvent = EventData & {
-  type: string;
-};
-
 export interface TrackingClient {
-  trackEvent(event: string, data?: any): Promise<void>;
+  trackEvent<EventType extends TrackingEvent["type"]>(
+    event: EventType,
+    data?: Omit<
+      Extract<TrackingEvent, { type: EventType }>,
+      "type" | "createdAt"
+    >,
+  ): Promise<void>;
 
-  trackManyEvents(events: BulkEvent[]): Promise<void>;
+  trackManyEvents(events: Omit<TrackingEvent, "createdAt">[]): Promise<void>;
 }
 
 const trackingClient = {
-  async trackEvent(event: string, data?: any): Promise<void> {
+  async trackEvent<EventType extends TrackingEvent["type"]>(
+    event: EventType,
+    data?: Omit<
+      Extract<TrackingEvent, { type: EventType }>,
+      "type" | "createdAt"
+    >,
+  ): Promise<void> {
     const childLogger = logger.child({
       module: "trackingClient",
     });
@@ -41,7 +50,9 @@ const trackingClient = {
     }
   },
 
-  async trackManyEvents(events: BulkEvent[]): Promise<void> {
+  async trackManyEvents(
+    events: Omit<TrackingEvent, "createdAt">[],
+  ): Promise<void> {
     const childLogger = logger.child({
       module: "trackingClient",
     });

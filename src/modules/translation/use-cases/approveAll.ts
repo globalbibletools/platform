@@ -24,6 +24,11 @@ export async function approveAllUseCase(request: ApproveAllUseCaseRequest) {
     throw new NotFoundError("Phrase");
   }
 
+  const language = await languageRepository.findByCode(request.languageCode);
+  if (!language) {
+    throw new NotFoundError("Language");
+  }
+
   const glosses = await glossRepository.findManyByPhraseId(
     request.phrases.map((phrase) => phrase.id),
   );
@@ -36,7 +41,6 @@ export async function approveAllUseCase(request: ApproveAllUseCaseRequest) {
     updatedBy: request.userId,
   });
 
-  const language = await languageRepository.findByCode(request.languageCode);
   await trackingClient.trackManyEvents(
     request.phrases
       .filter((phrase) => {
@@ -46,9 +50,9 @@ export async function approveAllUseCase(request: ApproveAllUseCaseRequest) {
         return !gloss || gloss.state === GlossStateRaw.Unapproved;
       })
       .map((phrase) => ({
-        type: "approve_gloss",
+        type: "approved_gloss",
         userId: request.userId,
-        languageId: language?.id,
+        languageId: language.id,
         phraseId: phrase.id,
         method: phrase.method,
       })),
