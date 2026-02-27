@@ -1,4 +1,4 @@
-import { query } from "@/db";
+import { getDb, query } from "@/db";
 import { GlossSourceRaw, GlossStateRaw } from "../types";
 
 export interface DbGloss {
@@ -118,50 +118,68 @@ const glossRepository = {
   },
 
   async update(options: UpdateGlossOptions) {
-    await query(
-      `insert into gloss (phrase_id, state, gloss, updated_at, updated_by, source)
-        values ($1, $2, $3, now(), $4, $5)
-        on conflict (phrase_id) do update set
-          state = coalesce(excluded.state, gloss.state),
-          gloss = coalesce(excluded.gloss, gloss.gloss),
-          updated_at = excluded.updated_at,
-          updated_by = excluded.updated_by, 
-          source = excluded.source
-          where excluded.state <> gloss.state or excluded.gloss <> gloss.gloss
-      `,
-      [
-        options.phraseId,
-        options.state,
-        options.gloss,
-        options.updatedBy,
-        options.source,
-      ],
-    );
+    await getDb()
+      .insertInto("gloss")
+      .values({
+        phrase_id: options.phraseId,
+        state: options.state,
+        gloss: options.gloss,
+        updated_by: options.updatedBy,
+        updated_at: new Date(),
+        source: options.source,
+      })
+      .onConflict((oc) =>
+        oc
+          .column("phrase_id")
+          .doUpdateSet((eb) => ({
+            state: eb.fn.coalesce("excluded.state", "gloss.state"),
+            gloss: eb.fn.coalesce("excluded.gloss", "gloss.gloss"),
+            updated_at: eb.ref("excluded.updated_at"),
+            updated_by: eb.ref("excluded.updated_by"),
+            source: eb.ref("excluded.source"),
+          }))
+          .where((eb) =>
+            eb.or([
+              eb("excluded.state", "<>", eb.ref("gloss.state")),
+              eb("excluded.gloss", "<>", eb.ref("gloss.gloss")),
+            ]),
+          ),
+      )
+      .execute();
   },
 
   async approveMany(options: ApproveManyGlossesOptions) {
-    await query(
-      `
-        insert into gloss (phrase_id, gloss, state, updated_at, updated_by, source)
-        select ph.id, data.gloss, 'APPROVED', now(), $3, 'USER'
-        from unnest($1::integer[], $2::text[]) data (phrase_id, gloss)
-        join phrase as ph on ph.id = data.phrase_id
-        where ph.deleted_at is null
-        on conflict (phrase_id)
-            do update set
-                gloss = coalesce(excluded.gloss, gloss.gloss),
-                state = excluded.state,
-                updated_at = excluded.updated_at,
-                updated_by = excluded.updated_by, 
-                source = excluded.source
-                where excluded.state <> gloss.state or excluded.gloss <> gloss.gloss
-        `,
-      [
-        options.phrases.map((ph) => ph.phraseId),
-        options.phrases.map((ph) => ph.gloss),
-        options.updatedBy,
-      ],
-    );
+    const now = new Date();
+    await getDb()
+      .insertInto("gloss")
+      .values(
+        options.phrases.map((gloss) => ({
+          phrase_id: gloss.phraseId,
+          state: GlossStateRaw.Approved,
+          gloss: gloss.gloss,
+          updated_by: options.updatedBy,
+          updated_at: now,
+          source: GlossSourceRaw.User,
+        })),
+      )
+      .onConflict((oc) =>
+        oc
+          .column("phrase_id")
+          .doUpdateSet((eb) => ({
+            state: eb.fn.coalesce("excluded.state", "gloss.state"),
+            gloss: eb.fn.coalesce("excluded.gloss", "gloss.gloss"),
+            updated_at: eb.ref("excluded.updated_at"),
+            updated_by: eb.ref("excluded.updated_by"),
+            source: eb.ref("excluded.source"),
+          }))
+          .where((eb) =>
+            eb.or([
+              eb("excluded.state", "<>", eb.ref("gloss.state")),
+              eb("excluded.gloss", "<>", eb.ref("gloss.gloss")),
+            ]),
+          ),
+      )
+      .execute();
   },
 };
 export default glossRepository;
