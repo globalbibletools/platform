@@ -43,12 +43,14 @@ export async function approveAllUseCase(request: ApproveAllUseCaseRequest) {
 
   await trackingClient.trackManyEvents(
     request.phrases
-      .filter((phrase) => {
-        if (!phrase.method) return false;
+      .filter(
+        (phrase): phrase is NonNullableFields<typeof phrase, "method"> => {
+          if (!phrase.method) return false;
 
-        const gloss = glosses.find((gloss) => gloss.phraseId === phrase.id);
-        return !gloss || gloss.state === GlossStateRaw.Unapproved;
-      })
+          const gloss = glosses.find((gloss) => gloss.phraseId === phrase.id);
+          return !gloss || gloss.state === GlossStateRaw.Unapproved;
+        },
+      )
       .map((phrase) => ({
         type: "approved_gloss",
         userId: request.userId,
@@ -58,3 +60,7 @@ export async function approveAllUseCase(request: ApproveAllUseCaseRequest) {
       })),
   );
 }
+
+type NonNullableFields<T, K extends keyof T> = Omit<T, K> & {
+  [P in K]: NonNullable<T[K]>;
+};

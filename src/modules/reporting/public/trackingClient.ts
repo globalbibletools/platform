@@ -8,7 +8,7 @@ const trackingClient = {
     event: EventType,
     data: Omit<
       Extract<TrackingEvent, { type: EventType }>,
-      "type" | "createdAt"
+      "type" | "id" | "createdAt"
     >,
   ): Promise<void> {
     const childLogger = logger.child({
@@ -27,7 +27,7 @@ const trackingClient = {
   },
 
   async trackManyEvents(
-    events: Omit<TrackingEvent, "createdAt">[],
+    events: Omit<TrackingEvent, "id" | "createdAt">[],
   ): Promise<void> {
     const childLogger = logger.child({
       module: "trackingClient",
