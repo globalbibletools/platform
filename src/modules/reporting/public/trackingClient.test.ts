@@ -2,8 +2,7 @@ import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { describe, expect, test } from "vitest";
 import trackingClient from "./trackingClient";
 import { ulid } from "@/shared/ulid";
-import { DbTrackingEvent } from "../data-access/types";
-import { query } from "@/db";
+import { getDb } from "@/db";
 
 initializeDatabase();
 
@@ -27,9 +26,9 @@ describe("trackEvent", () => {
         id: expect.toBeUlid(),
         type: "test",
         data: { otherData: true },
-        userId,
-        languageId,
-        createdAt: expect.toBeNow(),
+        user_id: userId,
+        language_id: languageId,
+        created_at: expect.toBeNow(),
       },
     ]);
   });
@@ -43,9 +42,9 @@ describe("trackEvent", () => {
         id: expect.toBeUlid(),
         type: "test",
         data: { someData: true },
-        userId: null,
-        languageId: null,
-        createdAt: expect.toBeNow(),
+        user_id: null,
+        language_id: null,
+        created_at: expect.toBeNow(),
       },
     ]);
   });
@@ -59,9 +58,9 @@ describe("trackEvent", () => {
         id: expect.toBeUlid(),
         type: "test",
         data: {},
-        userId: null,
-        languageId: null,
-        createdAt: expect.toBeNow(),
+        user_id: null,
+        language_id: null,
+        created_at: expect.toBeNow(),
       },
     ]);
   });
@@ -104,46 +103,42 @@ describe("trackManyEvents", () => {
         id: expect.toBeUlid(),
         type: fullEvent.type,
         data: { otherData: true },
-        userId: fullEvent.userId,
-        languageId: fullEvent.languageId,
-        createdAt: expect.toBeNow(),
+        user_id: fullEvent.userId,
+        language_id: fullEvent.languageId,
+        created_at: expect.toBeNow(),
       },
       {
         id: expect.toBeUlid(),
         type: eventWithIds.type,
         data: {},
-        userId: eventWithIds.userId,
-        languageId: eventWithIds.languageId,
-        createdAt: expect.toBeNow(),
+        user_id: eventWithIds.userId,
+        language_id: eventWithIds.languageId,
+        created_at: expect.toBeNow(),
       },
       {
         id: expect.toBeUlid(),
         type: eventWithData.type,
         data: { otherData: true },
-        userId: null,
-        languageId: null,
-        createdAt: expect.toBeNow(),
+        user_id: null,
+        language_id: null,
+        created_at: expect.toBeNow(),
       },
       {
         id: expect.toBeUlid(),
         type: simpleEvent.type,
         data: {},
-        userId: null,
-        languageId: null,
-        createdAt: expect.toBeNow(),
+        user_id: null,
+        language_id: null,
+        created_at: expect.toBeNow(),
       },
     ]);
   });
 });
 
-async function findTrackingEvents(): Promise<DbTrackingEvent[]> {
-  const result = await query<DbTrackingEvent>(
-    `
-      select id, type, data, user_id as "userId", language_id as "languageId", created_at as "createdAt"
-      from tracking_event
-      order by id
-    `,
-    [],
-  );
-  return result.rows;
+function findTrackingEvents() {
+  return getDb()
+    .selectFrom("tracking_event")
+    .selectAll()
+    .orderBy("id")
+    .execute();
 }

@@ -1,5 +1,5 @@
 import { ulid } from "@/shared/ulid";
-import trackingEventRepository from "../data-access/TrackingEventRepository";
+import trackingEventRepository from "../data-access/trackingEventRepository";
 import { logger } from "@/logging";
 import { TrackingEvent } from "../model";
 
@@ -15,19 +15,13 @@ const trackingClient = {
       module: "trackingClient",
     });
     try {
-      const { userId = null, languageId = null, ...rest } = data ?? {};
-
       await trackingEventRepository.createMany([
         {
-          id: ulid(),
           type: event,
-          data: rest,
-          userId,
-          languageId,
+          ...data,
         },
       ]);
     } catch (error) {
-      console.log(error);
       childLogger.error({ err: error }, "Failed to log event");
     }
   },
@@ -39,15 +33,7 @@ const trackingClient = {
       module: "trackingClient",
     });
     try {
-      await trackingEventRepository.createMany(
-        events.map(({ type, userId = null, languageId = null, ...rest }) => ({
-          id: ulid(),
-          type,
-          data: rest,
-          userId,
-          languageId,
-        })),
-      );
+      await trackingEventRepository.createMany(events);
     } catch (error) {
       childLogger.error({ err: error }, "Failed to log event");
     }

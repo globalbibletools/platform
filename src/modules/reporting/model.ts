@@ -1,5 +1,6 @@
 export type TrackingEvent =
   | {
+      id: string;
       type: "approved_gloss";
       createdAt: Date;
       languageId: string;
@@ -12,6 +13,7 @@ export type TrackingEvent =
         | "MACHINE_SUGGESTION";
     }
   | {
+      id: string;
       type: "gloss_changed";
       createdAt: Date;
       languageId: string;

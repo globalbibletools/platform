@@ -4,7 +4,7 @@ export interface TrackingEventTable {
   id: Generated<string>;
   type: string;
   data: JSONColumnType<object>;
-  userId: string | null;
-  languageId: string | null;
-  createdAt: Date;
+  user_id: string | null;
+  language_id: string | null;
+  created_at: Date;
 }
