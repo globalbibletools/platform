@@ -103,10 +103,18 @@ export default function TranslateWord({
     (isMultiWord ? undefined : word.suggestions[0] || machineSuggestion);
 
   let approvalMethod: GlossApprovalMethodRaw = GlossApprovalMethodRaw.UserInput;
-  if (glossValue === word.suggestions[0]) {
-    approvalMethod = GlossApprovalMethodRaw.MachineSuggestion;
-  } else if (glossValue === machineSuggestion) {
-    approvalMethod = GlossApprovalMethodRaw.GoogleSuggestion;
+  if (language.machineGlossStrategy === MachineGlossStrategy.Google) {
+    if (glossValue === word.suggestions[0]) {
+      approvalMethod = GlossApprovalMethodRaw.MachineSuggestion;
+    } else if (glossValue === machineSuggestion) {
+      approvalMethod = GlossApprovalMethodRaw.GoogleSuggestion;
+    }
+  } else if (language.machineGlossStrategy === MachineGlossStrategy.LLM) {
+    if (glossValue === machineSuggestion) {
+      approvalMethod = GlossApprovalMethodRaw.LLMSuggestion;
+    } else if (glossValue === word.suggestions[0]) {
+      approvalMethod = GlossApprovalMethodRaw.MachineSuggestion;
+    }
   }
 
   const { locale, code } = useParams<{ locale: string; code: string }>();
@@ -248,7 +256,6 @@ export default function TranslateWord({
           />
         : editable && (
             <Checkbox
-              className="invisible group-hover/word:visible group-focus-within/word:visible [&:has(:checked)]:visible"
               aria-label="word selected"
               tabIndex={-1}
               checked={wordSelected}
@@ -281,7 +288,7 @@ export default function TranslateWord({
           {phrase.wordIds.indexOf(word.id) === 0 && (
             <div
               className={`
-                            min-w-[128px] group/input-row flex gap-2 items-center
+                            min-w-[128px] flex gap-2 items-center
                             ${isHebrew ? "flex-row" : "flex-row-reverse"}
                         `}
               // The extra 26 pixels give room for the padding and border.
@@ -290,7 +297,7 @@ export default function TranslateWord({
               }}
               dir={language.textDirection}
             >
-              <div className="group-focus-within/input-row:block hidden">
+              <div className="group-focus-within/word:block hidden">
                 {status !== "approved" && (
                   <Button
                     className="bg-green-600! w-9"
