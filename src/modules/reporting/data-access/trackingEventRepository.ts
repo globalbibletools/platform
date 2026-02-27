@@ -1,19 +1,38 @@
-import { getDb } from "@/db";
+import { Database, getDb } from "@/db";
 import { TrackingEvent } from "../model";
 import { ulid } from "@/shared/ulid";
+import { Transaction } from "kysely";
+
+type DistributiveOmit<T, K extends keyof T> =
+  T extends unknown ? Omit<T, K> : never;
+
+type InsertableTrackingEvent = DistributiveOmit<
+  TrackingEvent,
+  "createdAt" | "id"
+> & { createdAt?: Date };
 
 const trackingEventRepository = {
-  async createMany(
-    events: Omit<TrackingEvent, "createdAt" | "id">[],
-    createdAt = new Date(),
+  async trackOne(
+    event: InsertableTrackingEvent,
+    trx?: Transaction<Database>,
   ): Promise<void> {
-    await getDb()
+    await this.trackMany([event], trx);
+  },
+
+  async trackMany(
+    events: InsertableTrackingEvent[],
+    trx?: Transaction<Database>,
+  ): Promise<void> {
+    const now = new Date();
+    const queryRoot = trx ?? getDb();
+
+    await queryRoot
       .insertInto("tracking_event")
       .values(
-        events.map(({ type, languageId, userId, ...data }) => ({
+        events.map(({ type, languageId, userId, createdAt, ...data }) => ({
           id: ulid(),
           type,
-          created_at: createdAt,
+          created_at: createdAt ?? now,
           user_id: userId,
           language_id: languageId,
           data: JSON.stringify(data),
