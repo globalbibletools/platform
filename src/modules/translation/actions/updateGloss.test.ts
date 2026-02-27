@@ -14,11 +14,11 @@ import {
   GlossSourceRaw,
   GlossStateRaw,
 } from "../types";
-import trackingClient from "@/modules/reporting/public/trackingClient";
+import { trackingClient } from "@/modules/reporting";
 
 initializeDatabase();
 
-vitest.mock("@/modules/reporting/public/trackingClient");
+vitest.mock("@/modules/reporting");
 
 const scenarioDefinition: ScenarioDefinition = {
   users: {
@@ -40,7 +40,7 @@ test("returns and does nothing if the request shape doesn't match the schema", a
   const response = await updateGlossAction(formData);
   expect(response).toBeUndefined();
 
-  expect(trackingClient.trackEvent).not.toHaveBeenCalled();
+  expect(trackingClient.trackOne).not.toHaveBeenCalled();
 });
 
 test("returns not found if user is not logged in", async () => {
@@ -64,7 +64,7 @@ test("returns not found if user is not logged in", async () => {
   const gloss = await findGlossForPhrase(phrase.id);
   expect(gloss).toBeUndefined();
 
-  expect(trackingClient.trackEvent).not.toHaveBeenCalled();
+  expect(trackingClient.trackOne).not.toHaveBeenCalled();
 });
 
 test("returns not found if user is not a translator on the language", async () => {
@@ -89,7 +89,7 @@ test("returns not found if user is not a translator on the language", async () =
   const gloss = await findGlossForPhrase(phrase.id);
   expect(gloss).toBeUndefined();
 
-  expect(trackingClient.trackEvent).not.toHaveBeenCalled();
+  expect(trackingClient.trackOne).not.toHaveBeenCalled();
 });
 
 test("returns not found if the phrase does not exist", async () => {
@@ -110,7 +110,7 @@ test("returns not found if the phrase does not exist", async () => {
   const gloss = await findGlossForPhrase(123456);
   expect(gloss).toBeUndefined();
 
-  expect(trackingClient.trackEvent).not.toHaveBeenCalled();
+  expect(trackingClient.trackOne).not.toHaveBeenCalled();
 });
 
 test("returns not found if the phrase is in a different language", async () => {
@@ -138,7 +138,7 @@ test("returns not found if the phrase is in a different language", async () => {
   const gloss = await findGlossForPhrase(123456);
   expect(gloss).toBeUndefined();
 
-  expect(trackingClient.trackEvent).not.toHaveBeenCalled();
+  expect(trackingClient.trackOne).not.toHaveBeenCalled();
 });
 
 test("creates a new gloss for the phrase", async () => {
@@ -175,7 +175,7 @@ test("creates a new gloss for the phrase", async () => {
   const glossHistory = await findGlossHistoryForPhrase(phrase.id);
   expect(glossHistory).toEqual([]);
 
-  expect(trackingClient.trackEvent).not.toHaveBeenCalled();
+  expect(trackingClient.trackOne).not.toHaveBeenCalled();
 
   // TODO: verify cache validation
 });
@@ -215,15 +215,13 @@ test("creates a new gloss for the phrase and tracks approval", async () => {
   const glossHistory = await findGlossHistoryForPhrase(phrase.id);
   expect(glossHistory).toEqual([]);
 
-  expect(trackingClient.trackEvent).toHaveBeenCalledExactlyOnceWith(
-    "approved_gloss",
-    {
-      languageId: language.id,
-      userId: translator.id,
-      phraseId: phrase.id,
-      method: GlossApprovalMethodRaw.MachineSuggestion,
-    },
-  );
+  expect(trackingClient.trackOne).toHaveBeenCalledExactlyOnceWith({
+    type: "approved_gloss",
+    languageId: language.id,
+    userId: translator.id,
+    phraseId: phrase.id,
+    method: GlossApprovalMethodRaw.MachineSuggestion,
+  });
 
   // TODO: verify cache validation
 });
@@ -270,7 +268,7 @@ test("updates an existing gloss for the phrase", async () => {
     },
   ]);
 
-  expect(trackingClient.trackEvent).not.toHaveBeenCalled();
+  expect(trackingClient.trackOne).not.toHaveBeenCalled();
 
   // TODO: verify cache validation
 });
@@ -318,15 +316,13 @@ test("updates an existing gloss for the phrase and tracks approval", async () =>
     },
   ]);
 
-  expect(trackingClient.trackEvent).toHaveBeenCalledExactlyOnceWith(
-    "approved_gloss",
-    {
-      languageId: language.id,
-      userId: translator.id,
-      phraseId: phrase.id,
-      method: GlossApprovalMethodRaw.GoogleSuggestion,
-    },
-  );
+  expect(trackingClient.trackOne).toHaveBeenCalledExactlyOnceWith({
+    type: "approved_gloss",
+    languageId: language.id,
+    userId: translator.id,
+    phraseId: phrase.id,
+    method: GlossApprovalMethodRaw.GoogleSuggestion,
+  });
 
   // TODO: verify cache validation
 });

@@ -15,11 +15,11 @@ import {
   GlossStateRaw,
 } from "../types";
 import { faker } from "@faker-js/faker/locale/en";
-import trackingClient from "@/modules/reporting/public/trackingClient";
+import { trackingClient } from "@/modules/reporting";
 
 initializeDatabase();
 
-vitest.mock("@/modules/reporting/public/trackingClient");
+vitest.mock("@/modules/reporting");
 
 const scenarioDefinition: ScenarioDefinition = {
   users: {
@@ -41,7 +41,7 @@ test("returns and does nothing if the request shape doesn't match the schema", a
   const response = await approveAll(formData);
   expect(response).toBeUndefined();
 
-  expect(trackingClient.trackManyEvents).not.toHaveBeenCalled();
+  expect(trackingClient.trackMany).not.toHaveBeenCalled();
 });
 
 test("returns not found if user is not logged in", async () => {
@@ -71,7 +71,7 @@ test("returns not found if user is not logged in", async () => {
   const updatedGloss3 = await findGlossForPhrase(phrases[2].id);
   expect(updatedGloss3).toBeUndefined();
 
-  expect(trackingClient.trackManyEvents).not.toHaveBeenCalled();
+  expect(trackingClient.trackMany).not.toHaveBeenCalled();
 });
 
 test("returns not found if user is not a translator on the language", async () => {
@@ -102,7 +102,7 @@ test("returns not found if user is not a translator on the language", async () =
   const updatedGloss3 = await findGlossForPhrase(phrases[2].id);
   expect(updatedGloss3).toBeUndefined();
 
-  expect(trackingClient.trackManyEvents).not.toHaveBeenCalled();
+  expect(trackingClient.trackMany).not.toHaveBeenCalled();
 });
 
 test("returns not found if a phrase does not exist", async () => {
@@ -135,7 +135,7 @@ test("returns not found if a phrase does not exist", async () => {
   const updatedGloss3 = await findGlossForPhrase(missingPhraseId);
   expect(updatedGloss3).toBeUndefined();
 
-  expect(trackingClient.trackManyEvents).not.toHaveBeenCalled();
+  expect(trackingClient.trackMany).not.toHaveBeenCalled();
 });
 
 test("returns not found if a phrase is for a different language", async () => {
@@ -179,7 +179,7 @@ test("returns not found if a phrase is for a different language", async () => {
   const updatedGloss2 = await findGlossForPhrase(phraseInOtherLanguage.id);
   expect(updatedGloss2).toBeUndefined();
 
-  expect(trackingClient.trackManyEvents).not.toHaveBeenCalled();
+  expect(trackingClient.trackMany).not.toHaveBeenCalled();
 });
 
 test("creates a new glosses and updates existing glosses for each phrase", async () => {
@@ -269,7 +269,7 @@ test("creates a new glosses and updates existing glosses for each phrase", async
   const updatedGloss3History = await findGlossHistoryForPhrase(phrases[2].id);
   expect(updatedGloss3History).toEqual([]);
 
-  expect(trackingClient.trackManyEvents).toHaveBeenCalledExactlyOnceWith([
+  expect(trackingClient.trackMany).toHaveBeenCalledExactlyOnceWith([
     {
       type: "approved_gloss",
       userId: translator.id,

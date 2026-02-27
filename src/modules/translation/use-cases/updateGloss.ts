@@ -1,4 +1,4 @@
-import trackingClient from "@/modules/reporting/public/trackingClient";
+import { trackingClient } from "@/modules/reporting";
 import glossRepository from "../data-access/GlossRepository";
 import {
   GlossApprovalMethodRaw,
@@ -43,7 +43,8 @@ export async function updateGlossUseCase(request: UpdateGlossUseCaseRequest) {
     request.state === GlossStateRaw.Approved &&
     request.method
   ) {
-    await trackingClient.trackEvent("approved_gloss", {
+    await trackingClient.trackOne({
+      type: "approved_gloss",
       languageId: phrase.language.id,
       userId: request.userId,
       phraseId: request.phraseId,

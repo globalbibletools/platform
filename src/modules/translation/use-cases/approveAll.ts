@@ -3,7 +3,7 @@ import phraseRepository from "../data-access/PhraseRepository";
 import { GlossApprovalMethodRaw, GlossStateRaw } from "../types";
 import glossRepository from "../data-access/GlossRepository";
 import languageRepository from "@/modules/languages/data-access/languageRepository";
-import trackingClient from "@/modules/reporting/public/trackingClient";
+import { trackingClient } from "@/modules/reporting";
 
 export interface ApproveAllUseCaseRequest {
   languageCode: string;
@@ -41,16 +41,14 @@ export async function approveAllUseCase(request: ApproveAllUseCaseRequest) {
     updatedBy: request.userId,
   });
 
-  await trackingClient.trackManyEvents(
+  await trackingClient.trackMany(
     request.phrases
-      .filter(
-        (phrase): phrase is NonNullableFields<typeof phrase, "method"> => {
-          if (!phrase.method) return false;
+      .filter((phrase): phrase is RequiredFields<typeof phrase, "method"> => {
+        if (!phrase.method) return false;
 
-          const gloss = glosses.find((gloss) => gloss.phraseId === phrase.id);
-          return !gloss || gloss.state === GlossStateRaw.Unapproved;
-        },
-      )
+        const gloss = glosses.find((gloss) => gloss.phraseId === phrase.id);
+        return !gloss || gloss.state === GlossStateRaw.Unapproved;
+      })
       .map((phrase) => ({
         type: "approved_gloss",
         userId: request.userId,
@@ -61,6 +59,4 @@ export async function approveAllUseCase(request: ApproveAllUseCaseRequest) {
   );
 }
 
-type NonNullableFields<T, K extends keyof T> = Omit<T, K> & {
-  [P in K]: NonNullable<T[K]>;
-};
+type RequiredFields<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
