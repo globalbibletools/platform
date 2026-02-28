@@ -256,38 +256,3 @@ class PostgresTextFormatTransform extends Transform {
     cb();
   }
 }
-
-export type Repository<Def> = Def & {
-  withUnitOfWork(trx: Transaction<Database>): RepositoryWithTransaction<Def>;
-};
-export type RepositoryWithTransaction<Def> = Def;
-
-export function createRepository<Def>(
-  factory: (getDb: () => Kysely<Database>) => Def,
-): Repository<Def> {
-  return {
-    ...factory(getDb),
-    withUnitOfWork(trx: Transaction<Database>): RepositoryWithTransaction<Def> {
-      return {
-        ...factory(() => trx),
-      };
-    },
-  };
-}
-
-export type RepositoryMock<Repo> = MockedObject<
-  Omit<Repo, "withUnitOfWork">
-> & {
-  withUnitOfWork: Mock<
-    (_trx: Transaction<Database>) => MockedObject<Omit<Repo, "withUnitOfWork">>
-  >;
-};
-
-export function createMockRepository<Repo extends Repository<any>>(
-  definition: MockedObject<Omit<Repo, "withUnitOfWork">>,
-): RepositoryMock<Repo> {
-  return {
-    ...definition,
-    withUnitOfWork: vitest.fn((_trx: Transaction<Database>) => definition),
-  };
-}

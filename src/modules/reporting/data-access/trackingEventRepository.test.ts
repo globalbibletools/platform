@@ -72,12 +72,15 @@ describe("trackOne", () => {
     const languageId = ulid();
 
     await unitOfWork(async (trx) => {
-      trackingEventRepository.withUnitOfWork(trx).trackOne({
-        type: "test",
-        otherData: true,
-        userId,
-        languageId,
-      } as any);
+      trackingEventRepository.trackOne(
+        {
+          type: "test",
+          otherData: true,
+          userId,
+          languageId,
+        } as any,
+        trx,
+      );
 
       const events = await findTrackingEvents();
       expect(events).toEqual([]);
@@ -182,14 +185,10 @@ describe("trackMany", () => {
     };
 
     await unitOfWork(async (trx) => {
-      await trackingEventRepository
-        .withUnitOfWork(trx)
-        .trackMany([
-          fullEvent,
-          eventWithIds,
-          eventWithData,
-          simpleEvent,
-        ] as any);
+      await trackingEventRepository.trackMany(
+        [fullEvent, eventWithIds, eventWithData, simpleEvent] as any,
+        trx,
+      );
 
       const events = await findTrackingEvents();
       expect(events).toEqual([]);
