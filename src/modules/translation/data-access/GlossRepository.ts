@@ -1,4 +1,4 @@
-import { createRepository, query } from "@/db";
+import { getDb, query } from "@/db";
 import { GlossSourceRaw, GlossStateRaw } from "../types";
 
 export interface DbGloss {
@@ -32,7 +32,7 @@ export interface ApproveManyGlossesOptions {
   phrases: Pick<DbGloss, "gloss" | "phraseId">[];
 }
 
-const glossRepository = createRepository((getDb) => ({
+const glossRepository = {
   async findByPhraseId(phraseId: number): Promise<DbGloss | undefined> {
     const result = await query<DbGloss>(
       `
@@ -181,5 +181,5 @@ const glossRepository = createRepository((getDb) => ({
       )
       .execute();
   },
-}));
+};
 export default glossRepository;
