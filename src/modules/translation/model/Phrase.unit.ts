@@ -1,25 +1,30 @@
 import { describe, test, expect } from "vitest";
-import Gloss, { GlossProps } from "./Gloss";
 import Phrase, { PhraseProps } from "./Phrase";
+import Gloss from "./Gloss";
 import {
   GlossApprovalMethodRaw,
   GlossSourceRaw,
   GlossStateRaw,
 } from "../types";
 
-const phrase = new Phrase({
-  id: 1,
-  languageId: "lang-id",
-  wordIds: ["word-1", "word-2"],
-  createdAt: new Date(),
-  createdBy: "user-id",
-  deletedAt: null,
-  deletedBy: null,
-});
+function makePhrase(overrides?: Partial<PhraseProps>): Phrase {
+  return new Phrase({
+    id: 1,
+    languageId: "lang-id",
+    wordIds: ["word-1", "word-2"],
+    createdAt: new Date(),
+    createdBy: "user-id",
+    deletedAt: null,
+    deletedBy: null,
+    gloss: null,
+    ...overrides,
+  });
+}
 
-function makeGloss(overrides?: Partial<GlossProps>): Gloss {
+function makeGloss(
+  overrides?: Partial<ConstructorParameters<typeof Gloss>[0]>,
+): Gloss {
   return new Gloss({
-    phrase,
     gloss: "hello",
     state: GlossStateRaw.Unapproved,
     source: GlossSourceRaw.User,
@@ -29,185 +34,188 @@ function makeGloss(overrides?: Partial<GlossProps>): Gloss {
   });
 }
 
-describe("create", () => {
+describe("updateGloss", () => {
   test("creates an unapproved gloss", () => {
-    const result = Gloss.create({
-      phrase,
+    const phrase = makePhrase();
+
+    phrase.updateGloss({
       gloss: "hello",
       state: GlossStateRaw.Unapproved,
       userId: "user-1",
     });
 
-    expect(result.props).toEqual({
-      phrase,
+    expect(phrase.gloss?.props).toEqual({
       gloss: "hello",
       state: GlossStateRaw.Unapproved,
       source: GlossSourceRaw.User,
       updatedAt: expect.toBeNow(),
       updatedBy: "user-1",
     });
-    expect(result.events).toEqual([]);
+    expect(phrase.events).toEqual([]);
   });
 
   test("creates an approved gloss without an approval method", () => {
-    const result = Gloss.create({
-      phrase,
+    const phrase = makePhrase();
+
+    phrase.updateGloss({
       gloss: "hello",
       state: GlossStateRaw.Approved,
       userId: "user-1",
     });
 
-    expect(result.props).toEqual({
-      phrase,
+    expect(phrase.gloss?.props).toEqual({
       gloss: "hello",
       state: GlossStateRaw.Approved,
       source: GlossSourceRaw.User,
       updatedAt: expect.toBeNow(),
       updatedBy: "user-1",
     });
-    expect(result.events).toEqual([]);
+    expect(phrase.events).toEqual([]);
   });
 
   test("creates an approved gloss with an approval method", () => {
-    const result = Gloss.create({
-      phrase,
+    const phrase = makePhrase();
+
+    phrase.updateGloss({
       gloss: "hello",
       state: GlossStateRaw.Approved,
       userId: "user-1",
       approvalMethod: GlossApprovalMethodRaw.MachineSuggestion,
     });
 
-    expect(result.props).toEqual({
-      phrase,
+    expect(phrase.gloss?.props).toEqual({
       gloss: "hello",
       state: GlossStateRaw.Approved,
       source: GlossSourceRaw.User,
       updatedAt: expect.toBeNow(),
       updatedBy: "user-1",
     });
-    expect(result.events).toEqual([
+    expect(phrase.events).toEqual([
       {
         id: expect.toBeUlid(),
         type: "approved_gloss",
         createdAt: expect.toBeNow(),
-        languageId: phrase.languageId,
+        languageId: "lang-id",
         userId: "user-1",
-        phraseId: phrase.id,
+        phraseId: 1,
         method: GlossApprovalMethodRaw.MachineSuggestion,
       },
     ]);
   });
-});
 
-describe("update", () => {
   test("edits an unapproved gloss", () => {
-    const gloss = makeGloss({ state: GlossStateRaw.Unapproved });
+    const phrase = makePhrase({
+      gloss: makeGloss({ state: GlossStateRaw.Unapproved }),
+    });
 
-    gloss.update({
+    phrase.updateGloss({
       gloss: "world",
       state: GlossStateRaw.Unapproved,
       userId: "user-2",
     });
 
-    expect(gloss.props).toEqual({
-      phrase,
+    expect(phrase.gloss?.props).toEqual({
       gloss: "world",
       state: GlossStateRaw.Unapproved,
       source: GlossSourceRaw.User,
       updatedAt: expect.toBeNow(),
       updatedBy: "user-2",
     });
-    expect(gloss.events).toEqual([]);
+    expect(phrase.events).toEqual([]);
   });
 
   test("approves the gloss without an approval method", () => {
-    const gloss = makeGloss({ state: GlossStateRaw.Unapproved });
+    const phrase = makePhrase({
+      gloss: makeGloss({ state: GlossStateRaw.Unapproved }),
+    });
 
-    gloss.update({
-      gloss: gloss.gloss,
+    phrase.updateGloss({
+      gloss: "hello",
       state: GlossStateRaw.Approved,
       userId: "user-2",
     });
 
-    expect(gloss.props).toEqual({
-      phrase,
+    expect(phrase.gloss?.props).toEqual({
       gloss: "hello",
       state: GlossStateRaw.Approved,
       source: GlossSourceRaw.User,
       updatedAt: expect.toBeNow(),
       updatedBy: "user-2",
     });
-    expect(gloss.events).toEqual([]);
+    expect(phrase.events).toEqual([]);
   });
 
   test("approves the gloss with an approval method", () => {
-    const gloss = makeGloss({ state: GlossStateRaw.Unapproved });
+    const phrase = makePhrase({
+      gloss: makeGloss({ state: GlossStateRaw.Unapproved }),
+    });
 
-    gloss.update({
-      gloss: gloss.gloss,
+    phrase.updateGloss({
+      gloss: "hello",
       state: GlossStateRaw.Approved,
       userId: "user-2",
       approvalMethod: GlossApprovalMethodRaw.MachineSuggestion,
     });
 
-    expect(gloss.props).toEqual({
-      phrase,
+    expect(phrase.gloss?.props).toEqual({
       gloss: "hello",
       state: GlossStateRaw.Approved,
       source: GlossSourceRaw.User,
       updatedAt: expect.toBeNow(),
       updatedBy: "user-2",
     });
-    expect(gloss.events).toEqual([
+    expect(phrase.events).toEqual([
       {
         id: expect.toBeUlid(),
         type: "approved_gloss",
         createdAt: expect.toBeNow(),
-        languageId: phrase.languageId,
+        languageId: "lang-id",
         userId: "user-2",
-        phraseId: phrase.id,
+        phraseId: 1,
         method: GlossApprovalMethodRaw.MachineSuggestion,
       },
     ]);
   });
 
   test("revokes a gloss", () => {
-    const gloss = makeGloss({ state: GlossStateRaw.Approved });
+    const phrase = makePhrase({
+      gloss: makeGloss({ state: GlossStateRaw.Approved }),
+    });
 
-    gloss.update({
-      gloss: gloss.gloss,
+    phrase.updateGloss({
+      gloss: "hello",
       state: GlossStateRaw.Unapproved,
       userId: "user-2",
     });
 
-    expect(gloss.props).toEqual({
-      phrase,
+    expect(phrase.gloss?.props).toEqual({
       gloss: "hello",
       state: GlossStateRaw.Unapproved,
       source: GlossSourceRaw.User,
       updatedAt: expect.toBeNow(),
       updatedBy: "user-2",
     });
-    expect(gloss.events).toEqual([]);
+    expect(phrase.events).toEqual([]);
   });
 
   test("edits an approved gloss", () => {
-    const gloss = makeGloss({ state: GlossStateRaw.Approved });
+    const phrase = makePhrase({
+      gloss: makeGloss({ state: GlossStateRaw.Approved }),
+    });
 
-    gloss.update({
+    phrase.updateGloss({
       gloss: "world",
       state: GlossStateRaw.Approved,
       userId: "user-2",
     });
 
-    expect(gloss.props).toEqual({
-      phrase,
+    expect(phrase.gloss?.props).toEqual({
       gloss: "world",
       state: GlossStateRaw.Approved,
       source: GlossSourceRaw.User,
       updatedAt: expect.toBeNow(),
       updatedBy: "user-2",
     });
-    expect(gloss.events).toEqual([]);
+    expect(phrase.events).toEqual([]);
   });
 });
