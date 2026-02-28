@@ -10,7 +10,7 @@ import {
   LanguageProgressView,
   LanguageTable,
 } from "@/modules/languages/db/schema";
-import { Generated, Kysely, PostgresDialect } from "kysely";
+import { Generated, Kysely, PostgresDialect, Transaction } from "kysely";
 import {
   ResetPasswordTokenTable,
   SessionTable,
@@ -158,6 +158,14 @@ export async function transaction<T>(
   } finally {
     client.release();
   }
+}
+
+export async function unitOfWork<T>(
+  work: (trx: Transaction<Database>) => Promise<T>,
+): Promise<T> {
+  return getDb()
+    .transaction()
+    .execute(async (trx) => work(trx));
 }
 
 export async function close() {
