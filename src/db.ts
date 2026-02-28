@@ -4,6 +4,7 @@ import { from as copyFrom } from "pg-copy-streams";
 import { logger } from "./logging";
 import { Readable, Transform } from "stream";
 import { pipeline } from "stream/promises";
+import { vitest, Mock, MockedObject } from "vitest";
 
 import {
   LanguageMemberTable,
@@ -254,4 +255,39 @@ class PostgresTextFormatTransform extends Transform {
     this.push("\\.\n");
     cb();
   }
+}
+
+export type Repository<Def> = Def & {
+  withUnitOfWork(trx: Transaction<Database>): RepositoryWithTransaction<Def>;
+};
+export type RepositoryWithTransaction<Def> = Def;
+
+export function createRepository<Def>(
+  factory: (getDb: () => Kysely<Database>) => Def,
+): Repository<Def> {
+  return {
+    ...factory(getDb),
+    withUnitOfWork(trx: Transaction<Database>): RepositoryWithTransaction<Def> {
+      return {
+        ...factory(() => trx),
+      };
+    },
+  };
+}
+
+export type RepositoryMock<Repo> = MockedObject<
+  Omit<Repo, "withUnitOfWork">
+> & {
+  withUnitOfWork: Mock<
+    (_trx: Transaction<Database>) => MockedObject<Omit<Repo, "withUnitOfWork">>
+  >;
+};
+
+export function createMockRepository<Repo extends Repository<any>>(
+  definition: MockedObject<Omit<Repo, "withUnitOfWork">>,
+): RepositoryMock<Repo> {
+  return {
+    ...definition,
+    withUnitOfWork: vitest.fn((_trx: Transaction<Database>) => definition),
+  };
 }

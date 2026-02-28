@@ -2,24 +2,20 @@ import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { describe, expect, test } from "vitest";
 import trackingEventRepository from "./trackingEventRepository";
 import { ulid } from "@/shared/ulid";
-import { getDb } from "@/db";
+import { getDb, unitOfWork } from "@/db";
 
 initializeDatabase();
 
 describe("trackOne", () => {
-  const untypedTrackOne = trackingEventRepository.trackOne.bind(
-    trackingEventRepository,
-  ) as any;
-
   test("saves new event with data and IDs in the database", async () => {
     const userId = ulid();
     const languageId = ulid();
-    await untypedTrackOne({
+    await trackingEventRepository.trackOne({
       type: "test",
       otherData: true,
       userId,
       languageId,
-    });
+    } as any);
 
     const events = await findTrackingEvents();
     expect(events).toEqual([
@@ -35,7 +31,10 @@ describe("trackOne", () => {
   });
 
   test("saves new event with no user or language ID in the database", async () => {
-    await untypedTrackOne({ type: "test", someData: true });
+    await trackingEventRepository.trackOne({
+      type: "test",
+      someData: true,
+    } as any);
 
     const events = await findTrackingEvents();
     expect(events).toEqual([
@@ -51,7 +50,9 @@ describe("trackOne", () => {
   });
 
   test("saves new event with no extra metadata in the database", async () => {
-    await untypedTrackOne({ type: "test" });
+    await trackingEventRepository.trackOne({
+      type: "test",
+    } as any);
 
     const events = await findTrackingEvents();
     expect(events).toEqual([
@@ -70,22 +71,17 @@ describe("trackOne", () => {
     const userId = ulid();
     const languageId = ulid();
 
-    await getDb()
-      .transaction()
-      .execute(async (trx) => {
-        await untypedTrackOne(
-          {
-            type: "test",
-            otherData: true,
-            userId,
-            languageId,
-          },
-          trx,
-        );
+    await unitOfWork(async (trx) => {
+      trackingEventRepository.withUnitOfWork(trx).trackOne({
+        type: "test",
+        otherData: true,
+        userId,
+        languageId,
+      } as any);
 
-        const events = await findTrackingEvents();
-        expect(events).toEqual([]);
-      });
+      const events = await findTrackingEvents();
+      expect(events).toEqual([]);
+    });
 
     const events = await findTrackingEvents();
     expect(events).toEqual([
@@ -102,10 +98,6 @@ describe("trackOne", () => {
 });
 
 describe("trackMany", () => {
-  const untypedTrackMany = trackingEventRepository.trackMany.bind(
-    trackingEventRepository,
-  ) as any;
-
   test("saves new events in the database", async () => {
     const fullEvent = {
       type: "one",
@@ -125,12 +117,12 @@ describe("trackMany", () => {
     const simpleEvent = {
       type: "four",
     };
-    await untypedTrackMany([
+    await trackingEventRepository.trackMany([
       fullEvent,
       eventWithIds,
       eventWithData,
       simpleEvent,
-    ]);
+    ] as any);
 
     const events = await findTrackingEvents();
     expect(events).toEqual([
@@ -189,17 +181,19 @@ describe("trackMany", () => {
       type: "four",
     };
 
-    await getDb()
-      .transaction()
-      .execute(async (trx) => {
-        await untypedTrackMany(
-          [fullEvent, eventWithIds, eventWithData, simpleEvent],
-          trx,
-        );
+    await unitOfWork(async (trx) => {
+      await trackingEventRepository
+        .withUnitOfWork(trx)
+        .trackMany([
+          fullEvent,
+          eventWithIds,
+          eventWithData,
+          simpleEvent,
+        ] as any);
 
-        const events = await findTrackingEvents();
-        expect(events).toEqual([]);
-      });
+      const events = await findTrackingEvents();
+      expect(events).toEqual([]);
+    });
 
     const events = await findTrackingEvents();
     expect(events).toEqual([
