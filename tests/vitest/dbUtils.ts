@@ -2,6 +2,7 @@ import { vi } from "vitest";
 import { close, reconnect } from "@/db";
 import { Client } from "pg";
 import { afterAll, beforeAll, beforeEach } from "vitest";
+import { execSync } from "child_process";
 
 // We have to hoist this so the database url env var is available when "@/db" is imported
 const { DATABASE_NAME, DATABASE_URL } = vi.hoisted(() => {
@@ -21,7 +22,23 @@ function createDatabaseUrl(name: string) {
   return url.toString();
 }
 
-export function initializeDatabase(destroyAfter = true) {
+export type SeedType = "none" | "minimal" | "full";
+
+const SEED_DUMP_FILES: Record<SeedType, string | null> = {
+  none: null,
+  minimal: "./db/scripts/test_seed_minimal.dump",
+  full: "./db/scripts/test_seed_full.dump",
+};
+
+export function initializeDatabase({
+  seed = "none",
+  destroyAfter = true,
+}: {
+  /** Seed to load after each test DB is created. Defaults to `"none"`. */
+  seed?: SeedType;
+  /** Drop the per-worker database after all tests in this file complete. Defaults to `true`. */
+  destroyAfter?: boolean;
+} = {}) {
   const dbClient = new Client(process.env.TEST_DATABASE_URL);
 
   beforeAll(async () => {
@@ -36,6 +53,13 @@ export function initializeDatabase(destroyAfter = true) {
     await dbClient.query(
       `create database ${DATABASE_NAME} template test_template`,
     );
+
+    const seedFile = SEED_DUMP_FILES[seed];
+    if (seedFile) {
+      execSync(
+        `pg_restore -Fc --disable-triggers -d ${DATABASE_URL} ${seedFile}`,
+      );
+    }
 
     await reconnect();
   });
