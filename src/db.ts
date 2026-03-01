@@ -4,13 +4,14 @@ import { from as copyFrom } from "pg-copy-streams";
 import { logger } from "./logging";
 import { Readable, Transform } from "stream";
 import { pipeline } from "stream/promises";
+import { vitest, Mock, MockedObject } from "vitest";
 
 import {
   LanguageMemberTable,
   LanguageProgressView,
   LanguageTable,
 } from "@/modules/languages/db/schema";
-import { Generated, Kysely, PostgresDialect } from "kysely";
+import { Generated, Kysely, PostgresDialect, Transaction } from "kysely";
 import {
   ResetPasswordTokenTable,
   SessionTable,
@@ -158,6 +159,14 @@ export async function transaction<T>(
   } finally {
     client.release();
   }
+}
+
+export async function kyselyTransaction<T>(
+  cb: (trx: Transaction<Database>) => Promise<T>,
+): Promise<T> {
+  return getDb()
+    .transaction()
+    .execute(async (trx) => cb(trx));
 }
 
 export async function close() {

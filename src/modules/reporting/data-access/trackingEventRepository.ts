@@ -24,9 +24,7 @@ const trackingEventRepository = {
     trx?: Transaction<Database>,
   ): Promise<void> {
     const now = new Date();
-    const queryRoot = trx ?? getDb();
-
-    await queryRoot
+    await (trx ?? getDb())
       .insertInto("tracking_event")
       .values(
         events.map(({ type, languageId, userId, createdAt, ...data }) => ({
