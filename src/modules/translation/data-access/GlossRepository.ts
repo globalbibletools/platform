@@ -1,4 +1,4 @@
-import { getDb, query } from "@/db";
+import { query } from "@/db";
 import { GlossSourceRaw, GlossStateRaw } from "../types";
 
 export interface DbGloss {
