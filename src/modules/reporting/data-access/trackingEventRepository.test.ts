@@ -2,7 +2,7 @@ import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { describe, expect, test } from "vitest";
 import trackingEventRepository from "./trackingEventRepository";
 import { ulid } from "@/shared/ulid";
-import { getDb, unitOfWork } from "@/db";
+import { getDb, kyselyTransaction } from "@/db";
 
 initializeDatabase();
 
@@ -71,7 +71,7 @@ describe("trackOne", () => {
     const userId = ulid();
     const languageId = ulid();
 
-    await unitOfWork(async (trx) => {
+    await kyselyTransaction(async (trx) => {
       trackingEventRepository.trackOne(
         {
           type: "test",
@@ -184,7 +184,7 @@ describe("trackMany", () => {
       type: "four",
     };
 
-    await unitOfWork(async (trx) => {
+    await kyselyTransaction(async (trx) => {
       await trackingEventRepository.trackMany(
         [fullEvent, eventWithIds, eventWithData, simpleEvent] as any,
         trx,

@@ -161,12 +161,12 @@ export async function transaction<T>(
   }
 }
 
-export async function unitOfWork<T>(
-  work: (trx: Transaction<Database>) => Promise<T>,
+export async function kyselyTransaction<T>(
+  cb: (trx: Transaction<Database>) => Promise<T>,
 ): Promise<T> {
   return getDb()
     .transaction()
-    .execute(async (trx) => work(trx));
+    .execute(async (trx) => cb(trx));
 }
 
 export async function close() {
