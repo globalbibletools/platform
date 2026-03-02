@@ -54,7 +54,7 @@ export async function searchUsersReadModel(
             eb
               .selectFrom("user_invitation")
               .whereRef("user_id", "=", "filtered_users.id")
-              .orderBy("expires", "desc")
+              .orderBy("expires_at", "desc")
               .limit(1)
               .select((eb) =>
                 jsonBuildObject({

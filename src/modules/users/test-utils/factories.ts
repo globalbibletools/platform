@@ -64,10 +64,10 @@ export const passwordResetFactory = Async.makeFactoryWithRequired<
 }).transform(async (reset) => {
   await query(
     `
-      insert into reset_password_token (user_id, token, expires)
-      values ($1, $2, $3)
+      insert into reset_password_token (user_id, token, expires, expires_at)
+      values ($1, $2, $3, $4)
     `,
-    [reset.userId, reset.token, reset.expiresAt.valueOf()],
+    [reset.userId, reset.token, reset.expiresAt.valueOf(), reset.expiresAt],
   );
   return reset;
 });
@@ -85,10 +85,10 @@ export const invitationFactory = Async.makeFactoryWithRequired<
 }).transform(async (invite) => {
   await query(
     `
-        insert into user_invitation (user_id, token, expires)
-        values ($1, $2, $3)
+        insert into user_invitation (user_id, token, expires, expires_at)
+        values ($1, $2, $3, $4)
       `,
-    [invite.userId, invite.token, invite.expiresAt.valueOf()],
+    [invite.userId, invite.token, invite.expiresAt.valueOf(), invite.expiresAt],
   );
   return invite;
 });
@@ -103,14 +103,15 @@ export const emailVerificationFactory = Async.makeFactoryWithRequired<
 }).transform(async (verification) => {
   await query(
     `
-      insert into user_email_verification (user_id, email, token, expires)
-      values ($1, $2, $3, $4)
+      insert into user_email_verification (user_id, email, token, expires, expires_at)
+      values ($1, $2, $3, $4, $5)
     `,
     [
       verification.userId,
       verification.email,
       verification.token,
       verification.expiresAt.valueOf(),
+      verification.expiresAt,
     ],
   );
   return verification;
