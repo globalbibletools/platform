@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict iRFqkMq7cyUEeOab4COLNac5TTnTYnr89teMusKNgZPOgYTi8M40SqJpkCOYLSN
+\restrict x4EekG0HpGEfHatvvDamuVzfxEuAyOwyuc9rvRlTpMz1Wws1lKM0lZNwwNd8rXc
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -766,8 +766,7 @@ CREATE TABLE public.recording (
 CREATE TABLE public.reset_password_token (
     user_id uuid NOT NULL,
     token text NOT NULL,
-    expires bigint NOT NULL,
-    expires_at timestamp with time zone
+    expires_at timestamp with time zone NOT NULL
 );
 
 
@@ -816,8 +815,7 @@ CREATE TABLE public.user_email_verification (
     user_id uuid NOT NULL,
     email text NOT NULL,
     token text NOT NULL,
-    expires bigint NOT NULL,
-    expires_at timestamp with time zone
+    expires_at timestamp with time zone NOT NULL
 );
 
 
@@ -828,8 +826,7 @@ CREATE TABLE public.user_email_verification (
 CREATE TABLE public.user_invitation (
     user_id uuid NOT NULL,
     token text NOT NULL,
-    expires bigint NOT NULL,
-    expires_at timestamp with time zone
+    expires_at timestamp with time zone NOT NULL
 );
 
 
@@ -1833,5 +1830,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict iRFqkMq7cyUEeOab4COLNac5TTnTYnr89teMusKNgZPOgYTi8M40SqJpkCOYLSN
+\unrestrict x4EekG0HpGEfHatvvDamuVzfxEuAyOwyuc9rvRlTpMz1Wws1lKM0lZNwwNd8rXc
 

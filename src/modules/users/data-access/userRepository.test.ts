@@ -51,7 +51,6 @@ describe("findById", () => {
     const invite = {
       user_id: user.id,
       token: "token1234",
-      expires: new Date().valueOf(),
       expires_at: new Date(),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -89,13 +88,11 @@ describe("findById", () => {
     const passwordReset1 = {
       user_id: user.id,
       token: "token1234",
-      expires: endOfTomorrow().valueOf(),
       expires_at: endOfTomorrow(),
     };
     const passwordReset2 = {
       user_id: user.id,
       token: "token5678",
-      expires: addDays(endOfTomorrow(), 1).valueOf(),
       expires_at: addDays(endOfTomorrow(), 1),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -143,7 +140,6 @@ describe("findById", () => {
       user_id: user.id,
       token: "asdf1234",
       email: "new@example.com",
-      expires: endOfTomorrow().valueOf(),
       expires_at: endOfTomorrow(),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -225,7 +221,6 @@ describe("findByEmail", () => {
     const invite = {
       user_id: user.id,
       token: "token1234",
-      expires: new Date().valueOf(),
       expires_at: new Date(),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -263,13 +258,11 @@ describe("findByEmail", () => {
     const passwordReset1 = {
       user_id: user.id,
       token: "token1234",
-      expires: endOfTomorrow().valueOf(),
       expires_at: endOfTomorrow(),
     };
     const passwordReset2 = {
       user_id: user.id,
       token: "token5678",
-      expires: addDays(endOfTomorrow(), 1).valueOf(),
       expires_at: addDays(endOfTomorrow(), 1),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -317,7 +310,6 @@ describe("findByEmail", () => {
       user_id: user.id,
       token: "asdf1234",
       email: "new@example.com",
-      expires: endOfTomorrow().valueOf(),
       expires_at: endOfTomorrow(),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -399,7 +391,6 @@ describe("findByInvitationToken", () => {
     const invite = {
       user_id: user.id,
       token: "token1234",
-      expires: new Date().valueOf(),
       expires_at: new Date(),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -439,19 +430,16 @@ describe("findByInvitationToken", () => {
     const passwordReset1 = {
       user_id: user.id,
       token: "token1234",
-      expires: endOfTomorrow().valueOf(),
       expires_at: endOfTomorrow(),
     };
     const passwordReset2 = {
       user_id: user.id,
       token: "token5678",
-      expires: addDays(endOfTomorrow(), 1).valueOf(),
       expires_at: addDays(endOfTomorrow(), 1),
     };
     const invite = {
       user_id: user.id,
       token: "token1234",
-      expires: new Date().valueOf(),
       expires_at: new Date(),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -507,13 +495,11 @@ describe("findByInvitationToken", () => {
       user_id: user.id,
       token: "asdf1234",
       email: "new@example.com",
-      expires: endOfTomorrow().valueOf(),
       expires_at: endOfTomorrow(),
     };
     const invite = {
       user_id: user.id,
       token: "token1234",
-      expires: new Date().valueOf(),
       expires_at: new Date(),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -566,7 +552,6 @@ describe("findByInvitationToken", () => {
     const invite = {
       user_id: user.id,
       token: "token1234",
-      expires: new Date().valueOf(),
       expires_at: new Date(),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -615,7 +600,6 @@ describe("findByResetPasswordToken", () => {
     const passwordReset = {
       user_id: user.id,
       token: "token1234",
-      expires: endOfTomorrow().valueOf(),
       expires_at: endOfTomorrow(),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -658,13 +642,11 @@ describe("findByResetPasswordToken", () => {
     const invite = {
       user_id: user.id,
       token: "token1234",
-      expires: new Date().valueOf(),
       expires_at: new Date(),
     };
     const passwordReset = {
       user_id: user.id,
       token: "reset1234",
-      expires: new Date().valueOf(),
       expires_at: new Date(),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -714,13 +696,11 @@ describe("findByResetPasswordToken", () => {
       user_id: user.id,
       token: "asdf1234",
       email: "new@example.com",
-      expires: endOfTomorrow().valueOf(),
       expires_at: endOfTomorrow(),
     };
     const passwordReset = {
       user_id: user.id,
       token: "reset1234",
-      expires: new Date().valueOf(),
       expires_at: new Date(),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -778,7 +758,6 @@ describe("findByResetPasswordToken", () => {
     const passwordReset = {
       user_id: user.id,
       token: "reset1234",
-      expires: new Date().valueOf(),
       expires_at: new Date(),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -834,7 +813,6 @@ describe("findByEmailVerificationToken", () => {
       user_id: user.id,
       email: "new@example.com",
       token: "token1234",
-      expires: endOfTomorrow().valueOf(),
       expires_at: endOfTomorrow(),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -880,13 +858,11 @@ describe("findByEmailVerificationToken", () => {
       user_id: user.id,
       email: "new@example.com",
       token: "token1234",
-      expires: endOfTomorrow().valueOf(),
       expires_at: endOfTomorrow(),
     };
     const passwordReset = {
       user_id: user.id,
       token: "reset5678",
-      expires: addDays(endOfTomorrow(), 1).valueOf(),
       expires_at: addDays(endOfTomorrow(), 1),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -939,13 +915,11 @@ describe("findByEmailVerificationToken", () => {
       user_id: user.id,
       email: "new@example.com",
       token: "token1234",
-      expires: endOfTomorrow().valueOf(),
       expires_at: endOfTomorrow(),
     };
     const invite = {
       user_id: user.id,
       token: "invite5678",
-      expires: new Date().valueOf(),
       expires_at: new Date(),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -995,7 +969,6 @@ describe("findByEmailVerificationToken", () => {
       user_id: user.id,
       email: "new@example.com",
       token: "token1234",
-      expires: endOfTomorrow().valueOf(),
       expires_at: endOfTomorrow(),
     };
     const systemRole = {
@@ -1120,7 +1093,6 @@ describe("commit", () => {
       {
         user_id: user.id,
         token: passwordReset.token,
-        expires: passwordReset.expiresAt.valueOf(),
         expires_at: passwordReset.expiresAt,
       },
     ]);
@@ -1138,7 +1110,6 @@ describe("commit", () => {
     const existingPasswordReset = {
       user_id: user.id,
       token: "oldreset1234",
-      expires: endOfTomorrow().valueOf(),
       expires_at: new Date(endOfTomorrow().valueOf()),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -1210,7 +1181,6 @@ describe("commit", () => {
       {
         user_id: user.id,
         token: invitation.token,
-        expires: invitation.expiresAt.valueOf(),
         expires_at: invitation.expiresAt,
       },
     ]);
@@ -1226,7 +1196,6 @@ describe("commit", () => {
     const existingInvitation = {
       user_id: user.id,
       token: "oldinvite1234",
-      expires: new Date().valueOf(),
       expires_at: new Date(new Date().valueOf()),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -1302,7 +1271,6 @@ describe("commit", () => {
       user_id: user.id,
       email: emailVerification.email,
       token: emailVerification.token,
-      expires: emailVerification.expiresAt.valueOf(),
       expires_at: emailVerification.expiresAt,
     });
   });
@@ -1320,7 +1288,6 @@ describe("commit", () => {
       user_id: user.id,
       email: "old@example.com",
       token: "oldverify1234",
-      expires: endOfTomorrow().valueOf(),
       expires_at: new Date(endOfTomorrow().valueOf()),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -1368,7 +1335,6 @@ describe("commit", () => {
       user_id: user.id,
       email: "old@example.com",
       token: "oldverify1234",
-      expires: endOfTomorrow().valueOf(),
       expires_at: new Date(endOfTomorrow().valueOf()),
     };
     await getDb().insertInto("users").values(user).execute();
@@ -1410,7 +1376,6 @@ describe("commit", () => {
       user_id: user.id,
       email: newEmailVerification.email,
       token: newEmailVerification.token,
-      expires: newEmailVerification.expiresAt.valueOf(),
       expires_at: newEmailVerification.expiresAt,
     });
   });
