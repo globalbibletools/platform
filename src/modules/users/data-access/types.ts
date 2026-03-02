@@ -16,6 +16,7 @@ export interface ResetPasswordTokenTable {
   user_id: string;
   token: string;
   expires: number;
+  expires_at: Date | null;
 }
 
 export interface UserEmailVerificationTable {
@@ -23,12 +24,14 @@ export interface UserEmailVerificationTable {
   email: string;
   token: string;
   expires: number;
+  expires_at: Date | null;
 }
 
 export interface UserInvitationTable {
   user_id: string;
   token: string;
   expires: number;
+  expires_at: Date | null;
 }
 
 export interface UserSystemRoleTable {

@@ -125,13 +125,13 @@ const userRepository = {
             status: user.status.value,
           })
           .onConflict((oc) =>
-            oc.column("id").doUpdateSet({
-              name: sql`excluded.name`,
-              email: sql`excluded.email`,
-              email_status: sql`excluded.email_status`,
-              hashed_password: sql`excluded.hashed_password`,
-              status: sql`excluded.status`,
-            }),
+            oc.column("id").doUpdateSet((eb) => ({
+              name: eb.ref(`excluded.name`),
+              email: eb.ref(`excluded.email`),
+              email_status: eb.ref(`excluded.email_status`),
+              hashed_password: eb.ref(`excluded.hashed_password`),
+              status: eb.ref(`excluded.status`),
+            })),
           )
           .execute();
 
@@ -158,12 +158,14 @@ const userRepository = {
                 user_id: user.id,
                 token: inv.token,
                 expires: inv.expiresAt.valueOf(),
+                expires_at: inv.expiresAt,
               })),
             )
             .onConflict((oc) =>
-              oc.column("token").doUpdateSet({
-                expires: sql`excluded.expires`,
-              }),
+              oc.column("token").doUpdateSet((eb) => ({
+                expires: eb.ref("excluded.expires"),
+                expires_at: eb.ref(`excluded.expires_at`),
+              })),
             )
             .execute();
         }
@@ -181,6 +183,7 @@ const userRepository = {
               email: user.emailVerification.email,
               token: user.emailVerification.token,
               expires: user.emailVerification.expiresAt.valueOf(),
+              expires_at: user.emailVerification.expiresAt,
             })
             .execute();
         }
@@ -208,12 +211,14 @@ const userRepository = {
                 user_id: user.id,
                 token: reset.token,
                 expires: reset.expiresAt.valueOf(),
+                expires_at: reset.expiresAt,
               })),
             )
             .onConflict((oc) =>
-              oc.column("token").doUpdateSet({
-                expires: sql`excluded.expires`,
-              }),
+              oc.column("token").doUpdateSet((eb) => ({
+                expires: eb.ref(`excluded.expires`),
+                expires_at: eb.ref(`excluded.expires_at`),
+              })),
             )
             .execute();
         }

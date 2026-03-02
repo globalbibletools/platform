@@ -1121,7 +1121,7 @@ describe("commit", () => {
         user_id: user.id,
         token: passwordReset.token,
         expires: passwordReset.expiresAt.valueOf(),
-        expires_at: null,
+        expires_at: passwordReset.expiresAt,
       },
     ]);
   });
@@ -1211,7 +1211,7 @@ describe("commit", () => {
         user_id: user.id,
         token: invitation.token,
         expires: invitation.expiresAt.valueOf(),
-        expires_at: null,
+        expires_at: invitation.expiresAt,
       },
     ]);
   });
@@ -1303,7 +1303,7 @@ describe("commit", () => {
       email: emailVerification.email,
       token: emailVerification.token,
       expires: emailVerification.expiresAt.valueOf(),
-      expires_at: null,
+      expires_at: emailVerification.expiresAt,
     });
   });
 
@@ -1411,7 +1411,7 @@ describe("commit", () => {
       email: newEmailVerification.email,
       token: newEmailVerification.token,
       expires: newEmailVerification.expiresAt.valueOf(),
-      expires_at: null,
+      expires_at: newEmailVerification.expiresAt,
     });
   });
 
