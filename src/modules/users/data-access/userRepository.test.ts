@@ -52,6 +52,7 @@ describe("findById", () => {
       user_id: user.id,
       token: "token1234",
       expires: Math.round(new Date().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb().insertInto("user_invitation").values(invite).execute();
@@ -89,11 +90,13 @@ describe("findById", () => {
       user_id: user.id,
       token: "token1234",
       expires: Math.round(endOfTomorrow().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     const passwordReset2 = {
       user_id: user.id,
       token: "token5678",
       expires: Math.round(addDays(endOfTomorrow(), 1).valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -141,6 +144,7 @@ describe("findById", () => {
       token: "asdf1234",
       email: "new@example.com",
       expires: Math.round(endOfTomorrow().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -222,6 +226,7 @@ describe("findByEmail", () => {
       user_id: user.id,
       token: "token1234",
       expires: Math.round(new Date().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb().insertInto("user_invitation").values(invite).execute();
@@ -259,11 +264,13 @@ describe("findByEmail", () => {
       user_id: user.id,
       token: "token1234",
       expires: Math.round(endOfTomorrow().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     const passwordReset2 = {
       user_id: user.id,
       token: "token5678",
       expires: Math.round(addDays(endOfTomorrow(), 1).valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -311,6 +318,7 @@ describe("findByEmail", () => {
       token: "asdf1234",
       email: "new@example.com",
       expires: Math.round(endOfTomorrow().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -392,6 +400,7 @@ describe("findByInvitationToken", () => {
       user_id: user.id,
       token: "token1234",
       expires: Math.round(new Date().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb().insertInto("user_invitation").values(invite).execute();
@@ -431,16 +440,19 @@ describe("findByInvitationToken", () => {
       user_id: user.id,
       token: "token1234",
       expires: Math.round(endOfTomorrow().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     const passwordReset2 = {
       user_id: user.id,
       token: "token5678",
       expires: Math.round(addDays(endOfTomorrow(), 1).valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     const invite = {
       user_id: user.id,
       token: "token1234",
       expires: Math.round(new Date().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -496,11 +508,13 @@ describe("findByInvitationToken", () => {
       token: "asdf1234",
       email: "new@example.com",
       expires: Math.round(endOfTomorrow().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     const invite = {
       user_id: user.id,
       token: "token1234",
       expires: Math.round(new Date().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -553,6 +567,7 @@ describe("findByInvitationToken", () => {
       user_id: user.id,
       token: "token1234",
       expires: Math.round(new Date().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb().insertInto("user_system_role").values(systemRole).execute();
@@ -601,6 +616,7 @@ describe("findByResetPasswordToken", () => {
       user_id: user.id,
       token: "token1234",
       expires: Math.round(endOfTomorrow().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -643,11 +659,13 @@ describe("findByResetPasswordToken", () => {
       user_id: user.id,
       token: "token1234",
       expires: Math.round(new Date().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     const passwordReset = {
       user_id: user.id,
       token: "reset1234",
       expires: Math.round(new Date().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb().insertInto("user_invitation").values(invite).execute();
@@ -697,11 +715,13 @@ describe("findByResetPasswordToken", () => {
       token: "asdf1234",
       email: "new@example.com",
       expires: Math.round(endOfTomorrow().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     const passwordReset = {
       user_id: user.id,
       token: "reset1234",
       expires: Math.round(new Date().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -759,6 +779,7 @@ describe("findByResetPasswordToken", () => {
       user_id: user.id,
       token: "reset1234",
       expires: Math.round(new Date().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb().insertInto("user_system_role").values(systemRole).execute();
@@ -814,6 +835,7 @@ describe("findByEmailVerificationToken", () => {
       email: "new@example.com",
       token: "token1234",
       expires: Math.round(endOfTomorrow().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -859,11 +881,13 @@ describe("findByEmailVerificationToken", () => {
       email: "new@example.com",
       token: "token1234",
       expires: Math.round(endOfTomorrow().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     const passwordReset = {
       user_id: user.id,
       token: "reset5678",
       expires: Math.round(addDays(endOfTomorrow(), 1).valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -916,11 +940,13 @@ describe("findByEmailVerificationToken", () => {
       email: "new@example.com",
       token: "token1234",
       expires: Math.round(endOfTomorrow().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     const invite = {
       user_id: user.id,
       token: "invite5678",
       expires: Math.round(new Date().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -970,6 +996,7 @@ describe("findByEmailVerificationToken", () => {
       email: "new@example.com",
       token: "token1234",
       expires: Math.round(endOfTomorrow().valueOf() / 1000) * 1000,
+      expires_at: null,
     };
     const systemRole = {
       user_id: user.id,
@@ -1094,6 +1121,7 @@ describe("commit", () => {
         user_id: user.id,
         token: passwordReset.token,
         expires: passwordReset.expiresAt.valueOf(),
+        expires_at: null,
       },
     ]);
   });
@@ -1111,6 +1139,7 @@ describe("commit", () => {
       user_id: user.id,
       token: "oldreset1234",
       expires: endOfTomorrow().valueOf(),
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -1182,6 +1211,7 @@ describe("commit", () => {
         user_id: user.id,
         token: invitation.token,
         expires: invitation.expiresAt.valueOf(),
+        expires_at: null,
       },
     ]);
   });
@@ -1197,6 +1227,7 @@ describe("commit", () => {
       user_id: user.id,
       token: "oldinvite1234",
       expires: new Date().valueOf(),
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -1272,6 +1303,7 @@ describe("commit", () => {
       email: emailVerification.email,
       token: emailVerification.token,
       expires: emailVerification.expiresAt.valueOf(),
+      expires_at: null,
     });
   });
 
@@ -1289,6 +1321,7 @@ describe("commit", () => {
       email: "old@example.com",
       token: "oldverify1234",
       expires: endOfTomorrow().valueOf(),
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -1336,6 +1369,7 @@ describe("commit", () => {
       email: "old@example.com",
       token: "oldverify1234",
       expires: endOfTomorrow().valueOf(),
+      expires_at: null,
     };
     await getDb().insertInto("users").values(user).execute();
     await getDb()
@@ -1377,6 +1411,7 @@ describe("commit", () => {
       email: newEmailVerification.email,
       token: newEmailVerification.token,
       expires: newEmailVerification.expiresAt.valueOf(),
+      expires_at: null,
     });
   });
 
