@@ -157,13 +157,11 @@ const userRepository = {
               user.invitations.map((inv) => ({
                 user_id: user.id,
                 token: inv.token,
-                expires: inv.expiresAt.valueOf(),
                 expires_at: inv.expiresAt,
               })),
             )
             .onConflict((oc) =>
               oc.column("token").doUpdateSet((eb) => ({
-                expires: eb.ref("excluded.expires"),
                 expires_at: eb.ref(`excluded.expires_at`),
               })),
             )
@@ -182,7 +180,6 @@ const userRepository = {
               user_id: user.id,
               email: user.emailVerification.email,
               token: user.emailVerification.token,
-              expires: user.emailVerification.expiresAt.valueOf(),
               expires_at: user.emailVerification.expiresAt,
             })
             .execute();
@@ -210,13 +207,11 @@ const userRepository = {
               user.passwordResets.map((reset) => ({
                 user_id: user.id,
                 token: reset.token,
-                expires: reset.expiresAt.valueOf(),
                 expires_at: reset.expiresAt,
               })),
             )
             .onConflict((oc) =>
               oc.column("token").doUpdateSet((eb) => ({
-                expires: eb.ref(`excluded.expires`),
                 expires_at: eb.ref(`excluded.expires_at`),
               })),
             )
