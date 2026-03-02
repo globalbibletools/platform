@@ -42,10 +42,10 @@ export async function findInvitationsForUser(
   const result = await query<DbInvitation>(
     `
         select user_id as "userId", token,
-            timestamp '1970-01-01' + make_interval(0, 0, 0, 0, 0, 0, expires / 1000) as "expiresAt"
+            expires_at as "expiresAt"
         from user_invitation
         where user_id = $1
-        order by expires
+        order by expires_at
     `,
     [userId],
   );
@@ -59,7 +59,7 @@ export async function findEmailVerificationForUser(
   const result = await query<DbEmailVerification>(
     `
         select user_id as "userId", email, token,
-            timestamp '1970-01-01' + make_interval(0, 0, 0, 0, 0, 0, expires / 1000) as "expiresAt"
+            expires_at as "expiresAt"
         from user_email_verification
         where user_id = $1
     `,
@@ -75,7 +75,7 @@ export async function findPasswordResetsForUser(
   const result = await query<DbPasswordReset>(
     `
         select user_id as "userId", token,
-            timestamp '1970-01-01' + make_interval(0, 0, 0, 0, 0, 0, expires / 1000) as "expiresAt"
+            expires_at as "expiresAt"
         from reset_password_token
         where user_id = $1
     `,
