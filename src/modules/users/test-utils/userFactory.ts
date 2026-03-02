@@ -17,7 +17,7 @@ import type {
 const HASHED_PASSWORD = await new Scrypt().hash("pa$$word");
 
 export interface UserFactoryOptions {
-  role?: "admin";
+  roles?: "admin"[];
   state?: "active" | "invited" | "disabled";
   passwordReset?: "active" | "expired";
   emailVerification?: "active" | "expired";
@@ -55,13 +55,14 @@ export const userFactory = {
       .executeTakeFirstOrThrow();
 
     const systemRoles: Selectable<UserSystemRoleTable>[] = [];
-    if (options.role === "admin") {
-      const role = await db
+    for (const role of options.roles ?? []) {
+      const roleMap = { admin: SystemRoleRaw.Admin } as const;
+      const inserted = await db
         .insertInto("user_system_role")
-        .values({ user_id: user.id, role: SystemRoleRaw.Admin })
+        .values({ user_id: user.id, role: roleMap[role] })
         .returningAll()
         .executeTakeFirstOrThrow();
-      systemRoles.push(role);
+      systemRoles.push(inserted);
     }
 
     const invitations: Selectable<UserInvitationTable>[] = [];
