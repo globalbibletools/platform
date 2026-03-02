@@ -1,5 +1,5 @@
 import { Database, getDb } from "@/db";
-import { SelectQueryBuilder, sql } from "kysely";
+import { SelectQueryBuilder } from "kysely";
 import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import User from "../model/User";
 import UserEmail from "../model/UserEmail";
@@ -268,30 +268,20 @@ function selectUserFields(
     jsonArrayFrom(
       eb
         .selectFrom("reset_password_token")
-        .select((eb) => [
-          "token",
-          sql<Date>`to_timestamp(${eb.ref("expires")} / 1000)`.as("expiresAt"),
-        ])
+        .select(["token", "expires_at as expiresAt"])
         .whereRef("reset_password_token.user_id", "=", "users.id"),
     ).as("passwordResets"),
     jsonObjectFrom(
       eb
         .selectFrom("user_email_verification")
-        .select((eb) => [
-          "email",
-          "token",
-          sql<Date>`to_timestamp(${eb.ref("expires")} / 1000)`.as("expiresAt"),
-        ])
+        .select(["email", "token", "expires_at as expiresAt"])
         .whereRef("user_email_verification.user_id", "=", "users.id")
         .limit(1),
     ).as("emailVerification"),
     jsonArrayFrom(
       eb
         .selectFrom("user_invitation")
-        .select((eb) => [
-          "token",
-          sql<Date>`to_timestamp(${eb.ref("expires")} / 1000)`.as("expiresAt"),
-        ])
+        .select(["token", "expires_at as expiresAt"])
         .whereRef("user_invitation.user_id", "=", "users.id"),
     ).as("invitations"),
     eb

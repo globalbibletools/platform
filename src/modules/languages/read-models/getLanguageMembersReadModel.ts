@@ -8,7 +8,7 @@ export interface LanguageMembersReadModel {
   email: string;
   invite: null | {
     token: string;
-    expires: number;
+    expiresAt: string;
   };
 }
 
@@ -24,14 +24,13 @@ export async function getLanguageMembersReadModel(
           .selectFrom("user_invitation")
           .whereRef("user_id", "=", "users.id")
           .select(({ ref }) =>
-            sql<{ token: string; expires: number }>`
+            sql<{ token: string; expiresAt: string }>`
               json_build_object(
-                'token', ${ref("token")},
-                'expires', ${ref("expires")}
+                'token', ${ref("token")}
               )
             `.as("json"),
           )
-          .orderBy("expires", "desc")
+          .orderBy("expires_at", "desc")
           .limit(1)
           .as("invitation"),
       (join) => join.onTrue(),
