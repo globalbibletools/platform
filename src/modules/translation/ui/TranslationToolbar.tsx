@@ -247,15 +247,17 @@ export default function TranslationToolbar({
         </Button>,
       );
     } else {
-      <Button
-        key="word-linking"
-        variant="tertiary"
-        disabled={!verseId}
-        onClick={onUnlinkWords}
-      >
-        <Icon icon="unlink" className="me-1" />
-        {t("unlink_words")}
-      </Button>;
+      buttons.push(
+        <Button
+          key="word-linking"
+          variant="tertiary"
+          disabled={!verseId}
+          onClick={onUnlinkWords}
+        >
+          <Icon icon="unlink" className="me-1" />
+          {t("unlink_words")}
+        </Button>,
+      );
     }
   }
 
