@@ -2,8 +2,10 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.18 (Debian 14.18-1.pgdg120+1)
--- Dumped by pg_dump version 14.18 (Debian 14.18-1.pgdg120+1)
+\restrict iRFqkMq7cyUEeOab4COLNac5TTnTYnr89teMusKNgZPOgYTi8M40SqJpkCOYLSN
+
+-- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
+-- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -190,49 +192,49 @@ $$;
 
 
 --
--- Name: generate_gloss_statistics_for_week(timestamp without time zone); Type: FUNCTION; Schema: public; Owner: -
+-- Name: generate_gloss_statistics_for_week(timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.generate_gloss_statistics_for_week(d timestamp without time zone) RETURNS void
+CREATE FUNCTION public.generate_gloss_statistics_for_week(d timestamp with time zone) RETURNS void
     LANGUAGE sql
     AS $_$
-    INSERT INTO weekly_gloss_statistics (week, language_id, book_id, user_id, approved_count, unapproved_count)
-    SELECT
-        (DATE_BIN('7 days', DATE_TRUNC('day', $1), TIMESTAMP '2024-12-15')),
+    insert into weekly_gloss_statistics (week, language_id, book_id, user_id, approved_count, unapproved_count)
+    select
+        (date_bin('7 days', date_trunc('day', $1), timestamptz '2024-12-15 00:00:00 UTC')),
         log.language_id, log.book_id, log.updated_by,
-        COUNT(*) FILTER (WHERE log.state = 'APPROVED'),
-        COUNT(*) FILTER (WHERE log.state = 'UNAPPROVED')
-    FROM (
-        SELECT
-            DISTINCT ON (log.phrase_id, phrase_word.word_id, verse.book_id)
+        count(*) filter (where log.state = 'APPROVED'),
+        count(*) filter (where log.state = 'UNAPPROVED')
+    from (
+        select
+            distinct on (log.phrase_id, phrase_word.word_id, verse.book_id)
             log.updated_by,
             log.state,
             phrase.language_id,
             verse.book_id
-        FROM (
+        from (
             (
-                SELECT phrase_id, updated_by, updated_at, gloss, state
-                FROM gloss
-            ) UNION ALL (
-                SELECT phrase_id, updated_by, updated_at, gloss, state
-                FROM gloss_history
+                select phrase_id, updated_by, updated_at, gloss, state
+                from gloss
+            ) union all (
+                select phrase_id, updated_by, updated_at, gloss, state
+                from gloss_history
             )
         ) log
-        JOIN phrase ON phrase.id = log.phrase_id
-        JOIN phrase_word ON phrase_word.phrase_id = phrase.id
-        JOIN word ON word.id = phrase_word.word_id
-        JOIN verse ON verse.id = word.verse_id
-        WHERE log.updated_at < (DATE_BIN('7 days', DATE_TRUNC('day', $1), TIMESTAMP '2024-12-15'))
-            AND (phrase.deleted_at IS NULL
-                OR phrase.deleted_at < (DATE_BIN('7 days', DATE_TRUNC('day', $1), TIMESTAMP '2024-12-15')))
-        ORDER BY log.phrase_id, phrase_word.word_id, verse.book_id, log.updated_at DESC
+        join phrase on phrase.id = log.phrase_id
+        join phrase_word on phrase_word.phrase_id = phrase.id
+        join word on word.id = phrase_word.word_id
+        join verse on verse.id = word.verse_id
+        where log.updated_at < (date_bin('7 days', date_trunc('day', $1), timestamptz '2024-12-15 00:00:00 UTC'))
+            and (phrase.deleted_at is null
+                or phrase.deleted_at < (date_bin('7 days', date_trunc('day', $1), timestamptz '2024-12-15 00:00:00 UTC')))
+        order by log.phrase_id, phrase_word.word_id, verse.book_id, log.updated_at desc
     ) log
-    GROUP BY log.language_id, log.book_id, log.updated_by
-    ORDER BY log.language_id, log.book_id, log.updated_by
-    ON CONFLICT (language_id, book_id, user_id, week)
-    DO UPDATE SET
-        approved_count = EXCLUDED.approved_count,
-        unapproved_count = EXCLUDED.unapproved_count;
+    group by log.language_id, log.book_id, log.updated_by
+    order by log.language_id, log.book_id, log.updated_by
+    on conflict (language_id, book_id, user_id, week)
+    do update set
+        approved_count = excluded.approved_count,
+        unapproved_count = excluded.unapproved_count;
 $_$;
 
 
@@ -248,10 +250,10 @@ CREATE FUNCTION public.generate_ulid() RETURNS uuid
 
 
 --
--- Name: generate_weekly_contribution_stats(timestamp without time zone); Type: FUNCTION; Schema: public; Owner: -
+-- Name: generate_weekly_contribution_stats(timestamp with time zone); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION public.generate_weekly_contribution_stats(d timestamp without time zone) RETURNS void
+CREATE FUNCTION public.generate_weekly_contribution_stats(d timestamp with time zone) RETURNS void
     LANGUAGE sql
     AS $_$
     insert into weekly_contribution_statistics (
@@ -264,7 +266,7 @@ CREATE FUNCTION public.generate_weekly_contribution_stats(d timestamp without ti
         edited_unapproved_count
     )
     select
-        date_bin('7 days', date_trunc('day', $1), timestamp '2024-12-15'),
+        date_bin('7 days', date_trunc('day', $1), timestamptz '2024-12-15 00:00:00 UTC'),
         changed_phrase.language_id,
         changed_phrase.updated_by,
         coalesce(count(*) filter (
@@ -287,7 +289,7 @@ CREATE FUNCTION public.generate_weekly_contribution_stats(d timestamp without ti
         ), 0) as words_unapproved_edited
     from (
         select
-            DISTINCT ON (ph.language_id, phw.word_id)
+            distinct on (ph.language_id, phw.word_id)
             ph.language_id, phw.word_id,
             log.*
         from (
@@ -310,8 +312,8 @@ CREATE FUNCTION public.generate_weekly_contribution_stats(d timestamp without ti
         ) log
         join phrase_word phw on phw.phrase_id = log.phrase_id
         join phrase ph on ph.id = log.phrase_id
-        where log.updated_at > date_bin('7 days', date_trunc('day', $1), timestamp '2024-12-15')
-            and log.updated_at < date_bin('7 days', date_trunc('day', $1 + interval '7 days'), timestamp '2024-12-15')
+        where log.updated_at > date_bin('7 days', date_trunc('day', $1), timestamptz '2024-12-15 00:00:00 UTC')
+            and log.updated_at < date_bin('7 days', date_trunc('day', $1 + interval '7 days'), timestamptz '2024-12-15 00:00:00 UTC')
         order by ph.language_id, phw.word_id, log.updated_at desc
         ) changed_phrase
     left join lateral (
@@ -326,7 +328,7 @@ CREATE FUNCTION public.generate_weekly_contribution_stats(d timestamp without ti
                             and ph.language_id = changed_phrase.language_id
                             and phw.word_id = changed_phrase.word_id
                     )
-                    and gloss.updated_at < date_bin('7 days', date_trunc('day', $1 - interval '7 days'), timestamp '2024-12-15')
+                    and gloss.updated_at < date_bin('7 days', date_trunc('day', $1 - interval '7 days'), timestamptz '2024-12-15 00:00:00 UTC')
             ) union all (
                 select
                     id as phrase_id,
@@ -342,7 +344,7 @@ CREATE FUNCTION public.generate_weekly_contribution_stats(d timestamp without ti
                         where phw.phrase_id = phrase.id
                             and phw.word_id = changed_phrase.word_id
                     )
-                    and phrase.deleted_at < date_bin('7 days', date_trunc('day', $1 - interval '7 days'), timestamp '2024-12-15')
+                    and phrase.deleted_at < date_bin('7 days', date_trunc('day', $1 - interval '7 days'), timestamptz '2024-12-15 00:00:00 UTC')
             )
         ) h
         order by h.updated_at desc
@@ -423,7 +425,7 @@ CREATE TABLE public.book (
 
 CREATE TABLE public.footnote (
     author_id uuid NOT NULL,
-    "timestamp" timestamp(3) without time zone NOT NULL,
+    "timestamp" timestamp with time zone NOT NULL,
     content text NOT NULL,
     phrase_id integer NOT NULL
 );
@@ -438,7 +440,7 @@ CREATE TABLE public.gloss (
     state public.gloss_state DEFAULT 'UNAPPROVED'::public.gloss_state NOT NULL,
     phrase_id integer NOT NULL,
     source public.gloss_source,
-    updated_at timestamp without time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
     updated_by uuid
 );
 
@@ -453,7 +455,7 @@ CREATE TABLE public.gloss_history (
     gloss text,
     state public.gloss_state,
     source public.gloss_source,
-    updated_at timestamp without time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
     updated_by uuid
 );
 
@@ -487,8 +489,8 @@ CREATE TABLE public.job (
     status public.job_status NOT NULL,
     payload jsonb,
     data jsonb,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
     type text
 );
 
@@ -516,8 +518,8 @@ CREATE TABLE public.language (
 
 CREATE TABLE public.language_import_job (
     language_id uuid NOT NULL,
-    start_date timestamp(3) without time zone NOT NULL,
-    end_date timestamp(3) without time zone,
+    start_date timestamp with time zone NOT NULL,
+    end_date timestamp with time zone,
     succeeded boolean,
     user_id uuid
 );
@@ -530,7 +532,7 @@ CREATE TABLE public.language_import_job (
 CREATE TABLE public.language_member (
     language_id uuid NOT NULL,
     user_id uuid NOT NULL,
-    invited_at timestamp without time zone NOT NULL
+    invited_at timestamp with time zone NOT NULL
 );
 
 
@@ -552,9 +554,9 @@ CREATE TABLE public.language_member_role (
 CREATE TABLE public.phrase (
     id integer NOT NULL,
     language_id uuid NOT NULL,
-    created_at timestamp(3) without time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL,
     created_by uuid,
-    deleted_at timestamp(3) without time zone,
+    deleted_at timestamp with time zone,
     deleted_by uuid
 );
 
@@ -764,7 +766,8 @@ CREATE TABLE public.recording (
 CREATE TABLE public.reset_password_token (
     user_id uuid NOT NULL,
     token text NOT NULL,
-    expires bigint NOT NULL
+    expires bigint NOT NULL,
+    expires_at timestamp with time zone
 );
 
 
@@ -775,7 +778,7 @@ CREATE TABLE public.reset_password_token (
 CREATE TABLE public.session (
     id text NOT NULL,
     user_id uuid NOT NULL,
-    expires_at timestamp(3) without time zone NOT NULL
+    expires_at timestamp with time zone NOT NULL
 );
 
 
@@ -789,7 +792,7 @@ CREATE TABLE public.tracking_event (
     data jsonb NOT NULL,
     user_id uuid,
     language_id uuid,
-    created_at timestamp without time zone
+    created_at timestamp with time zone
 );
 
 
@@ -799,7 +802,7 @@ CREATE TABLE public.tracking_event (
 
 CREATE TABLE public.translator_note (
     author_id uuid NOT NULL,
-    "timestamp" timestamp(3) without time zone NOT NULL,
+    "timestamp" timestamp with time zone NOT NULL,
     content text NOT NULL,
     phrase_id integer NOT NULL
 );
@@ -813,7 +816,8 @@ CREATE TABLE public.user_email_verification (
     user_id uuid NOT NULL,
     email text NOT NULL,
     token text NOT NULL,
-    expires bigint NOT NULL
+    expires bigint NOT NULL,
+    expires_at timestamp with time zone
 );
 
 
@@ -824,7 +828,8 @@ CREATE TABLE public.user_email_verification (
 CREATE TABLE public.user_invitation (
     user_id uuid NOT NULL,
     token text NOT NULL,
-    expires bigint NOT NULL
+    expires bigint NOT NULL,
+    expires_at timestamp with time zone
 );
 
 
@@ -913,7 +918,7 @@ CREATE TABLE public.verse_question (
 
 CREATE TABLE public.weekly_contribution_statistics (
     id integer NOT NULL,
-    week timestamp without time zone NOT NULL,
+    week timestamp with time zone NOT NULL,
     language_id uuid NOT NULL,
     user_id uuid NOT NULL,
     approved_count integer NOT NULL,
@@ -949,7 +954,7 @@ ALTER SEQUENCE public.weekly_contribution_statistics_id_seq OWNED BY public.week
 
 CREATE TABLE public.weekly_gloss_statistics (
     id integer NOT NULL,
-    week timestamp without time zone NOT NULL,
+    week timestamp with time zone NOT NULL,
     language_id uuid NOT NULL,
     book_id integer NOT NULL,
     user_id uuid,
@@ -1827,4 +1832,6 @@ ALTER TABLE ONLY public.word
 --
 -- PostgreSQL database dump complete
 --
+
+\unrestrict iRFqkMq7cyUEeOab4COLNac5TTnTYnr89teMusKNgZPOgYTi8M40SqJpkCOYLSN
 
