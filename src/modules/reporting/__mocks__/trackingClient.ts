@@ -1,11 +1,10 @@
-import { beforeEach, vitest } from "vitest";
+import { beforeEach, MockedObject, vitest } from "vitest";
 import trackingEventRepository from "../data-access/trackingEventRepository";
-import { createMockRepository } from "@/db";
 
-const trackingClient = createMockRepository<typeof trackingEventRepository>({
+const trackingClient: MockedObject<typeof trackingEventRepository> = {
   trackOne: vitest.fn(),
   trackMany: vitest.fn(),
-});
+};
 export default trackingClient;
 
 beforeEach(() => {
