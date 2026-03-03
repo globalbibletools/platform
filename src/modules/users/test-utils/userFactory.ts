@@ -27,8 +27,8 @@ export interface UserFactoryOptions {
 export interface UserFactoryResult {
   user: Selectable<UserTable>;
   systemRoles: Selectable<UserSystemRoleTable>[];
-  invitations: Selectable<UserInvitationTable>[];
-  passwordResets: Selectable<ResetPasswordTokenTable>[];
+  invitation: Selectable<UserInvitationTable> | undefined;
+  passwordReset: Selectable<ResetPasswordTokenTable> | undefined;
   emailVerification: Selectable<UserEmailVerificationTable> | undefined;
 }
 
@@ -65,12 +65,12 @@ export const userFactory = {
       systemRoles.push(inserted);
     }
 
-    const invitations: Selectable<UserInvitationTable>[] = [];
+    let invitation: Selectable<UserInvitationTable> | undefined;
     if (state !== "disabled") {
       const invitationState =
         options.invitation ?? (state === "invited" ? "active" : undefined);
       if (invitationState !== undefined) {
-        const invitation = await db
+        invitation = await db
           .insertInto("user_invitation")
           .values({
             user_id: user.id,
@@ -79,13 +79,12 @@ export const userFactory = {
           })
           .returningAll()
           .executeTakeFirstOrThrow();
-        invitations.push(invitation);
       }
     }
 
-    const passwordResets: Selectable<ResetPasswordTokenTable>[] = [];
+    let passwordReset: Selectable<ResetPasswordTokenTable> | undefined;
     if (state === "active" && options.passwordReset !== undefined) {
-      const reset = await db
+      passwordReset = await db
         .insertInto("reset_password_token")
         .values({
           user_id: user.id,
@@ -94,7 +93,6 @@ export const userFactory = {
         })
         .returningAll()
         .executeTakeFirstOrThrow();
-      passwordResets.push(reset);
     }
 
     let emailVerification: Selectable<UserEmailVerificationTable> | undefined;
@@ -114,8 +112,8 @@ export const userFactory = {
     return {
       user,
       systemRoles,
-      invitations,
-      passwordResets,
+      invitation,
+      passwordReset,
       emailVerification,
     };
   },

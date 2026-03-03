@@ -6,14 +6,13 @@ import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
 import { UserStatusRaw } from "@/modules/users/model/UserStatus";
 import { inviteLanguageMember } from "./inviteLanguageMember";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
-import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import logIn from "@/tests/vitest/login";
 import {
   findInvitationsForUser,
   findUserByEmail,
   findUserById,
 } from "@/modules/users/test-utils/dbUtils";
-import { userFactory } from "@/modules/users/test-utils/factories";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
 import { findLanguageMembersForLanguage } from "../test-utils/dbUtils";
 
 initializeDatabase();
@@ -21,7 +20,7 @@ initializeDatabase();
 const scenarioDefinition: ScenarioDefinition = {
   users: {
     admin: {
-      systemRoles: [SystemRoleRaw.Admin],
+      roles: ["admin"],
     },
     member: {},
   },
@@ -94,7 +93,7 @@ test("adds existing user to the language", async () => {
   await logIn(scenario.users.admin.id);
 
   const language = scenario.languages.spanish;
-  const user = await userFactory.build();
+  const { user } = await userFactory.build();
 
   const formData = new FormData();
   formData.set("code", language.code);
@@ -144,18 +143,18 @@ test("invites new user to the language", async () => {
   expect(createdUser).toEqual({
     id: expect.toBeUlid(),
     name: null,
-    hashedPassword: null,
+    hashed_password: null,
     email,
-    emailStatus: EmailStatusRaw.Unverified,
+    email_status: EmailStatusRaw.Unverified,
     status: UserStatusRaw.Active,
   });
 
   const invites = await findInvitationsForUser(createdUser!.id);
   expect(invites).toEqual([
     {
-      userId: createdUser!.id,
+      user_id: createdUser!.id,
       token: expect.toBeToken(24),
-      expiresAt: expect.toBeDaysIntoFuture(7),
+      expires_at: expect.toBeDaysIntoFuture(7),
     },
   ]);
 

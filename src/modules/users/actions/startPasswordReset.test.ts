@@ -4,7 +4,7 @@ import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect, vitest } from "vitest";
 import { startPasswordReset } from "./startPasswordReset";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
-import { userFactory } from "../test-utils/factories";
+import { userFactory } from "../test-utils/userFactory";
 import { findPasswordResetsForUser } from "../test-utils/dbUtils";
 
 vitest.mock("@/shared/jobs/enqueueJob");
@@ -44,7 +44,7 @@ test("returns successfully if user could not be found", async () => {
 });
 
 test("returns successfully after sending the password reset email", async () => {
-  const user = await userFactory.build({});
+  const { user } = await userFactory.build();
 
   const formData = new FormData();
   formData.set("email", user.email);
@@ -53,9 +53,9 @@ test("returns successfully after sending the password reset email", async () => 
   const dbResets = await findPasswordResetsForUser(user.id);
   expect(dbResets).toEqual([
     {
-      userId: user.id,
+      user_id: user.id,
       token: expect.toBeToken(24),
-      expiresAt: expect.toBeHoursIntoFuture(1),
+      expires_at: expect.toBeHoursIntoFuture(1),
     },
   ]);
   const url = `${process.env.ORIGIN}/reset-password?token=${dbResets[0].token}`;
