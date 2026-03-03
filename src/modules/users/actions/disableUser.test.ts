@@ -6,7 +6,7 @@ import { ulid } from "@/shared/ulid";
 import { disableUser } from "./disableUser";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
-import { sessionFactory } from "../test-utils/factories";
+import { sessionFactory } from "../test-utils/sessionFactory";
 import { userFactory } from "../test-utils/userFactory";
 import {
   languageFactory,
@@ -78,7 +78,7 @@ test("disable active user and removes all related data", async () => {
   });
   const language = await languageFactory.build();
   await Promise.all([
-    sessionFactory.build({ userId: user.id }),
+    sessionFactory.build(user.id),
     languageMemberFactory.build({
       userId: user.id,
       languageId: language.id,
