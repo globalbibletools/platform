@@ -1,22 +1,20 @@
 import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
-import { EmailStatusRaw } from "../model/EmailStatus";
-import { UserStatusRaw } from "../model/UserStatus";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { inviteUser } from "./inviteUser";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
-import { userFactory } from "../test-utils/factories";
-import { SystemRoleRaw } from "../model/SystemRole";
+import { userFactory } from "../test-utils/userFactory";
 import { findInvitationsForUser, findUserByEmail } from "../test-utils/dbUtils";
+import { EmailStatusRaw } from "../model/EmailStatus";
 
 initializeDatabase();
 
 const scenarioDefinition: ScenarioDefinition = {
   users: {
     admin: {
-      systemRoles: [SystemRoleRaw.Admin],
+      roles: ["admin"],
     },
   },
 };
@@ -73,10 +71,10 @@ test("returns error if user is already active", async () => {
   const scenario = await createScenario(scenarioDefinition);
   await logIn(scenario.users.admin.id);
 
-  const existingUser = await userFactory.build();
+  const { user } = await userFactory.build();
 
   const formData = new FormData();
-  formData.set("email", existingUser.email);
+  formData.set("email", user.email);
   const response = await inviteUser({ state: "idle" }, formData);
   expect(response).toEqual({
     state: "error",
@@ -98,18 +96,18 @@ test("invites user and redirects back to users list", async () => {
   expect(createdUser).toEqual({
     id: expect.toBeUlid(),
     email,
-    emailStatus: EmailStatusRaw.Unverified,
-    status: UserStatusRaw.Active,
+    email_status: EmailStatusRaw.Unverified,
+    status: "active",
     name: null,
-    hashedPassword: null,
+    hashed_password: null,
   });
 
   const invites = await findInvitationsForUser(createdUser!.id);
   expect(invites).toEqual([
     {
-      userId: createdUser!.id,
+      user_id: createdUser!.id,
       token: expect.toBeToken(24),
-      expiresAt: expect.toBeDaysIntoFuture(7),
+      expires_at: expect.toBeDaysIntoFuture(7),
     },
   ]);
 

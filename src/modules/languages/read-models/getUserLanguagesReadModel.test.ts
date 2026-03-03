@@ -1,7 +1,7 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { expect, test } from "vitest";
 import { getUserLanguagesReadModel } from "./getUserLanguagesReadModel";
-import { userFactory } from "@/modules/users/test-utils/factories";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
 import {
   languageFactory,
   languageMemberFactory,
@@ -16,14 +16,14 @@ test("returns empty array if user does not exist", async () => {
 });
 
 test("returns empty array if user is not a member of any languages", async () => {
-  const user = await userFactory.build();
+  const { user } = await userFactory.build();
 
   const result = await getUserLanguagesReadModel(user.id);
   expect(result).toEqual([]);
 });
 
 test("returns array of languages where the user is a member", async () => {
-  const user = await userFactory.build();
+  const { user } = await userFactory.build();
   const memberLanguage1 = await languageFactory.build({
     code: "eng",
     englishName: "English",

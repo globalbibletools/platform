@@ -4,7 +4,6 @@ import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { expect, test } from "vitest";
 import { removeLanguageMember } from "./removeLanguageMember";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
-import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import logIn from "@/tests/vitest/login";
 import { findLanguageMembersForUser } from "../test-utils/dbUtils";
 import { getDb } from "@/db";
@@ -14,7 +13,7 @@ initializeDatabase();
 const scenarioDefinition: ScenarioDefinition = {
   users: {
     admin: {
-      systemRoles: [SystemRoleRaw.Admin],
+      roles: ["admin"],
     },
     member: {},
   },

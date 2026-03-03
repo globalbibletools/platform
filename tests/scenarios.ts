@@ -3,15 +3,12 @@ import {
   languageFactory,
   languageMemberFactory,
 } from "@/modules/languages/test-utils/factories";
-import { DbUser } from "@/modules/users/data-access/types";
-import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
-import {
-  systemRoleFactory,
-  userFactory,
-} from "@/modules/users/test-utils/factories";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
+import type { Selectable } from "kysely";
+import type { UserTable } from "@/modules/users/data-access/types";
 
 export interface UserScenarioDefinition {
-  systemRoles?: SystemRoleRaw[];
+  roles?: "admin"[];
 }
 
 export interface LanguageScenarioDefinition {
@@ -24,7 +21,7 @@ export interface ScenarioDefinition {
 }
 
 export interface Scenario {
-  users: Record<string, DbUser>;
+  users: Record<string, Selectable<UserTable>>;
   languages: Record<string, DbLanguage>;
 }
 
@@ -38,13 +35,10 @@ export async function createScenario(
   for (const definition of definitions) {
     if (definition.users) {
       for (const [id, userDefinition] of Object.entries(definition.users)) {
-        const user = await userFactory.build();
+        const { user } = await userFactory.build({
+          roles: userDefinition.roles,
+        });
         scenario.users[id] = user;
-        if (userDefinition.systemRoles) {
-          for (const role of userDefinition.systemRoles) {
-            await systemRoleFactory.build({ userId: user.id, role });
-          }
-        }
       }
     }
   }

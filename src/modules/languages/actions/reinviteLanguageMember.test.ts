@@ -4,16 +4,12 @@ import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { reinviteLanguageMemberAction } from "./reinviteLanguageMember";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
-import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import logIn from "@/tests/vitest/login";
 import {
   findInvitationsForUser,
   findUserById,
 } from "@/modules/users/test-utils/dbUtils";
-import {
-  invitationFactory,
-  userFactory,
-} from "@/modules/users/test-utils/factories";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
 import { findLanguageMembersForLanguage } from "../test-utils/dbUtils";
 import { languageMemberFactory } from "../test-utils/factories";
 import { ulid } from "@/shared/ulid";
@@ -23,7 +19,7 @@ initializeDatabase();
 const scenarioDefinition: ScenarioDefinition = {
   users: {
     admin: {
-      systemRoles: [SystemRoleRaw.Admin],
+      roles: ["admin"],
     },
     member: {},
   },
@@ -78,7 +74,7 @@ test("returns not found if not a platform admin", async () => {
   await logIn(scenario.users.user.id);
 
   const language = scenario.languages.spanish;
-  const user = await userFactory.build();
+  const { user } = await userFactory.build();
 
   await languageMemberFactory.build({
     userId: user.id,
@@ -98,7 +94,7 @@ test("returns not found if language does not exist", async () => {
   const scenario = await createScenario(scenarioDefinition);
   await logIn(scenario.users.admin.id);
 
-  const user = await userFactory.build();
+  const { user } = await userFactory.build();
 
   const formData = new FormData();
   formData.set("code", "garbage");
@@ -114,7 +110,7 @@ test("throws error if user is not a member of the language", async () => {
   await logIn(scenario.users.admin.id);
 
   const language = scenario.languages.spanish;
-  const user = await userFactory.build();
+  const { user } = await userFactory.build();
 
   const formData = new FormData();
   formData.set("code", language.code);
@@ -151,11 +147,8 @@ test("successfully reinvites a language member and sends email", async () => {
   await logIn(scenario.users.admin.id);
 
   const language = scenario.languages.spanish;
-  const user = await userFactory.build({
-    hashedPassword: null,
-  });
-  const invite = await invitationFactory.build({
-    userId: user.id,
+  const { user, invitation } = await userFactory.build({
+    state: "invited",
   });
 
   await languageMemberFactory.build({
@@ -177,22 +170,15 @@ test("successfully reinvites a language member and sends email", async () => {
   });
 
   const updatedUser = await findUserById(user.id);
-  expect(updatedUser).toEqual({
-    id: user.id,
-    name: user.name,
-    hashedPassword: user.hashedPassword,
-    email: user.email,
-    emailStatus: user.emailStatus,
-    status: user.status,
-  });
+  expect(updatedUser).toEqual(user);
 
   const invites = await findInvitationsForUser(user.id);
   expect(invites).toEqual([
-    invite,
+    invitation!,
     {
-      userId: user.id,
+      user_id: user.id,
       token: expect.toBeToken(24),
-      expiresAt: expect.toBeDaysIntoFuture(7),
+      expires_at: expect.toBeDaysIntoFuture(7),
     },
   ]);
 

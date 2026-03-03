@@ -14,7 +14,6 @@ import { requestInterlinearExport } from "./requestInterlinearExport";
 import { createScenario } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
-import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 
 initializeDatabase();
 
@@ -26,7 +25,7 @@ test("rejects unauthenticated requests", async () => {
 
 test("returns validation error for unknown language before enqueue", async () => {
   const scenario = await createScenario({
-    users: { admin: { systemRoles: [SystemRoleRaw.Admin] } },
+    users: { admin: { roles: ["admin"] } },
   });
   await logIn(scenario.users.admin.id);
 

@@ -1,115 +1,83 @@
-import { query } from "@/db";
-import {
-  DbEmailVerification,
-  DbInvitation,
-  DbPasswordReset,
-  DbSession,
-  DbSystemRole,
-  DbUser,
+import { getDb } from "@/db";
+import type { Selectable } from "kysely";
+import type {
+  ResetPasswordTokenTable,
+  SessionTable,
+  UserEmailVerificationTable,
+  UserInvitationTable,
+  UserSystemRoleTable,
+  UserTable,
 } from "../data-access/types";
 
-export async function findUserById(id: string): Promise<DbUser | undefined> {
-  const result = await query<DbUser>(
-    `
-      select id, name, hashed_password as "hashedPassword", email, email_status as "emailStatus", status
-      from users
-      where id = $1
-    `,
-    [id],
-  );
-
-  return result.rows[0];
+export async function findUserById(
+  id: string,
+): Promise<Selectable<UserTable> | undefined> {
+  return getDb()
+    .selectFrom("users")
+    .selectAll()
+    .where("id", "=", id)
+    .executeTakeFirst();
 }
 
 export async function findUserByEmail(
   email: string,
-): Promise<DbUser | undefined> {
-  const result = await query<DbUser>(
-    `
-      select id, name, hashed_password as "hashedPassword", email, email_status as "emailStatus", status
-      from users
-      where email = $1
-    `,
-    [email.toLowerCase()],
-  );
-
-  return result.rows[0];
+): Promise<Selectable<UserTable> | undefined> {
+  return getDb()
+    .selectFrom("users")
+    .selectAll()
+    .where("email", "=", email.toLowerCase())
+    .executeTakeFirst();
 }
 
 export async function findInvitationsForUser(
   userId: string,
-): Promise<DbInvitation[]> {
-  const result = await query<DbInvitation>(
-    `
-        select user_id as "userId", token,
-            expires_at as "expiresAt"
-        from user_invitation
-        where user_id = $1
-        order by expires_at
-    `,
-    [userId],
-  );
-
-  return result.rows;
+): Promise<Selectable<UserInvitationTable>[]> {
+  return getDb()
+    .selectFrom("user_invitation")
+    .selectAll()
+    .where("user_id", "=", userId)
+    .orderBy("expires_at")
+    .execute();
 }
 
 export async function findEmailVerificationForUser(
   userId: string,
-): Promise<DbEmailVerification | undefined> {
-  const result = await query<DbEmailVerification>(
-    `
-        select user_id as "userId", email, token,
-            expires_at as "expiresAt"
-        from user_email_verification
-        where user_id = $1
-    `,
-    [userId],
-  );
-
-  return result.rows[0];
+): Promise<Selectable<UserEmailVerificationTable> | undefined> {
+  return getDb()
+    .selectFrom("user_email_verification")
+    .selectAll()
+    .where("user_id", "=", userId)
+    .executeTakeFirst();
 }
 
 export async function findPasswordResetsForUser(
   userId: string,
-): Promise<DbPasswordReset[]> {
-  const result = await query<DbPasswordReset>(
-    `
-        select user_id as "userId", token,
-            expires_at as "expiresAt"
-        from reset_password_token
-        where user_id = $1
-    `,
-    [userId],
-  );
-
-  return result.rows;
+): Promise<Selectable<ResetPasswordTokenTable>[]> {
+  return getDb()
+    .selectFrom("reset_password_token")
+    .selectAll()
+    .where("user_id", "=", userId)
+    .orderBy("expires_at")
+    .execute();
 }
 
 export async function findSystemRolesForUser(
   userId: string,
-): Promise<DbSystemRole[]> {
-  const result = await query<DbSystemRole>(
-    `
-      select user_id as "userId", role
-      from user_system_role
-      where user_id = $1
-    `,
-    [userId],
-  );
-  return result.rows;
+): Promise<Selectable<UserSystemRoleTable>[]> {
+  return getDb()
+    .selectFrom("user_system_role")
+    .selectAll()
+    .where("user_id", "=", userId)
+    .orderBy("role")
+    .execute();
 }
 
 export async function findSessionsForUser(
   userId: string,
-): Promise<DbSession[]> {
-  const result = await query<DbSession>(
-    `
-        select id, user_id as "userId", expires_at as "expiresAt"
-        from session
-        where user_id = $1
-    `,
-    [userId],
-  );
-
-  return result.rows;
+): Promise<Selectable<SessionTable>[]> {
+  return getDb()
+    .selectFrom("session")
+    .selectAll()
+    .where("user_id", "=", userId)
+    .execute();
 }

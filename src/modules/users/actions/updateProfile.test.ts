@@ -4,7 +4,7 @@ import { test, expect } from "vitest";
 import { Scrypt } from "oslo/password";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { updateProfile } from "./updateProfile";
-import { userFactory } from "../test-utils/factories";
+import { userFactory } from "../test-utils/userFactory";
 import logIn from "@/tests/vitest/login";
 import {
   findEmailVerificationForUser,
@@ -56,7 +56,7 @@ test("returns validation errors if the request shape doesn't match the schema", 
 });
 
 test("returns not found error if user is not logged in", async () => {
-  const user = await userFactory.build();
+  const { user } = await userFactory.build();
 
   const newEmail = "changed@example.com";
   const formData = new FormData();
@@ -71,7 +71,7 @@ test("returns not found error if user is not logged in", async () => {
 });
 
 test("starts email verification process if email changed", async () => {
-  const user = await userFactory.build();
+  const { user } = await userFactory.build();
   await logIn(user.id);
 
   const newEmail = "changed@example.com";
@@ -89,10 +89,10 @@ test("starts email verification process if email changed", async () => {
 
   const emailVerification = await findEmailVerificationForUser(user.id);
   expect(emailVerification).toEqual({
-    userId: user.id,
+    user_id: user.id,
     email: newEmail,
     token: expect.toBeToken(24),
-    expiresAt: expect.toBeDaysIntoFuture(7),
+    expires_at: expect.toBeDaysIntoFuture(7),
   });
 
   expect(sendEmailMock).toHaveBeenCalledExactlyOnceWith({
@@ -106,7 +106,7 @@ ${process.env.ORIGIN}/verify-email?token=${emailVerification!.token}`,
 });
 
 test("rehashes password if it changed", async () => {
-  const user = await userFactory.build();
+  const { user } = await userFactory.build();
   await logIn(user.id);
 
   const newPassword = "newPa$$word!";
@@ -124,10 +124,10 @@ test("rehashes password if it changed", async () => {
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({
     ...user,
-    hashedPassword: expect.any(String),
+    hashed_password: expect.any(String),
   });
   await expect(
-    new Scrypt().verify(updatedUser?.hashedPassword ?? "", newPassword),
+    new Scrypt().verify(updatedUser?.hashed_password ?? "", newPassword),
   ).resolves.toEqual(true);
   const emailVerification = await findEmailVerificationForUser(user.id);
   expect(emailVerification).toBeUndefined();
@@ -141,7 +141,7 @@ test("rehashes password if it changed", async () => {
 });
 
 test("update user's name if it changed", async () => {
-  const user = await userFactory.build();
+  const { user } = await userFactory.build();
   await logIn(user.id);
 
   const newName = "Joe Translator";

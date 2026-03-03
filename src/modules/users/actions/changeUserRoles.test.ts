@@ -6,7 +6,7 @@ import { changeUserRoles } from "./changeUserRoles";
 import { SystemRoleRaw } from "../model/SystemRole";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
-import { userFactory } from "../test-utils/factories";
+import { userFactory } from "../test-utils/userFactory";
 import { findSystemRolesForUser } from "../test-utils/dbUtils";
 
 initializeDatabase();
@@ -14,7 +14,7 @@ initializeDatabase();
 const scenarioDefinition: ScenarioDefinition = {
   users: {
     admin: {
-      systemRoles: [SystemRoleRaw.Admin],
+      roles: ["admin"],
     },
   },
 };
@@ -35,7 +35,7 @@ test("returns not found if user is not a platform admin", async () => {
   const scenario = await createScenario({ users: { user: {} } });
   await logIn(scenario.users.user.id);
 
-  const user = await userFactory.build();
+  const { user } = await userFactory.build();
 
   const formData = new FormData();
   formData.set("userId", user.id);
@@ -61,7 +61,7 @@ test("replaces system roles for user", async () => {
   const scenario = await createScenario(scenarioDefinition);
   await logIn(scenario.users.admin.id);
 
-  const user = await userFactory.build();
+  const { user } = await userFactory.build();
 
   const formData = new FormData();
   formData.set("userId", user.id);
@@ -74,7 +74,7 @@ test("replaces system roles for user", async () => {
   const roles = await findSystemRolesForUser(user.id);
   expect(roles).toEqual([
     {
-      userId: user.id,
+      user_id: user.id,
       role: SystemRoleRaw.Admin,
     },
   ]);

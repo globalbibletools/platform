@@ -4,7 +4,6 @@ import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { createLanguage } from "./createLanguage";
 import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
-import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import logIn from "@/tests/vitest/login";
 import { languageFactory } from "../test-utils/factories";
 import { findLanguageByCode } from "../test-utils/dbUtils";
@@ -15,7 +14,7 @@ initializeDatabase();
 const scenarioDefinition: ScenarioDefinition = {
   users: {
     admin: {
-      systemRoles: [SystemRoleRaw.Admin],
+      roles: ["admin"],
     },
   },
 };

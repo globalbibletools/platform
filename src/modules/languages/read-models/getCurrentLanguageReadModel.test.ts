@@ -6,7 +6,7 @@ import {
   languageMemberFactory,
 } from "../test-utils/factories";
 import { MachineGlossStrategy, TextDirectionRaw } from "../model";
-import { userFactory } from "@/modules/users/test-utils/factories";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
 
 initializeDatabase();
 
@@ -41,7 +41,7 @@ test("returns language when no user is provided", async () => {
 });
 
 test("returns language when user is not a member", async () => {
-  const user = await userFactory.build();
+  const { user } = await userFactory.build();
   const language = await languageFactory.build();
 
   const result = await getCurrentLanguageReadModel(language.code, user.id);
@@ -60,7 +60,7 @@ test("returns language when user is not a member", async () => {
 });
 
 test("returns language when user is a member", async () => {
-  const user = await userFactory.build();
+  const { user } = await userFactory.build();
   const language = await languageFactory.build();
   await languageMemberFactory.build({
     userId: user.id,
