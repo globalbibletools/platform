@@ -2,7 +2,6 @@ import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect, vitest } from "vitest";
 import { approveAll } from "./approveAll";
-import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
 import { glossFactory, phraseFactory } from "../test-utils/factories";
 import {
@@ -16,26 +15,16 @@ import {
 } from "../types";
 import { faker } from "@faker-js/faker/locale/en";
 import { trackingClient } from "@/modules/reporting";
+import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
 
 initializeDatabase();
 
 vitest.mock("@/modules/reporting");
 
-const scenarioDefinition: ScenarioDefinition = {
-  users: {
-    translator: {},
-    nonmember: {},
-  },
-  languages: {
-    spanish: {
-      members: ["translator"],
-    },
-  },
-};
-
 test("returns and does nothing if the request shape doesn't match the schema", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.translator.id);
+  const { members } = await languageFactory.build();
+  await logIn(members[0].user_id);
 
   const formData = new FormData();
   const response = await approveAll(formData);
@@ -45,9 +34,7 @@ test("returns and does nothing if the request shape doesn't match the schema", a
 });
 
 test("returns not found if user is not logged in", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-
-  const language = scenario.languages.spanish;
+  const { language } = await languageFactory.build();
 
   const phrases = await phraseFactory.buildList(3, {
     languageId: language.id,
@@ -75,10 +62,9 @@ test("returns not found if user is not logged in", async () => {
 });
 
 test("returns not found if user is not a translator on the language", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.nonmember.id);
-
-  const language = scenario.languages.spanish;
+  const { language } = await languageFactory.build();
+  const { user: nonmember } = await userFactory.build();
+  await logIn(nonmember.id);
 
   const phrases = await phraseFactory.buildList(3, {
     languageId: language.id,
@@ -106,11 +92,9 @@ test("returns not found if user is not a translator on the language", async () =
 });
 
 test("returns not found if a phrase does not exist", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  const translator = scenario.users.translator;
-  await logIn(translator.id);
-
-  const language = scenario.languages.spanish;
+  const { language, members } = await languageFactory.build();
+  const translatorId = members[0].user_id;
+  await logIn(translatorId);
 
   const phrases = await phraseFactory.buildList(2, {
     languageId: language.id,
@@ -139,24 +123,14 @@ test("returns not found if a phrase does not exist", async () => {
 });
 
 test("returns not found if a phrase is for a different language", async () => {
-  const scenario = await createScenario({
-    users: {
-      translator: {},
-    },
-    languages: {
-      spanish: {
-        members: ["translator"],
-      },
-      italian: {
-        members: ["translator"],
-      },
-    },
+  const { user: translator } = await userFactory.build();
+  const { language } = await languageFactory.build({
+    members: [translator.id],
   });
-  const translator = scenario.users.translator;
+  const { language: otherLanguage } = await languageFactory.build({
+    members: [translator.id],
+  });
   await logIn(translator.id);
-
-  const language = scenario.languages.spanish;
-  const otherLanguage = scenario.languages.italian;
 
   const phrase = await phraseFactory.build({
     languageId: language.id,
@@ -183,11 +157,9 @@ test("returns not found if a phrase is for a different language", async () => {
 });
 
 test("creates a new glosses and updates existing glosses for each phrase", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  const translator = scenario.users.translator;
-  await logIn(translator.id);
-
-  const language = scenario.languages.spanish;
+  const { language, members } = await languageFactory.build();
+  const translatorId = members[0].user_id;
+  await logIn(translatorId);
 
   const phrases = await phraseFactory.buildList(3, {
     languageId: language.id,
@@ -229,7 +201,7 @@ test("creates a new glosses and updates existing glosses for each phrase", async
     gloss: updatedGlosses[0],
     state: GlossStateRaw.Approved,
     updatedAt: expect.toBeNow(),
-    updatedBy: translator.id,
+    updatedBy: translatorId,
     source: GlossSourceRaw.User,
   });
   const updatedGloss1History = await findGlossHistoryForPhrase(phrases[0].id);
@@ -246,7 +218,7 @@ test("creates a new glosses and updates existing glosses for each phrase", async
     gloss: updatedGlosses[1],
     state: GlossStateRaw.Approved,
     updatedAt: expect.toBeNow(),
-    updatedBy: translator.id,
+    updatedBy: translatorId,
     source: GlossSourceRaw.User,
   });
   const updatedGloss2History = await findGlossHistoryForPhrase(phrases[1].id);
@@ -263,7 +235,7 @@ test("creates a new glosses and updates existing glosses for each phrase", async
     gloss: updatedGlosses[2],
     state: GlossStateRaw.Approved,
     updatedAt: expect.toBeNow(),
-    updatedBy: translator.id,
+    updatedBy: translatorId,
     source: GlossSourceRaw.User,
   });
   const updatedGloss3History = await findGlossHistoryForPhrase(phrases[2].id);
@@ -272,14 +244,14 @@ test("creates a new glosses and updates existing glosses for each phrase", async
   expect(trackingClient.trackMany).toHaveBeenCalledExactlyOnceWith([
     {
       type: "approved_gloss",
-      userId: translator.id,
+      userId: translatorId,
       languageId: language.id,
       phraseId: phrases[1].id,
       method: GlossApprovalMethodRaw.GoogleSuggestion,
     },
     {
       type: "approved_gloss",
-      userId: translator.id,
+      userId: translatorId,
       languageId: language.id,
       phraseId: phrases[2].id,
       method: GlossApprovalMethodRaw.MachineSuggestion,

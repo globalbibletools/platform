@@ -1,7 +1,7 @@
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { getLanguageByCodeReadModel } from "./getLanguageByCodeReadModel";
-import { languageFactory } from "../test-utils/factories";
+import { languageFactory } from "../test-utils/languageFactory";
 
 initializeDatabase();
 
@@ -11,7 +11,7 @@ test("returns null if the language does not exist", async () => {
 });
 
 test("returns language by code when it exists", async () => {
-  const language = await languageFactory.build({
+  const { language } = await languageFactory.build({
     code: "spa",
     englishName: "Spanish",
     localName: "Español",
@@ -22,7 +22,7 @@ test("returns language by code when it exists", async () => {
   expect(result).toEqual({
     id: language.id,
     code: language.code,
-    englishName: language.englishName,
-    localName: language.localName,
+    englishName: language.english_name,
+    localName: language.local_name,
   });
 });

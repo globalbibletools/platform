@@ -3,7 +3,6 @@ import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { inviteUser } from "./inviteUser";
-import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
 import { userFactory } from "../test-utils/userFactory";
 import { findInvitationsForUser, findUserByEmail } from "../test-utils/dbUtils";
@@ -11,17 +10,9 @@ import { EmailStatusRaw } from "../model/EmailStatus";
 
 initializeDatabase();
 
-const scenarioDefinition: ScenarioDefinition = {
-  users: {
-    admin: {
-      roles: ["admin"],
-    },
-  },
-};
-
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   {
     const formData = new FormData();
@@ -58,8 +49,8 @@ test("returns validation errors if the request shape doesn't match the schema", 
 });
 
 test("returns not found if user is not a platform admin", async () => {
-  const scenario = await createScenario({ users: { user: {} } });
-  await logIn(scenario.users.user.id);
+  const { user } = await userFactory.build();
+  await logIn(user.id);
 
   const formData = new FormData();
   formData.set("email", "invite@example.com");
@@ -68,8 +59,8 @@ test("returns not found if user is not a platform admin", async () => {
 });
 
 test("returns error if user is already active", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   const { user } = await userFactory.build();
 
@@ -83,8 +74,8 @@ test("returns error if user is already active", async () => {
 });
 
 test("invites user and redirects back to users list", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   const email = "invite@example.com";
   const formData = new FormData();

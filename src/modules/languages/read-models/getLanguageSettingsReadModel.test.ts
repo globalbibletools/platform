@@ -1,7 +1,7 @@
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { getLanguageSettingsReadModel } from "./getLanguageSettingsReadModel";
-import { languageFactory } from "../test-utils/factories";
+import { languageFactory } from "../test-utils/languageFactory";
 import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 
 initializeDatabase();
@@ -12,10 +12,10 @@ test("returns null if the language does not exist", async () => {
 });
 
 test("returns language settings by code when it exists", async () => {
-  const refLanguage = await languageFactory.build({
+  const { language: refLanguage } = await languageFactory.build({
     code: "eng",
   });
-  const language = await languageFactory.build({
+  const { language } = await languageFactory.build({
     code: "spa",
     englishName: "Spanish",
     localName: "Español",
@@ -29,13 +29,13 @@ test("returns language settings by code when it exists", async () => {
   const result = await getLanguageSettingsReadModel("spa");
 
   expect(result).toEqual({
-    englishName: language.englishName,
-    localName: language.localName,
+    englishName: language.english_name,
+    localName: language.local_name,
     code: language.code,
     font: language.font,
-    textDirection: language.textDirection,
-    translationIds: language.translationIds,
-    referenceLanguageId: language.referenceLanguageId,
-    machineGlossStrategy: language.machineGlossStrategy,
+    textDirection: language.text_direction,
+    translationIds: language.translation_ids,
+    referenceLanguageId: language.reference_language_id,
+    machineGlossStrategy: language.machine_gloss_strategy,
   });
 });

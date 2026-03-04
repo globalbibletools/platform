@@ -1,45 +1,35 @@
 import { getDb } from "@/db";
-import { DbLanguage } from "../data-access/types";
-import { sql } from "kysely";
+import type { Selectable } from "kysely";
+import type { LanguageMemberTable, LanguageTable } from "../db/schema";
 
 export async function findLanguageByCode(
   code: string,
-): Promise<DbLanguage | undefined> {
-  const query = getDb()
+): Promise<Selectable<LanguageTable> | undefined> {
+  return getDb()
     .selectFrom("language")
+    .selectAll()
     .where("code", "=", code)
-    .select((eb) => [
-      "id",
-      "code",
-      "english_name as englishName",
-      "local_name as localName",
-      "font",
-      "text_direction as textDirection",
-      eb.fn
-        .coalesce("translation_ids", sql<string[]>`'{}'`)
-        .as("translationIds"),
-      "reference_language_id as referenceLanguageId",
-      "machine_gloss_strategy as machineGlossStrategy",
-    ]);
-  return query.executeTakeFirst();
+    .executeTakeFirst();
 }
 
-export async function findLanguageMembersForUser(userId: string) {
-  const result = await getDb()
+export async function findLanguageMembersForUser(
+  userId: string,
+): Promise<Selectable<LanguageMemberTable>[]> {
+  return getDb()
     .selectFrom("language_member")
+    .selectAll()
     .where("user_id", "=", userId)
     .orderBy("language_id")
-    .selectAll()
     .execute();
-  return result;
 }
 
-export async function findLanguageMembersForLanguage(languageId: string) {
-  const result = await getDb()
+export async function findLanguageMembersForLanguage(
+  languageId: string,
+): Promise<Selectable<LanguageMemberTable>[]> {
+  return getDb()
     .selectFrom("language_member")
-    .where("language_id", "=", languageId)
-    .orderBy("language_id")
     .selectAll()
+    .where("language_id", "=", languageId)
+    .orderBy("user_id")
     .execute();
-  return result;
 }

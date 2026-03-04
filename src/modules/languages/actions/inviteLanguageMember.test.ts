@@ -5,7 +5,6 @@ import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
 import { UserStatusRaw } from "@/modules/users/model/UserStatus";
 import { inviteLanguageMember } from "./inviteLanguageMember";
-import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
 import {
   findInvitationsForUser,
@@ -14,24 +13,13 @@ import {
 } from "@/modules/users/test-utils/dbUtils";
 import { userFactory } from "@/modules/users/test-utils/userFactory";
 import { findLanguageMembersForLanguage } from "../test-utils/dbUtils";
+import { languageFactory } from "../test-utils/languageFactory";
 
 initializeDatabase();
 
-const scenarioDefinition: ScenarioDefinition = {
-  users: {
-    admin: {
-      roles: ["admin"],
-    },
-    member: {},
-  },
-  languages: {
-    spanish: {},
-  },
-};
-
 test("returns validation error if the request shape doesn't match the schema", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   {
     const formData = new FormData();
@@ -59,13 +47,9 @@ test("returns validation error if the request shape doesn't match the schema", a
 });
 
 test("returns not found if not a platform admin", async () => {
-  const scenario = await createScenario({
-    users: { user: {} },
-    languages: { spanish: {} },
-  });
-  await logIn(scenario.users.user.id);
-
-  const language = scenario.languages.spanish;
+  const { user } = await userFactory.build();
+  const { language } = await languageFactory.build({ members: [] });
+  await logIn(user.id);
 
   const formData = new FormData();
   formData.set("code", language.code);
@@ -78,8 +62,8 @@ test("returns not found if not a platform admin", async () => {
 });
 
 test("returns not found if language does not exist", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   const formData = new FormData();
   formData.set("code", "garbage");
@@ -89,10 +73,10 @@ test("returns not found if language does not exist", async () => {
 });
 
 test("adds existing user to the language", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  const { language } = await languageFactory.build({ members: [] });
+  await logIn(admin.id);
 
-  const language = scenario.languages.spanish;
   const { user } = await userFactory.build();
 
   const formData = new FormData();
@@ -123,10 +107,9 @@ test("adds existing user to the language", async () => {
 });
 
 test("invites new user to the language", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
-
-  const language = scenario.languages.spanish;
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  const { language } = await languageFactory.build({ members: [] });
+  await logIn(admin.id);
 
   const email = "testinvite@example.com";
 
