@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import postEmailNotification from "./emailNotifications";
 import { EmailStatusRaw } from "../model/EmailStatus";
-import { userFactory } from "../test-utils/factories";
+import { userFactory } from "../test-utils/userFactory";
 import { findUserById } from "../test-utils/dbUtils";
 
 initializeDatabase();
@@ -34,10 +34,7 @@ test("returns error if notification message is invalid", async () => {
 });
 
 test("handles permanent bounce rejections", async () => {
-  const user = await userFactory.build({
-    email: "test@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-  });
+  const { user } = await userFactory.build();
 
   const response = await postEmailNotification({
     async json() {
@@ -47,7 +44,7 @@ test("handles permanent bounce rejections", async () => {
           notificationType: "Bounce",
           bounce: {
             bounceType: "Permanent",
-            bouncedRecipients: [{ emailAddress: "test@example.com" }],
+            bouncedRecipients: [{ emailAddress: user.email }],
           },
         }),
         TopicArn: "test-arn",
@@ -62,15 +59,12 @@ test("handles permanent bounce rejections", async () => {
   const dbUser = await findUserById(user.id);
   expect(dbUser).toEqual({
     ...user,
-    emailStatus: EmailStatusRaw.Bounced,
+    email_status: EmailStatusRaw.Bounced,
   });
 });
 
 test("ignores non-permanent bounce rejections", async () => {
-  const user = await userFactory.build({
-    email: "test@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-  });
+  const { user } = await userFactory.build();
 
   const response = await postEmailNotification({
     async json() {
@@ -80,7 +74,7 @@ test("ignores non-permanent bounce rejections", async () => {
           notificationType: "Bounce",
           bounce: {
             bounceType: "Transient",
-            bouncedRecipients: [{ emailAddress: "test@example.com" }],
+            bouncedRecipients: [{ emailAddress: user.email }],
           },
         }),
         TopicArn: "test-arn",
@@ -97,10 +91,7 @@ test("ignores non-permanent bounce rejections", async () => {
 });
 
 test("handles complaint rejections", async () => {
-  const user = await userFactory.build({
-    email: "test@example.com",
-    emailStatus: EmailStatusRaw.Verified,
-  });
+  const { user } = await userFactory.build();
 
   const response = await postEmailNotification({
     async json() {
@@ -109,7 +100,7 @@ test("handles complaint rejections", async () => {
         Message: JSON.stringify({
           notificationType: "Complaint",
           complaint: {
-            complainedRecipients: [{ emailAddress: "test@example.com" }],
+            complainedRecipients: [{ emailAddress: user.email }],
           },
         }),
         TopicArn: "test-arn",
@@ -124,7 +115,7 @@ test("handles complaint rejections", async () => {
   const dbUser = await findUserById(user.id);
   expect(dbUser).toEqual({
     ...user,
-    emailStatus: EmailStatusRaw.Complained,
+    email_status: EmailStatusRaw.Complained,
   });
 });
 

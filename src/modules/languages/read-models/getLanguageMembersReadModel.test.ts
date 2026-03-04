@@ -84,7 +84,7 @@ test("returns language members with invites", async () => {
   const invite = {
     user_id: user.id,
     token: "token1234",
-    expires: endOfTomorrow().valueOf(),
+    expires_at: endOfTomorrow(),
   };
 
   await Promise.all([
@@ -109,7 +109,6 @@ test("returns language members with invites", async () => {
       email: user.email,
       invite: {
         token: invite.token,
-        expires: invite.expires,
       },
     },
   ]);

@@ -1,9 +1,9 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { getDb } from "@/db";
-import { createScenario } from "@/tests/scenarios";
 import { beforeEach, describe, expect, test } from "vitest";
 import { machineGlossRepository } from "./machineGlossRepository";
 import { Readable } from "stream";
+import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 
 initializeDatabase();
 
@@ -65,16 +65,16 @@ describe("updateAllForLanguage", () => {
   });
 
   test("replaces all machine glosses for a language", async () => {
-    const scenario = await createScenario({
-      languages: {
-        eng: {},
-        spa: {},
-      },
+    const { language: engLanguage } = await languageFactory.build({
+      members: [],
+    });
+    const { language: spaLanguage } = await languageFactory.build({
+      members: [],
     });
 
     const existingGloss = {
       word_id: "0100100101",
-      language_id: scenario.languages.eng.id,
+      language_id: engLanguage.id,
       gloss: "Gloss in another language",
     };
 
@@ -84,7 +84,7 @@ describe("updateAllForLanguage", () => {
         existingGloss,
         {
           word_id: "0100100101",
-          language_id: scenario.languages.spa.id,
+          language_id: spaLanguage.id,
           gloss: "Existing gloss to be removed",
         },
       ])
@@ -106,7 +106,7 @@ describe("updateAllForLanguage", () => {
     ];
 
     await machineGlossRepository.updateAllForLanguage({
-      languageId: scenario.languages.spa.id,
+      languageId: spaLanguage.id,
       stream: Readable.from(newGlosses),
     });
 
@@ -121,7 +121,7 @@ describe("updateAllForLanguage", () => {
         id: i + 3,
         word_id: g.wordId,
         gloss: g.gloss,
-        language_id: scenario.languages.spa.id,
+        language_id: spaLanguage.id,
       })),
     ]);
   });

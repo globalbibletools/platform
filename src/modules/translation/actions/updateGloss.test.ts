@@ -2,7 +2,6 @@ import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { vitest, test, expect } from "vitest";
 import { updateGlossAction } from "./updateGloss";
-import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
 import { glossFactory, phraseFactory } from "../test-utils/factories";
 import {
@@ -15,26 +14,16 @@ import {
   GlossStateRaw,
 } from "../types";
 import { trackingClient } from "@/modules/reporting";
+import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
 
 initializeDatabase();
 
 vitest.mock("@/modules/reporting");
 
-const scenarioDefinition: ScenarioDefinition = {
-  users: {
-    translator: {},
-    nonmember: {},
-  },
-  languages: {
-    spanish: {
-      members: ["translator"],
-    },
-  },
-};
-
 test("returns and does nothing if the request shape doesn't match the schema", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.translator.id);
+  const { members } = await languageFactory.build();
+  await logIn(members[0].user_id);
 
   const formData = new FormData();
   const response = await updateGlossAction(formData);
@@ -44,9 +33,7 @@ test("returns and does nothing if the request shape doesn't match the schema", a
 });
 
 test("returns not found if user is not logged in", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-
-  const language = scenario.languages.spanish;
+  const { language } = await languageFactory.build();
 
   const phrase = await phraseFactory.build({
     languageId: language.id,
@@ -68,10 +55,9 @@ test("returns not found if user is not logged in", async () => {
 });
 
 test("returns not found if user is not a translator on the language", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.nonmember.id);
-
-  const language = scenario.languages.spanish;
+  const { language } = await languageFactory.build();
+  const { user: nonmember } = await userFactory.build();
+  await logIn(nonmember.id);
 
   const phrase = await phraseFactory.build({
     languageId: language.id,
@@ -93,10 +79,8 @@ test("returns not found if user is not a translator on the language", async () =
 });
 
 test("returns not found if the phrase does not exist", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.translator.id);
-
-  const language = scenario.languages.spanish;
+  const { language, members } = await languageFactory.build();
+  await logIn(members[0].user_id);
 
   const formData = new FormData();
   formData.set("verseId", "123");
@@ -114,17 +98,14 @@ test("returns not found if the phrase does not exist", async () => {
 });
 
 test("returns not found if the phrase is in a different language", async () => {
-  const scenario = await createScenario(scenarioDefinition, {
-    languages: {
-      another: {
-        members: ["translator"],
-      },
-    },
+  const { user: translator } = await userFactory.build();
+  const { language } = await languageFactory.build({
+    members: [translator.id],
   });
-  await logIn(scenario.users.translator.id);
-
-  const language = scenario.languages.spanish;
-  const otherLanguage = scenario.languages.another;
+  const { language: otherLanguage } = await languageFactory.build({
+    members: [translator.id],
+  });
+  await logIn(translator.id);
 
   const formData = new FormData();
   formData.set("verseId", "123");
@@ -142,11 +123,9 @@ test("returns not found if the phrase is in a different language", async () => {
 });
 
 test("creates a new gloss for the phrase", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  const translator = scenario.users.translator;
-  await logIn(translator.id);
-
-  const language = scenario.languages.spanish;
+  const { language, members } = await languageFactory.build();
+  const translatorId = members[0].user_id;
+  await logIn(translatorId);
 
   const phrase = await phraseFactory.build({
     languageId: language.id,
@@ -168,7 +147,7 @@ test("creates a new gloss for the phrase", async () => {
     gloss: "asdf",
     state: GlossStateRaw.Approved,
     updatedAt: expect.toBeNow(),
-    updatedBy: translator.id,
+    updatedBy: translatorId,
     source: GlossSourceRaw.User,
   });
 
@@ -181,11 +160,9 @@ test("creates a new gloss for the phrase", async () => {
 });
 
 test("creates a new gloss for the phrase and tracks approval", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  const translator = scenario.users.translator;
-  await logIn(translator.id);
-
-  const language = scenario.languages.spanish;
+  const { language, members } = await languageFactory.build();
+  const translatorId = members[0].user_id;
+  await logIn(translatorId);
 
   const phrase = await phraseFactory.build({
     languageId: language.id,
@@ -208,7 +185,7 @@ test("creates a new gloss for the phrase and tracks approval", async () => {
     gloss: "asdf",
     state: GlossStateRaw.Approved,
     updatedAt: expect.toBeNow(),
-    updatedBy: translator.id,
+    updatedBy: translatorId,
     source: GlossSourceRaw.User,
   });
 
@@ -218,7 +195,7 @@ test("creates a new gloss for the phrase and tracks approval", async () => {
   expect(trackingClient.trackOne).toHaveBeenCalledExactlyOnceWith({
     type: "approved_gloss",
     languageId: language.id,
-    userId: translator.id,
+    userId: translatorId,
     phraseId: phrase.id,
     method: GlossApprovalMethodRaw.MachineSuggestion,
   });
@@ -227,11 +204,9 @@ test("creates a new gloss for the phrase and tracks approval", async () => {
 });
 
 test("updates an existing gloss for the phrase", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  const translator = scenario.users.translator;
-  await logIn(translator.id);
-
-  const language = scenario.languages.spanish;
+  const { language, members } = await languageFactory.build();
+  const translatorId = members[0].user_id;
+  await logIn(translatorId);
 
   const phrase = await phraseFactory.build({
     languageId: language.id,
@@ -256,7 +231,7 @@ test("updates an existing gloss for the phrase", async () => {
     gloss: "asdf",
     state: GlossStateRaw.Approved,
     updatedAt: expect.toBeNow(),
-    updatedBy: translator.id,
+    updatedBy: translatorId,
     source: GlossSourceRaw.User,
   });
 
@@ -274,11 +249,9 @@ test("updates an existing gloss for the phrase", async () => {
 });
 
 test("updates an existing gloss for the phrase and tracks approval", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  const translator = scenario.users.translator;
-  await logIn(translator.id);
-
-  const language = scenario.languages.spanish;
+  const { language, members } = await languageFactory.build();
+  const translatorId = members[0].user_id;
+  await logIn(translatorId);
 
   const phrase = await phraseFactory.build({
     languageId: language.id,
@@ -304,7 +277,7 @@ test("updates an existing gloss for the phrase and tracks approval", async () =>
     gloss: "asdf",
     state: GlossStateRaw.Approved,
     updatedAt: expect.toBeNow(),
-    updatedBy: translator.id,
+    updatedBy: translatorId,
     source: GlossSourceRaw.User,
   });
 
@@ -319,7 +292,7 @@ test("updates an existing gloss for the phrase and tracks approval", async () =>
   expect(trackingClient.trackOne).toHaveBeenCalledExactlyOnceWith({
     type: "approved_gloss",
     languageId: language.id,
-    userId: translator.id,
+    userId: translatorId,
     phraseId: phrase.id,
     method: GlossApprovalMethodRaw.GoogleSuggestion,
   });

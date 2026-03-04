@@ -1,5 +1,5 @@
 import { Database, getDb } from "@/db";
-import { SelectQueryBuilder, sql } from "kysely";
+import { SelectQueryBuilder } from "kysely";
 import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import User from "../model/User";
 import UserEmail from "../model/UserEmail";
@@ -125,13 +125,13 @@ const userRepository = {
             status: user.status.value,
           })
           .onConflict((oc) =>
-            oc.column("id").doUpdateSet({
-              name: sql`excluded.name`,
-              email: sql`excluded.email`,
-              email_status: sql`excluded.email_status`,
-              hashed_password: sql`excluded.hashed_password`,
-              status: sql`excluded.status`,
-            }),
+            oc.column("id").doUpdateSet((eb) => ({
+              name: eb.ref(`excluded.name`),
+              email: eb.ref(`excluded.email`),
+              email_status: eb.ref(`excluded.email_status`),
+              hashed_password: eb.ref(`excluded.hashed_password`),
+              status: eb.ref(`excluded.status`),
+            })),
           )
           .execute();
 
@@ -157,13 +157,13 @@ const userRepository = {
               user.invitations.map((inv) => ({
                 user_id: user.id,
                 token: inv.token,
-                expires: inv.expiresAt.valueOf(),
+                expires_at: inv.expiresAt,
               })),
             )
             .onConflict((oc) =>
-              oc.column("token").doUpdateSet({
-                expires: sql`excluded.expires`,
-              }),
+              oc.column("token").doUpdateSet((eb) => ({
+                expires_at: eb.ref(`excluded.expires_at`),
+              })),
             )
             .execute();
         }
@@ -180,7 +180,7 @@ const userRepository = {
               user_id: user.id,
               email: user.emailVerification.email,
               token: user.emailVerification.token,
-              expires: user.emailVerification.expiresAt.valueOf(),
+              expires_at: user.emailVerification.expiresAt,
             })
             .execute();
         }
@@ -207,13 +207,13 @@ const userRepository = {
               user.passwordResets.map((reset) => ({
                 user_id: user.id,
                 token: reset.token,
-                expires: reset.expiresAt.valueOf(),
+                expires_at: reset.expiresAt,
               })),
             )
             .onConflict((oc) =>
-              oc.column("token").doUpdateSet({
-                expires: sql`excluded.expires`,
-              }),
+              oc.column("token").doUpdateSet((eb) => ({
+                expires_at: eb.ref(`excluded.expires_at`),
+              })),
             )
             .execute();
         }
@@ -263,30 +263,20 @@ function selectUserFields(
     jsonArrayFrom(
       eb
         .selectFrom("reset_password_token")
-        .select((eb) => [
-          "token",
-          sql<Date>`to_timestamp(${eb.ref("expires")} / 1000)`.as("expiresAt"),
-        ])
+        .select(["token", "expires_at as expiresAt"])
         .whereRef("reset_password_token.user_id", "=", "users.id"),
     ).as("passwordResets"),
     jsonObjectFrom(
       eb
         .selectFrom("user_email_verification")
-        .select((eb) => [
-          "email",
-          "token",
-          sql<Date>`to_timestamp(${eb.ref("expires")} / 1000)`.as("expiresAt"),
-        ])
+        .select(["email", "token", "expires_at as expiresAt"])
         .whereRef("user_email_verification.user_id", "=", "users.id")
         .limit(1),
     ).as("emailVerification"),
     jsonArrayFrom(
       eb
         .selectFrom("user_invitation")
-        .select((eb) => [
-          "token",
-          sql<Date>`to_timestamp(${eb.ref("expires")} / 1000)`.as("expiresAt"),
-        ])
+        .select(["token", "expires_at as expiresAt"])
         .whereRef("user_invitation.user_id", "=", "users.id"),
     ).as("invitations"),
     eb
