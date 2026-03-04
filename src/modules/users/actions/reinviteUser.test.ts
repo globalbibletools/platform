@@ -4,7 +4,6 @@ import { test, expect } from "vitest";
 import { UserStatusRaw } from "../model/UserStatus";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { reinviteUserAction } from "./reinviteUser";
-import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
 import { userFactory } from "../test-utils/userFactory";
 import { findInvitationsForUser, findUserById } from "../test-utils/dbUtils";
@@ -12,17 +11,9 @@ import { ulid } from "@/shared/ulid";
 
 initializeDatabase();
 
-const scenarioDefinition: ScenarioDefinition = {
-  users: {
-    admin: {
-      roles: ["admin"],
-    },
-  },
-};
-
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   {
     const formData = new FormData();
@@ -42,20 +33,20 @@ test("returns validation errors if the request shape doesn't match the schema", 
 });
 
 test("returns not found if user is not a platform admin", async () => {
-  const scenario = await createScenario({ users: { user: {} } });
-  await logIn(scenario.users.user.id);
+  const { user } = await userFactory.build();
+  await logIn(user.id);
 
-  const { user } = await userFactory.build({ state: "invited" });
+  const { user: invitedUser } = await userFactory.build({ state: "invited" });
 
   const formData = new FormData();
-  formData.set("userId", user.id);
+  formData.set("userId", invitedUser.id);
   const response = reinviteUserAction({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 });
 
 test("returns error if user is not found", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   const formData = new FormData();
   formData.set("userId", ulid());
@@ -64,8 +55,8 @@ test("returns error if user is not found", async () => {
 });
 
 test("reinvites user with pending invite and redirects back to users list", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   const { user, invitation } = await userFactory.build({ state: "invited" });
 
@@ -97,8 +88,8 @@ test("reinvites user with pending invite and redirects back to users list", asyn
 });
 
 test("reinvites disabled user and redirects back to users list", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   const { user } = await userFactory.build({ state: "disabled" });
 

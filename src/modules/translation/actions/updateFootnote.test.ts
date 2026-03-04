@@ -1,29 +1,18 @@
 import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
-import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
 import { footnoteFactory, phraseFactory } from "../test-utils/factories";
 import { findFootnoteForPhrase } from "../test-utils/dbUtils";
 import { updateFootnoteAction } from "./updateFootnote";
+import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
 
 initializeDatabase();
 
-const scenarioDefinition: ScenarioDefinition = {
-  users: {
-    translator: {},
-    nonmember: {},
-  },
-  languages: {
-    spanish: {
-      members: ["translator"],
-    },
-  },
-};
-
 test("returns and does nothing if the request shape doesn't match the schema", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.translator.id);
+  const { members } = await languageFactory.build();
+  await logIn(members[0].user_id);
 
   const formData = new FormData();
   const response = await updateFootnoteAction(formData);
@@ -31,9 +20,7 @@ test("returns and does nothing if the request shape doesn't match the schema", a
 });
 
 test("returns not found if user is not logged in", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-
-  const language = scenario.languages.spanish;
+  const { language } = await languageFactory.build();
 
   const phrase = await phraseFactory.build({
     languageId: language.id,
@@ -51,10 +38,9 @@ test("returns not found if user is not logged in", async () => {
 });
 
 test("returns not found if user is not a translator on the language", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.nonmember.id);
-
-  const language = scenario.languages.spanish;
+  const { language } = await languageFactory.build();
+  const { user: nonmember } = await userFactory.build();
+  await logIn(nonmember.id);
 
   const phrase = await phraseFactory.build({
     languageId: language.id,
@@ -72,10 +58,8 @@ test("returns not found if user is not a translator on the language", async () =
 });
 
 test("returns not found if the phrase does not exist", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.translator.id);
-
-  const language = scenario.languages.spanish;
+  const { language, members } = await languageFactory.build();
+  await logIn(members[0].user_id);
 
   const formData = new FormData();
   formData.set("verseId", "123");
@@ -89,16 +73,14 @@ test("returns not found if the phrase does not exist", async () => {
 });
 
 test("returns not found if phrase is not in the language", async () => {
-  const scenario = await createScenario(scenarioDefinition, {
-    languages: {
-      another: {
-        members: ["translator"],
-      },
-    },
+  const { user: translator } = await userFactory.build();
+  const { language } = await languageFactory.build({
+    members: [translator.id],
   });
-  await logIn(scenario.users.translator.id);
-
-  const language = scenario.languages.spanish;
+  const { language: anotherLanguage } = await languageFactory.build({
+    members: [translator.id],
+  });
+  await logIn(translator.id);
 
   const phrase = await phraseFactory.build({
     languageId: language.id,
@@ -106,7 +88,7 @@ test("returns not found if phrase is not in the language", async () => {
 
   const formData = new FormData();
   formData.set("verseId", "123");
-  formData.set("languageCode", scenario.languages.another.code);
+  formData.set("languageCode", anotherLanguage.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("note", "<p>Note text</p>");
   await expect(updateFootnoteAction(formData)).toBeNextjsNotFound();
@@ -116,11 +98,9 @@ test("returns not found if phrase is not in the language", async () => {
 });
 
 test("creates a new footnote for the phrase", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  const translator = scenario.users.translator;
-  await logIn(translator.id);
-
-  const language = scenario.languages.spanish;
+  const { language, members } = await languageFactory.build();
+  const translatorId = members[0].user_id;
+  await logIn(translatorId);
 
   const phrase = await phraseFactory.build({
     languageId: language.id,
@@ -140,25 +120,23 @@ test("creates a new footnote for the phrase", async () => {
     phraseId: phrase.id,
     content,
     timestamp: expect.toBeNow(),
-    authorId: translator.id,
+    authorId: translatorId,
   });
 
   // TODO: verify cache validation
 });
 
 test("updates an existing gloss for the phrase", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  const translator = scenario.users.translator;
-  await logIn(translator.id);
-
-  const language = scenario.languages.spanish;
+  const { language, members } = await languageFactory.build();
+  const translatorId = members[0].user_id;
+  await logIn(translatorId);
 
   const phrase = await phraseFactory.build({
     languageId: language.id,
   });
   await footnoteFactory.build({
     phraseId: phrase.id,
-    authorId: translator.id,
+    authorId: translatorId,
   });
   const content = "<p>Note text</p>";
 
@@ -175,7 +153,7 @@ test("updates an existing gloss for the phrase", async () => {
     phraseId: phrase.id,
     content,
     timestamp: expect.toBeNow(),
-    authorId: translator.id,
+    authorId: translatorId,
   });
 
   // TODO: verify cache validation
