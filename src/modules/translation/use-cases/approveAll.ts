@@ -1,9 +1,8 @@
 import { NotFoundError } from "@/shared/errors";
 import phraseRepository from "../data-access/PhraseRepository";
 import { GlossApprovalMethodRaw, GlossStateRaw } from "../types";
-import glossRepository from "../data-access/GlossRepository";
-import languageRepository from "@/modules/languages/data-access/languageRepository";
-import { trackingClient } from "@/modules/reporting";
+import { resolveLanguageByCode } from "@/modules/languages";
+import { kyselyTransaction } from "@/db";
 
 export interface ApproveAllUseCaseRequest {
   languageCode: string;
@@ -15,48 +14,43 @@ export interface ApproveAllUseCaseRequest {
   userId: string;
 }
 
-export async function approveAllUseCase(request: ApproveAllUseCaseRequest) {
-  const phrasesExist = await phraseRepository.existsForLanguage(
-    request.languageCode,
-    request.phrases.map((phrase) => phrase.id),
-  );
-  if (!phrasesExist) {
-    throw new NotFoundError("Phrase");
-  }
+export interface ApproveAllUseCaseResponse {
+  notFound: number[];
+}
 
-  const language = await languageRepository.findByCode(request.languageCode);
+export async function approveAllUseCase(
+  request: ApproveAllUseCaseRequest,
+): Promise<ApproveAllUseCaseResponse> {
+  const language = await resolveLanguageByCode(request.languageCode);
   if (!language) {
     throw new NotFoundError("Language");
   }
 
-  const glosses = await glossRepository.findManyByPhraseId(
-    request.phrases.map((phrase) => phrase.id),
-  );
+  const notFound: number[] = [];
 
-  await glossRepository.approveMany({
-    phrases: request.phrases.map((phrase) => ({
-      phraseId: phrase.id,
-      gloss: phrase.gloss,
-    })),
-    updatedBy: request.userId,
+  await kyselyTransaction(async (trx) => {
+    for (const requestPhrase of request.phrases) {
+      const phrase = await phraseRepository.findWithinLanguage({
+        languageId: language.id,
+        phraseId: requestPhrase.id,
+        trx,
+      });
+
+      if (!phrase) {
+        notFound.push(requestPhrase.id);
+        continue;
+      }
+
+      phrase.updateGloss({
+        gloss: requestPhrase.gloss,
+        state: GlossStateRaw.Approved,
+        userId: request.userId,
+        approvalMethod: requestPhrase.method,
+      });
+
+      await phraseRepository.commit(phrase, trx);
+    }
   });
 
-  await trackingClient.trackMany(
-    request.phrases
-      .filter((phrase): phrase is RequiredFields<typeof phrase, "method"> => {
-        if (!phrase.method) return false;
-
-        const gloss = glosses.find((gloss) => gloss.phraseId === phrase.id);
-        return !gloss || gloss.state === GlossStateRaw.Unapproved;
-      })
-      .map((phrase) => ({
-        type: "approved_gloss",
-        userId: request.userId,
-        languageId: language.id,
-        phraseId: phrase.id,
-        method: phrase.method,
-      })),
-  );
+  return { notFound };
 }
-
-type RequiredFields<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;

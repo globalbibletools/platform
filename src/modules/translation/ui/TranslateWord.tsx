@@ -104,15 +104,15 @@ export default function TranslateWord({
 
   let approvalMethod: GlossApprovalMethodRaw = GlossApprovalMethodRaw.UserInput;
   if (language.machineGlossStrategy === MachineGlossStrategy.Google) {
-    if (glossValue === word.suggestions[0]) {
+    if (word.suggestions[0] && glossValue === word.suggestions[0]) {
       approvalMethod = GlossApprovalMethodRaw.MachineSuggestion;
-    } else if (glossValue === machineSuggestion) {
+    } else if (machineSuggestion && glossValue === machineSuggestion) {
       approvalMethod = GlossApprovalMethodRaw.GoogleSuggestion;
     }
   } else if (language.machineGlossStrategy === MachineGlossStrategy.LLM) {
-    if (glossValue === machineSuggestion) {
+    if (machineSuggestion && glossValue === machineSuggestion) {
       approvalMethod = GlossApprovalMethodRaw.LLMSuggestion;
-    } else if (glossValue === word.suggestions[0]) {
+    } else if (word.suggestions[0] && glossValue === word.suggestions[0]) {
       approvalMethod = GlossApprovalMethodRaw.MachineSuggestion;
     }
   }
@@ -136,15 +136,15 @@ export default function TranslateWord({
 
     formData.set("method", GlossApprovalMethodRaw.UserInput);
     if (language.machineGlossStrategy === MachineGlossStrategy.Google) {
-      if (updatedGloss === word.suggestions[0]) {
+      if (word.suggestions[0] && updatedGloss === word.suggestions[0]) {
         formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
-      } else if (updatedGloss === machineSuggestion) {
+      } else if (machineSuggestion && updatedGloss === machineSuggestion) {
         formData.set("method", GlossApprovalMethodRaw.GoogleSuggestion);
       }
     } else if (language.machineGlossStrategy === MachineGlossStrategy.LLM) {
-      if (updatedGloss === machineSuggestion) {
+      if (machineSuggestion && updatedGloss === machineSuggestion) {
         formData.set("method", GlossApprovalMethodRaw.LLMSuggestion);
-      } else if (updatedGloss === word.suggestions[0]) {
+      } else if (word.suggestions[0] && updatedGloss === word.suggestions[0]) {
         formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
       }
     }
