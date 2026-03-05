@@ -17,6 +17,7 @@ import {
   findPhraseById,
   findPhraseWordsForPhrase,
 } from "../test-utils/dbUtils";
+import { kyselyTransaction } from "@/db";
 
 vitest.mock("@/modules/reporting");
 
@@ -138,6 +139,35 @@ describe("findWithinLanguage", () => {
         }),
       }),
     );
+  });
+
+  test("uses the provided transaction to read uncommitted data", async () => {
+    const { language } = await languageFactory.build();
+
+    await kyselyTransaction(async (trx) => {
+      const { id: phraseId } = await trx
+        .insertInto("phrase")
+        .values({
+          language_id: language.id,
+          created_at: new Date(),
+          created_by: null,
+          deleted_at: null,
+          deleted_by: null,
+        })
+        .returning("id")
+        .executeTakeFirstOrThrow();
+
+      // The row is not yet committed, so a query outside the transaction
+      // would return undefined. Passing trx lets findWithinLanguage see it.
+      const result = await phraseRepository.findWithinLanguage({
+        languageId: language.id,
+        phraseId,
+        trx,
+      });
+
+      expect(result).toBeDefined();
+      expect(result!.props.id).toBe(phraseId);
+    });
   });
 });
 
@@ -493,5 +523,35 @@ describe("commit", () => {
     expect(unchangedGloss).toEqual(gloss);
 
     expect(trackingClient.trackMany).not.toHaveBeenCalled();
+  });
+
+  test("uses the provided transaction and writes are not visible until committed", async () => {
+    const { language, members } = await languageFactory.build();
+    const memberId = members[0].user_id;
+    const word = await bibleFactory.word();
+
+    const phrase = new PhraseModel({
+      id: 0,
+      languageId: language.id,
+      wordIds: [word.id],
+      createdAt: new Date(),
+      createdBy: memberId,
+      deletedAt: null,
+      deletedBy: null,
+      gloss: null,
+    });
+
+    await kyselyTransaction(async (trx) => {
+      await phraseRepository.commit(phrase, trx);
+
+      // Write has been applied within the transaction but not yet committed,
+      // so a query outside the transaction cannot see the new phrase row.
+      const rowMidTransaction = await findPhraseById(phrase.props.id);
+      expect(rowMidTransaction).toBeUndefined();
+    });
+
+    // After the transaction commits the row becomes visible.
+    const rowAfterCommit = await findPhraseById(phrase.props.id);
+    expect(rowAfterCommit).toBeDefined();
   });
 });

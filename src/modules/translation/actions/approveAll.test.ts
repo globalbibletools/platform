@@ -93,7 +93,7 @@ test("returns not found if user is not a translator on the language", async () =
   expect(trackingClient.trackMany).not.toHaveBeenCalled();
 });
 
-test("returns not found if a phrase does not exist", async () => {
+test("updates found phrases and skips missing phrase IDs", async () => {
   const { language, members } = await languageFactory.build();
   const translatorId = members[0].user_id;
   await logIn(translatorId);
@@ -103,29 +103,45 @@ test("returns not found if a phrase does not exist", async () => {
     languageId: language.id,
   });
   const missingPhraseId = 9999999;
+  const glosses = [faker.lorem.word(), faker.lorem.word(), faker.lorem.word()];
 
   const formData = new FormData();
   formData.set("verseId", "123");
   formData.set("code", language.code);
   formData.set(`phrases[0][id]`, String(phrases[0].phrase.id));
-  formData.set(`phrases[0][gloss]`, faker.lorem.word());
+  formData.set(`phrases[0][gloss]`, glosses[0]);
   formData.set(`phrases[1][id]`, String(phrases[1].phrase.id));
-  formData.set(`phrases[1][gloss]`, faker.lorem.word());
+  formData.set(`phrases[1][gloss]`, glosses[1]);
   formData.set(`phrases[2][id]`, String(missingPhraseId));
-  formData.set(`phrases[2][gloss]`, faker.lorem.word());
-  await expect(approveAll(formData)).toBeNextjsNotFound();
+  formData.set(`phrases[2][gloss]`, glosses[2]);
+  const result = await approveAll(formData);
+  expect(result).toBeUndefined();
 
   const updatedGloss1 = await findGlossForPhrase(phrases[0].phrase.id);
-  expect(updatedGloss1).toBeUndefined();
+  expect(updatedGloss1).toEqual({
+    phrase_id: phrases[0].phrase.id,
+    gloss: glosses[0],
+    state: GlossStateRaw.Approved,
+    updated_at: expect.toBeNow(),
+    updated_by: translatorId,
+    source: GlossSourceRaw.User,
+  });
   const updatedGloss2 = await findGlossForPhrase(phrases[1].phrase.id);
-  expect(updatedGloss2).toBeUndefined();
+  expect(updatedGloss2).toEqual({
+    phrase_id: phrases[1].phrase.id,
+    gloss: glosses[1],
+    state: GlossStateRaw.Approved,
+    updated_at: expect.toBeNow(),
+    updated_by: translatorId,
+    source: GlossSourceRaw.User,
+  });
   const updatedGloss3 = await findGlossForPhrase(missingPhraseId);
   expect(updatedGloss3).toBeUndefined();
 
   expect(trackingClient.trackMany).not.toHaveBeenCalled();
 });
 
-test("returns not found if a phrase is for a different language", async () => {
+test("updates found phrases and skips phrases belonging to a different language", async () => {
   const { user: translator } = await userFactory.build();
   const { language } = await languageFactory.build({
     members: [translator.id],
@@ -141,18 +157,27 @@ test("returns not found if a phrase is for a different language", async () => {
   const { phrase: phraseInOtherLanguage } = await phraseFactory.build({
     languageId: otherLanguage.id,
   });
+  const glosses = [faker.lorem.word(), faker.lorem.word()];
 
   const formData = new FormData();
   formData.set("verseId", "123");
   formData.set("code", language.code);
   formData.set(`phrases[0][id]`, String(phrase.id));
-  formData.set(`phrases[0][gloss]`, faker.lorem.word());
+  formData.set(`phrases[0][gloss]`, glosses[0]);
   formData.set(`phrases[1][id]`, String(phraseInOtherLanguage.id));
-  formData.set(`phrases[1][gloss]`, faker.lorem.word());
-  await expect(approveAll(formData)).toBeNextjsNotFound();
+  formData.set(`phrases[1][gloss]`, glosses[1]);
+  const result = await approveAll(formData);
+  expect(result).toBeUndefined();
 
   const updatedGloss1 = await findGlossForPhrase(phrase.id);
-  expect(updatedGloss1).toBeUndefined();
+  expect(updatedGloss1).toEqual({
+    phrase_id: phrase.id,
+    gloss: glosses[0],
+    state: GlossStateRaw.Approved,
+    updated_at: expect.toBeNow(),
+    updated_by: translator.id,
+    source: GlossSourceRaw.User,
+  });
   const updatedGloss2 = await findGlossForPhrase(phraseInOtherLanguage.id);
   expect(updatedGloss2).toBeUndefined();
 
@@ -245,22 +270,31 @@ test("creates a new glosses and updates existing glosses for each phrase", async
   );
   expect(updatedGloss3History).toEqual([]);
 
-  expect(trackingClient.trackMany).toHaveBeenCalledExactlyOnceWith([
-    {
-      type: "approved_gloss",
-      userId: translatorId,
-      languageId: language.id,
-      phraseId: phrases[1].phrase.id,
-      method: GlossApprovalMethodRaw.GoogleSuggestion,
-    },
-    {
-      type: "approved_gloss",
-      userId: translatorId,
-      languageId: language.id,
-      phraseId: phrases[2].phrase.id,
-      method: GlossApprovalMethodRaw.MachineSuggestion,
-    },
-  ]);
+  expect(trackingClient.trackMany).toHaveBeenCalledTimes(2);
+  expect(trackingClient.trackMany).toHaveBeenCalledWith(
+    [
+      expect.objectContaining({
+        type: "approved_gloss",
+        userId: translatorId,
+        languageId: language.id,
+        phraseId: phrases[1].phrase.id,
+        method: GlossApprovalMethodRaw.GoogleSuggestion,
+      }),
+    ],
+    expect.anything(),
+  );
+  expect(trackingClient.trackMany).toHaveBeenCalledWith(
+    [
+      expect.objectContaining({
+        type: "approved_gloss",
+        userId: translatorId,
+        languageId: language.id,
+        phraseId: phrases[2].phrase.id,
+        method: GlossApprovalMethodRaw.MachineSuggestion,
+      }),
+    ],
+    expect.anything(),
+  );
 
   // TODO: verify cache validation
 });

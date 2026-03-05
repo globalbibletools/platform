@@ -1,9 +1,10 @@
-import { getDb, kyselyTransaction, query, transaction } from "@/db";
+import { Database, getDb, kyselyTransaction, query, transaction } from "@/db";
 import { DbLanguage } from "@/modules/languages/data-access/types";
 import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import PhraseModel from "../model/Phrase";
 import Gloss from "../model/Gloss";
 import { trackingClient } from "@/modules/reporting";
+import { Transaction } from "kysely";
 
 export interface DbPhrase {
   id: number;
@@ -31,11 +32,13 @@ const phraseRepository = {
   async findWithinLanguage({
     languageId,
     phraseId,
+    trx,
   }: {
     languageId: string;
     phraseId: number;
+    trx?: Transaction<Database>;
   }): Promise<PhraseModel | undefined> {
-    const row = await getDb()
+    const row = await (trx ?? getDb())
       .selectFrom("phrase")
       .select((eb) => [
         "id",
@@ -236,8 +239,11 @@ const phraseRepository = {
     );
   },
 
-  async commit(phrase: PhraseModel): Promise<void> {
-    await kyselyTransaction(async (trx) => {
+  async commit(
+    phrase: PhraseModel,
+    trx?: Transaction<Database>,
+  ): Promise<void> {
+    const run = async (trx: Transaction<Database>) => {
       if (!phrase.props.id) {
         const row = await trx
           .insertInto("phrase")
@@ -316,7 +322,13 @@ const phraseRepository = {
           trx,
         );
       }
-    });
+    };
+
+    if (trx) {
+      await run(trx);
+    } else {
+      await kyselyTransaction(run);
+    }
   },
 };
 export default phraseRepository;
