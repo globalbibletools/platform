@@ -58,6 +58,7 @@ const phraseRepository = {
       ])
       .where("id", "=", phraseId)
       .where("language_id", "=", languageId)
+      .where("deleted_at", "is", null)
       .executeTakeFirst();
 
     if (!row) return undefined;
@@ -76,7 +77,7 @@ const phraseRepository = {
             gloss: row.gloss.gloss,
             state: row.gloss.state,
             source: row.gloss.source,
-            updatedAt: row.gloss.updated_at,
+            updatedAt: new Date(row.gloss.updated_at),
             updatedBy: row.gloss.updated_by,
           })
         : null,
