@@ -3,7 +3,7 @@ import * as path from "path";
 import { themes as prismThemes } from "prism-react-renderer";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
-
+import schemaDocsPlugin from "./src/plugins/schema-page";
 
 const config: Config = {
   title: "Global Bible Tools Developers",
@@ -13,6 +13,12 @@ const config: Config = {
   future: {
     v4: true,
   },
+
+  markdown: {
+    mermaid: true,
+  },
+
+  themes: ["@docusaurus/theme-mermaid"],
 
   url: "https://developers.globalbibletools.com",
   baseUrl: "/",
@@ -48,6 +54,7 @@ const config: Config = {
         },
       };
     },
+    schemaDocsPlugin,
   ],
 
   presets: [
