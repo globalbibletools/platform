@@ -92,9 +92,7 @@ describe("updateGloss", () => {
     });
     expect(phrase.events).toEqual([
       {
-        id: expect.toBeUlid(),
         type: "approved_gloss",
-        createdAt: expect.toBeNow(),
         languageId: "lang-id",
         userId: "user-1",
         phraseId: 1,
@@ -166,9 +164,7 @@ describe("updateGloss", () => {
     });
     expect(phrase.events).toEqual([
       {
-        id: expect.toBeUlid(),
         type: "approved_gloss",
-        createdAt: expect.toBeNow(),
         languageId: "lang-id",
         userId: "user-2",
         phraseId: 1,

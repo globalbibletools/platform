@@ -1,5 +1,4 @@
-import { ulid } from "@/shared/ulid";
-import { TrackingEvent } from "@/modules/reporting/model";
+import { TrackingEvent } from "@/modules/reporting";
 import {
   GlossApprovalMethodRaw,
   GlossSourceRaw,
@@ -46,9 +45,7 @@ export default class Phrase {
 
     if (wasUnapproved && state === GlossStateRaw.Approved && approvalMethod) {
       this.trackingEvents.push({
-        id: ulid(),
         type: "approved_gloss",
-        createdAt: new Date(),
         languageId: this.props.languageId,
         userId,
         phraseId: this.props.id,

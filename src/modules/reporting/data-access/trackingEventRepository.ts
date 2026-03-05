@@ -6,7 +6,7 @@ import { Transaction } from "kysely";
 type DistributiveOmit<T, K extends keyof T> =
   T extends unknown ? Omit<T, K> : never;
 
-type InsertableTrackingEvent = DistributiveOmit<
+export type InsertableTrackingEvent = DistributiveOmit<
   TrackingEvent,
   "createdAt" | "id"
 > & { createdAt?: Date };
