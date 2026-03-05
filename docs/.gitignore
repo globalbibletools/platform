@@ -8,6 +8,11 @@
 .docusaurus
 .cache-loader
 
+# Symlinks to module docs directories created by the module-docs plugin
+/docs/modules/*
+!/docs/modules/index.md
+!/docs/modules/_category_.json
+
 # Misc
 .DS_Store
 .env.local
