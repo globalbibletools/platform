@@ -2,7 +2,7 @@ import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
 import logIn from "@/tests/vitest/login";
-import { translatorNoteFactory, phraseFactory } from "../test-utils/factories";
+import { phraseFactory } from "../test-utils/phraseFactory";
 import { findTranslatorNoteForPhrase } from "../test-utils/dbUtils";
 import { updateTranslatorNoteAction } from "./updateTranslatorNote";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
@@ -22,7 +22,7 @@ test("returns and does nothing if the request shape doesn't match the schema", a
 test("returns not found if user is not logged in", async () => {
   const { language } = await languageFactory.build();
 
-  const phrase = await phraseFactory.build({
+  const { phrase } = await phraseFactory.build({
     languageId: language.id,
   });
 
@@ -42,7 +42,7 @@ test("returns not found if user is not a translator on the language", async () =
   const { user: nonmember } = await userFactory.build();
   await logIn(nonmember.id);
 
-  const phrase = await phraseFactory.build({
+  const { phrase } = await phraseFactory.build({
     languageId: language.id,
   });
 
@@ -82,7 +82,7 @@ test("returns not found if phrase is not in the language", async () => {
   });
   await logIn(translator.id);
 
-  const phrase = await phraseFactory.build({
+  const { phrase } = await phraseFactory.build({
     languageId: language.id,
   });
 
@@ -102,7 +102,7 @@ test("creates a new translatorNote for the phrase", async () => {
   const translatorId = members[0].user_id;
   await logIn(translatorId);
 
-  const phrase = await phraseFactory.build({
+  const { phrase } = await phraseFactory.build({
     languageId: language.id,
   });
   const content = "<p>Note text</p>";
@@ -117,10 +117,10 @@ test("creates a new translatorNote for the phrase", async () => {
 
   const translatorNote = await findTranslatorNoteForPhrase(phrase.id);
   expect(translatorNote).toEqual({
-    phraseId: phrase.id,
+    phrase_id: phrase.id,
     content,
     timestamp: expect.toBeNow(),
-    authorId: translatorId,
+    author_id: translatorId,
   });
 
   // TODO: verify cache validation
@@ -131,12 +131,9 @@ test("updates an existing gloss for the phrase", async () => {
   const translatorId = members[0].user_id;
   await logIn(translatorId);
 
-  const phrase = await phraseFactory.build({
+  const { phrase } = await phraseFactory.build({
     languageId: language.id,
-  });
-  await translatorNoteFactory.build({
-    phraseId: phrase.id,
-    authorId: translatorId,
+    translatorNote: true,
   });
   const content = "<p>Note text</p>";
 
@@ -150,10 +147,10 @@ test("updates an existing gloss for the phrase", async () => {
 
   const updatedTranslatorNote = await findTranslatorNoteForPhrase(phrase.id);
   expect(updatedTranslatorNote).toEqual({
-    phraseId: phrase.id,
+    phrase_id: phrase.id,
     content,
     timestamp: expect.toBeNow(),
-    authorId: translatorId,
+    author_id: translatorId,
   });
 
   // TODO: verify cache validation

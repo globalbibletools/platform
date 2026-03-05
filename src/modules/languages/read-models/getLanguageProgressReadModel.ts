@@ -28,6 +28,7 @@ export async function getLanguageProgressReadModel(
           and g.state = 'APPROVED'
           and ph.language_id = (select id from language where code = $1)
       ) as ph on ph.word_id = w.id
+      where exists (select 1 from language where code = $1)
       group by b.id
       order by b.id
     `,

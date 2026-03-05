@@ -3,7 +3,7 @@ import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { vitest, test, expect } from "vitest";
 import { updateGlossAction } from "./updateGloss";
 import logIn from "@/tests/vitest/login";
-import { glossFactory, phraseFactory } from "../test-utils/factories";
+import { phraseFactory } from "../test-utils/phraseFactory";
 import {
   findGlossForPhrase,
   findGlossHistoryForPhrase,
@@ -35,7 +35,7 @@ test("returns and does nothing if the request shape doesn't match the schema", a
 test("returns not found if user is not logged in", async () => {
   const { language } = await languageFactory.build();
 
-  const phrase = await phraseFactory.build({
+  const { phrase } = await phraseFactory.build({
     languageId: language.id,
   });
 
@@ -59,7 +59,7 @@ test("returns not found if user is not a translator on the language", async () =
   const { user: nonmember } = await userFactory.build();
   await logIn(nonmember.id);
 
-  const phrase = await phraseFactory.build({
+  const { phrase } = await phraseFactory.build({
     languageId: language.id,
   });
 
@@ -127,7 +127,7 @@ test("creates a new gloss for the phrase", async () => {
   const translatorId = members[0].user_id;
   await logIn(translatorId);
 
-  const phrase = await phraseFactory.build({
+  const { phrase } = await phraseFactory.build({
     languageId: language.id,
   });
 
@@ -143,11 +143,11 @@ test("creates a new gloss for the phrase", async () => {
 
   const gloss = await findGlossForPhrase(phrase.id);
   expect(gloss).toEqual({
-    phraseId: phrase.id,
+    phrase_id: phrase.id,
     gloss: "asdf",
     state: GlossStateRaw.Approved,
-    updatedAt: expect.toBeNow(),
-    updatedBy: translatorId,
+    updated_at: expect.toBeNow(),
+    updated_by: translatorId,
     source: GlossSourceRaw.User,
   });
 
@@ -164,7 +164,7 @@ test("creates a new gloss for the phrase and tracks approval", async () => {
   const translatorId = members[0].user_id;
   await logIn(translatorId);
 
-  const phrase = await phraseFactory.build({
+  const { phrase } = await phraseFactory.build({
     languageId: language.id,
   });
 
@@ -181,11 +181,11 @@ test("creates a new gloss for the phrase and tracks approval", async () => {
 
   const gloss = await findGlossForPhrase(phrase.id);
   expect(gloss).toEqual({
-    phraseId: phrase.id,
+    phrase_id: phrase.id,
     gloss: "asdf",
     state: GlossStateRaw.Approved,
-    updatedAt: expect.toBeNow(),
-    updatedBy: translatorId,
+    updated_at: expect.toBeNow(),
+    updated_by: translatorId,
     source: GlossSourceRaw.User,
   });
 
@@ -208,11 +208,9 @@ test("updates an existing gloss for the phrase", async () => {
   const translatorId = members[0].user_id;
   await logIn(translatorId);
 
-  const phrase = await phraseFactory.build({
+  const { phrase, gloss } = await phraseFactory.build({
     languageId: language.id,
-  });
-  const gloss = await glossFactory.build({
-    phraseId: phrase.id,
+    gloss: "unapproved",
   });
 
   const formData = new FormData();
@@ -227,11 +225,11 @@ test("updates an existing gloss for the phrase", async () => {
 
   const updatedGloss = await findGlossForPhrase(phrase.id);
   expect(updatedGloss).toEqual({
-    phraseId: phrase.id,
+    phrase_id: phrase.id,
     gloss: "asdf",
     state: GlossStateRaw.Approved,
-    updatedAt: expect.toBeNow(),
-    updatedBy: translatorId,
+    updated_at: expect.toBeNow(),
+    updated_by: translatorId,
     source: GlossSourceRaw.User,
   });
 
@@ -253,11 +251,9 @@ test("updates an existing gloss for the phrase and tracks approval", async () =>
   const translatorId = members[0].user_id;
   await logIn(translatorId);
 
-  const phrase = await phraseFactory.build({
+  const { phrase, gloss } = await phraseFactory.build({
     languageId: language.id,
-  });
-  const gloss = await glossFactory.build({
-    phraseId: phrase.id,
+    gloss: "unapproved",
   });
 
   const formData = new FormData();
@@ -273,11 +269,11 @@ test("updates an existing gloss for the phrase and tracks approval", async () =>
 
   const updatedGloss = await findGlossForPhrase(phrase.id);
   expect(updatedGloss).toEqual({
-    phraseId: phrase.id,
+    phrase_id: phrase.id,
     gloss: "asdf",
     state: GlossStateRaw.Approved,
-    updatedAt: expect.toBeNow(),
-    updatedBy: translatorId,
+    updated_at: expect.toBeNow(),
+    updated_by: translatorId,
     source: GlossSourceRaw.User,
   });
 
