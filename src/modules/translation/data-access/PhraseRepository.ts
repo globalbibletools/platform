@@ -1,8 +1,5 @@
-import { getDb, query, transaction } from "@/db";
+import { query, transaction } from "@/db";
 import { DbLanguage } from "@/modules/languages/data-access/types";
-import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
-import PhraseModel from "../model/Phrase";
-import Gloss from "../model/Gloss";
 
 export interface DbPhrase {
   id: number;
@@ -27,62 +24,6 @@ export type Phrase = Omit<DbPhrase, "languageId"> & {
 };
 
 const phraseRepository = {
-  async findWithinLanguage({
-    languageId,
-    phraseId,
-  }: {
-    languageId: string;
-    phraseId: number;
-  }): Promise<PhraseModel | undefined> {
-    const row = await getDb()
-      .selectFrom("phrase")
-      .select((eb) => [
-        "id",
-        "language_id",
-        "created_at",
-        "created_by",
-        "deleted_at",
-        "deleted_by",
-        jsonArrayFrom(
-          eb
-            .selectFrom("phrase_word")
-            .select("word_id")
-            .whereRef("phrase_word.phrase_id", "=", "phrase.id"),
-        ).as("word_ids"),
-        jsonObjectFrom(
-          eb
-            .selectFrom("gloss")
-            .select(["gloss", "state", "source", "updated_at", "updated_by"])
-            .whereRef("gloss.phrase_id", "=", "phrase.id"),
-        ).as("gloss"),
-      ])
-      .where("id", "=", phraseId)
-      .where("language_id", "=", languageId)
-      .executeTakeFirst();
-
-    if (!row) return undefined;
-
-    return new PhraseModel({
-      id: row.id,
-      languageId: row.language_id,
-      wordIds: row.word_ids.map((w) => w.word_id),
-      createdAt: row.created_at,
-      createdBy: row.created_by,
-      deletedAt: row.deleted_at,
-      deletedBy: row.deleted_by,
-      gloss:
-        row.gloss ?
-          new Gloss({
-            gloss: row.gloss.gloss,
-            state: row.gloss.state,
-            source: row.gloss.source,
-            updatedAt: row.gloss.updated_at,
-            updatedBy: row.gloss.updated_by,
-          })
-        : null,
-    });
-  },
-
   async findWithinLanguageById(
     languageCode: string,
     id: number,
