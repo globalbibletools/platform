@@ -1,8 +1,9 @@
-import { getDb, query, transaction } from "@/db";
+import { getDb, kyselyTransaction, query, transaction } from "@/db";
 import { DbLanguage } from "@/modules/languages/data-access/types";
 import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import PhraseModel from "../model/Phrase";
 import Gloss from "../model/Gloss";
+import { trackingClient } from "@/modules/reporting";
 
 export interface DbPhrase {
   id: number;
@@ -233,6 +234,89 @@ const phraseRepository = {
       `,
       [code, phraseId, userId],
     );
+  },
+
+  async commit(phrase: PhraseModel): Promise<void> {
+    await kyselyTransaction(async (trx) => {
+      if (!phrase.props.id) {
+        const row = await trx
+          .insertInto("phrase")
+          .values({
+            language_id: phrase.props.languageId,
+            created_at: phrase.props.createdAt,
+            created_by: phrase.props.createdBy,
+            deleted_at: phrase.props.deletedAt,
+            deleted_by: phrase.props.deletedBy,
+          })
+          .returning("id")
+          .executeTakeFirstOrThrow();
+        phrase.props.id = row.id;
+      } else {
+        await trx
+          .insertInto("phrase")
+          .values({
+            id: phrase.props.id,
+            language_id: phrase.props.languageId,
+            created_at: phrase.props.createdAt,
+            created_by: phrase.props.createdBy,
+            deleted_at: phrase.props.deletedAt,
+            deleted_by: phrase.props.deletedBy,
+          })
+          .onConflict((oc) =>
+            oc.column("id").doUpdateSet({
+              deleted_at: (eb) => eb.ref("excluded.deleted_at"),
+              deleted_by: (eb) => eb.ref("excluded.deleted_by"),
+            }),
+          )
+          .execute();
+      }
+
+      if (phrase.props.wordIds.length > 0) {
+        await trx
+          .insertInto("phrase_word")
+          .values(
+            phrase.props.wordIds.map((wordId) => ({
+              phrase_id: phrase.props.id,
+              word_id: wordId,
+            })),
+          )
+          .onConflict((oc) => oc.columns(["phrase_id", "word_id"]).doNothing())
+          .execute();
+      }
+
+      if (phrase.props.gloss) {
+        await trx
+          .insertInto("gloss")
+          .values({
+            phrase_id: phrase.props.id,
+            gloss: phrase.props.gloss.props.gloss,
+            state: phrase.props.gloss.props.state,
+            source: phrase.props.gloss.props.source,
+            updated_at: phrase.props.gloss.props.updatedAt,
+            updated_by: phrase.props.gloss.props.updatedBy,
+          })
+          .onConflict((oc) =>
+            oc.column("phrase_id").doUpdateSet((eb) => ({
+              gloss: eb.ref("excluded.gloss"),
+              state: eb.ref("excluded.state"),
+              source: eb.ref("excluded.source"),
+              updated_at: eb.ref("excluded.updated_at"),
+              updated_by: eb.ref("excluded.updated_by"),
+            })),
+          )
+          .execute();
+      }
+
+      if (phrase.events.length > 0) {
+        await trackingClient.trackMany(
+          phrase.events.map((event) => ({
+            ...event,
+            phraseId: phrase.props.id,
+          })),
+          trx,
+        );
+      }
+    });
   },
 };
 export default phraseRepository;

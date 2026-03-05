@@ -21,7 +21,7 @@ export interface PhraseProps {
 export default class Phrase {
   private trackingEvents: TrackingEvent[] = [];
 
-  constructor(private props: PhraseProps) {}
+  constructor(public props: PhraseProps) {}
 
   updateGloss({
     gloss,

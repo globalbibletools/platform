@@ -4,8 +4,30 @@ import type {
   FootnoteTable,
   GlossHistoryTable,
   GlossTable,
+  PhraseTable,
+  PhraseWordTable,
   TranslatorNoteTable,
 } from "../db/schema";
+
+export async function findPhraseById(
+  id: number,
+): Promise<Selectable<PhraseTable> | undefined> {
+  return getDb()
+    .selectFrom("phrase")
+    .selectAll()
+    .where("id", "=", id)
+    .executeTakeFirst();
+}
+
+export async function findPhraseWordsForPhrase(
+  phraseId: number,
+): Promise<Selectable<PhraseWordTable>[]> {
+  return getDb()
+    .selectFrom("phrase_word")
+    .selectAll()
+    .where("phrase_id", "=", phraseId)
+    .execute();
+}
 
 export async function findGlossForPhrase(
   phraseId: number,
