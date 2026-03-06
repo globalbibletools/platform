@@ -159,6 +159,7 @@ enriched as (
   join phrase p on p.id = ep.phrase_id
   left join phrase_word pw on pw.phrase_id = ep.phrase_id
   where ep.user_id is not null
+  and p.language_id <> (select id from language where code = 'test')
   group by
     ep.phrase_id, p.language_id, ep.user_id,
     ep.ts, ep.prev_gloss, ep.prev_state, ep.new_gloss, ep.new_state
