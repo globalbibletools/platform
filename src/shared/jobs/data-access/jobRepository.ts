@@ -1,4 +1,4 @@
-import { getDb, query } from "@/db";
+import { getDb } from "@/db";
 import { Job, JobStatus } from "../model";
 
 const jobRepository = {

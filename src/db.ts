@@ -4,7 +4,6 @@ import { from as copyFrom } from "pg-copy-streams";
 import { logger } from "./logging";
 import { Readable, Transform } from "stream";
 import { pipeline } from "stream/promises";
-import { vitest, Mock, MockedObject } from "vitest";
 
 import {
   LanguageMemberTable,

@@ -1,5 +1,5 @@
 import { GlossApprovalMethodRaw, GlossStateRaw } from "../types";
-import phraseRepository from "../data-access/PhraseRepository";
+import { phraseRepository } from "../data-access/phraseRepository";
 import { NotFoundError } from "@/shared/errors";
 import { resolveLanguageByCode } from "@/modules/languages";
 

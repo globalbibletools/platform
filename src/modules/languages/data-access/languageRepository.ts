@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { Language, MachineGlossStrategy } from "../model";
+import { Language } from "../model";
 import { sql } from "kysely";
 
 const languageRepository = {

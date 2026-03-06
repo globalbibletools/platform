@@ -1,5 +1,5 @@
 import { NotFoundError } from "@/shared/errors";
-import phraseRepository from "../data-access/PhraseRepository";
+import { phraseRepository } from "../data-access/phraseRepository";
 import { GlossApprovalMethodRaw, GlossStateRaw } from "../types";
 import { resolveLanguageByCode } from "@/modules/languages";
 import { kyselyTransaction } from "@/db";

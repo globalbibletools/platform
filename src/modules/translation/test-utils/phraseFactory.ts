@@ -74,10 +74,10 @@ function build(
   options: Omit<PhraseFactoryOptions, "languageId">,
 ): Promise<Omit<PhraseFactoryResult, "words">>;
 function build(
-  options: Omit<PhraseFactoryOptions, "languageId" | "wordIds">,
+  options?: Omit<PhraseFactoryOptions, "languageId" | "wordIds">,
 ): Promise<PhraseFactoryResult>;
 async function build(
-  options: Partial<PhraseFactoryOptions>,
+  options: Partial<PhraseFactoryOptions> = {},
 ): Promise<Partial<PhraseFactoryOptions>> {
   const db = getDb();
 

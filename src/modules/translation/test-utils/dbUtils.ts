@@ -19,6 +19,27 @@ export async function findPhraseById(
     .executeTakeFirst();
 }
 
+export async function findPhrasesForLanguage(
+  languageId: string,
+): Promise<Selectable<PhraseTable>[]> {
+  return getDb()
+    .selectFrom("phrase")
+    .selectAll()
+    .where("language_id", "=", languageId)
+    .execute();
+}
+
+export async function findPhraseWordsForLanguage(
+  languageId: string,
+): Promise<Selectable<PhraseWordTable>[]> {
+  return getDb()
+    .selectFrom("phrase_word")
+    .innerJoin("phrase", "phrase.id", "phrase_word.phrase_id")
+    .select(["phrase_word.phrase_id", "phrase_word.word_id"])
+    .where("phrase.language_id", "=", languageId)
+    .execute();
+}
+
 export async function findPhraseWordsForPhrase(
   phraseId: number,
 ): Promise<Selectable<PhraseWordTable>[]> {
