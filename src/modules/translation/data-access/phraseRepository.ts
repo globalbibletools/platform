@@ -6,7 +6,7 @@ import { trackingClient } from "@/modules/reporting";
 import { Selectable, SelectQueryBuilder, Transaction } from "kysely";
 import { GlossTable, PhraseTable, PhraseWordTable } from "../db/schema";
 
-const phraseRepository = {
+export const phraseRepository = {
   async findByWordIdsWithinLanguage({
     languageId,
     wordIds,
@@ -158,7 +158,6 @@ const phraseRepository = {
     }
   },
 };
-export default phraseRepository;
 
 type DbPhrase = Selectable<PhraseTable> & {
   word_ids: Omit<Selectable<PhraseWordTable>, "phrase_id">[];

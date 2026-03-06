@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { verifySession } from "@/session";
 import { revalidatePath } from "next/cache";
 import { Policy } from "@/modules/access";
-import phraseRepository from "../data-access/PhraseRepository";
+import { phraseRepository } from "../data-access/phraseRepository";
 import { resolveLanguageByCode } from "@/modules/languages";
 import { kyselyTransaction } from "@/db";
 import Phrase from "../model/Phrase";

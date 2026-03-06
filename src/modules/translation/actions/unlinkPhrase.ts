@@ -6,7 +6,7 @@ import { parseForm } from "@/form-parser";
 import { notFound } from "next/navigation";
 import { verifySession } from "@/session";
 import { revalidatePath } from "next/cache";
-import phraseRepository from "../data-access/PhraseRepository";
+import { phraseRepository } from "../data-access/phraseRepository";
 import { Policy } from "@/modules/access";
 import { kyselyTransaction } from "@/db";
 import { resolveLanguageByCode } from "@/modules/languages";

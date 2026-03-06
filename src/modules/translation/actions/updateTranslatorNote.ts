@@ -10,7 +10,7 @@ import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import * as z from "zod";
-import phraseRepository from "../data-access/PhraseRepository";
+import { phraseRepository } from "../data-access/phraseRepository";
 
 const requestSchema = z.object({
   verseId: z.string(),

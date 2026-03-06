@@ -1,6 +1,6 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect, describe, vitest } from "vitest";
-import phraseRepository from "./PhraseRepository";
+import { phraseRepository } from "./phraseRepository";
 import { phraseFactory } from "../test-utils/phraseFactory";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 import { bibleFactory } from "@/modules/bible-core/test-utils/bibleFactory";
