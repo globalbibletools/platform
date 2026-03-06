@@ -555,3 +555,61 @@ describe("commit", () => {
     expect(rowAfterCommit).toBeDefined();
   });
 });
+
+describe("existsWithinLanguage", () => {
+  test("returns true when the phrase exists in the given language", async () => {
+    const { phrase, language } = await phraseFactory.build({});
+
+    const result = await phraseRepository.existsWithinLanguage({
+      languageId: language.id,
+      phraseId: phrase.id,
+    });
+
+    expect(result).toBe(true);
+  });
+
+  test("returns false when the phrase ID does not exist", async () => {
+    const { language } = await languageFactory.build();
+
+    const result = await phraseRepository.existsWithinLanguage({
+      languageId: language.id,
+      phraseId: 999999999,
+    });
+
+    expect(result).toBe(false);
+  });
+
+  test("returns false when the language ID does not exist", async () => {
+    const { phrase } = await phraseFactory.build({});
+
+    const result = await phraseRepository.existsWithinLanguage({
+      languageId: "00000000-0000-0000-0000-000000000000",
+      phraseId: phrase.id,
+    });
+
+    expect(result).toBe(false);
+  });
+
+  test("returns false when the phrase belongs to a different language", async () => {
+    const { language: otherLanguage } = await languageFactory.build();
+    const { phrase } = await phraseFactory.build({});
+
+    const result = await phraseRepository.existsWithinLanguage({
+      languageId: otherLanguage.id,
+      phraseId: phrase.id,
+    });
+
+    expect(result).toBe(false);
+  });
+
+  test("returns false for a soft-deleted phrase", async () => {
+    const { phrase, language } = await phraseFactory.build({ deleted: true });
+
+    const result = await phraseRepository.existsWithinLanguage({
+      languageId: language.id,
+      phraseId: phrase.id,
+    });
+
+    expect(result).toBe(false);
+  });
+});

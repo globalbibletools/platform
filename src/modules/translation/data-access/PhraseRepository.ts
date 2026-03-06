@@ -88,26 +88,21 @@ const phraseRepository = {
     });
   },
 
-  async existsForLanguage(
-    languageCode: string,
-    phraseIds: number[],
-  ): Promise<boolean> {
-    if (phraseIds.length === 0) {
-      throw new Error("[existsForLanguage] expected at least one phrase ID");
-    }
+  async existsWithinLanguage({
+    languageId,
+    phraseId,
+  }: {
+    languageId: string;
+    phraseId: number;
+  }): Promise<boolean> {
+    const row = await getDb()
+      .selectFrom("phrase")
+      .where("id", "=", phraseId)
+      .where("language_id", "=", languageId)
+      .where("deleted_at", "is", null)
+      .executeTakeFirst();
 
-    const result = await query<{ exists: boolean }>(
-      `
-        select
-            (count(*) filter (where phrase.id is null)) = 0 as exists
-        from unnest($2::int[]) data (phrase_id)
-        left join phrase on phrase.id = data.phrase_id
-          and phrase.language_id = (select id from language where code = $1)
-      `,
-      [languageCode, phraseIds],
-    );
-
-    return result.rows[0].exists;
+    return row !== undefined;
   },
 
   async linkWords({
