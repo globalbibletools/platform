@@ -43,5 +43,3 @@ diagram.txt
 # localstack
 localstack/data/
 
-plans/
-worktrees/

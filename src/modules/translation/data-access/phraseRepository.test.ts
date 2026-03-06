@@ -14,6 +14,7 @@ import {
 import { trackingClient } from "@/modules/reporting";
 import {
   findGlossForPhrase,
+  findGlossEventsForPhrase,
   findPhraseById,
   findPhraseWordsForPhrase,
 } from "../test-utils/dbUtils";
@@ -211,6 +212,9 @@ describe("commit", () => {
     const gloss = await findGlossForPhrase(phrase.props.id);
     expect(gloss).toBeUndefined();
 
+    const glossEvents = await findGlossEventsForPhrase(phrase.props.id);
+    expect(glossEvents).toEqual([]);
+
     expect(trackingClient.trackMany).not.toHaveBeenCalled();
   });
 
@@ -252,6 +256,9 @@ describe("commit", () => {
 
     const gloss = await findGlossForPhrase(phrase.props.id);
     expect(gloss).toBeUndefined();
+
+    const glossEvents = await findGlossEventsForPhrase(phrase.props.id);
+    expect(glossEvents).toEqual([]);
 
     expect(trackingClient.trackMany).not.toHaveBeenCalled();
   });
@@ -309,6 +316,9 @@ describe("commit", () => {
       updated_by: memberId,
     });
 
+    const glossEvents = await findGlossEventsForPhrase(phrase.props.id);
+    expect(glossEvents).toEqual([]);
+
     expect(trackingClient.trackMany).not.toHaveBeenCalled();
   });
 
@@ -365,6 +375,23 @@ describe("commit", () => {
       updated_by: memberId,
     });
 
+    const glossEvents = await findGlossEventsForPhrase(phrase.props.id);
+    expect(glossEvents).toEqual([
+      {
+        id: expect.toBeUlid(),
+        phrase_id: phrase.props.id,
+        language_id: language.id,
+        user_id: memberId,
+        word_ids: [word.id],
+        timestamp: phrase.props.gloss!.props.updatedAt,
+        prev_gloss: "",
+        prev_state: GlossStateRaw.Unapproved,
+        new_gloss: "in the beginning",
+        new_state: GlossStateRaw.Approved,
+        approval_method: GlossApprovalMethodRaw.UserInput,
+      },
+    ]);
+
     expect(trackingClient.trackMany).toHaveBeenCalledExactlyOnceWith(
       [
         expect.objectContaining({
@@ -411,6 +438,9 @@ describe("commit", () => {
     const gloss = await findGlossForPhrase(phrase.id);
     expect(gloss).toBeUndefined();
 
+    const glossEvents = await findGlossEventsForPhrase(phrase.id);
+    expect(glossEvents).toEqual([]);
+
     expect(trackingClient.trackMany).not.toHaveBeenCalled();
   });
 
@@ -446,6 +476,23 @@ describe("commit", () => {
       updated_at: model!.props.gloss!.props.updatedAt,
       updated_by: languageMember.user_id,
     });
+
+    const glossEvents = await findGlossEventsForPhrase(phrase.id);
+    expect(glossEvents).toEqual([
+      {
+        id: expect.toBeUlid(),
+        phrase_id: phrase.id,
+        language_id: language.id,
+        user_id: languageMember.user_id,
+        word_ids: words.map((w) => w.id),
+        timestamp: model!.props.gloss!.props.updatedAt,
+        prev_gloss: gloss!.gloss ?? "",
+        prev_state: gloss!.state,
+        new_gloss: "updated gloss",
+        new_state: GlossStateRaw.Unapproved,
+        approval_method: null,
+      },
+    ]);
 
     expect(trackingClient.trackMany).not.toHaveBeenCalled();
   });
@@ -485,6 +532,23 @@ describe("commit", () => {
       updated_by: languageMember.user_id,
     });
 
+    const glossEvents = await findGlossEventsForPhrase(phrase.id);
+    expect(glossEvents).toEqual([
+      {
+        id: expect.toBeUlid(),
+        phrase_id: phrase.id,
+        language_id: language.id,
+        user_id: languageMember.user_id,
+        word_ids: words.map((w) => w.id),
+        timestamp: model!.props.gloss!.props.updatedAt,
+        prev_gloss: gloss!.gloss ?? "",
+        prev_state: gloss!.state,
+        new_gloss: "approved gloss",
+        new_state: GlossStateRaw.Approved,
+        approval_method: GlossApprovalMethodRaw.MachineSuggestion,
+      },
+    ]);
+
     expect(trackingClient.trackMany).toHaveBeenCalledExactlyOnceWith(
       [
         expect.objectContaining({
@@ -521,6 +585,9 @@ describe("commit", () => {
 
     const unchangedGloss = await findGlossForPhrase(phrase.id);
     expect(unchangedGloss).toEqual(gloss);
+
+    const glossEvents = await findGlossEventsForPhrase(phrase.id);
+    expect(glossEvents).toEqual([]);
 
     expect(trackingClient.trackMany).not.toHaveBeenCalled();
   });

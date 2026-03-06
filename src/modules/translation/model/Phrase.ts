@@ -6,6 +6,19 @@ import {
 } from "../types";
 import Gloss from "./Gloss";
 
+export interface GlossEvent {
+  phraseId: number;
+  languageId: string;
+  userId: string;
+  wordIds: string[];
+  timestamp: Date;
+  prevGloss: string;
+  prevState: GlossStateRaw;
+  newGloss: string;
+  newState: GlossStateRaw;
+  approvalMethod?: GlossApprovalMethodRaw;
+}
+
 export interface PhraseProps {
   id: number;
   languageId: string;
@@ -19,6 +32,7 @@ export interface PhraseProps {
 
 export default class Phrase {
   private trackingEvents: TrackingEvent[] = [];
+  private glossEventsList: GlossEvent[] = [];
 
   constructor(public props: PhraseProps) {}
 
@@ -56,7 +70,12 @@ export default class Phrase {
     userId: string;
     approvalMethod?: GlossApprovalMethodRaw;
   }): void {
+    const prevGloss = this.props.gloss?.props.gloss ?? "";
+    const prevState = this.props.gloss?.props.state ?? GlossStateRaw.Unapproved;
     const wasUnapproved = this.props.gloss?.state !== GlossStateRaw.Approved;
+
+    const newGloss = gloss ?? "";
+    const newState = state;
 
     this.props.gloss = new Gloss({
       gloss,
@@ -65,6 +84,30 @@ export default class Phrase {
       updatedAt: new Date(),
       updatedBy: userId,
     });
+
+    if (newGloss !== prevGloss || newState !== prevState) {
+      const glossEvent: GlossEvent = {
+        phraseId: this.props.id,
+        languageId: this.props.languageId,
+        userId,
+        wordIds: this.props.wordIds,
+        timestamp: this.props.gloss.props.updatedAt,
+        prevGloss,
+        prevState,
+        newGloss,
+        newState,
+      };
+
+      if (
+        wasUnapproved &&
+        newState === GlossStateRaw.Approved &&
+        approvalMethod
+      ) {
+        glossEvent.approvalMethod = approvalMethod;
+      }
+
+      this.glossEventsList.push(glossEvent);
+    }
 
     if (wasUnapproved && state === GlossStateRaw.Approved && approvalMethod) {
       this.trackingEvents.push({
@@ -78,6 +121,22 @@ export default class Phrase {
   }
 
   delete(userId: string) {
+    if (this.props.gloss?.props.state === GlossStateRaw.Approved) {
+      const prevGloss = this.props.gloss.props.gloss ?? "";
+
+      this.glossEventsList.push({
+        phraseId: this.props.id,
+        languageId: this.props.languageId,
+        userId,
+        wordIds: this.props.wordIds,
+        timestamp: new Date(),
+        prevGloss,
+        prevState: GlossStateRaw.Approved,
+        newGloss: prevGloss,
+        newState: GlossStateRaw.Unapproved,
+      });
+    }
+
     this.props.deletedAt = new Date();
     this.props.deletedBy = userId;
   }
@@ -116,5 +175,9 @@ export default class Phrase {
 
   get events(): readonly TrackingEvent[] {
     return this.trackingEvents;
+  }
+
+  get glossEvents(): readonly GlossEvent[] {
+    return this.glossEventsList;
   }
 }

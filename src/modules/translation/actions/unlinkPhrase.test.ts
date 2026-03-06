@@ -7,9 +7,11 @@ import { phraseFactory } from "../test-utils/phraseFactory";
 import {
   findPhraseById,
   findPhraseWordsForLanguage,
+  findGlossEventsForPhrase,
 } from "../test-utils/dbUtils";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 import { userFactory } from "@/modules/users/test-utils/userFactory";
+import { GlossStateRaw } from "../types";
 
 initializeDatabase();
 
@@ -111,6 +113,23 @@ test("returns not found if the phrase belongs to a different language", async ()
   ).toBeNextjsNotFound();
 });
 
+test("returns not found if the phrase is already soft-deleted", async () => {
+  const { phrase, language, languageMember } = await phraseFactory.build({
+    deleted: true,
+  });
+  await logIn(languageMember.user_id);
+
+  await expect(
+    unlinkPhrase(
+      buildFormData({
+        verseId: "1",
+        code: language.code,
+        phraseId: phrase.id,
+      }),
+    ),
+  ).toBeNextjsNotFound();
+});
+
 test("soft-deletes the phrase", async () => {
   const { phrase, language, languageMember, words } =
     await phraseFactory.build();
@@ -135,21 +154,47 @@ test("soft-deletes the phrase", async () => {
 
   const phraseWords = await findPhraseWordsForLanguage(language.id);
   expect(phraseWords).toEqual([{ phrase_id: phrase.id, word_id: words[0].id }]);
+
+  const glossEvents = await findGlossEventsForPhrase(phrase.id);
+  expect(glossEvents).toEqual([]);
 });
 
-test("returns not found if the phrase is already soft-deleted", async () => {
-  const { phrase, language, languageMember } = await phraseFactory.build({
-    deleted: true,
-  });
-  await logIn(languageMember.user_id);
+test("soft-deletes a phrase with an approved gloss and emits a gloss event", async () => {
+  const { phrase, language, languageMember, words, gloss } =
+    await phraseFactory.build({ gloss: "approved" });
+  const userId = languageMember.user_id;
+  await logIn(userId);
 
-  await expect(
-    unlinkPhrase(
-      buildFormData({
-        verseId: "1",
-        code: language.code,
-        phraseId: phrase.id,
-      }),
-    ),
-  ).toBeNextjsNotFound();
+  const result = await unlinkPhrase(
+    buildFormData({
+      verseId: "1",
+      code: language.code,
+      phraseId: phrase.id,
+    }),
+  );
+  expect(result).toBeUndefined();
+
+  const phraseRow = await findPhraseById(phrase.id);
+  expect(phraseRow).toEqual({
+    ...phrase,
+    deleted_at: expect.toBeNow(),
+    deleted_by: userId,
+  });
+
+  const glossEvents = await findGlossEventsForPhrase(phrase.id);
+  expect(glossEvents).toEqual([
+    {
+      id: expect.toBeUlid(),
+      phrase_id: phrase.id,
+      language_id: language.id,
+      user_id: userId,
+      word_ids: words.map((w) => w.id),
+      timestamp: expect.toBeNow(),
+      prev_gloss: gloss!.gloss ?? "",
+      prev_state: GlossStateRaw.Approved,
+      new_gloss: gloss!.gloss ?? "",
+      new_state: GlossStateRaw.Unapproved,
+      approval_method: null,
+    },
+  ]);
 });

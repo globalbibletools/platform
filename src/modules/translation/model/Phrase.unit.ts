@@ -53,11 +53,12 @@ describe("create", () => {
       gloss: null,
     });
     expect(phrase.events).toEqual([]);
+    expect(phrase.glossEvents).toEqual([]);
   });
 });
 
 describe("delete", () => {
-  test("soft-deletes the phrase", () => {
+  test("soft-deletes the phrase without a gloss", () => {
     const createdAt = new Date();
     const phrase = makePhrase({ createdAt });
 
@@ -74,6 +75,39 @@ describe("delete", () => {
       gloss: null,
     });
     expect(phrase.events).toEqual([]);
+    expect(phrase.glossEvents).toEqual([]);
+  });
+
+  test("emits a gloss event when soft-deleting a phrase with a gloss", () => {
+    const phrase = makePhrase({
+      gloss: makeGloss({ gloss: "hello", state: GlossStateRaw.Approved }),
+    });
+
+    phrase.delete("user-id");
+
+    expect(phrase.glossEvents).toEqual([
+      {
+        phraseId: 1,
+        languageId: "lang-id",
+        userId: "user-id",
+        wordIds: ["word-1", "word-2"],
+        timestamp: expect.toBeNow(),
+        prevGloss: "hello",
+        prevState: GlossStateRaw.Approved,
+        newGloss: "hello",
+        newState: GlossStateRaw.Unapproved,
+      },
+    ]);
+  });
+
+  test("does not emit a gloss event when soft-deleting a phrase with an unapproved gloss", () => {
+    const phrase = makePhrase({
+      gloss: makeGloss({ gloss: "hello", state: GlossStateRaw.Unapproved }),
+    });
+
+    phrase.delete("user-id");
+
+    expect(phrase.glossEvents).toEqual([]);
   });
 });
 
@@ -95,6 +129,19 @@ describe("updateGloss", () => {
       updatedBy: "user-1",
     });
     expect(phrase.events).toEqual([]);
+    expect(phrase.glossEvents).toEqual([
+      {
+        phraseId: 1,
+        languageId: "lang-id",
+        userId: "user-1",
+        wordIds: ["word-1", "word-2"],
+        timestamp: expect.toBeNow(),
+        prevGloss: "",
+        prevState: GlossStateRaw.Unapproved,
+        newGloss: "hello",
+        newState: GlossStateRaw.Unapproved,
+      },
+    ]);
   });
 
   test("creates an approved gloss without an approval method", () => {
@@ -114,6 +161,19 @@ describe("updateGloss", () => {
       updatedBy: "user-1",
     });
     expect(phrase.events).toEqual([]);
+    expect(phrase.glossEvents).toEqual([
+      {
+        phraseId: 1,
+        languageId: "lang-id",
+        userId: "user-1",
+        wordIds: ["word-1", "word-2"],
+        timestamp: expect.toBeNow(),
+        prevGloss: "",
+        prevState: GlossStateRaw.Unapproved,
+        newGloss: "hello",
+        newState: GlossStateRaw.Approved,
+      },
+    ]);
   });
 
   test("creates an approved gloss with an approval method", () => {
@@ -142,11 +202,25 @@ describe("updateGloss", () => {
         method: GlossApprovalMethodRaw.MachineSuggestion,
       },
     ]);
+    expect(phrase.glossEvents).toEqual([
+      {
+        phraseId: 1,
+        languageId: "lang-id",
+        userId: "user-1",
+        wordIds: ["word-1", "word-2"],
+        timestamp: expect.toBeNow(),
+        prevGloss: "",
+        prevState: GlossStateRaw.Unapproved,
+        newGloss: "hello",
+        newState: GlossStateRaw.Approved,
+        approvalMethod: GlossApprovalMethodRaw.MachineSuggestion,
+      },
+    ]);
   });
 
   test("edits an unapproved gloss", () => {
     const phrase = makePhrase({
-      gloss: makeGloss({ state: GlossStateRaw.Unapproved }),
+      gloss: makeGloss({ gloss: "hello", state: GlossStateRaw.Unapproved }),
     });
 
     phrase.updateGloss({
@@ -163,11 +237,24 @@ describe("updateGloss", () => {
       updatedBy: "user-2",
     });
     expect(phrase.events).toEqual([]);
+    expect(phrase.glossEvents).toEqual([
+      {
+        phraseId: 1,
+        languageId: "lang-id",
+        userId: "user-2",
+        wordIds: ["word-1", "word-2"],
+        timestamp: expect.toBeNow(),
+        prevGloss: "hello",
+        prevState: GlossStateRaw.Unapproved,
+        newGloss: "world",
+        newState: GlossStateRaw.Unapproved,
+      },
+    ]);
   });
 
   test("approves the gloss without an approval method", () => {
     const phrase = makePhrase({
-      gloss: makeGloss({ state: GlossStateRaw.Unapproved }),
+      gloss: makeGloss({ gloss: "hello", state: GlossStateRaw.Unapproved }),
     });
 
     phrase.updateGloss({
@@ -184,11 +271,24 @@ describe("updateGloss", () => {
       updatedBy: "user-2",
     });
     expect(phrase.events).toEqual([]);
+    expect(phrase.glossEvents).toEqual([
+      {
+        phraseId: 1,
+        languageId: "lang-id",
+        userId: "user-2",
+        wordIds: ["word-1", "word-2"],
+        timestamp: expect.toBeNow(),
+        prevGloss: "hello",
+        prevState: GlossStateRaw.Unapproved,
+        newGloss: "hello",
+        newState: GlossStateRaw.Approved,
+      },
+    ]);
   });
 
   test("approves the gloss with an approval method", () => {
     const phrase = makePhrase({
-      gloss: makeGloss({ state: GlossStateRaw.Unapproved }),
+      gloss: makeGloss({ gloss: "hello", state: GlossStateRaw.Unapproved }),
     });
 
     phrase.updateGloss({
@@ -214,11 +314,25 @@ describe("updateGloss", () => {
         method: GlossApprovalMethodRaw.MachineSuggestion,
       },
     ]);
+    expect(phrase.glossEvents).toEqual([
+      {
+        phraseId: 1,
+        languageId: "lang-id",
+        userId: "user-2",
+        wordIds: ["word-1", "word-2"],
+        timestamp: expect.toBeNow(),
+        prevGloss: "hello",
+        prevState: GlossStateRaw.Unapproved,
+        newGloss: "hello",
+        newState: GlossStateRaw.Approved,
+        approvalMethod: GlossApprovalMethodRaw.MachineSuggestion,
+      },
+    ]);
   });
 
   test("revokes a gloss", () => {
     const phrase = makePhrase({
-      gloss: makeGloss({ state: GlossStateRaw.Approved }),
+      gloss: makeGloss({ gloss: "hello", state: GlossStateRaw.Approved }),
     });
 
     phrase.updateGloss({
@@ -235,11 +349,24 @@ describe("updateGloss", () => {
       updatedBy: "user-2",
     });
     expect(phrase.events).toEqual([]);
+    expect(phrase.glossEvents).toEqual([
+      {
+        phraseId: 1,
+        languageId: "lang-id",
+        userId: "user-2",
+        wordIds: ["word-1", "word-2"],
+        timestamp: expect.toBeNow(),
+        prevGloss: "hello",
+        prevState: GlossStateRaw.Approved,
+        newGloss: "hello",
+        newState: GlossStateRaw.Unapproved,
+      },
+    ]);
   });
 
   test("edits an approved gloss", () => {
     const phrase = makePhrase({
-      gloss: makeGloss({ state: GlossStateRaw.Approved }),
+      gloss: makeGloss({ gloss: "hello", state: GlossStateRaw.Approved }),
     });
 
     phrase.updateGloss({
@@ -256,5 +383,33 @@ describe("updateGloss", () => {
       updatedBy: "user-2",
     });
     expect(phrase.events).toEqual([]);
+    expect(phrase.glossEvents).toEqual([
+      {
+        phraseId: 1,
+        languageId: "lang-id",
+        userId: "user-2",
+        wordIds: ["word-1", "word-2"],
+        timestamp: expect.toBeNow(),
+        prevGloss: "hello",
+        prevState: GlossStateRaw.Approved,
+        newGloss: "world",
+        newState: GlossStateRaw.Approved,
+      },
+    ]);
+  });
+
+  test("does not emit a gloss event when text and state are unchanged", () => {
+    const phrase = makePhrase({
+      gloss: makeGloss({ gloss: "hello", state: GlossStateRaw.Unapproved }),
+    });
+
+    phrase.updateGloss({
+      gloss: "hello",
+      state: GlossStateRaw.Unapproved,
+      userId: "user-2",
+    });
+
+    expect(phrase.events).toEqual([]);
+    expect(phrase.glossEvents).toEqual([]);
   });
 });

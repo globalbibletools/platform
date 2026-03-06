@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict x4EekG0HpGEfHatvvDamuVzfxEuAyOwyuc9rvRlTpMz1Wws1lKM0lZNwwNd8rXc
+\restrict mr7QaEBx5yPcwU7V5Ip9DKGTsDsXRA9gTrumTu1RDa2RPTL9S08f2aef4FpEkfi
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -442,6 +442,25 @@ CREATE TABLE public.gloss (
     source public.gloss_source,
     updated_at timestamp with time zone NOT NULL,
     updated_by uuid
+);
+
+
+--
+-- Name: gloss_event; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.gloss_event (
+    id uuid NOT NULL,
+    phrase_id integer NOT NULL,
+    language_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    word_ids text[] NOT NULL,
+    "timestamp" timestamp with time zone NOT NULL,
+    prev_gloss text NOT NULL,
+    prev_state text NOT NULL,
+    new_gloss text NOT NULL,
+    new_state text NOT NULL,
+    approval_method text
 );
 
 
@@ -1056,6 +1075,14 @@ ALTER TABLE ONLY public.footnote
 
 
 --
+-- Name: gloss_event gloss_event_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gloss_event
+    ADD CONSTRAINT gloss_event_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: gloss_history gloss_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1499,6 +1526,30 @@ ALTER TABLE ONLY public.footnote
 
 
 --
+-- Name: gloss_event gloss_event_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gloss_event
+    ADD CONSTRAINT gloss_event_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id);
+
+
+--
+-- Name: gloss_event gloss_event_phrase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gloss_event
+    ADD CONSTRAINT gloss_event_phrase_id_fkey FOREIGN KEY (phrase_id) REFERENCES public.phrase(id);
+
+
+--
+-- Name: gloss_event gloss_event_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gloss_event
+    ADD CONSTRAINT gloss_event_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: gloss_history gloss_history_phrase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1830,5 +1881,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict x4EekG0HpGEfHatvvDamuVzfxEuAyOwyuc9rvRlTpMz1Wws1lKM0lZNwwNd8rXc
+\unrestrict mr7QaEBx5yPcwU7V5Ip9DKGTsDsXRA9gTrumTu1RDa2RPTL9S08f2aef4FpEkfi
 

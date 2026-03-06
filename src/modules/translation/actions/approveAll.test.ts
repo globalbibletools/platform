@@ -6,6 +6,7 @@ import logIn from "@/tests/vitest/login";
 import { phraseFactory } from "../test-utils/phraseFactory";
 import {
   findGlossForPhrase,
+  findGlossEventsForPhrase,
   findGlossHistoryForPhrase,
 } from "../test-utils/dbUtils";
 import {
@@ -296,6 +297,57 @@ test("creates a new glosses and updates existing glosses for each phrase", async
       user_id: translatorId,
       language_id: language.id,
       created_at: expect.toBeNow(),
+    },
+  ]);
+
+  const glossEvents0 = await findGlossEventsForPhrase(phrases[0].phrase.id);
+  expect(glossEvents0).toEqual([
+    {
+      id: expect.toBeUlid(),
+      phrase_id: phrases[0].phrase.id,
+      language_id: language.id,
+      user_id: translatorId,
+      word_ids: [phrases[0].word.id],
+      timestamp: expect.toBeNow(),
+      prev_gloss: gloss1.gloss ?? "",
+      prev_state: gloss1.state,
+      new_gloss: updatedGlosses[0],
+      new_state: GlossStateRaw.Approved,
+      approval_method: null,
+    },
+  ]);
+
+  const glossEvents1 = await findGlossEventsForPhrase(phrases[1].phrase.id);
+  expect(glossEvents1).toEqual([
+    {
+      id: expect.toBeUlid(),
+      phrase_id: phrases[1].phrase.id,
+      language_id: language.id,
+      user_id: translatorId,
+      word_ids: [phrases[1].word.id],
+      timestamp: expect.toBeNow(),
+      prev_gloss: gloss2.gloss ?? "",
+      prev_state: gloss2.state,
+      new_gloss: updatedGlosses[1],
+      new_state: GlossStateRaw.Approved,
+      approval_method: GlossApprovalMethodRaw.GoogleSuggestion,
+    },
+  ]);
+
+  const glossEvents2 = await findGlossEventsForPhrase(phrases[2].phrase.id);
+  expect(glossEvents2).toEqual([
+    {
+      id: expect.toBeUlid(),
+      phrase_id: phrases[2].phrase.id,
+      language_id: language.id,
+      user_id: translatorId,
+      word_ids: [phrases[2].word.id],
+      timestamp: expect.toBeNow(),
+      prev_gloss: "",
+      prev_state: GlossStateRaw.Unapproved,
+      new_gloss: updatedGlosses[2],
+      new_state: GlossStateRaw.Approved,
+      approval_method: GlossApprovalMethodRaw.MachineSuggestion,
     },
   ]);
 

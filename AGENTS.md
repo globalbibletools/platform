@@ -157,6 +157,14 @@ Path aliases: `@/*` → `src/*`, `@/tests/*` → `tests/*`.
 
 ---
 
+## Database
+
+### Migrations
+
+- Migrate schema and data in separate migrations using _.schema.sql and _.data.sql
+- Use the expand/contract pattern to migrate breaking changes
+- After migrations are written, reset the database, run the migrations, and reexport the schema and data.dump using the db scripts.
+
 ## Testing
 
 ### Test Types

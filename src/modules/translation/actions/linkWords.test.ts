@@ -8,10 +8,12 @@ import {
   findPhraseById,
   findPhrasesForLanguage,
   findPhraseWordsForLanguage,
+  findGlossEventsForPhrase,
 } from "../test-utils/dbUtils";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 import { userFactory } from "@/modules/users/test-utils/userFactory";
 import { bibleFactory } from "@/modules/bible-core/test-utils/bibleFactory";
+import { GlossStateRaw } from "../types";
 
 initializeDatabase();
 
@@ -168,6 +170,11 @@ test("soft-deletes existing single-word phrases and creates one linked phrase", 
       word_id: wordId,
     })),
   ]);
+
+  for (const { phrase } of existingPhrases) {
+    const glossEvents = await findGlossEventsForPhrase(phrase.id);
+    expect(glossEvents).toEqual([]);
+  }
 });
 
 test("soft-deletes an existing multi-word phrase when one of its words is re-linked", async () => {
@@ -216,6 +223,9 @@ test("soft-deletes an existing multi-word phrase when one of its words is re-lin
     { phrase_id: phrases[1].id, word_id: wordA.id },
     { phrase_id: phrases[1].id, word_id: wordC.id },
   ]);
+
+  const glossEvents = await findGlossEventsForPhrase(existingPhrase.id);
+  expect(glossEvents).toEqual([]);
 });
 
 test("does not affect phrases from other languages", async () => {
@@ -242,4 +252,49 @@ test("does not affect phrases from other languages", async () => {
 
   const untouched = await findPhraseById(otherLanguagePhrase.id);
   expect(untouched!.deleted_at).toBeNull();
+});
+
+test("emits a gloss event when soft-deleting a phrase with an approved gloss", async () => {
+  const { language, members } = await languageFactory.build();
+  const userId = members[0].user_id;
+  await logIn(userId);
+
+  const twoWords = await bibleFactory.words({ count: 2 });
+  const existingWord = twoWords[0];
+  const newWord = twoWords[1];
+
+  const { phrase: existingPhrase, gloss } = await phraseFactory.build({
+    languageId: language.id,
+    wordIds: [existingWord.id],
+    gloss: "approved",
+  });
+
+  const result = await linkWords(
+    buildFormData({
+      verseId: "1",
+      code: language.code,
+      wordIds: [existingWord.id, newWord.id],
+    }),
+  );
+  expect(result).toBeUndefined();
+
+  const phraseRow = await findPhraseById(existingPhrase.id);
+  expect(phraseRow!.deleted_at).toEqual(expect.toBeNow());
+
+  const glossEvents = await findGlossEventsForPhrase(existingPhrase.id);
+  expect(glossEvents).toEqual([
+    {
+      id: expect.toBeUlid(),
+      phrase_id: existingPhrase.id,
+      language_id: language.id,
+      user_id: userId,
+      word_ids: [existingWord.id],
+      timestamp: expect.toBeNow(),
+      prev_gloss: gloss!.gloss ?? "",
+      prev_state: GlossStateRaw.Approved,
+      new_gloss: gloss!.gloss ?? "",
+      new_state: GlossStateRaw.Unapproved,
+      approval_method: null,
+    },
+  ]);
 });

@@ -6,6 +6,7 @@ import logIn from "@/tests/vitest/login";
 import { phraseFactory } from "../test-utils/phraseFactory";
 import {
   findGlossForPhrase,
+  findGlossEventsForPhrase,
   findGlossHistoryForPhrase,
 } from "../test-utils/dbUtils";
 import {
@@ -50,6 +51,9 @@ test("returns not found if user is not logged in", async () => {
   const gloss = await findGlossForPhrase(phrase.id);
   expect(gloss).toBeUndefined();
 
+  const glossEvents = await findGlossEventsForPhrase(phrase.id);
+  expect(glossEvents).toEqual([]);
+
   const events = await findTrackingEvents();
   expect(events).toEqual([]);
 });
@@ -75,6 +79,9 @@ test("returns not found if user is not a translator on the language", async () =
   const gloss = await findGlossForPhrase(phrase.id);
   expect(gloss).toBeUndefined();
 
+  const glossEvents = await findGlossEventsForPhrase(phrase.id);
+  expect(glossEvents).toEqual([]);
+
   const events = await findTrackingEvents();
   expect(events).toEqual([]);
 });
@@ -94,6 +101,9 @@ test("returns not found if the phrase does not exist", async () => {
 
   const gloss = await findGlossForPhrase(123456);
   expect(gloss).toBeUndefined();
+
+  const glossEvents = await findGlossEventsForPhrase(123456);
+  expect(glossEvents).toEqual([]);
 
   const events = await findTrackingEvents();
   expect(events).toEqual([]);
@@ -121,6 +131,9 @@ test("returns not found if the phrase is in a different language", async () => {
   const gloss = await findGlossForPhrase(123456);
   expect(gloss).toBeUndefined();
 
+  const glossEvents = await findGlossEventsForPhrase(123456);
+  expect(glossEvents).toEqual([]);
+
   const events = await findTrackingEvents();
   expect(events).toEqual([]);
 });
@@ -130,7 +143,7 @@ test("creates a new gloss for the phrase", async () => {
   const translatorId = members[0].user_id;
   await logIn(translatorId);
 
-  const { phrase } = await phraseFactory.build({
+  const { phrase, words } = await phraseFactory.build({
     languageId: language.id,
   });
 
@@ -157,6 +170,23 @@ test("creates a new gloss for the phrase", async () => {
   const glossHistory = await findGlossHistoryForPhrase(phrase.id);
   expect(glossHistory).toEqual([]);
 
+  const glossEvents = await findGlossEventsForPhrase(phrase.id);
+  expect(glossEvents).toEqual([
+    {
+      id: expect.toBeUlid(),
+      phrase_id: phrase.id,
+      language_id: language.id,
+      user_id: translatorId,
+      word_ids: words.map((w) => w.id),
+      timestamp: expect.toBeNow(),
+      prev_gloss: "",
+      prev_state: GlossStateRaw.Unapproved,
+      new_gloss: "asdf",
+      new_state: GlossStateRaw.Approved,
+      approval_method: null,
+    },
+  ]);
+
   const events = await findTrackingEvents();
   expect(events).toEqual([]);
 
@@ -168,7 +198,7 @@ test("creates a new gloss for the phrase and tracks approval", async () => {
   const translatorId = members[0].user_id;
   await logIn(translatorId);
 
-  const { phrase } = await phraseFactory.build({
+  const { phrase, words } = await phraseFactory.build({
     languageId: language.id,
   });
 
@@ -196,6 +226,23 @@ test("creates a new gloss for the phrase and tracks approval", async () => {
   const glossHistory = await findGlossHistoryForPhrase(phrase.id);
   expect(glossHistory).toEqual([]);
 
+  const glossEvents = await findGlossEventsForPhrase(phrase.id);
+  expect(glossEvents).toEqual([
+    {
+      id: expect.toBeUlid(),
+      phrase_id: phrase.id,
+      language_id: language.id,
+      user_id: translatorId,
+      word_ids: words.map((w) => w.id),
+      timestamp: expect.toBeNow(),
+      prev_gloss: "",
+      prev_state: GlossStateRaw.Unapproved,
+      new_gloss: "asdf",
+      new_state: GlossStateRaw.Approved,
+      approval_method: GlossApprovalMethodRaw.MachineSuggestion,
+    },
+  ]);
+
   const events = await findTrackingEvents();
   expect(events).toEqual([
     {
@@ -219,7 +266,7 @@ test("updates an existing gloss for the phrase", async () => {
   const translatorId = members[0].user_id;
   await logIn(translatorId);
 
-  const { phrase, gloss } = await phraseFactory.build({
+  const { phrase, gloss, words } = await phraseFactory.build({
     languageId: language.id,
     gloss: "unapproved",
   });
@@ -252,6 +299,23 @@ test("updates an existing gloss for the phrase", async () => {
     },
   ]);
 
+  const glossEvents = await findGlossEventsForPhrase(phrase.id);
+  expect(glossEvents).toEqual([
+    {
+      id: expect.toBeUlid(),
+      phrase_id: phrase.id,
+      language_id: language.id,
+      user_id: translatorId,
+      word_ids: words.map((w) => w.id),
+      timestamp: expect.toBeNow(),
+      prev_gloss: gloss!.gloss ?? "",
+      prev_state: gloss!.state,
+      new_gloss: "asdf",
+      new_state: GlossStateRaw.Approved,
+      approval_method: null,
+    },
+  ]);
+
   const events = await findTrackingEvents();
   expect(events).toEqual([]);
 
@@ -263,7 +327,7 @@ test("updates an existing gloss for the phrase and tracks approval", async () =>
   const translatorId = members[0].user_id;
   await logIn(translatorId);
 
-  const { phrase, gloss } = await phraseFactory.build({
+  const { phrase, gloss, words } = await phraseFactory.build({
     languageId: language.id,
     gloss: "unapproved",
   });
@@ -294,6 +358,23 @@ test("updates an existing gloss for the phrase and tracks approval", async () =>
     {
       id: expect.any(Number),
       ...gloss,
+    },
+  ]);
+
+  const glossEvents = await findGlossEventsForPhrase(phrase.id);
+  expect(glossEvents).toEqual([
+    {
+      id: expect.toBeUlid(),
+      phrase_id: phrase.id,
+      language_id: language.id,
+      user_id: translatorId,
+      word_ids: words.map((w) => w.id),
+      timestamp: expect.toBeNow(),
+      prev_gloss: gloss!.gloss ?? "",
+      prev_state: gloss!.state,
+      new_gloss: "asdf",
+      new_state: GlossStateRaw.Approved,
+      approval_method: GlossApprovalMethodRaw.GoogleSuggestion,
     },
   ]);
 
