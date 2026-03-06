@@ -32,6 +32,7 @@ import {
 } from "./modules/bible-core/db/schema";
 import {
   FootnoteTable,
+  GlossEventTable,
   GlossHistoryTable,
   GlossTable,
   MachineGlossTable,
@@ -46,6 +47,7 @@ export interface Database {
   book: BookTable;
   footnote: FootnoteTable;
   gloss: GlossTable;
+  gloss_event: GlossEventTable;
   gloss_history: GlossHistoryTable;
   job: JobTable;
   language: LanguageTable;
