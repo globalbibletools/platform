@@ -165,6 +165,7 @@ type DbPhrase = Selectable<PhraseTable> & {
 };
 
 function selectPhraseFields(
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   query: SelectQueryBuilder<Database, "phrase", {}>,
 ): SelectQueryBuilder<Database, "phrase", DbPhrase> {
   const result = query.select((eb) => [

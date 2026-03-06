@@ -6,7 +6,6 @@ import logIn from "@/tests/vitest/login";
 import { phraseFactory } from "../test-utils/phraseFactory";
 import {
   findPhraseById,
-  findPhrasesForLanguage,
   findPhraseWordsForLanguage,
 } from "../test-utils/dbUtils";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
