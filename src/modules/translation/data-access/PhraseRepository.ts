@@ -1,33 +1,10 @@
-import { Database, getDb, kyselyTransaction, query, transaction } from "@/db";
-import { DbLanguage } from "@/modules/languages/data-access/types";
+import { Database, getDb, kyselyTransaction } from "@/db";
 import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
-import PhraseModel from "../model/Phrase";
+import Phrase from "../model/Phrase";
 import Gloss from "../model/Gloss";
 import { trackingClient } from "@/modules/reporting";
 import { Selectable, SelectQueryBuilder, Transaction } from "kysely";
 import { GlossTable, PhraseTable, PhraseWordTable } from "../db/schema";
-
-export interface DbPhrase {
-  id: number;
-  languageId: string;
-  createdAt: Date;
-  createdBy?: string | null;
-  deletedAt?: Date | null;
-  deletedBy?: string | null;
-}
-
-export interface DbPhraseWord {
-  phraseId: string;
-  wordId: string;
-}
-
-export type Phrase = Omit<DbPhrase, "languageId"> & {
-  language: {
-    id: DbLanguage["id"];
-    code: DbLanguage["code"];
-  };
-  wordIds: DbPhraseWord["wordId"][];
-};
 
 const phraseRepository = {
   async findByWordIdsWithinLanguage({
@@ -38,7 +15,7 @@ const phraseRepository = {
     languageId: string;
     wordIds: string[];
     trx?: Transaction<Database>;
-  }): Promise<PhraseModel[]> {
+  }): Promise<Phrase[]> {
     const rows = await selectPhraseFields(
       (trx ?? getDb())
         .selectFrom("phrase")
@@ -65,7 +42,7 @@ const phraseRepository = {
     languageId: string;
     phraseId: number;
     trx?: Transaction<Database>;
-  }): Promise<PhraseModel | undefined> {
+  }): Promise<Phrase | undefined> {
     const row = await selectPhraseFields(
       (trx ?? getDb())
         .selectFrom("phrase")
@@ -95,90 +72,7 @@ const phraseRepository = {
     return row !== undefined;
   },
 
-  async linkWords({
-    code,
-    wordIds,
-    userId,
-  }: {
-    code: string;
-    wordIds: string[];
-    userId: string;
-  }) {
-    await transaction(async (query) => {
-      const phrasesQuery = await query(
-        `
-          select from phrase as ph
-          join phrase_word as phw on phw.phrase_id = ph.id
-          join lateral (
-            select count(*) as count from phrase_word as phw
-            where phw.phrase_id = ph.id
-          ) as words on true
-          where ph.language_id = (select id from language where code = $1)
-            and ph.deleted_at is null
-            and phw.word_id = any($2::text[])
-            and words.count > 1
-          `,
-        [code, wordIds],
-      );
-      if (phrasesQuery.rows.length > 0) {
-        throw new Error("Words already linked");
-      }
-
-      await query(
-        `
-          update phrase as ph
-            set deleted_at = now(),
-              deleted_by = $3
-          from phrase_word as phw
-          where phw.phrase_id = ph.id
-            and phw.word_id = any($2::text[])
-            and ph.deleted_at is null
-            and ph.language_id = (select id from language where code = $1)
-          `,
-        [code, wordIds, userId],
-      );
-
-      await query(
-        `
-          with phrase as (
-            insert into phrase (language_id, created_by, created_at)
-            values ((select id from language where code = $1), $3, now())
-            returning id
-          )
-          insert into phrase_word (phrase_id, word_id)
-          select phrase.id, unnest($2::text[]) from phrase
-        `,
-        [code, wordIds, userId],
-      );
-    });
-  },
-
-  async unlink({
-    code,
-    phraseId,
-    userId,
-  }: {
-    code: string;
-    phraseId: number;
-    userId: string;
-  }) {
-    await query(
-      `
-        update phrase as ph
-          set
-            deleted_at = now(),
-            deleted_by = $3
-        where ph.language_id = (select id from language where code = $1)
-          and ph.id = $2
-      `,
-      [code, phraseId, userId],
-    );
-  },
-
-  async commit(
-    phrase: PhraseModel,
-    trx?: Transaction<Database>,
-  ): Promise<void> {
+  async commit(phrase: Phrase, trx?: Transaction<Database>): Promise<void> {
     const run = async (trx: Transaction<Database>) => {
       if (!phrase.props.id) {
         const row = await trx
@@ -266,14 +160,14 @@ const phraseRepository = {
 };
 export default phraseRepository;
 
-type PhraseData = Selectable<PhraseTable> & {
+type DbPhrase = Selectable<PhraseTable> & {
   word_ids: Omit<Selectable<PhraseWordTable>, "phrase_id">[];
   gloss: Omit<Selectable<GlossTable>, "phrase_id"> | null;
 };
 
 function selectPhraseFields(
   query: SelectQueryBuilder<Database, "phrase", {}>,
-): SelectQueryBuilder<Database, "phrase", PhraseData> {
+): SelectQueryBuilder<Database, "phrase", DbPhrase> {
   const result = query.select((eb) => [
     "id",
     "language_id",
@@ -298,8 +192,8 @@ function selectPhraseFields(
   return result;
 }
 
-function dbToPhrase(dbModel: PhraseData): PhraseModel {
-  return new PhraseModel({
+function dbToPhrase(dbModel: DbPhrase): Phrase {
+  return new Phrase({
     id: dbModel.id,
     languageId: dbModel.language_id,
     wordIds: dbModel.word_ids.map((w) => w.word_id),
