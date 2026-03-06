@@ -4,7 +4,8 @@ import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import PhraseModel from "../model/Phrase";
 import Gloss from "../model/Gloss";
 import { trackingClient } from "@/modules/reporting";
-import { Transaction } from "kysely";
+import { Selectable, SelectQueryBuilder, Transaction } from "kysely";
+import { GlossTable, PhraseTable, PhraseWordTable } from "../db/schema";
 
 export interface DbPhrase {
   id: number;
@@ -29,6 +30,33 @@ export type Phrase = Omit<DbPhrase, "languageId"> & {
 };
 
 const phraseRepository = {
+  async findByWordIdsWithinLanguage({
+    languageId,
+    wordIds,
+    trx,
+  }: {
+    languageId: string;
+    wordIds: string[];
+    trx?: Transaction<Database>;
+  }): Promise<PhraseModel[]> {
+    const rows = await selectPhraseFields(
+      (trx ?? getDb())
+        .selectFrom("phrase")
+        .where((eb) =>
+          eb.exists(
+            eb
+              .selectFrom("phrase_word")
+              .whereRef("phrase_word.phrase_id", "=", "phrase.id")
+              .where("phrase_word.word_id", "in", wordIds),
+          ),
+        )
+        .where("language_id", "=", languageId)
+        .where("deleted_at", "is", null),
+    ).execute();
+
+    return rows.map((row) => dbToPhrase(row));
+  },
+
   async findWithinLanguage({
     languageId,
     phraseId,
@@ -38,54 +66,16 @@ const phraseRepository = {
     phraseId: number;
     trx?: Transaction<Database>;
   }): Promise<PhraseModel | undefined> {
-    const row = await (trx ?? getDb())
-      .selectFrom("phrase")
-      .select((eb) => [
-        "id",
-        "language_id",
-        "created_at",
-        "created_by",
-        "deleted_at",
-        "deleted_by",
-        jsonArrayFrom(
-          eb
-            .selectFrom("phrase_word")
-            .select("word_id")
-            .whereRef("phrase_word.phrase_id", "=", "phrase.id"),
-        ).as("word_ids"),
-        jsonObjectFrom(
-          eb
-            .selectFrom("gloss")
-            .select(["gloss", "state", "source", "updated_at", "updated_by"])
-            .whereRef("gloss.phrase_id", "=", "phrase.id"),
-        ).as("gloss"),
-      ])
-      .where("id", "=", phraseId)
-      .where("language_id", "=", languageId)
-      .where("deleted_at", "is", null)
-      .executeTakeFirst();
-
+    const row = await selectPhraseFields(
+      (trx ?? getDb())
+        .selectFrom("phrase")
+        .where("id", "=", phraseId)
+        .where("language_id", "=", languageId)
+        .where("deleted_at", "is", null),
+    ).executeTakeFirst();
     if (!row) return undefined;
 
-    return new PhraseModel({
-      id: row.id,
-      languageId: row.language_id,
-      wordIds: row.word_ids.map((w) => w.word_id),
-      createdAt: row.created_at,
-      createdBy: row.created_by,
-      deletedAt: row.deleted_at,
-      deletedBy: row.deleted_by,
-      gloss:
-        row.gloss ?
-          new Gloss({
-            gloss: row.gloss.gloss,
-            state: row.gloss.state,
-            source: row.gloss.source,
-            updatedAt: new Date(row.gloss.updated_at),
-            updatedBy: row.gloss.updated_by,
-          })
-        : null,
-    });
+    return dbToPhrase(row);
   },
 
   async existsWithinLanguage({
@@ -203,6 +193,16 @@ const phraseRepository = {
           .returning("id")
           .executeTakeFirstOrThrow();
         phrase.props.id = row.id;
+
+        await trx
+          .insertInto("phrase_word")
+          .values(
+            phrase.props.wordIds.map((wordId) => ({
+              phrase_id: phrase.props.id,
+              word_id: wordId,
+            })),
+          )
+          .execute();
       } else {
         await trx
           .insertInto("phrase")
@@ -220,19 +220,6 @@ const phraseRepository = {
               deleted_by: (eb) => eb.ref("excluded.deleted_by"),
             }),
           )
-          .execute();
-      }
-
-      if (phrase.props.wordIds.length > 0) {
-        await trx
-          .insertInto("phrase_word")
-          .values(
-            phrase.props.wordIds.map((wordId) => ({
-              phrase_id: phrase.props.id,
-              word_id: wordId,
-            })),
-          )
-          .onConflict((oc) => oc.columns(["phrase_id", "word_id"]).doNothing())
           .execute();
       }
 
@@ -278,3 +265,57 @@ const phraseRepository = {
   },
 };
 export default phraseRepository;
+
+type PhraseData = Selectable<PhraseTable> & {
+  word_ids: Omit<Selectable<PhraseWordTable>, "phrase_id">[];
+  gloss: Omit<Selectable<GlossTable>, "phrase_id"> | null;
+};
+
+function selectPhraseFields(
+  query: SelectQueryBuilder<Database, "phrase", {}>,
+): SelectQueryBuilder<Database, "phrase", PhraseData> {
+  const result = query.select((eb) => [
+    "id",
+    "language_id",
+    "created_at",
+    "created_by",
+    "deleted_at",
+    "deleted_by",
+    jsonArrayFrom(
+      eb
+        .selectFrom("phrase_word")
+        .select("word_id")
+        .whereRef("phrase_word.phrase_id", "=", "phrase.id"),
+    ).as("word_ids"),
+    jsonObjectFrom(
+      eb
+        .selectFrom("gloss")
+        .select(["gloss", "state", "source", "updated_at", "updated_by"])
+        .whereRef("gloss.phrase_id", "=", "phrase.id"),
+    ).as("gloss"),
+  ]);
+
+  return result;
+}
+
+function dbToPhrase(dbModel: PhraseData): PhraseModel {
+  return new PhraseModel({
+    id: dbModel.id,
+    languageId: dbModel.language_id,
+    wordIds: dbModel.word_ids.map((w) => w.word_id),
+    createdAt: dbModel.created_at,
+    createdBy: dbModel.created_by,
+    deletedAt: dbModel.deleted_at,
+    deletedBy: dbModel.deleted_by,
+    gloss:
+      dbModel.gloss ?
+        new Gloss({
+          gloss: dbModel.gloss.gloss,
+          state: dbModel.gloss.state,
+          source: dbModel.gloss.source,
+          updatedAt: new Date(dbModel.gloss.updated_at),
+          updatedBy: dbModel.gloss.updated_by,
+        })
+      : null,
+  });
+}

@@ -34,6 +34,49 @@ function makeGloss(
   });
 }
 
+describe("create", () => {
+  test("creates a phrase", () => {
+    const phrase = Phrase.create({
+      wordIds: ["word-1", "word-2"],
+      userId: "user-id",
+      languageId: "lang-id",
+    });
+
+    expect(phrase.props).toEqual({
+      id: 0,
+      languageId: "lang-id",
+      wordIds: ["word-1", "word-2"],
+      createdAt: expect.toBeNow(),
+      createdBy: "user-id",
+      deletedAt: null,
+      deletedBy: null,
+      gloss: null,
+    });
+    expect(phrase.events).toEqual([]);
+  });
+});
+
+describe("delete", () => {
+  test("soft-deletes the phrase", () => {
+    const createdAt = new Date();
+    const phrase = makePhrase({ createdAt });
+
+    phrase.delete("user-id");
+
+    expect(phrase.props).toEqual({
+      id: 1,
+      languageId: "lang-id",
+      wordIds: ["word-1", "word-2"],
+      createdAt,
+      createdBy: "user-id",
+      deletedAt: expect.toBeNow(),
+      deletedBy: "user-id",
+      gloss: null,
+    });
+    expect(phrase.events).toEqual([]);
+  });
+});
+
 describe("updateGloss", () => {
   test("creates an unapproved gloss", () => {
     const phrase = makePhrase();

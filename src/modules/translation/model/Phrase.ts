@@ -22,6 +22,29 @@ export default class Phrase {
 
   constructor(public props: PhraseProps) {}
 
+  static create({
+    wordIds,
+    userId,
+    languageId,
+  }: {
+    wordIds: string[];
+    userId: string;
+    languageId: string;
+  }): Phrase {
+    const phrase = new Phrase({
+      id: 0,
+      languageId,
+      wordIds,
+      createdAt: new Date(),
+      createdBy: userId,
+      deletedAt: null,
+      deletedBy: null,
+      gloss: null,
+    });
+
+    return phrase;
+  }
+
   updateGloss({
     gloss,
     state,
@@ -52,6 +75,11 @@ export default class Phrase {
         method: approvalMethod,
       });
     }
+  }
+
+  delete(userId: string) {
+    this.props.deletedAt = new Date();
+    this.props.deletedBy = userId;
   }
 
   get id() {

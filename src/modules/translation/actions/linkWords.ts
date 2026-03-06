@@ -8,6 +8,9 @@ import { verifySession } from "@/session";
 import { revalidatePath } from "next/cache";
 import { Policy } from "@/modules/access";
 import phraseRepository from "../data-access/PhraseRepository";
+import { resolveLanguageByCode } from "@/modules/languages";
+import { kyselyTransaction } from "@/db";
+import Phrase from "../model/Phrase";
 
 const requestSchema = z.object({
   verseId: z.string(),
@@ -34,10 +37,29 @@ export async function linkWords(formData: FormData): Promise<void> {
     notFound();
   }
 
-  await phraseRepository.linkWords({
-    code: request.data.code,
-    wordIds: request.data.wordIds,
-    userId: session!.user.id,
+  const language = await resolveLanguageByCode(request.data.code);
+  if (!language) {
+    notFound();
+  }
+
+  await kyselyTransaction(async (trx) => {
+    const oldPhrases = await phraseRepository.findByWordIdsWithinLanguage({
+      languageId: language.id,
+      wordIds: request.data.wordIds,
+      trx,
+    });
+
+    for (const phrase of oldPhrases) {
+      phrase.delete(session!.user.id);
+      await phraseRepository.commit(phrase, trx);
+    }
+
+    const linkedPhrase = Phrase.create({
+      languageId: language.id,
+      userId: session!.user.id,
+      wordIds: request.data.wordIds,
+    });
+    await phraseRepository.commit(linkedPhrase, trx);
   });
 
   const locale = await getLocale();

@@ -8,6 +8,8 @@ import { verifySession } from "@/session";
 import { revalidatePath } from "next/cache";
 import phraseRepository from "../data-access/PhraseRepository";
 import { Policy } from "@/modules/access";
+import { kyselyTransaction } from "@/db";
+import { resolveLanguageByCode } from "@/modules/languages";
 
 const unlinkPhraseSchema = z.object({
   verseId: z.string(),
@@ -34,10 +36,24 @@ export async function unlinkPhrase(formData: FormData): Promise<void> {
     notFound();
   }
 
-  await phraseRepository.unlink({
-    code: request.data.code,
-    phraseId: request.data.phraseId,
-    userId: session!.user.id,
+  const language = await resolveLanguageByCode(request.data.code);
+  if (!language) {
+    notFound();
+  }
+
+  await kyselyTransaction(async (trx) => {
+    const phrase = await phraseRepository.findWithinLanguage({
+      phraseId: request.data.phraseId,
+      languageId: language.id,
+      trx,
+    });
+    if (!phrase) {
+      notFound();
+    }
+
+    phrase.delete(session!.user.id);
+
+    await phraseRepository.commit(phrase, trx);
   });
 
   const locale = await getLocale();

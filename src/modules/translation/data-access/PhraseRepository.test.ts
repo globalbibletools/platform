@@ -556,6 +556,166 @@ describe("commit", () => {
   });
 });
 
+describe("findByWordIdsWithinLanguage", () => {
+  test("returns an empty array when no phrases match the word IDs", async () => {
+    const { language } = await languageFactory.build();
+    const word = await bibleFactory.word();
+
+    const result = await phraseRepository.findByWordIdsWithinLanguage({
+      languageId: language.id,
+      wordIds: [word.id],
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  test("returns an empty array when the language ID does not exist", async () => {
+    const { words } = await phraseFactory.build({});
+
+    const result = await phraseRepository.findByWordIdsWithinLanguage({
+      languageId: "00000000-0000-0000-0000-000000000000",
+      wordIds: words.map((w) => w.id),
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  test("returns an empty array when the phrases belong to a different language", async () => {
+    const { language: otherLanguage } = await languageFactory.build();
+    const { words } = await phraseFactory.build({});
+
+    const result = await phraseRepository.findByWordIdsWithinLanguage({
+      languageId: otherLanguage.id,
+      wordIds: words.map((w) => w.id),
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  test("returns an empty array for soft-deleted phrases", async () => {
+    const { language, words } = await phraseFactory.build({
+      deleted: true,
+    });
+
+    const result = await phraseRepository.findByWordIdsWithinLanguage({
+      languageId: language!.id,
+      wordIds: words.map((w) => w.id),
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  test("returns a matching phrase", async () => {
+    const { phrase, language, words } = await phraseFactory.build({});
+
+    const result = await phraseRepository.findByWordIdsWithinLanguage({
+      languageId: language.id,
+      wordIds: words.map((w) => w.id),
+    });
+
+    expect(result).toEqual([
+      new PhraseModel({
+        id: phrase.id,
+        languageId: phrase.language_id,
+        wordIds: words.map((w) => w.id),
+        createdAt: phrase.created_at,
+        createdBy: phrase.created_by,
+        deletedAt: phrase.deleted_at,
+        deletedBy: phrase.deleted_by,
+        gloss: null,
+      }),
+    ]);
+  });
+
+  test("returns multiple matching phrases", async () => {
+    const { phrases, language, words } = await phraseFactory.buildMany({
+      scope: 2,
+    });
+
+    const result = await phraseRepository.findByWordIdsWithinLanguage({
+      languageId: language.id,
+      wordIds: words.map((w) => w.id),
+    });
+
+    expect(result).toEqual(
+      phrases.map(
+        ({ phrase, word }) =>
+          new PhraseModel({
+            id: phrase.id,
+            languageId: phrase.language_id,
+            wordIds: [word.id],
+            createdAt: phrase.created_at,
+            createdBy: phrase.created_by,
+            deletedAt: phrase.deleted_at,
+            deletedBy: phrase.deleted_by,
+            gloss: null,
+          }),
+      ),
+    );
+    expect(result).toHaveLength(phrases.length);
+  });
+
+  test("does not return phrases from the same language that do not match the word IDs", async () => {
+    const {
+      language,
+      phrases: [{ phrase, word }],
+    } = await phraseFactory.buildMany({
+      scope: 2,
+    });
+
+    const result = await phraseRepository.findByWordIdsWithinLanguage({
+      languageId: language.id,
+      wordIds: [word.id],
+    });
+
+    expect(result).toEqual([
+      new PhraseModel({
+        id: phrase.id,
+        languageId: phrase.language_id,
+        wordIds: [word.id],
+        createdAt: phrase.created_at,
+        createdBy: phrase.created_by,
+        deletedAt: phrase.deleted_at,
+        deletedBy: phrase.deleted_by,
+        gloss: null,
+      }),
+    ]);
+  });
+
+  test("uses the provided transaction to read uncommitted data", async () => {
+    const { language } = await languageFactory.build();
+    const word = await bibleFactory.word();
+
+    await kyselyTransaction(async (trx) => {
+      const { id: phraseId } = await trx
+        .insertInto("phrase")
+        .values({
+          language_id: language.id,
+          created_at: new Date(),
+          created_by: null,
+          deleted_at: null,
+          deleted_by: null,
+        })
+        .returning("id")
+        .executeTakeFirstOrThrow();
+
+      await trx
+        .insertInto("phrase_word")
+        .values({ phrase_id: phraseId, word_id: word.id })
+        .execute();
+
+      const result = await phraseRepository.findByWordIdsWithinLanguage({
+        languageId: language.id,
+        wordIds: [word.id],
+        trx,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].props.id).toBe(phraseId);
+    });
+  });
+});
+
 describe("existsWithinLanguage", () => {
   test("returns true when the phrase exists in the given language", async () => {
     const { phrase, language } = await phraseFactory.build({});
