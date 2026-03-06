@@ -5,6 +5,7 @@ import Gloss from "../model/Gloss";
 import { trackingClient } from "@/modules/reporting";
 import { Selectable, SelectQueryBuilder, Transaction } from "kysely";
 import { GlossTable, PhraseTable, PhraseWordTable } from "../db/schema";
+import { ulid } from "@/shared/ulid";
 
 export const phraseRepository = {
   async findByWordIdsWithinLanguage({
@@ -148,6 +149,27 @@ export const phraseRepository = {
           })),
           trx,
         );
+      }
+
+      if (phrase.glossEvents.length > 0) {
+        await trx
+          .insertInto("gloss_event")
+          .values(
+            phrase.glossEvents.map((event) => ({
+              id: ulid(),
+              phrase_id: phrase.props.id,
+              language_id: event.languageId,
+              user_id: event.userId,
+              word_ids: event.wordIds,
+              timestamp: event.timestamp,
+              prev_gloss: event.prevGloss,
+              prev_state: event.prevState,
+              new_gloss: event.newGloss,
+              new_state: event.newState,
+              approval_method: event.approvalMethod ?? null,
+            })),
+          )
+          .execute();
       }
     };
 

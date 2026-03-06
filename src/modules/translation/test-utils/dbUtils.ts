@@ -2,6 +2,7 @@ import { getDb } from "@/db";
 import { Selectable } from "kysely";
 import type {
   FootnoteTable,
+  GlossEventTable,
   GlossHistoryTable,
   GlossTable,
   PhraseTable,
@@ -88,4 +89,15 @@ export async function findTranslatorNoteForPhrase(
     .selectAll()
     .where("phrase_id", "=", phraseId)
     .executeTakeFirst();
+}
+
+export async function findGlossEventsForPhrase(
+  phraseId: number,
+): Promise<Selectable<GlossEventTable>[]> {
+  return getDb()
+    .selectFrom("gloss_event")
+    .selectAll()
+    .where("phrase_id", "=", phraseId)
+    .orderBy("timestamp", "asc")
+    .execute();
 }
