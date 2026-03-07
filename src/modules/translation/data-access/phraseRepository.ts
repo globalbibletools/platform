@@ -155,19 +155,21 @@ export const phraseRepository = {
         await trx
           .insertInto("gloss_event")
           .values(
-            phrase.glossEvents.map((event) => ({
-              id: ulid(),
-              phrase_id: phrase.props.id,
-              language_id: event.languageId,
-              user_id: event.userId,
-              word_ids: event.wordIds,
-              timestamp: event.timestamp,
-              prev_gloss: event.prevGloss,
-              prev_state: event.prevState,
-              new_gloss: event.newGloss,
-              new_state: event.newState,
-              approval_method: event.approvalMethod ?? null,
-            })),
+            phrase.glossEvents.flatMap((event) =>
+              event.wordIds.map((wordId) => ({
+                id: ulid(),
+                phrase_id: phrase.props.id,
+                language_id: event.languageId,
+                user_id: event.userId,
+                word_id: wordId,
+                timestamp: event.timestamp,
+                prev_gloss: event.prevGloss,
+                prev_state: event.prevState,
+                new_gloss: event.newGloss,
+                new_state: event.newState,
+                approval_method: event.approvalMethod ?? null,
+              })),
+            ),
           )
           .execute();
       }

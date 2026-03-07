@@ -64,7 +64,8 @@ export interface GlossEventTable {
   phrase_id: number;
   language_id: string;
   user_id: string;
-  word_ids: string[];
+  word_ids: string[] | null;
+  word_id: string | null;
   timestamp: Date;
   prev_gloss: string;
   prev_state: GlossStateRaw;
