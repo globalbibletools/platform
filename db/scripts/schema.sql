@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict mr7QaEBx5yPcwU7V5Ip9DKGTsDsXRA9gTrumTu1RDa2RPTL9S08f2aef4FpEkfi
+\restrict nh891oYoHKFM1jSKJidr5BggNHRL8i4AT13GRIv3j1JsGqchIKrbNap2AraXsxc
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -454,13 +454,14 @@ CREATE TABLE public.gloss_event (
     phrase_id integer NOT NULL,
     language_id uuid NOT NULL,
     user_id uuid NOT NULL,
-    word_ids text[] NOT NULL,
+    word_ids text[],
     "timestamp" timestamp with time zone NOT NULL,
     prev_gloss text NOT NULL,
     prev_state text NOT NULL,
     new_gloss text NOT NULL,
     new_state text NOT NULL,
-    approval_method text
+    approval_method text,
+    word_id text
 );
 
 
@@ -1550,6 +1551,14 @@ ALTER TABLE ONLY public.gloss_event
 
 
 --
+-- Name: gloss_event gloss_event_word_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.gloss_event
+    ADD CONSTRAINT gloss_event_word_id_fkey FOREIGN KEY (word_id) REFERENCES public.word(id);
+
+
+--
 -- Name: gloss_history gloss_history_phrase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1881,5 +1890,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict mr7QaEBx5yPcwU7V5Ip9DKGTsDsXRA9gTrumTu1RDa2RPTL9S08f2aef4FpEkfi
+\unrestrict nh891oYoHKFM1jSKJidr5BggNHRL8i4AT13GRIv3j1JsGqchIKrbNap2AraXsxc
 

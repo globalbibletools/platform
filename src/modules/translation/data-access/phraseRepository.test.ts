@@ -325,13 +325,13 @@ describe("commit", () => {
   test("creates a new phrase with a gloss and tracks the approval event", async () => {
     const { language, members } = await languageFactory.build();
     const memberId = members[0].user_id;
-    const word = await bibleFactory.word();
+    const words = await bibleFactory.words({ count: 2 });
     const createdAt = new Date();
 
     const phrase = new PhraseModel({
       id: 0,
       languageId: language.id,
-      wordIds: [word.id],
+      wordIds: words.map((w) => w.id),
       createdAt,
       createdBy: memberId,
       deletedAt: null,
@@ -361,9 +361,9 @@ describe("commit", () => {
     });
 
     const phraseWordRows = await findPhraseWordsForPhrase(phrase.props.id);
-    expect(phraseWordRows).toEqual([
-      { phrase_id: phrase.props.id, word_id: word.id },
-    ]);
+    expect(phraseWordRows).toEqual(
+      words.map((w) => ({ phrase_id: phrase.props.id, word_id: w.id })),
+    );
 
     const gloss = await findGlossForPhrase(phrase.props.id);
     expect(gloss).toEqual({
@@ -376,21 +376,22 @@ describe("commit", () => {
     });
 
     const glossEvents = await findGlossEventsForPhrase(phrase.props.id);
-    expect(glossEvents).toEqual([
-      {
+    expect(glossEvents).toEqual(
+      words.map((w) => ({
         id: expect.toBeUlid(),
         phrase_id: phrase.props.id,
         language_id: language.id,
         user_id: memberId,
-        word_ids: [word.id],
+        word_ids: null,
+        word_id: w.id,
         timestamp: phrase.props.gloss!.props.updatedAt,
         prev_gloss: "",
         prev_state: GlossStateRaw.Unapproved,
         new_gloss: "in the beginning",
         new_state: GlossStateRaw.Approved,
         approval_method: GlossApprovalMethodRaw.UserInput,
-      },
-    ]);
+      })),
+    );
 
     expect(trackingClient.trackMany).toHaveBeenCalledExactlyOnceWith(
       [
@@ -484,7 +485,8 @@ describe("commit", () => {
         phrase_id: phrase.id,
         language_id: language.id,
         user_id: languageMember.user_id,
-        word_ids: words.map((w) => w.id),
+        word_ids: null,
+        word_id: words[0].id,
         timestamp: model!.props.gloss!.props.updatedAt,
         prev_gloss: gloss!.gloss ?? "",
         prev_state: gloss!.state,
@@ -539,7 +541,8 @@ describe("commit", () => {
         phrase_id: phrase.id,
         language_id: language.id,
         user_id: languageMember.user_id,
-        word_ids: words.map((w) => w.id),
+        word_ids: null,
+        word_id: words[0].id,
         timestamp: model!.props.gloss!.props.updatedAt,
         prev_gloss: gloss!.gloss ?? "",
         prev_state: gloss!.state,
