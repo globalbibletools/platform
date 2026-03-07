@@ -1,6 +1,7 @@
 import { sendEmailJob } from "@/mailer";
 import { Job } from "./model";
 import { exportAnalyticsJob } from "@/modules/reporting/jobs/exportAnalyticsJob";
+import { aggregateGlossEventsJob } from "@/modules/reporting/jobs/aggregateGlossEvents";
 import { REPORTING_JOB_TYPES } from "@/modules/reporting/jobs/jobTypes";
 import { SNAPSHOT_JOB_TYPES } from "@/modules/snapshots/jobs/jobTypes";
 import { createSnapshotJob } from "@/modules/snapshots/jobs/createSnapshotJob";
@@ -29,6 +30,10 @@ const jobMap: Record<string, JobMapEntry<any>> = {
   [REPORTING_JOB_TYPES.EXPORT_ANALYTICS]: {
     handler: exportAnalyticsJob,
     timeout: 60 * 5, // 5 minutes
+  },
+  [REPORTING_JOB_TYPES.AGGREGATE_GLOSS_EVENTS]: {
+    handler: aggregateGlossEventsJob,
+    timeout: 60 * 15, // 15 minutes
   },
   [EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF]: {
     handler: exportInterlinearPdfJob,

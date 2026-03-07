@@ -41,10 +41,14 @@ import {
   TranslatorNoteTable,
 } from "./modules/translation/db/schema";
 import { JobTable } from "./shared/jobs/db/schema";
-import { TrackingEventTable } from "./modules/reporting/db/schema";
+import {
+  ContributionSnapshotTable,
+  TrackingEventTable,
+} from "./modules/reporting/db/schema";
 
 export interface Database {
   book: BookTable;
+  contribution_snapshot: ContributionSnapshotTable;
   footnote: FootnoteTable;
   gloss: GlossTable;
   gloss_event: GlossEventTable;

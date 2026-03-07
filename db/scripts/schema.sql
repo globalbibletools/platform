@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict mr7QaEBx5yPcwU7V5Ip9DKGTsDsXRA9gTrumTu1RDa2RPTL9S08f2aef4FpEkfi
+\restrict Ba6a9JKymu7YHFS6h9Te76x4Jl6OKMW1os8MjowRIKGj6OWiXRkqs8ahTBdlimi
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -416,6 +416,23 @@ SET default_table_access_method = heap;
 CREATE TABLE public.book (
     id integer NOT NULL,
     name text NOT NULL
+);
+
+
+--
+-- Name: contribution_snapshot; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.contribution_snapshot (
+    id uuid NOT NULL,
+    day date NOT NULL,
+    language_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    book_id integer NOT NULL,
+    approved_count integer DEFAULT 0 NOT NULL,
+    revoked_count integer DEFAULT 0 NOT NULL,
+    edited_approved_count integer DEFAULT 0 NOT NULL,
+    edited_unapproved_count integer DEFAULT 0 NOT NULL
 );
 
 
@@ -1067,6 +1084,22 @@ ALTER TABLE ONLY public.book
 
 
 --
+-- Name: contribution_snapshot contribution_snapshot_day_language_id_user_id_book_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contribution_snapshot
+    ADD CONSTRAINT contribution_snapshot_day_language_id_user_id_book_id_key UNIQUE (day, language_id, user_id, book_id);
+
+
+--
+-- Name: contribution_snapshot contribution_snapshot_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contribution_snapshot
+    ADD CONSTRAINT contribution_snapshot_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: footnote footnote_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1510,6 +1543,30 @@ CREATE TRIGGER increment_suggestion AFTER INSERT OR UPDATE OF gloss, state ON pu
 
 
 --
+-- Name: contribution_snapshot contribution_snapshot_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contribution_snapshot
+    ADD CONSTRAINT contribution_snapshot_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.book(id);
+
+
+--
+-- Name: contribution_snapshot contribution_snapshot_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contribution_snapshot
+    ADD CONSTRAINT contribution_snapshot_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id);
+
+
+--
+-- Name: contribution_snapshot contribution_snapshot_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contribution_snapshot
+    ADD CONSTRAINT contribution_snapshot_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: footnote footnote_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1881,5 +1938,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict mr7QaEBx5yPcwU7V5Ip9DKGTsDsXRA9gTrumTu1RDa2RPTL9S08f2aef4FpEkfi
+\unrestrict Ba6a9JKymu7YHFS6h9Te76x4Jl6OKMW1os8MjowRIKGj6OWiXRkqs8ahTBdlimi
 
