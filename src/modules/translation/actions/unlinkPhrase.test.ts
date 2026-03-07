@@ -188,7 +188,6 @@ test("soft-deletes a phrase with an approved gloss and emits a gloss event", asy
       phrase_id: phrase.id,
       language_id: language.id,
       user_id: userId,
-      word_ids: null,
       word_id: words[0].id,
       timestamp: expect.toBeNow(),
       prev_gloss: gloss!.gloss ?? "",
