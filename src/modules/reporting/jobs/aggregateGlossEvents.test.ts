@@ -83,7 +83,7 @@ test("reads gloss events and writes contribution snapshots", async () => {
     newGloss: "world",
   });
 
-  // userB edits the approved gloss on word 1
+  // userB revokes word 1
   await insertGlossEvent({
     languageId: language.id,
     userId: userB.id,
@@ -91,8 +91,8 @@ test("reads gloss events and writes contribution snapshots", async () => {
     timestamp: new Date("2026-03-06T11:00:00Z"),
     prevState: GlossStateRaw.Approved,
     prevGloss: "world",
-    newState: GlossStateRaw.Approved,
-    newGloss: "earth",
+    newState: GlossStateRaw.Unapproved,
+    newGloss: "world",
   });
 
   // userA revokes word 2
@@ -141,8 +141,8 @@ test("reads gloss events and writes contribution snapshots", async () => {
       user_id: userB.id,
       book_id: 37,
       approved_count: 0,
-      revoked_count: 0,
-      edited_approved_count: 1,
+      revoked_count: 1,
+      edited_approved_count: 0,
       edited_unapproved_count: 0,
     },
   ]);

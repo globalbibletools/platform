@@ -65,8 +65,6 @@ export async function aggregateGlossEventsJob(
 }
 
 export class GlossEventAggregatorTransform extends Transform {
-  private firstRowOfGroup: GlossEventRow | null = null;
-  private userLatestEvent: Map<string, GlossEventRow> = new Map();
   private tallies: Map<string, Insertable<ContributionSnapshotTable>> =
     new Map();
 
@@ -79,81 +77,39 @@ export class GlossEventAggregatorTransform extends Transform {
     _encoding: string,
     cb: (err?: Error) => void,
   ) {
-    const first = this.firstRowOfGroup;
-    if (
-      first === null ||
-      row.language_id !== first.language_id ||
-      row.word_id !== first.word_id
-    ) {
-      if (first !== null) {
-        this._processGroup();
-      }
-      this.firstRowOfGroup = row;
-      this.userLatestEvent = new Map();
+    const isApproval =
+      row.prev_state === GlossStateRaw.Unapproved &&
+      row.new_state === GlossStateRaw.Approved;
+    const isRevocation =
+      row.prev_state === GlossStateRaw.Approved &&
+      row.new_state === GlossStateRaw.Unapproved;
+
+    if (!isApproval && !isRevocation) {
+      cb();
+      return;
     }
 
-    this.userLatestEvent.set(row.user_id, row);
+    const key = `${row.language_id}:${row.user_id}:${row.book_id}`;
+    const counts = this.tallies.get(key) ?? {
+      id: ulid(),
+      day: this.day,
+      language_id: row.language_id,
+      user_id: row.user_id,
+      book_id: row.book_id,
+      approved_count: 0,
+      revoked_count: 0,
+      edited_approved_count: 0,
+      edited_unapproved_count: 0,
+    };
+
+    if (isApproval) {
+      counts.approved_count++;
+    } else {
+      counts.revoked_count++;
+    }
+
+    this.tallies.set(key, counts);
     cb();
-  }
-
-  override _flush(cb: (err?: Error) => void) {
-    if (this.firstRowOfGroup !== null) {
-      this._processGroup();
-    }
-    cb();
-  }
-
-  private _processGroup() {
-    const first = this.firstRowOfGroup!;
-    const users = Array.from(this.userLatestEvent.values()).sort(
-      (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
-    );
-
-    let runningState = first.prev_state;
-    let runningGloss = first.prev_gloss;
-
-    for (const event of users) {
-      const key = `${first.language_id}:${event.user_id}:${first.book_id}`;
-      const counts = this.tallies.get(key) ?? {
-        id: ulid(),
-        day: this.day,
-        language_id: first.language_id,
-        user_id: event.user_id,
-        book_id: first.book_id,
-        approved_count: 0,
-        revoked_count: 0,
-        edited_approved_count: 0,
-        edited_unapproved_count: 0,
-      };
-
-      if (
-        runningState === GlossStateRaw.Unapproved &&
-        event.new_state === GlossStateRaw.Approved
-      ) {
-        counts.approved_count++;
-      } else if (
-        runningState === GlossStateRaw.Approved &&
-        event.new_state === GlossStateRaw.Unapproved
-      ) {
-        counts.revoked_count++;
-      } else if (
-        event.new_gloss !== runningGloss &&
-        event.new_state === GlossStateRaw.Approved
-      ) {
-        counts.edited_approved_count++;
-      } else if (
-        event.new_gloss !== runningGloss &&
-        event.new_state === GlossStateRaw.Unapproved
-      ) {
-        counts.edited_unapproved_count++;
-      } else {
-        continue;
-      }
-
-      this.tallies.set(key, counts);
-      runningState = event.new_state;
-      runningGloss = event.new_gloss;
-    }
   }
 
   getRows(): Insertable<ContributionSnapshotTable>[] {
@@ -164,12 +120,8 @@ export class GlossEventAggregatorTransform extends Transform {
 type GlossEventRow = {
   language_id: string;
   user_id: string;
-  timestamp: Date;
-  word_id: string;
   book_id: number;
-  prev_gloss: string;
   prev_state: GlossStateRaw;
-  new_gloss: string;
   new_state: GlossStateRaw;
 };
 
@@ -178,12 +130,8 @@ async function streamGlossEvents(startOfDay: Date, startOfNextDay: Date) {
     SELECT
       ge.language_id,
       ge.user_id,
-      ge.timestamp,
-      uw.word_id,
       v.book_id,
-      ge.prev_gloss,
       ge.prev_state,
-      ge.new_gloss,
       ge.new_state
     FROM gloss_event AS ge
     CROSS JOIN LATERAL UNNEST(ge.word_ids) AS uw(word_id)
@@ -191,7 +139,6 @@ async function streamGlossEvents(startOfDay: Date, startOfNextDay: Date) {
     INNER JOIN verse AS v ON v.id = w.verse_id
     WHERE ge.timestamp >= $1
       AND ge.timestamp < $2
-    ORDER BY ge.language_id, uw.word_id, ge.timestamp
   `;
 
   return queryStream(sql, [startOfDay, startOfNextDay]);
