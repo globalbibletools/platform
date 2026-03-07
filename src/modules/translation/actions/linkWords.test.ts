@@ -288,7 +288,6 @@ test("emits a gloss event when soft-deleting a phrase with an approved gloss", a
       phrase_id: existingPhrase.id,
       language_id: language.id,
       user_id: userId,
-      word_ids: null,
       word_id: existingWord.id,
       timestamp: expect.toBeNow(),
       prev_gloss: gloss!.gloss ?? "",
