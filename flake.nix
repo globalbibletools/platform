@@ -22,6 +22,7 @@
             docker-compose
             docker
             lsof
+            postgresql
           ];
         };
       }
