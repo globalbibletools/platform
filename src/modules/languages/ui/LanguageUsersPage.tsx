@@ -102,7 +102,12 @@ export default async function LanguageUsersPage(props: LanguageUsersPageProps) {
             <ListHeaderCell className="min-w-[120px]">
               {t("headers.name")}
             </ListHeaderCell>
-            <ListHeaderCell>{t("headers.activity")}</ListHeaderCell>
+            <ListHeaderCell className="pe-4">
+              <div className="flex">
+                <span className="grow">{t("headers.activity")}</span>
+                <span className="normal-case">30d</span>
+              </div>
+            </ListHeaderCell>
             <ListHeaderCell />
           </ListHeader>
           <ListBody>

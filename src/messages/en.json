@@ -207,7 +207,7 @@
     },
     "headers": {
       "name": "Name",
-      "activity": "Activity"
+      "activity": "Gloss Activity"
     }
   },
   "LoginPage": {
