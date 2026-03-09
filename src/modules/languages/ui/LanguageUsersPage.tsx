@@ -113,7 +113,6 @@ export default async function LanguageUsersPage(props: LanguageUsersPageProps) {
           </ListHeader>
           <ListBody>
             {sortedUsers.map((user) => {
-              const total = totalByUser.get(user.id) ?? 0;
               return (
                 <ListRow key={user.id}>
                   <ListCell header className="pe-4 py-2">
@@ -121,16 +120,11 @@ export default async function LanguageUsersPage(props: LanguageUsersPageProps) {
                     <div className="font-normal text-sm">{user.email}</div>
                   </ListCell>
                   <ListCell className="py-2 pe-4">
-                    <div className="flex items-center gap-3">
-                      <ActivityChart
-                        data={activityByUser.get(user.id) ?? []}
-                        yMin={yMin}
-                        yMax={yMax}
-                      />
-                      <span className="text-sm tabular-nums w-8 text-end">
-                        {total > 0 ? `+${total}` : total}
-                      </span>
-                    </div>
+                    <ActivityChart
+                      data={activityByUser.get(user.id) ?? []}
+                      yMin={yMin}
+                      yMax={yMax}
+                    />
                   </ListCell>
                   <ListCell className="py-2">
                     {user.invite && (

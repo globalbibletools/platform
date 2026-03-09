@@ -9,38 +9,61 @@ export interface ActivityChartEntry {
   net: number;
 }
 
-export interface ActivityChartProps {
-  data: ActivityChartEntry[];
-  yMin: number;
-  yMax: number;
-}
-
-const WIDTH = 200;
-const HEIGHT = 48;
-const MARGIN = { top: 4, right: 4, bottom: 4, left: 4 };
-
-// Solid color for each sentiment
-const COLOR = {
-  positive: "#066f74", // blue-800
-  negative: "#dc2626", // red-600
-  neutral: "#9ca3af", // gray-400
-} as const;
-
-type Sentiment = keyof typeof COLOR;
-
-function getSentiment(series: { net: number }[]): Sentiment {
-  const total = series.reduce((sum, d) => sum + d.net, 0);
-  if (total > 0) return "positive";
-  if (total < 0) return "negative";
-  return "neutral";
-}
-
 export default function ActivityChart({
   data,
   yMin,
   yMax,
-}: ActivityChartProps) {
+}: {
+  data: ActivityChartEntry[];
+  yMin: number;
+  yMax: number;
+}) {
+  const total = data.reduce((sum, entry) => sum + entry.net, 0);
+
+  return (
+    <div className="flex flex-col">
+      <ActivityChartSVG className="" {...{ data, yMin, yMax }} />
+      <span className="block h-5 leading-0">
+        <span className="text-xs font-bold">TOTAL: </span>
+        <span
+          className={`text-sm font-bold ${
+            total > 0 ? "text-blue-800"
+            : total < 0 ? "text-red-700"
+            : "text-gray-500"
+          }`}
+        >
+          {total}
+        </span>
+      </span>
+    </div>
+  );
+}
+
+const WIDTH = 200;
+const HEIGHT = 24;
+
+const COLOR = {
+  positive: "var(--color-blue-800)",
+  negative: "var(--color-red-800)",
+  neutral: "var(--color-gray-400)",
+} as const;
+
+const GRADIENT_OPACITY_MIN = 0;
+const GRADIENT_OPACITY_MAX = 0.4;
+
+function ActivityChartSVG({
+  className,
+  data,
+  yMin,
+  yMax,
+}: {
+  className: string;
+  data: ActivityChartEntry[];
+  yMin: number;
+  yMax: number;
+}) {
   const svgRef = useRef<SVGSVGElement>(null);
+
   // Unique IDs so multiple charts on the same page don't share gradient defs
   const uid = useId().replace(/:/g, "");
   const gradientId = `activity-gradient-${uid}`;
@@ -50,13 +73,9 @@ export default function ActivityChart({
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const innerWidth = WIDTH - MARGIN.left - MARGIN.right;
-    const innerHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
-
     const today = startOfDay(new Date());
     const start = subDays(today, 29);
 
-    // Build a complete 30-day series, filling missing days with 0
     const dataByDay = new Map<number, number>(
       data.map((d) => [startOfDay(d.date).getTime(), d.net]),
     );
@@ -74,20 +93,18 @@ export default function ActivityChart({
     const effectiveMin = yMin === yMax ? -1 : yMin;
     const effectiveMax = yMin === yMax ? 1 : yMax;
 
-    const xScale = d3.scaleTime().domain([start, today]).range([0, innerWidth]);
+    const xScale = d3.scaleTime().domain([start, today]).range([0, WIDTH]);
     const yScale = d3
       .scaleLinear()
       .domain([effectiveMin, effectiveMax])
-      .range([innerHeight, 0]);
+      .range([HEIGHT, 0]);
 
     const zeroY = yScale(0);
 
-    // --- defs: gradient + clip path ---
     const defs = svg.append("defs");
 
     // Vertical linear gradient: transparent white at zero baseline → solid color
     // at the extreme (top for positive, bottom for negative, center for neutral).
-    // We express stop offsets in the SVG coordinate system (0% = top, 100% = bottom).
     const gradient = defs
       .append("linearGradient")
       .attr("id", gradientId)
@@ -97,51 +114,27 @@ export default function ActivityChart({
       .attr("y2", "100%");
 
     if (sentiment === "positive") {
-      // Line goes up → deepest color at top (0%), fades to white at baseline
       gradient
         .append("stop")
         .attr("offset", "0%")
         .attr("stop-color", color)
-        .attr("stop-opacity", 1);
+        .attr("stop-opacity", GRADIENT_OPACITY_MAX);
       gradient
         .append("stop")
-        .attr("offset", "20%")
+        .attr("offset", "100%")
         .attr("stop-color", color)
-        .attr("stop-opacity", 0.5);
-      gradient
-        .append("stop")
-        .attr("offset", `${((zeroY + MARGIN.top) / HEIGHT) * 100}%`)
-        .attr("stop-color", color)
-        .attr("stop-opacity", 0.05);
+        .attr("stop-opacity", GRADIENT_OPACITY_MIN);
     } else if (sentiment === "negative") {
-      // Line goes down → white at baseline, deepest color at bottom (100%)
-      gradient
-        .append("stop")
-        .attr("offset", `${((zeroY + MARGIN.top) / HEIGHT) * 100}%`)
-        .attr("stop-color", color)
-        .attr("stop-opacity", 0.05);
-      gradient
-        .append("stop")
-        .attr("offset", "80%")
-        .attr("stop-color", color)
-        .attr("stop-opacity", 0.5);
       gradient
         .append("stop")
         .attr("offset", "100%")
         .attr("stop-color", color)
-        .attr("stop-opacity", 1);
-    } else {
-      // Neutral: uniform muted color, no gradient effect needed
-      gradient
-        .append("stop")
-        .attr("offset", "0%")
-        .attr("stop-color", color)
-        .attr("stop-opacity", 0.3);
+        .attr("stop-opacity", GRADIENT_OPACITY_MIN);
       gradient
         .append("stop")
         .attr("offset", "100%")
         .attr("stop-color", color)
-        .attr("stop-opacity", 0.3);
+        .attr("stop-opacity", GRADIENT_OPACITY_MAX);
     }
 
     // Clip path so the filled area never bleeds outside the inner frame
@@ -149,13 +142,10 @@ export default function ActivityChart({
       .append("clipPath")
       .attr("id", clipId)
       .append("rect")
-      .attr("width", innerWidth)
-      .attr("height", innerHeight);
+      .attr("width", WIDTH)
+      .attr("height", HEIGHT);
 
-    // --- drawing ---
-    const g = svg
-      .append("g")
-      .attr("transform", `translate(${MARGIN.left},${MARGIN.top})`);
+    const g = svg.append("g");
 
     const lineGen = d3
       .line<{ date: Date; net: number }>()
@@ -177,16 +167,6 @@ export default function ActivityChart({
       .attr("fill", `url(#${gradientId})`)
       .attr("d", areaGen);
 
-    // Zero baseline
-    g.append("line")
-      .attr("x1", 0)
-      .attr("x2", innerWidth)
-      .attr("y1", zeroY)
-      .attr("y2", zeroY)
-      .attr("stroke", color)
-      .attr("stroke-opacity", 0.25)
-      .attr("stroke-width", 1);
-
     // Activity line on top
     g.append("path")
       .datum(series)
@@ -196,5 +176,22 @@ export default function ActivityChart({
       .attr("d", lineGen);
   }, [data, yMin, yMax, gradientId, clipId]);
 
-  return <svg ref={svgRef} width={WIDTH} height={HEIGHT} />;
+  return (
+    <svg
+      className={className}
+      ref={svgRef}
+      width={WIDTH}
+      height={HEIGHT}
+      overflow="visible"
+    />
+  );
+}
+
+type Sentiment = keyof typeof COLOR;
+
+function getSentiment(series: { net: number }[]): Sentiment {
+  const total = series.reduce((sum, d) => sum + d.net, 0);
+  if (total > 0) return "positive";
+  if (total < 0) return "negative";
+  return "neutral";
 }
