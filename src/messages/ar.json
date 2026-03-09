@@ -205,7 +205,8 @@
       "resend_invite": "إعادة إرسال الدعوة"
     },
     "headers": {
-      "name": "الاسم"
+      "name": "الاسم",
+      "activity": "النشاط"
     }
   },
   "LoginPage": {
