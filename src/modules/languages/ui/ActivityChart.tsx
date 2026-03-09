@@ -1,12 +1,24 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import * as d3 from "d3";
-import { eachDayOfInterval, startOfDay, subDays } from "date-fns";
+import {
+  eachDayOfInterval,
+  format,
+  startOfDay,
+  subDays,
+  addDays,
+} from "date-fns";
 
 export interface ActivityChartEntry {
   date: Date;
   net: number;
+}
+
+interface CursorPoint {
+  date: Date;
+  net: number;
+  x: number;
 }
 
 export default function ActivityChart({
@@ -20,20 +32,40 @@ export default function ActivityChart({
   yMin: number;
   yMax: number;
 }) {
+  const [cursor, setCursor] = useState<CursorPoint | null>(null);
+
+  const totalColor =
+    total > 0 ? "text-blue-800"
+    : total < 0 ? "text-red-700"
+    : "text-gray-500";
+
+  const cursorColor =
+    cursor ?
+      cursor.net > 0 ? "text-blue-800"
+      : cursor.net < 0 ? "text-red-700"
+      : "text-gray-500"
+    : null;
+
   return (
     <div className="flex flex-col">
-      <ActivityChartSVG className="" {...{ data, yMin, yMax }} />
-      <span className="block h-5 leading-0">
-        <span className="text-xs font-bold">TOTAL: </span>
-        <span
-          className={`text-sm font-bold ${
-            total > 0 ? "text-blue-800"
-            : total < 0 ? "text-red-700"
-            : "text-gray-500"
-          }`}
-        >
-          {total}
+      <ActivityChartSVG
+        {...{ data, yMin, yMax, cursor, onCursorChange: setCursor }}
+      />
+      <span className="flex h-5 leading-0">
+        <span className="grow">
+          <span className="text-xs font-bold">TOTAL: </span>
+          <span className={`text-sm font-bold ${totalColor}`}>{total}</span>
         </span>
+        {cursor && (
+          <span>
+            <span className="text-xs font-bold uppercase">
+              {format(cursor.date, "MMM d")}:{" "}
+            </span>
+            <span className={`text-sm font-bold ${cursorColor}`}>
+              {cursor.net}
+            </span>
+          </span>
+        )}
       </span>
     </div>
   );
@@ -52,17 +84,25 @@ const GRADIENT_OPACITY_MIN = 0;
 const GRADIENT_OPACITY_MAX = 0.4;
 
 function ActivityChartSVG({
-  className,
   data,
   yMin,
   yMax,
+  cursor,
+  onCursorChange,
 }: {
-  className: string;
   data: ActivityChartEntry[];
   yMin: number;
   yMax: number;
+  cursor: CursorPoint | null;
+  onCursorChange: (point: CursorPoint | null) => void;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const cursorLineRef = useRef<d3.Selection<
+    SVGLineElement,
+    unknown,
+    null,
+    undefined
+  > | null>(null);
 
   // Unique IDs so multiple charts on the same page don't share gradient defs
   const uid = useId().replace(/:/g, "");
@@ -72,6 +112,7 @@ function ActivityChartSVG({
   useEffect(() => {
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
+    cursorLineRef.current = null;
 
     const today = startOfDay(new Date());
     const start = subDays(today, 29);
@@ -149,15 +190,15 @@ function ActivityChartSVG({
 
     const lineGen = d3
       .line<{ date: Date; net: number }>()
-      .x((d: { date: Date; net: number }) => xScale(d.date))
-      .y((d: { date: Date; net: number }) => yScale(d.net))
+      .x((d) => xScale(d.date))
+      .y((d) => yScale(d.net))
       .curve(d3.curveMonotoneX);
 
     const areaGen = d3
       .area<{ date: Date; net: number }>()
-      .x((d: { date: Date; net: number }) => xScale(d.date))
+      .x((d) => xScale(d.date))
       .y0(zeroY)
-      .y1((d: { date: Date; net: number }) => yScale(d.net))
+      .y1((d) => yScale(d.net))
       .curve(d3.curveMonotoneX);
 
     // Gradient fill between line and zero baseline
@@ -174,11 +215,52 @@ function ActivityChartSVG({
       .attr("stroke", color)
       .attr("stroke-width", 1.5)
       .attr("d", lineGen);
-  }, [data, yMin, yMax, gradientId, clipId]);
+
+    cursorLineRef.current = svg
+      .append("line")
+      .attr("y1", 0)
+      .attr("y2", HEIGHT)
+      .attr("stroke", "var(--color-gray-400)")
+      .attr("stroke-width", 2)
+      .attr("stroke-dasharray", "3 2")
+      .attr("pointer-events", "none")
+      .style("display", "none");
+
+    const bisect = d3.bisector((d: { date: Date; net: number }) => d.date).left;
+
+    svg.on("mousemove", function (event: MouseEvent) {
+      const [mouseX] = d3.pointer(event);
+      const hoveredDate = roundToNearestStartOfDay(xScale.invert(mouseX));
+      const idx = bisect(series, hoveredDate);
+      const nearest = series[idx];
+
+      onCursorChange({
+        date: nearest.date,
+        net: nearest.net,
+        x: xScale(nearest.date),
+      });
+    });
+
+    svg.on("mouseleave", function () {
+      onCursorChange(null);
+    });
+  }, [data, yMin, yMax, gradientId, clipId, onCursorChange]);
+
+  useEffect(() => {
+    const line = cursorLineRef.current;
+    if (!line) return;
+
+    if (!cursor) {
+      line.style("display", "none");
+      return;
+    }
+
+    line.style("display", null).attr("x1", cursor.x).attr("x2", cursor.x);
+  }, [cursor]);
 
   return (
     <svg
-      className={className}
+      className="cursor-crosshair"
       ref={svgRef}
       width={WIDTH}
       height={HEIGHT}
@@ -194,4 +276,10 @@ function getSentiment(series: { net: number }[]): Sentiment {
   if (total > 0) return "positive";
   if (total < 0) return "negative";
   return "neutral";
+}
+
+function roundToNearestStartOfDay(date: Date): Date {
+  const shouldRoundUp = date.getHours() >= 12;
+  if (shouldRoundUp) return addDays(startOfDay(date), 1);
+  else return startOfDay(date);
 }
