@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.678.0",
+    "@date-fns/utc": "2.1.1",
     "@google-cloud/translate": "8.5.0",
     "@gracious.tech/fetch-client": "0.8.9",
     "@next/env": "15.5.7",
