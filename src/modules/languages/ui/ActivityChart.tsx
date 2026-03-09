@@ -11,15 +11,15 @@ export interface ActivityChartEntry {
 
 export default function ActivityChart({
   data,
+  total,
   yMin,
   yMax,
 }: {
   data: ActivityChartEntry[];
+  total: number;
   yMin: number;
   yMax: number;
 }) {
-  const total = data.reduce((sum, entry) => sum + entry.net, 0);
-
   return (
     <div className="flex flex-col">
       <ActivityChartSVG className="" {...{ data, yMin, yMax }} />

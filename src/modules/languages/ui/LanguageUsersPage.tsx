@@ -63,34 +63,28 @@ export default async function LanguageUsersPage(props: LanguageUsersPageProps) {
     getUserActivityReadModel(language.id),
   ]);
 
-  // Build per-user activity map and extract totals (same value on every row for a user)
   const activityByUser = new Map(
-    users.map((user) => [
-      user.id,
-      activityEntries.filter((e) => e.userId === user.id),
-    ]),
+    users.map((user) => {
+      const entries = activityEntries.filter((e) => e.userId === user.id);
+      const total = entries.reduce((sum, entry) => sum + entry.net, 0);
+      return [user.id, { data: entries, total }];
+    }),
   );
 
-  const totalByUser = new Map(
-    users.map((user) => [
-      user.id,
-      activityEntries.find((e) => e.userId === user.id)?.total ?? 0,
-    ]),
-  );
-
-  const sortedUsers = [...users].sort((a, b) => {
-    const aTotal = totalByUser.get(a.id) ?? 0;
-    const bTotal = totalByUser.get(b.id) ?? 0;
-    const tier = (n: number) =>
-      n > 0 ? 0
-      : n < 0 ? 1
-      : 2;
+  // Sort users so that active users are on top,
+  const tier = (n: number) => {
+    if (n > 0) return 0;
+    if (n < 0) return 1;
+    else return 2;
+  };
+  const sortedUsers = users.sort((a, b) => {
+    const aTotal = activityByUser.get(a.id)?.total ?? 0;
+    const bTotal = activityByUser.get(b.id)?.total ?? 0;
     return tier(aTotal) - tier(bTotal) || bTotal - aTotal;
   });
 
-  const allNet = activityEntries.map((e) => e.net);
-  const yMin = Math.min(0, ...allNet);
-  const yMax = Math.max(0, ...allNet);
+  const yMin = activityEntries.reduce((min, e) => Math.min(min, e.net), 0);
+  const yMax = activityEntries.reduce((max, e) => Math.max(max, e.net), 0);
 
   return (
     <div className="absolute w-full h-full overflow-auto">
@@ -113,6 +107,8 @@ export default async function LanguageUsersPage(props: LanguageUsersPageProps) {
           </ListHeader>
           <ListBody>
             {sortedUsers.map((user) => {
+              const userActivity = activityByUser.get(user.id);
+
               return (
                 <ListRow key={user.id}>
                   <ListCell header className="pe-4 py-2">
@@ -121,7 +117,8 @@ export default async function LanguageUsersPage(props: LanguageUsersPageProps) {
                   </ListCell>
                   <ListCell className="py-2 pe-4">
                     <ActivityChart
-                      data={activityByUser.get(user.id) ?? []}
+                      data={userActivity?.data ?? []}
+                      total={userActivity?.total ?? 0}
                       yMin={yMin}
                       yMax={yMax}
                     />
