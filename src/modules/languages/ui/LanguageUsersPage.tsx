@@ -18,6 +18,9 @@ import { Policy } from "@/modules/access";
 import { notFound } from "next/navigation";
 import { getLanguageMembersReadModel } from "../read-models/getLanguageMembersReadModel";
 import { reinviteLanguageMemberAction } from "../actions/reinviteLanguageMember";
+import { getLanguageByCodeReadModel } from "../read-models/getLanguageByCodeReadModel";
+import { getUserActivityReadModel } from "@/modules/reporting";
+import ActivityChart from "./ActivityChart";
 
 interface LanguageUsersPageProps {
   params: Promise<{ code: string }>;
@@ -50,7 +53,38 @@ export default async function LanguageUsersPage(props: LanguageUsersPageProps) {
     notFound();
   }
 
-  const users = await getLanguageMembersReadModel(params.code);
+  const language = await getLanguageByCodeReadModel(params.code);
+  if (!language) {
+    notFound();
+  }
+
+  const [users, activityEntries] = await Promise.all([
+    getLanguageMembersReadModel(params.code),
+    getUserActivityReadModel(language.id),
+  ]);
+
+  const activityByUser = new Map(
+    users.map((user) => {
+      const entries = activityEntries.filter((e) => e.userId === user.id);
+      const total = entries.reduce((sum, entry) => sum + entry.net, 0);
+      return [user.id, { data: entries, total }];
+    }),
+  );
+
+  // Sort users so that active users are on top,
+  const tier = (n: number) => {
+    if (n > 0) return 0;
+    if (n < 0) return 1;
+    else return 2;
+  };
+  const sortedUsers = users.sort((a, b) => {
+    const aTotal = activityByUser.get(a.id)?.total ?? 0;
+    const bTotal = activityByUser.get(b.id)?.total ?? 0;
+    return tier(aTotal) - tier(bTotal) || bTotal - aTotal;
+  });
+
+  const yMin = activityEntries.reduce((min, e) => Math.min(min, e.net), 0);
+  const yMax = activityEntries.reduce((max, e) => Math.max(max, e.net), 0);
 
   return (
     <div className="absolute w-full h-full overflow-auto">
@@ -68,42 +102,60 @@ export default async function LanguageUsersPage(props: LanguageUsersPageProps) {
             <ListHeaderCell className="min-w-[120px]">
               {t("headers.name")}
             </ListHeaderCell>
+            <ListHeaderCell className="pe-4">
+              <div className="flex">
+                <span className="grow">{t("headers.activity")}</span>
+                <span className="normal-case">30d</span>
+              </div>
+            </ListHeaderCell>
             <ListHeaderCell />
           </ListHeader>
           <ListBody>
-            {users.map((user) => (
-              <ListRow key={user.id}>
-                <ListCell header className="pe-4 py-2">
-                  <div className="">{user.name}</div>
-                  <div className="font-normal text-sm">{user.email}</div>
-                </ListCell>
-                <ListCell className="py-2">
-                  {user.invite && (
+            {sortedUsers.map((user) => {
+              const userActivity = activityByUser.get(user.id);
+
+              return (
+                <ListRow key={user.id}>
+                  <ListCell header className="pe-4 py-2">
+                    <div className="">{user.name}</div>
+                    <div className="font-normal text-sm">{user.email}</div>
+                  </ListCell>
+                  <ListCell className="py-2 pe-4">
+                    <ActivityChart
+                      data={userActivity?.data ?? []}
+                      total={userActivity?.total ?? 0}
+                      yMin={yMin}
+                      yMax={yMax}
+                    />
+                  </ListCell>
+                  <ListCell className="py-2">
+                    {user.invite && (
+                      <ServerAction
+                        variant="tertiary"
+                        className="ms-4"
+                        actionData={{ userId: user.id, code: params.code }}
+                        action={reinviteLanguageMemberAction}
+                      >
+                        {t("links.resend_invite")}
+                      </ServerAction>
+                    )}
                     <ServerAction
                       variant="tertiary"
-                      className="ms-4"
-                      actionData={{ userId: user.id, code: params.code }}
-                      action={reinviteLanguageMemberAction}
+                      className="text-red-700 ms-2 -me-2"
+                      destructive
+                      actionData={{
+                        userId: user.id,
+                        code: params.code,
+                      }}
+                      action={removeLanguageMember}
                     >
-                      {t("links.resend_invite")}
+                      <Icon icon="xmark" />
+                      <span className="sr-only">{t("links.remove")}</span>
                     </ServerAction>
-                  )}
-                  <ServerAction
-                    variant="tertiary"
-                    className="text-red-700 ms-2 -me-2"
-                    destructive
-                    actionData={{
-                      userId: user.id,
-                      code: params.code,
-                    }}
-                    action={removeLanguageMember}
-                  >
-                    <Icon icon="xmark" />
-                    <span className="sr-only">{t("links.remove")}</span>
-                  </ServerAction>
-                </ListCell>
-              </ListRow>
-            ))}
+                  </ListCell>
+                </ListRow>
+              );
+            })}
           </ListBody>
         </List>
       </div>
