@@ -11,12 +11,19 @@ import {
 import * as d3 from "d3";
 import {
   addDays,
+  addWeeks,
+  eachWeekOfInterval,
   eachDayOfInterval,
   format,
   startOfDay,
+  startOfWeek,
   subDays,
+  subWeeks,
 } from "date-fns";
 import { UTCDate } from "@date-fns/utc";
+import Button from "@/components/Button";
+import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "@/shared/i18n/navigation";
 
 export interface ActivityChartEntry {
   date: Date;
@@ -46,9 +53,40 @@ export function ActivityChartProvider({
   );
 }
 
+export type ActivityChartRange = "30d" | "6m";
+
+export function ActivityChartRangeToggle() {
+  const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const range = params.get("range") ?? "30d";
+
+  function onClick() {
+    if (range === "30d") {
+      router.replace({
+        pathname,
+        query: { range: "6m" },
+      });
+    } else {
+      router.replace({
+        pathname,
+        query: { range: "30d" },
+      });
+    }
+  }
+
+  return (
+    <Button variant="link" onClick={onClick}>
+      {range ?? "30d"}
+    </Button>
+  );
+}
+
 export default function ActivityChart({
   data,
   total,
+  range,
   yMin,
   yMax,
 }: {
@@ -56,6 +94,7 @@ export default function ActivityChart({
   total: number;
   yMin: number;
   yMax: number;
+  range: ActivityChartRange;
 }) {
   const ctx = useContext(ActivityChartContext);
   const [localCursor, setLocalCursor] = useState<UTCDate | null>(null);
@@ -81,6 +120,7 @@ export default function ActivityChart({
         data={data}
         yMin={yMin}
         yMax={yMax}
+        range={range}
         cursor={cursor}
         onCursorChange={setCursor}
       />
@@ -120,12 +160,14 @@ function ActivityChartSVG({
   data,
   yMin,
   yMax,
+  range,
   cursor,
   onCursorChange,
 }: {
   data: ActivityChartEntry[];
   yMin: number;
   yMax: number;
+  range: ActivityChartRange;
   cursor: UTCDate | null;
   onCursorChange: (date: UTCDate | null) => void;
 }) {
@@ -150,13 +192,19 @@ function ActivityChartSVG({
     svg.selectAll("*").remove();
     cursorLineRef.current = null;
 
-    const today = startOfDay(new UTCDate());
-    const start = subDays(today, 29);
+    const today =
+      range === "30d" ?
+        startOfDay(new UTCDate())
+      : startOfWeek(new UTCDate(), { weekStartsOn: 1 });
+    const start = range === "30d" ? subDays(today, 29) : subWeeks(today, 26);
 
     const dataByDay = new Map<number, number>(
       data.map((d) => [startOfDay(new UTCDate(d.date)).getTime(), d.net]),
     );
-    const days = eachDayOfInterval({ start, end: today });
+    const days =
+      range === "30d" ?
+        eachDayOfInterval({ start, end: today })
+      : eachWeekOfInterval({ start, end: today }, { weekStartsOn: 1 });
     const series = days.map((day) => ({
       date: day,
       net: dataByDay.get(day.getTime()) ?? 0,
@@ -265,8 +313,9 @@ function ActivityChartSVG({
 
     svg.on("mousemove", function (event: MouseEvent) {
       const [mouseX] = d3.pointer(event);
-      const hoveredDate = roundToNearestStartOfDay(
+      const hoveredDate = roundToNearest(
         new UTCDate(xScale.invert(mouseX)),
+        range,
       );
       onCursorChange(hoveredDate);
     });
@@ -274,7 +323,7 @@ function ActivityChartSVG({
     svg.on("mouseleave", function () {
       onCursorChange(null);
     });
-  }, [data, yMin, yMax, gradientId, clipId, onCursorChange]);
+  }, [data, yMin, yMax, gradientId, clipId, onCursorChange, range]);
 
   useEffect(() => {
     const line = cursorLineRef.current;
@@ -309,8 +358,17 @@ function getSentiment(series: { net: number }[]): Sentiment {
   return "neutral";
 }
 
-function roundToNearestStartOfDay(date: UTCDate): UTCDate {
-  const shouldRoundUp = date.getUTCHours() >= 12;
-  if (shouldRoundUp) return addDays(startOfDay(date), 1);
-  else return startOfDay(date);
+function roundToNearest(date: UTCDate, range: ActivityChartRange): UTCDate {
+  const start =
+    range === "30d" ? startOfDay(date) : startOfWeek(date, { weekStartsOn: 1 });
+  const end = range === "30d" ? addDays(start, 1) : addWeeks(start, 1);
+
+  const startDiff = Math.abs(date.valueOf() - start.valueOf());
+  const endDiff = Math.abs(date.valueOf() - end.valueOf());
+
+  if (startDiff < endDiff) {
+    return start;
+  } else {
+    return end;
+  }
 }

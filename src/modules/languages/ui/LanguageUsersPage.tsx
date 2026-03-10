@@ -20,10 +20,15 @@ import { getLanguageMembersReadModel } from "../read-models/getLanguageMembersRe
 import { reinviteLanguageMemberAction } from "../actions/reinviteLanguageMember";
 import { getLanguageByCodeReadModel } from "../read-models/getLanguageByCodeReadModel";
 import { getUserActivityReadModel } from "@/modules/reporting";
-import ActivityChart, { ActivityChartProvider } from "./ActivityChart";
+import ActivityChart, {
+  ActivityChartProvider,
+  ActivityChartRange,
+  ActivityChartRangeToggle,
+} from "./ActivityChart";
 
 interface LanguageUsersPageProps {
   params: Promise<{ code: string }>;
+  searchParams: Promise<{ range?: ActivityChartRange }>;
 }
 
 export async function generateMetadata(
@@ -58,9 +63,15 @@ export default async function LanguageUsersPage(props: LanguageUsersPageProps) {
     notFound();
   }
 
+  const { range = "30d" } = await props.searchParams;
+
   const [users, activityEntries] = await Promise.all([
     getLanguageMembersReadModel(params.code),
-    getUserActivityReadModel(language.id),
+    getUserActivityReadModel({
+      languageId: language.id,
+      granularity: range === "30d" ? "day" : "week",
+      range: range === "30d" ? 30 : 182,
+    }),
   ]);
 
   const activityByUser = new Map(
@@ -105,7 +116,7 @@ export default async function LanguageUsersPage(props: LanguageUsersPageProps) {
             <ListHeaderCell className="pe-4">
               <div className="flex">
                 <span className="grow">{t("headers.activity")}</span>
-                <span className="normal-case">30d</span>
+                <ActivityChartRangeToggle />
               </div>
             </ListHeaderCell>
             <ListHeaderCell />
@@ -125,6 +136,7 @@ export default async function LanguageUsersPage(props: LanguageUsersPageProps) {
                       <ActivityChart
                         data={userActivity?.data ?? []}
                         total={userActivity?.total ?? 0}
+                        range={range}
                         yMin={yMin}
                         yMax={yMax}
                       />
