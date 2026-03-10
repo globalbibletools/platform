@@ -20,7 +20,7 @@ import { getLanguageMembersReadModel } from "../read-models/getLanguageMembersRe
 import { reinviteLanguageMemberAction } from "../actions/reinviteLanguageMember";
 import { getLanguageByCodeReadModel } from "../read-models/getLanguageByCodeReadModel";
 import { getUserActivityReadModel } from "@/modules/reporting";
-import ActivityChart from "./ActivityChart";
+import ActivityChart, { ActivityChartProvider } from "./ActivityChart";
 
 interface LanguageUsersPageProps {
   params: Promise<{ code: string }>;
@@ -110,53 +110,55 @@ export default async function LanguageUsersPage(props: LanguageUsersPageProps) {
             </ListHeaderCell>
             <ListHeaderCell />
           </ListHeader>
-          <ListBody>
-            {sortedUsers.map((user) => {
-              const userActivity = activityByUser.get(user.id);
+          <ActivityChartProvider>
+            <ListBody>
+              {sortedUsers.map((user) => {
+                const userActivity = activityByUser.get(user.id);
 
-              return (
-                <ListRow key={user.id}>
-                  <ListCell header className="pe-4 py-2">
-                    <div className="">{user.name}</div>
-                    <div className="font-normal text-sm">{user.email}</div>
-                  </ListCell>
-                  <ListCell className="py-2 pe-4">
-                    <ActivityChart
-                      data={userActivity?.data ?? []}
-                      total={userActivity?.total ?? 0}
-                      yMin={yMin}
-                      yMax={yMax}
-                    />
-                  </ListCell>
-                  <ListCell className="py-2">
-                    {user.invite && (
+                return (
+                  <ListRow key={user.id}>
+                    <ListCell header className="pe-4 py-2">
+                      <div className="">{user.name}</div>
+                      <div className="font-normal text-sm">{user.email}</div>
+                    </ListCell>
+                    <ListCell className="py-2 pe-4">
+                      <ActivityChart
+                        data={userActivity?.data ?? []}
+                        total={userActivity?.total ?? 0}
+                        yMin={yMin}
+                        yMax={yMax}
+                      />
+                    </ListCell>
+                    <ListCell className="py-2">
+                      {user.invite && (
+                        <ServerAction
+                          variant="tertiary"
+                          className="ms-4"
+                          actionData={{ userId: user.id, code: params.code }}
+                          action={reinviteLanguageMemberAction}
+                        >
+                          {t("links.resend_invite")}
+                        </ServerAction>
+                      )}
                       <ServerAction
                         variant="tertiary"
-                        className="ms-4"
-                        actionData={{ userId: user.id, code: params.code }}
-                        action={reinviteLanguageMemberAction}
+                        className="text-red-700 ms-2 -me-2"
+                        destructive
+                        actionData={{
+                          userId: user.id,
+                          code: params.code,
+                        }}
+                        action={removeLanguageMember}
                       >
-                        {t("links.resend_invite")}
+                        <Icon icon="xmark" />
+                        <span className="sr-only">{t("links.remove")}</span>
                       </ServerAction>
-                    )}
-                    <ServerAction
-                      variant="tertiary"
-                      className="text-red-700 ms-2 -me-2"
-                      destructive
-                      actionData={{
-                        userId: user.id,
-                        code: params.code,
-                      }}
-                      action={removeLanguageMember}
-                    >
-                      <Icon icon="xmark" />
-                      <span className="sr-only">{t("links.remove")}</span>
-                    </ServerAction>
-                  </ListCell>
-                </ListRow>
-              );
-            })}
-          </ListBody>
+                    </ListCell>
+                  </ListRow>
+                );
+              })}
+            </ListBody>
+          </ActivityChartProvider>
         </List>
       </div>
     </div>

@@ -1,12 +1,49 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import * as d3 from "d3";
-import { eachDayOfInterval, startOfDay, subDays } from "date-fns";
+import {
+  addDays,
+  eachDayOfInterval,
+  format,
+  startOfDay,
+  subDays,
+} from "date-fns";
+import { UTCDate } from "@date-fns/utc";
 
 export interface ActivityChartEntry {
   date: Date;
   net: number;
+}
+
+interface ActivityChartContextValue {
+  cursor: UTCDate | null;
+  setCursor: (date: UTCDate | null) => void;
+}
+
+const ActivityChartContext = createContext<ActivityChartContextValue | null>(
+  null,
+);
+
+export function ActivityChartProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [cursor, setCursor] = useState<UTCDate | null>(null);
+
+  return (
+    <ActivityChartContext value={{ cursor, setCursor }}>
+      {children}
+    </ActivityChartContext>
+  );
 }
 
 export default function ActivityChart({
@@ -20,20 +57,48 @@ export default function ActivityChart({
   yMin: number;
   yMax: number;
 }) {
+  const ctx = useContext(ActivityChartContext);
+  const [localCursor, setLocalCursor] = useState<UTCDate | null>(null);
+  const cursor = ctx ? ctx.cursor : localCursor;
+  const setCursor = ctx ? ctx.setCursor : setLocalCursor;
+  const cursorValue =
+    (cursor && data.find((entry) => entry.date.valueOf() === cursor.valueOf()))
+      ?.net ?? 0;
+
+  const totalColor =
+    total > 0 ? "text-blue-800"
+    : total < 0 ? "text-red-700"
+    : "text-gray-500";
+
+  const cursorColor =
+    cursorValue > 0 ? "text-blue-800"
+    : cursorValue < 0 ? "text-red-700"
+    : "text-gray-500";
+
   return (
     <div className="flex flex-col">
-      <ActivityChartSVG className="" {...{ data, yMin, yMax }} />
-      <span className="block h-5 leading-0">
-        <span className="text-xs font-bold">TOTAL: </span>
-        <span
-          className={`text-sm font-bold ${
-            total > 0 ? "text-blue-800"
-            : total < 0 ? "text-red-700"
-            : "text-gray-500"
-          }`}
-        >
-          {total}
+      <ActivityChartSVG
+        data={data}
+        yMin={yMin}
+        yMax={yMax}
+        cursor={cursor}
+        onCursorChange={setCursor}
+      />
+      <span className="flex h-5 leading-0">
+        <span className="grow">
+          <span className="text-xs font-bold">TOTAL: </span>
+          <span className={`text-sm font-bold ${totalColor}`}>{total}</span>
         </span>
+        {cursor && (
+          <span>
+            <span className="text-xs font-bold uppercase">
+              {format(cursor, "MMM d")}:{" "}
+            </span>
+            <span className={`text-sm font-bold ${cursorColor}`}>
+              {cursorValue}
+            </span>
+          </span>
+        )}
       </span>
     </div>
   );
@@ -52,17 +117,28 @@ const GRADIENT_OPACITY_MIN = 0;
 const GRADIENT_OPACITY_MAX = 0.4;
 
 function ActivityChartSVG({
-  className,
   data,
   yMin,
   yMax,
+  cursor,
+  onCursorChange,
 }: {
-  className: string;
   data: ActivityChartEntry[];
   yMin: number;
   yMax: number;
+  cursor: UTCDate | null;
+  onCursorChange: (date: UTCDate | null) => void;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const cursorLineRef = useRef<d3.Selection<
+    SVGLineElement,
+    unknown,
+    null,
+    undefined
+  > | null>(null);
+  const xScaleRef = useRef<d3.ScaleTime<number, number, never> | undefined>(
+    undefined,
+  );
 
   // Unique IDs so multiple charts on the same page don't share gradient defs
   const uid = useId().replace(/:/g, "");
@@ -72,12 +148,13 @@ function ActivityChartSVG({
   useEffect(() => {
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
+    cursorLineRef.current = null;
 
-    const today = startOfDay(new Date());
+    const today = startOfDay(new UTCDate());
     const start = subDays(today, 29);
 
     const dataByDay = new Map<number, number>(
-      data.map((d) => [startOfDay(d.date).getTime(), d.net]),
+      data.map((d) => [startOfDay(new UTCDate(d.date)).getTime(), d.net]),
     );
     const days = eachDayOfInterval({ start, end: today });
     const series = days.map((day) => ({
@@ -93,11 +170,12 @@ function ActivityChartSVG({
     const effectiveMin = yMin === yMax ? -1 : yMin;
     const effectiveMax = yMin === yMax ? 1 : yMax;
 
-    const xScale = d3.scaleTime().domain([start, today]).range([0, WIDTH]);
+    const xScale = d3.scaleUtc().domain([start, today]).range([0, WIDTH]);
     const yScale = d3
       .scaleLinear()
       .domain([effectiveMin, effectiveMax])
       .range([HEIGHT, 0]);
+    xScaleRef.current = xScale;
 
     const zeroY = yScale(0);
 
@@ -149,15 +227,15 @@ function ActivityChartSVG({
 
     const lineGen = d3
       .line<{ date: Date; net: number }>()
-      .x((d: { date: Date; net: number }) => xScale(d.date))
-      .y((d: { date: Date; net: number }) => yScale(d.net))
+      .x((d) => xScale(d.date))
+      .y((d) => yScale(d.net))
       .curve(d3.curveMonotoneX);
 
     const areaGen = d3
       .area<{ date: Date; net: number }>()
-      .x((d: { date: Date; net: number }) => xScale(d.date))
+      .x((d) => xScale(d.date))
       .y0(zeroY)
-      .y1((d: { date: Date; net: number }) => yScale(d.net))
+      .y1((d) => yScale(d.net))
       .curve(d3.curveMonotoneX);
 
     // Gradient fill between line and zero baseline
@@ -174,11 +252,46 @@ function ActivityChartSVG({
       .attr("stroke", color)
       .attr("stroke-width", 1.5)
       .attr("d", lineGen);
-  }, [data, yMin, yMax, gradientId, clipId]);
+
+    cursorLineRef.current = svg
+      .append("line")
+      .attr("y1", 0)
+      .attr("y2", HEIGHT)
+      .attr("stroke", "var(--color-gray-400)")
+      .attr("stroke-width", 2)
+      .attr("stroke-dasharray", "3 2")
+      .attr("pointer-events", "none")
+      .style("display", "none");
+
+    svg.on("mousemove", function (event: MouseEvent) {
+      const [mouseX] = d3.pointer(event);
+      const hoveredDate = roundToNearestStartOfDay(
+        new UTCDate(xScale.invert(mouseX)),
+      );
+      onCursorChange(hoveredDate);
+    });
+
+    svg.on("mouseleave", function () {
+      onCursorChange(null);
+    });
+  }, [data, yMin, yMax, gradientId, clipId, onCursorChange]);
+
+  useEffect(() => {
+    const line = cursorLineRef.current;
+    if (!line) return;
+
+    if (!cursor || !xScaleRef.current) {
+      line.style("display", "none");
+      return;
+    }
+
+    const x = xScaleRef.current(cursor);
+    line.style("display", null).attr("x1", x).attr("x2", x);
+  }, [cursor]);
 
   return (
     <svg
-      className={className}
+      className="cursor-crosshair"
       ref={svgRef}
       width={WIDTH}
       height={HEIGHT}
@@ -194,4 +307,10 @@ function getSentiment(series: { net: number }[]): Sentiment {
   if (total > 0) return "positive";
   if (total < 0) return "negative";
   return "neutral";
+}
+
+function roundToNearestStartOfDay(date: UTCDate): UTCDate {
+  const shouldRoundUp = date.getUTCHours() >= 12;
+  if (shouldRoundUp) return addDays(startOfDay(date), 1);
+  else return startOfDay(date);
 }
