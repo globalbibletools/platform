@@ -71,22 +71,18 @@ export default function ActivityChart({
     : "text-gray-500";
 
   const cursorColor =
-    cursorValue !== null ?
-      cursorValue > 0 ? "text-blue-800"
-      : cursorValue < 0 ? "text-red-700"
-      : "text-gray-500"
-    : null;
+    cursorValue > 0 ? "text-blue-800"
+    : cursorValue < 0 ? "text-red-700"
+    : "text-gray-500";
 
   return (
     <div className="flex flex-col">
       <ActivityChartSVG
-        {...{
-          data,
-          yMin,
-          yMax,
-          cursor,
-          onCursorChange: setCursor,
-        }}
+        data={data}
+        yMin={yMin}
+        yMax={yMax}
+        cursor={cursor}
+        onCursorChange={setCursor}
       />
       <span className="flex h-5 leading-0">
         <span className="grow">
