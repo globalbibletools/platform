@@ -192,7 +192,10 @@ function ActivityChartSVG({
     svg.selectAll("*").remove();
     cursorLineRef.current = null;
 
-    const today = startOfDay(new UTCDate());
+    const today =
+      range === "30d" ?
+        startOfDay(new UTCDate())
+      : startOfWeek(new UTCDate(), { weekStartsOn: 1 });
     const start = range === "30d" ? subDays(today, 29) : subWeeks(today, 26);
 
     const dataByDay = new Map<number, number>(
