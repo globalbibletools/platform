@@ -55,12 +55,13 @@ export function ActivityChartProvider({
 
 export type ActivityChartRange = "30d" | "6m";
 
-export function ActivityChartRangeToggle() {
-  const params = useSearchParams();
+export function ActivityChartRangeToggle({
+  range = "30d",
+}: {
+  range?: ActivityChartRange;
+}) {
   const router = useRouter();
   const pathname = usePathname();
-
-  const range = params.get("range") ?? "30d";
 
   function onClick() {
     if (range === "30d") {

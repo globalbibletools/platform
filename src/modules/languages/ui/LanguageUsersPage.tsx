@@ -116,7 +116,7 @@ export default async function LanguageUsersPage(props: LanguageUsersPageProps) {
             <ListHeaderCell className="pe-4">
               <div className="flex">
                 <span className="grow">{t("headers.activity")}</span>
-                <ActivityChartRangeToggle />
+                <ActivityChartRangeToggle range={range} />
               </div>
             </ListHeaderCell>
             <ListHeaderCell />
