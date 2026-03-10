@@ -178,9 +178,7 @@ function ActivityChartSVG({
     null,
     undefined
   > | null>(null);
-  const xScaleRef = useRef<d3.ScaleTime<number, number, never> | undefined>(
-    undefined,
-  );
+  const xScaleRef = useRef<d3.ScaleTime<number, number, never> | null>(null);
 
   // Unique IDs so multiple charts on the same page don't share gradient defs
   const uid = useId().replace(/:/g, "");
@@ -189,8 +187,6 @@ function ActivityChartSVG({
 
   useEffect(() => {
     const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove();
-    cursorLineRef.current = null;
 
     const today =
       range === "30d" ?
@@ -323,6 +319,13 @@ function ActivityChartSVG({
     svg.on("mouseleave", function () {
       onCursorChange(null);
     });
+
+    return () => {
+      svg.selectAll("*").remove();
+      svg.on(".", null);
+      cursorLineRef.current = null;
+      xScaleRef.current = null;
+    };
   }, [data, yMin, yMax, gradientId, clipId, onCursorChange, range]);
 
   useEffect(() => {
