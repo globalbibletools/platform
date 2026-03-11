@@ -59,25 +59,78 @@ export default async function LandingPage() {
         </a>
       </nav>
       <main>
-        <section id="hero" className="relative">
+        <section
+          id="hero"
+          className="relative aspect-16/16 sm:aspect-16/14 md:aspect-16/8"
+        >
           <Image
             src="https://assets.globalbibletools.com/landing/hero.png"
-            className="w-full brightness-90"
+            className="w-full h-full brightness-90 object-cover"
             alt=""
             width={1191}
             height={744}
           />
-          <div className="absolute top-0 bottom-0 w-full flex flex-col items-center justify-center sm:mb-10 md:mb-20 px-8">
-            <p className="text-white text-center font-bold text-md sm:text-lg md:text-xl lg:text-2xl max-w-[600px] mb-6 sm:mb-16">
-              The global Church needs access to serious biblical language study
-              tools without cost or hindrance.
-            </p>
-            <a
-              className="rounded-lg bg-blue-800 text-white font-bold shadow-xl px-4 md:px-6 lg:px-8 flex items-center justify-center h-8 md:h-10 lg:h-12 md:text-lg lg:text-xl"
-              href="#vision"
-            >
-              Learn More
-            </a>
+          <div className="absolute top-0 bottom-0 w-full px-6 py-4 sm:py-8 md:pt-0 md:px-8">
+            <div className="sm:max-w-4/5 md:max-w-[1000px] h-full mx-auto flex gap-6 sm:gap-8 items-center justify-center flex-col md:flex-row">
+              <div className="md:flex-1">
+                <p className="text-white font-bold md:text-lg lg:text-xl mb-2 sm:mb-4">
+                  The global Church needs access to serious biblical language
+                  study tools without cost or hindrance.
+                </p>
+                <div className="flex gap-4">
+                  <a
+                    href="https://play.google.com/store/apps/details?id=com.globalbibletools.gbt"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span className="sr-only">Get it on Google Play</span>
+                    <Image
+                      src="https://assets.globalbibletools.com/landing/google-play.svg"
+                      className="h-8 md:h-10 lg:h-12 w-auto"
+                      alt=""
+                      width={300}
+                      height={89}
+                    />
+                  </a>
+                  <a
+                    href="https://apps.apple.com/us/app/global-bible-tools/id6749404435"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span className="sr-only">Download on the App Store</span>
+                    <Image
+                      src="https://assets.globalbibletools.com/landing/app-store.svg"
+                      className="h-8 md:h-10 lg:h-12 w-auto"
+                      alt=""
+                      width={120}
+                      height={40}
+                    />
+                  </a>
+                </div>
+              </div>
+              <div className="md:flex-1 md:pt-6">
+                <video
+                  className="aspect-video rounded-lg shadow-2xl"
+                  controls
+                  poster="https://assets.globalbibletools.com/landing/info.jpg"
+                >
+                  <source
+                    type="video/mp4"
+                    src="https://assets.globalbibletools.com/landing/info.mp4"
+                  />
+                </video>
+                <div className="flex justify-center mt-2 md:mt-4">
+                  <a
+                    className="font-bold text-white underline"
+                    href="https://docs.google.com/document/d/1PfgkStvqrCJutpcQzq73zN_fZkfl17zs3MdQIhT3xg4/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Prefer to Read? <Icon icon="external-link" />
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
         <section
@@ -86,29 +139,6 @@ export default async function LandingPage() {
         >
           <div className="w-full max-w-[1000px] mx-auto">
             <h2 className="text-3xl md:text-5xl font-bold mb-8">Vision</h2>
-            <div className="relative w-full shadow-lg mb-8">
-              <div className="pb-[56.25%]" />
-              <video
-                className="absolute h-full w-full top-0"
-                controls
-                poster="https://assets.globalbibletools.com/landing/info.jpg"
-              >
-                <source
-                  type="video/mp4"
-                  src="https://assets.globalbibletools.com/landing/info.mp4"
-                />
-              </video>
-            </div>
-            <div className="flex justify-center mb-16">
-              <a
-                className="font-bold text-blue-800 underline"
-                href="https://docs.google.com/document/d/1PfgkStvqrCJutpcQzq73zN_fZkfl17zs3MdQIhT3xg4/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Prefer to Read? <Icon icon="external-link" />
-              </a>
-            </div>
             <div className="grid grid-rows-[auto_1fr_1fr_auto_1fr_1fr_1fr] md:grid-rows-[auto_1fr_1fr_1fr] grid-cols-1 md:grid-cols-2 grid-flow-col gap-8 lg:gap-x-16">
               <h3 className="text-center text-xl font-bold border-b-4 border-black pb-2 mx-4">
                 Language Learning
