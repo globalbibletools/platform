@@ -154,6 +154,7 @@
     "links": {
       "settings": "Settings",
       "users": "Users",
+      "dashboard": "Dashboard",
       "reports": "Reports",
       "import": "Import",
       "exports": "Exports",

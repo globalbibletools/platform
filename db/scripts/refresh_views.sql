@@ -1,2 +1,2 @@
---- Refresh Materialized Views
-REFRESH MATERIALIZED VIEW public.language_progress;
+refresh materialized view public.language_progress;
+refresh materialized view public.book_word_map;

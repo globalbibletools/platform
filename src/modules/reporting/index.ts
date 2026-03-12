@@ -6,3 +6,8 @@ export {
   getUserActivityReadModel,
   type UserActivityEntry,
 } from "./read-models/getUserActivityReadModel";
+export {
+  getLanguageBookProgressReadModel,
+  type BookProgressRow,
+  type BookProgressContributor,
+} from "./read-models/getLanguageBookProgressReadModel";

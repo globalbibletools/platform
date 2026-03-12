@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict DCYFy4iHbP34bs4qVhezUQeO9mU7dXDSgFpnQLCENrlsWM1RA00jvZlfgd7Wpp2
+\restrict oN38ge4yWo3ClLboii0tek5bPJloF75Z2BwQeJ7y853XdgwGtctQDwasX5wHbVV
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -448,6 +448,42 @@ ALTER TABLE public.book_completion_progress ALTER COLUMN id ADD GENERATED ALWAYS
 
 
 --
+-- Name: verse; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.verse (
+    id text NOT NULL,
+    number integer NOT NULL,
+    book_id integer NOT NULL,
+    chapter integer NOT NULL
+);
+
+
+--
+-- Name: word; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.word (
+    id text NOT NULL,
+    text text NOT NULL,
+    verse_id text NOT NULL,
+    form_id text NOT NULL
+);
+
+
+--
+-- Name: book_word_map; Type: MATERIALIZED VIEW; Schema: public; Owner: -
+--
+
+CREATE MATERIALIZED VIEW public.book_word_map AS
+ SELECT w.id AS word_id,
+    v.book_id
+   FROM (public.word w
+     JOIN public.verse v ON ((v.id = w.verse_id)))
+  WITH NO DATA;
+
+
+--
 -- Name: footnote; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -615,30 +651,6 @@ CREATE TABLE public.phrase (
 CREATE TABLE public.phrase_word (
     phrase_id integer NOT NULL,
     word_id text NOT NULL
-);
-
-
---
--- Name: verse; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.verse (
-    id text NOT NULL,
-    number integer NOT NULL,
-    book_id integer NOT NULL,
-    chapter integer NOT NULL
-);
-
-
---
--- Name: word; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.word (
-    id text NOT NULL,
-    text text NOT NULL,
-    verse_id text NOT NULL,
-    form_id text NOT NULL
 );
 
 
@@ -1420,6 +1432,20 @@ CREATE UNIQUE INDEX book_name_key ON public.book USING btree (name);
 
 
 --
+-- Name: book_word_map_book_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX book_word_map_book_id ON public.book_word_map USING btree (book_id);
+
+
+--
+-- Name: book_word_map_word_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX book_word_map_word_id ON public.book_word_map USING btree (word_id);
+
+
+--
 -- Name: footnote_phrase_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1963,5 +1989,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict DCYFy4iHbP34bs4qVhezUQeO9mU7dXDSgFpnQLCENrlsWM1RA00jvZlfgd7Wpp2
+\unrestrict oN38ge4yWo3ClLboii0tek5bPJloF75Z2BwQeJ7y853XdgwGtctQDwasX5wHbVV
 
