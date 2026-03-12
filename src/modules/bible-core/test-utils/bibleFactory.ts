@@ -2,7 +2,7 @@ import { Selectable } from "kysely";
 import { getDb } from "@/db";
 import { VerseTable, WordTable } from "../db/schema";
 
-const HAGGAI_BOOK_ID = 37;
+export const HAGGAI_BOOK_ID = 37;
 const HAGGAI_FIRST_VERSE_ID = "37001001";
 const HAGGAI_FIRST_WORD_ID = "3700100101";
 

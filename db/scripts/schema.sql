@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 06VlmWgEFSjbNQzueVatqmQNuuS23TVsjf4Jiy4Z8hlUHwMiqUNNGaDmnq7CgNh
+\restrict DCYFy4iHbP34bs4qVhezUQeO9mU7dXDSgFpnQLCENrlsWM1RA00jvZlfgd7Wpp2
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -416,6 +416,34 @@ SET default_table_access_method = heap;
 CREATE TABLE public.book (
     id integer NOT NULL,
     name text NOT NULL
+);
+
+
+--
+-- Name: book_completion_progress; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.book_completion_progress (
+    id integer NOT NULL,
+    language_id uuid NOT NULL,
+    book_id integer NOT NULL,
+    user_id uuid,
+    word_count integer NOT NULL,
+    refreshed_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: book_completion_progress_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.book_completion_progress ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.book_completion_progress_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
 
@@ -1059,6 +1087,14 @@ ALTER TABLE ONLY public.weekly_gloss_statistics ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- Name: book_completion_progress book_completion_progress_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.book_completion_progress
+    ADD CONSTRAINT book_completion_progress_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: book book_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1363,6 +1399,20 @@ ALTER TABLE ONLY public.word
 
 
 --
+-- Name: book_completion_progress_unique_null_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX book_completion_progress_unique_null_user ON public.book_completion_progress USING btree (language_id, book_id) WHERE (user_id IS NULL);
+
+
+--
+-- Name: book_completion_progress_unique_with_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX book_completion_progress_unique_with_user ON public.book_completion_progress USING btree (language_id, book_id, user_id) WHERE (user_id IS NOT NULL);
+
+
+--
 -- Name: book_name_key; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1507,6 +1557,30 @@ CREATE TRIGGER gloss_audit AFTER DELETE OR UPDATE ON public.gloss FOR EACH ROW E
 --
 
 CREATE TRIGGER increment_suggestion AFTER INSERT OR UPDATE OF gloss, state ON public.gloss FOR EACH ROW EXECUTE FUNCTION public.increment_suggestion();
+
+
+--
+-- Name: book_completion_progress book_completion_progress_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.book_completion_progress
+    ADD CONSTRAINT book_completion_progress_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.book(id);
+
+
+--
+-- Name: book_completion_progress book_completion_progress_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.book_completion_progress
+    ADD CONSTRAINT book_completion_progress_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id);
+
+
+--
+-- Name: book_completion_progress book_completion_progress_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.book_completion_progress
+    ADD CONSTRAINT book_completion_progress_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -1889,5 +1963,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 06VlmWgEFSjbNQzueVatqmQNuuS23TVsjf4Jiy4Z8hlUHwMiqUNNGaDmnq7CgNh
+\unrestrict DCYFy4iHbP34bs4qVhezUQeO9mU7dXDSgFpnQLCENrlsWM1RA00jvZlfgd7Wpp2
 

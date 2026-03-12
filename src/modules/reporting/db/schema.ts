@@ -8,3 +8,12 @@ export interface TrackingEventTable {
   language_id: string | null;
   created_at: Date;
 }
+
+export interface BookCompletionProgressTable {
+  id: Generated<number>;
+  language_id: string;
+  book_id: number;
+  user_id: string | null;
+  word_count: number;
+  refreshed_at: Date;
+}

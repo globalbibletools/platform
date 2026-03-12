@@ -12,9 +12,11 @@ import type {
   FootnoteTable,
   GlossTable,
   PhraseTable,
+  PhraseWordTable,
   TranslatorNoteTable,
 } from "../db/schema";
 import { GlossSourceRaw, GlossStateRaw } from "../types";
+import { ulid } from "@/shared/ulid";
 
 export type GlossOption =
   | "unapproved"
@@ -120,12 +122,11 @@ async function build(
     .returningAll()
     .executeTakeFirstOrThrow();
 
-  if (wordIds.length > 0) {
-    await db
-      .insertInto("phrase_word")
-      .values(wordIds.map((id) => ({ phrase_id: phrase.id, word_id: id })))
-      .execute();
-  }
+  const phraseWords = await db
+    .insertInto("phrase_word")
+    .values(wordIds.map((id) => ({ phrase_id: phrase.id, word_id: id })))
+    .returningAll()
+    .execute();
 
   const result: Partial<PhraseFactoryResult> = {
     phrase,
@@ -135,7 +136,11 @@ async function build(
   };
 
   if (options.gloss) {
-    result.gloss = await insertGloss(phrase.id, memberUserId, options.gloss);
+    const gloss = await insertGloss(phrase.id, memberUserId, options.gloss);
+
+    await insertGlossEvent({ phrase, phraseWords, gloss });
+
+    result.gloss = gloss;
   }
 
   if (options.translatorNote) {
@@ -215,20 +220,21 @@ async function buildMany(
       .returningAll()
       .executeTakeFirstOrThrow();
 
-    await db
+    const phraseWords = await db
       .insertInto("phrase_word")
       .values({ phrase_id: phrase.id, word_id: word.id })
+      .returningAll()
       .execute();
 
     const phraseResult: PhraseResult = { word, phrase };
 
     const glossOption = options.gloss?.[i] ?? null;
     if (glossOption !== null) {
-      phraseResult.gloss = await insertGloss(
-        phrase.id,
-        memberUserId,
-        glossOption,
-      );
+      const gloss = await insertGloss(phrase.id, memberUserId, glossOption);
+
+      await insertGlossEvent({ phrase, phraseWords, gloss });
+
+      phraseResult.gloss = gloss;
     }
 
     phrases.push(phraseResult);
@@ -241,6 +247,34 @@ export const phraseFactory = {
   build,
   buildMany,
 };
+
+async function insertGlossEvent({
+  phrase,
+  phraseWords,
+  gloss,
+}: {
+  phraseWords: Selectable<PhraseWordTable>[];
+  phrase: Selectable<PhraseTable>;
+  gloss: Selectable<GlossTable>;
+}) {
+  await getDb()
+    .insertInto("gloss_event")
+    .values(
+      phraseWords.map((word) => ({
+        id: ulid(),
+        user_id: gloss.updated_by!,
+        language_id: phrase.language_id,
+        phrase_id: phrase.id,
+        word_id: word.word_id,
+        prev_gloss: "",
+        prev_state: GlossStateRaw.Unapproved,
+        new_gloss: gloss.gloss ?? "",
+        new_state: gloss.state,
+        timestamp: gloss.updated_at,
+      })),
+    )
+    .execute();
+}
 
 async function insertGloss(
   phraseId: number,
