@@ -69,7 +69,10 @@ export default function BookProgressList({ books }: BookProgressListProps) {
                 </span>
                 <div className="h-3 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden mb-[3px]">
                   <div
-                    className="h-full rounded-full bg-linear-to-r from-green-300 to-blue-700"
+                    className="
+                      h-full rounded-full bg-linear-to-r from-green-300 to-blue-700
+                      dark:from-green-500 dark:to-blue-800
+                    "
                     style={{
                       maskImage: `linear-gradient(to right, black ${percent}%, transparent ${percent}%)`,
                     }}
@@ -110,7 +113,10 @@ export default function BookProgressList({ books }: BookProgressListProps) {
                       <div>
                         <div className="h-2 rounded-full bg-gray-200 dark:bg-gray-700">
                           <div
-                            className="h-full rounded-full bg-linear-to-r from-green-300 to-green-400"
+                            className="
+                              h-full rounded-full bg-linear-to-r from-green-300 to-green-400
+                              dark:from-green-400 dark:to-green-600
+                            "
                             style={{
                               maskImage: `linear-gradient(to right, black ${pct}%, transparent ${pct}%)`,
                             }}
