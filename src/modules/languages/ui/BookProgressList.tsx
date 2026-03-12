@@ -13,6 +13,8 @@ function labelFor(userId: string | null, name: string | null): string {
   return name ?? userId;
 }
 
+const COLLAPSE_ROW_COUNT = 3;
+
 export default function BookProgressList({ books }: BookProgressListProps) {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
@@ -31,52 +33,57 @@ export default function BookProgressList({ books }: BookProgressListProps) {
   return (
     <div
       className="grid gap-x-6"
-      style={{ gridTemplateColumns: "160px auto 120px auto" }}
+      style={{ gridTemplateColumns: "240px auto 120px auto" }}
     >
+      <div className="col-span-4 grid grid-cols-subgrid border-b-2 border-green-300 px-4 items-start">
+        <div className="text-start font-bold text-sm uppercase">Book</div>
+        <div className="col-span-3 text-start font-bold text-sm uppercase">
+          Contributors
+        </div>
+      </div>
       {books
         .filter((book) => book.progress < 1)
         .map((book) => {
           const percent = (book.progress * 100).toFixed(2);
           const isExpanded = expanded.has(book.bookId);
-          const showExpand = book.contributors.length > 2;
+          const showExpand = book.contributors.length > COLLAPSE_ROW_COUNT;
 
           const contributors =
             isExpanded || !showExpand ?
               book.contributors
-            : book.contributors.slice(0, 2);
+            : book.contributors.slice(0, COLLAPSE_ROW_COUNT);
 
           const othersWordCount = book.contributors
-            .slice(1)
+            .slice(COLLAPSE_ROW_COUNT - 1)
             .reduce((sum, c) => sum + c.wordCount, 0);
           const hiddenCount = book.contributors.length - 1;
 
           return (
             <div
               key={book.bookId}
-              className="col-span-4 grid grid-cols-subgrid py-2 border-b border-green-200 px-4"
+              className="col-span-4 grid grid-cols-subgrid py-2 border-b border-green-200 px-4 items-start"
             >
-              <div
-                className="
-                  flex flex-col gap-1 pr-2
-                "
-              >
-                <div className="flex gap-2 items-baseline">
-                  <span className="font-bold text-sm grow">{book.name}</span>
-                  <span className="text-xs tabular-nums">{percent}%</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden mb-[3px]">
+              <div className="flex flex-col pr-2">
+                <span className="font-bold text-sm grow mb-1.5">
+                  {book.name}
+                </span>
+                <div className="h-3 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden mb-[3px]">
                   <div
-                    className="h-full rounded-full bg-green-600 dark:bg-teal-500"
-                    style={{ width: `${percent}%` }}
+                    className="h-full rounded-full bg-linear-to-r from-green-300 to-blue-700"
+                    style={{
+                      maskImage: `linear-gradient(to right, black ${percent}%, transparent ${percent}%)`,
+                    }}
                   />
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-xs tabular-nums">
+                    {book.totalWords - book.approvedWords} words remaining
+                  </span>
+                  <span className="text-xs tabular-nums">{percent}%</span>
                 </div>
               </div>
 
-              <div
-                className="
-                  col-span-3 grid gap-x-2 gap-y-0.5 content-center grid-cols-subgrid items-center self-end pt-px
-                "
-              >
+              <div className="col-span-3 grid gap-x-2 gap-y-0.5 content-center grid-cols-subgrid items-center pt-1">
                 {contributors.map((c, i) => {
                   const isLastRow = i === contributors.length - 1;
                   const showOthersRow = isLastRow && !isExpanded && showExpand;
@@ -101,10 +108,12 @@ export default function BookProgressList({ books }: BookProgressListProps) {
                         : labelFor(c.userId, c.name)}
                       </div>
                       <div>
-                        <div className="h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                        <div className="h-2 rounded-full bg-gray-200 dark:bg-gray-700">
                           <div
-                            className="h-full rounded-full bg-blue-800 dark:bg-blue-400"
-                            style={{ width: `${pct}%` }}
+                            className="h-full rounded-full bg-linear-to-r from-green-300 to-green-400"
+                            style={{
+                              maskImage: `linear-gradient(to right, black ${pct}%, transparent ${pct}%)`,
+                            }}
                           />
                         </div>
                       </div>
