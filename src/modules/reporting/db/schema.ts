@@ -1,5 +1,10 @@
 import { Generated, JSONColumnType } from "kysely";
 
+export interface BookWordMapView {
+  word_id: string;
+  book_id: number;
+}
+
 export interface TrackingEventTable {
   id: Generated<string>;
   type: string;

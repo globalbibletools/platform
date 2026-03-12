@@ -10,6 +10,7 @@ config.autoAddCss = false;
 library.add(
   FaBrands.faGithub,
   FaBrands.faGoogle,
+  FaSolid.faChartLine,
   FaSolid.faShareFromSquare,
   FaSolid.faDatabase,
   FaSolid.faRobot,
