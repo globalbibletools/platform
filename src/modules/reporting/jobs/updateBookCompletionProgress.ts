@@ -5,7 +5,12 @@ import { getDb, kyselyTransaction } from "@/db";
 import { sql } from "kysely";
 import { GlossStateRaw } from "@/modules/translation/types";
 
-export type UpdateBookCompletionProgressJob = Job<Record<string, never>>;
+export interface UpdateBookCompletionProgressPayload {
+  allLanguages?: boolean;
+}
+
+export type UpdateBookCompletionProgressJob =
+  Job<UpdateBookCompletionProgressPayload>;
 
 export async function updateBookCompletionProgressJob(
   job: UpdateBookCompletionProgressJob,
@@ -26,7 +31,10 @@ export async function updateBookCompletionProgressJob(
     );
   }
 
-  const languageIds = await findChangedLanguages();
+  const languageIds =
+    job.payload.allLanguages ?
+      await findAllLanguages()
+    : await findChangedLanguages();
 
   logger.info(`Processing ${languageIds.length} language(s)`);
 
@@ -78,6 +86,12 @@ async function updateLanguageProgress(languageId: string) {
       )
       .execute();
   });
+}
+
+async function findAllLanguages(): Promise<Array<string>> {
+  const languages = await getDb().selectFrom("language").select("id").execute();
+
+  return languages.map((r) => r.id);
 }
 
 async function findChangedLanguages(): Promise<Array<string>> {

@@ -12,6 +12,7 @@ import { REPORTING_JOB_TYPES } from "./jobTypes";
 import {
   updateBookCompletionProgressJob,
   UpdateBookCompletionProgressJob,
+  UpdateBookCompletionProgressPayload,
 } from "./updateBookCompletionProgress";
 import type { BookCompletionProgressTable } from "../db/schema";
 import { ulid } from "@/shared/ulid";
@@ -23,14 +24,20 @@ import {
 
 initializeDatabase();
 
-const job: UpdateBookCompletionProgressJob = {
-  id: ulid(),
-  type: REPORTING_JOB_TYPES.UPDATE_BOOK_COMPLETION_PROGRESS,
-  status: JobStatus.InProgress,
-  payload: {},
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
+function makeJob(
+  payload: UpdateBookCompletionProgressPayload = {},
+): UpdateBookCompletionProgressJob {
+  return {
+    id: ulid(),
+    type: REPORTING_JOB_TYPES.UPDATE_BOOK_COMPLETION_PROGRESS,
+    status: JobStatus.InProgress,
+    payload,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+}
+
+const job = makeJob();
 
 async function findProgress(): Promise<
   Selectable<BookCompletionProgressTable>[]
@@ -168,7 +175,7 @@ test("replaces previous progress entries", async () => {
       book_id: 1,
       user_id: null,
       word_count: 5,
-      refreshed_at: faker.date.recent(),
+      refreshed_at: new Date(0),
     })
     .returningAll()
     .execute();
@@ -192,4 +199,39 @@ test("replaces previous progress entries", async () => {
       refreshed_at: expect.toBeNow(),
     },
   ]);
+});
+
+test("processes all languages when allLanguages is true", async () => {
+  const { user } = await userFactory.build();
+  const { language } = await languageFactory.build({ members: [user.id] });
+
+  await phraseFactory.build({
+    languageId: language.id,
+    gloss: { state: GlossStateRaw.Approved, updated_by: user.id },
+  });
+
+  await updateBookCompletionProgressJob(makeJob());
+  const firstProgressRows = await findProgress();
+
+  // Run again without new events — normally this language would be skipped,
+  // but allLanguages: true forces it to be reprocessed.
+  const result = await updateBookCompletionProgressJob(
+    makeJob({ allLanguages: true }),
+  );
+  expect(result).toBeUndefined();
+
+  const progressRows = await findProgress();
+  expect(progressRows).toEqual([
+    {
+      id: expect.any(Number),
+      language_id: language.id,
+      book_id: HAGGAI_BOOK_ID,
+      user_id: user.id,
+      word_count: 1,
+      refreshed_at: expect.toBeNow(),
+    },
+  ]);
+  expect(progressRows[0].refreshed_at).not.toEqual(
+    firstProgressRows[0].refreshed_at,
+  );
 });
