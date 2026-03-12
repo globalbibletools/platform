@@ -35,12 +35,14 @@ export interface PhraseFactoryOptions {
   gloss?: GlossOption;
   translatorNote?: NoteOption;
   footnote?: FootnoteOption;
+  events?: boolean;
 }
 
 export interface PhraseManyOptions {
   languageId: string;
   scope: PhraseManyScope;
   gloss?: (GlossOption | null)[];
+  events?: boolean;
 }
 
 interface PhraseFactoryResult {
@@ -122,11 +124,14 @@ async function build(
     .returningAll()
     .executeTakeFirstOrThrow();
 
-  const phraseWords = await db
-    .insertInto("phrase_word")
-    .values(wordIds.map((id) => ({ phrase_id: phrase.id, word_id: id })))
-    .returningAll()
-    .execute();
+  let phraseWords: Selectable<PhraseWordTable>[] = [];
+  if (wordIds.length > 0) {
+    phraseWords = await db
+      .insertInto("phrase_word")
+      .values(wordIds.map((id) => ({ phrase_id: phrase.id, word_id: id })))
+      .returningAll()
+      .execute();
+  }
 
   const result: Partial<PhraseFactoryResult> = {
     phrase,
@@ -138,7 +143,9 @@ async function build(
   if (options.gloss) {
     const gloss = await insertGloss(phrase.id, memberUserId, options.gloss);
 
-    await insertGlossEvent({ phrase, phraseWords, gloss });
+    if (options.events) {
+      await insertGlossEvent({ phrase, phraseWords, gloss });
+    }
 
     result.gloss = gloss;
   }
@@ -232,7 +239,9 @@ async function buildMany(
     if (glossOption !== null) {
       const gloss = await insertGloss(phrase.id, memberUserId, glossOption);
 
-      await insertGlossEvent({ phrase, phraseWords, gloss });
+      if (options.events) {
+        await insertGlossEvent({ phrase, phraseWords, gloss });
+      }
 
       phraseResult.gloss = gloss;
     }

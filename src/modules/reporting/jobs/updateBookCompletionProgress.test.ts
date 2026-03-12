@@ -70,6 +70,7 @@ test("aggregates book progress for all languages", async () => {
       { state: GlossStateRaw.Approved, updated_by: user1.id },
       { state: GlossStateRaw.Approved, updated_by: user2.id },
     ],
+    events: true,
   });
   await phraseFactory.buildMany({
     scope: 3,
@@ -79,6 +80,7 @@ test("aggregates book progress for all languages", async () => {
       { state: GlossStateRaw.Approved, updated_by: user1.id },
       { state: GlossStateRaw.Approved, updated_by: user1.id },
     ],
+    events: true,
   });
 
   const result = await updateBookCompletionProgressJob(job);
@@ -122,6 +124,7 @@ test("counts each word of a multi-word phrase", async () => {
     languageId: language.id,
     wordIds: words.map((w) => w.id),
     gloss: { state: GlossStateRaw.Approved, updated_by: user.id },
+    events: true,
   });
 
   const result = await updateBookCompletionProgressJob(job);
@@ -183,6 +186,7 @@ test("replaces previous progress entries", async () => {
   await phraseFactory.build({
     languageId: language.id,
     gloss: { state: GlossStateRaw.Approved, updated_by: user.id },
+    events: true,
   });
 
   const result = await updateBookCompletionProgressJob(job);
@@ -208,6 +212,7 @@ test("processes all languages when allLanguages is true", async () => {
   await phraseFactory.build({
     languageId: language.id,
     gloss: { state: GlossStateRaw.Approved, updated_by: user.id },
+    events: true,
   });
 
   await updateBookCompletionProgressJob(makeJob());
