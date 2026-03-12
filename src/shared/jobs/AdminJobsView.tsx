@@ -26,6 +26,15 @@ export default async function AdminJobsView() {
         >
           Export Analytics
         </ServerAction>
+        <ServerAction
+          actionData={{
+            type: REPORTING_JOB_TYPES.UPDATE_BOOK_COMPLETION_PROGRESS,
+            payload: { allLanguages: true },
+          }}
+          action={queueJobAction}
+        >
+          Recompute Language Progress
+        </ServerAction>
       </div>
     </div>
   );

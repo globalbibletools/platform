@@ -8,7 +8,10 @@ import ConfirmModal, { ConfirmModalRef } from "./ConfirmModal";
 
 export interface ServerActionProps extends ActionProps {
   // At some point, we can allow action data to take nested objects and arrays if we need to.
-  actionData?: Record<string, string | number>;
+  actionData?: Record<
+    string,
+    string | number | boolean | Record<string, string | number | boolean>
+  >;
   action: (
     state: Awaited<FormState>,
     formData: FormData,
@@ -47,7 +50,13 @@ export default function ServerAction({
     const form = new FormData();
     if (actionData) {
       for (const [key, value] of Object.entries(actionData)) {
-        form.set(key, value.toString());
+        if (typeof value === "object") {
+          for (const [nestedKey, nestedValue] of Object.entries(value)) {
+            form.set(`${key}[${nestedKey}]`, nestedValue.toString());
+          }
+        } else {
+          form.set(key, value.toString());
+        }
       }
     }
 
