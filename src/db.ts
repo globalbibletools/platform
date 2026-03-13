@@ -10,7 +10,7 @@ import {
   LanguageProgressView,
   LanguageTable,
 } from "@/modules/languages/db/schema";
-import { Generated, Kysely, PostgresDialect } from "kysely";
+import { Generated, Kysely, PostgresDialect, Transaction } from "kysely";
 import {
   ResetPasswordTokenTable,
   SessionTable,
@@ -32,6 +32,7 @@ import {
 } from "./modules/bible-core/db/schema";
 import {
   FootnoteTable,
+  GlossEventTable,
   GlossHistoryTable,
   GlossTable,
   MachineGlossTable,
@@ -40,11 +41,17 @@ import {
   TranslatorNoteTable,
 } from "./modules/translation/db/schema";
 import { JobTable } from "./shared/jobs/db/schema";
+import {
+  BookCompletionProgressTable,
+  TrackingEventTable,
+} from "./modules/reporting/db/schema";
 
 export interface Database {
   book: BookTable;
+  book_completion_progress: BookCompletionProgressTable;
   footnote: FootnoteTable;
   gloss: GlossTable;
+  gloss_event: GlossEventTable;
   gloss_history: GlossHistoryTable;
   job: JobTable;
   language: LanguageTable;
@@ -58,6 +65,7 @@ export interface Database {
   phrase_word: PhraseWordTable;
   reset_password_token: ResetPasswordTokenTable;
   session: SessionTable;
+  tracking_event: TrackingEventTable;
   translator_note: TranslatorNoteTable;
   user_email_verification: UserEmailVerificationTable;
   user_invitation: UserInvitationTable;
@@ -156,6 +164,14 @@ export async function transaction<T>(
   } finally {
     client.release();
   }
+}
+
+export async function kyselyTransaction<T>(
+  cb: (trx: Transaction<Database>) => Promise<T>,
+): Promise<T> {
+  return getDb()
+    .transaction()
+    .execute(async (trx) => cb(trx));
 }
 
 export async function close() {

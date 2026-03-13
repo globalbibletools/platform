@@ -1,115 +1,103 @@
-import { query } from "@/db";
-import { GlossSourceRaw, GlossStateRaw } from "../types";
+import { getDb } from "@/db";
+import { Selectable } from "kysely";
+import type {
+  FootnoteTable,
+  GlossEventTable,
+  GlossHistoryTable,
+  GlossTable,
+  PhraseTable,
+  PhraseWordTable,
+  TranslatorNoteTable,
+} from "../db/schema";
 
-export interface DbGloss {
-  gloss: string | null;
-  state: GlossStateRaw;
-  updatedAt: Date;
-  updatedBy: string | null;
-  phraseId: number;
-  source: GlossSourceRaw | null;
-}
-export interface DbGlossHistoryEntry {
-  id: number;
-  gloss: string | null;
-  state: GlossStateRaw;
-  updatedAt: Date;
-  updatedBy: string | null;
-  phraseId: number;
-  source: GlossSourceRaw | null;
-}
-
-export interface DbFootnote {
-  phraseId: number;
-  content: string;
-  authorId: string;
-  timestamp: Date;
+export async function findPhraseById(
+  id: number,
+): Promise<Selectable<PhraseTable> | undefined> {
+  return getDb()
+    .selectFrom("phrase")
+    .selectAll()
+    .where("id", "=", id)
+    .executeTakeFirst();
 }
 
-export interface DbTranslatorNote {
-  phraseId: number;
-  content: string;
-  authorId: string;
-  timestamp: Date;
+export async function findPhrasesForLanguage(
+  languageId: string,
+): Promise<Selectable<PhraseTable>[]> {
+  return getDb()
+    .selectFrom("phrase")
+    .selectAll()
+    .where("language_id", "=", languageId)
+    .execute();
+}
+
+export async function findPhraseWordsForLanguage(
+  languageId: string,
+): Promise<Selectable<PhraseWordTable>[]> {
+  return getDb()
+    .selectFrom("phrase_word")
+    .innerJoin("phrase", "phrase.id", "phrase_word.phrase_id")
+    .select(["phrase_word.phrase_id", "phrase_word.word_id"])
+    .where("phrase.language_id", "=", languageId)
+    .execute();
+}
+
+export async function findPhraseWordsForPhrase(
+  phraseId: number,
+): Promise<Selectable<PhraseWordTable>[]> {
+  return getDb()
+    .selectFrom("phrase_word")
+    .selectAll()
+    .where("phrase_id", "=", phraseId)
+    .execute();
 }
 
 export async function findGlossForPhrase(
   phraseId: number,
-): Promise<DbGloss | undefined> {
-  const result = await query<DbGloss>(
-    `
-      select 
-        gloss,
-        state,
-        updated_at as "updatedAt",
-        updated_by as "updatedBy",
-        phrase_id as "phraseId",
-        source
-      from gloss
-      where phrase_id = $1
-    `,
-    [phraseId],
-  );
-
-  return result.rows[0];
+): Promise<Selectable<GlossTable> | undefined> {
+  return getDb()
+    .selectFrom("gloss")
+    .selectAll()
+    .where("phrase_id", "=", phraseId)
+    .executeTakeFirst();
 }
 
 export async function findGlossHistoryForPhrase(
   phraseId: number,
-): Promise<DbGlossHistoryEntry[]> {
-  const result = await query<DbGlossHistoryEntry>(
-    `
-      select 
-        id,
-        gloss,
-        state,
-        updated_at as "updatedAt",
-        updated_by as "updatedBy",
-        phrase_id as "phraseId",
-        source
-      from gloss_history
-      where phrase_id = $1
-    `,
-    [phraseId],
-  );
-
-  return result.rows;
+): Promise<Selectable<GlossHistoryTable>[]> {
+  return getDb()
+    .selectFrom("gloss_history")
+    .selectAll()
+    .where("phrase_id", "=", phraseId)
+    .execute();
 }
 
 export async function findFootnoteForPhrase(
   phraseId: number,
-): Promise<DbFootnote | undefined> {
-  const result = await query<DbFootnote>(
-    `
-      select 
-        content,
-        timestamp,
-        author_id as "authorId",
-        phrase_id as "phraseId"
-      from footnote
-      where phrase_id = $1
-    `,
-    [phraseId],
-  );
-
-  return result.rows[0];
+): Promise<Selectable<FootnoteTable> | undefined> {
+  return getDb()
+    .selectFrom("footnote")
+    .selectAll()
+    .where("phrase_id", "=", phraseId)
+    .executeTakeFirst();
 }
 
 export async function findTranslatorNoteForPhrase(
   phraseId: number,
-): Promise<DbTranslatorNote | undefined> {
-  const result = await query<DbTranslatorNote>(
-    `
-      select 
-        content,
-        timestamp,
-        author_id as "authorId",
-        phrase_id as "phraseId"
-      from translator_note
-      where phrase_id = $1
-    `,
-    [phraseId],
-  );
+): Promise<Selectable<TranslatorNoteTable> | undefined> {
+  return getDb()
+    .selectFrom("translator_note")
+    .selectAll()
+    .where("phrase_id", "=", phraseId)
+    .executeTakeFirst();
+}
 
-  return result.rows[0];
+export async function findGlossEventsForPhrase(
+  phraseId: number,
+): Promise<Selectable<GlossEventTable>[]> {
+  return getDb()
+    .selectFrom("gloss_event")
+    .selectAll()
+    .where("phrase_id", "=", phraseId)
+    .orderBy("timestamp", "asc")
+    .execute();
 }

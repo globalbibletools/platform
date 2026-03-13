@@ -3,9 +3,8 @@ import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { resetPassword } from "./resetPassword";
-import { Scrypt } from "oslo/password";
 import { cookies } from "@/tests/vitest/mocks/nextjs";
-import { passwordResetFactory, userFactory } from "../test-utils/factories";
+import { userFactory } from "../test-utils/userFactory";
 import {
   findPasswordResetsForUser,
   findSessionsForUser,
@@ -53,15 +52,12 @@ test("returns error if user could not be found", async () => {
 });
 
 test("returns new session after changing the password", async () => {
-  const user = await userFactory.build({
-    hashedPassword: await new Scrypt().hash("pa$$word"),
-  });
-  const reset = await passwordResetFactory.build({
-    userId: user.id,
+  const { user, passwordReset } = await userFactory.build({
+    passwordReset: "active",
   });
 
   const formData = new FormData();
-  formData.set("token", reset.token);
+  formData.set("token", passwordReset!.token);
   formData.set("password", "pa$$word");
   formData.set("confirm_password", "pa$$word");
   const response = resetPassword({ state: "idle" }, formData);
@@ -73,15 +69,15 @@ test("returns new session after changing the password", async () => {
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({
     ...user,
-    hashedPassword: expect.any(String),
+    hashed_password: expect.any(String),
   });
 
   const dbSessions = await findSessionsForUser(user.id);
   expect(dbSessions).toEqual([
     {
       id: expect.any(String),
-      userId: user.id,
-      expiresAt: expect.any(Date),
+      user_id: user.id,
+      expires_at: expect.any(Date),
     },
   ]);
 

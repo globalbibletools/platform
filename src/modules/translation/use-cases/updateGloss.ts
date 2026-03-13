@@ -1,12 +1,7 @@
-import trackingClient from "@/modules/reporting/public/trackingClient";
-import glossRepository from "../data-access/GlossRepository";
-import {
-  GlossApprovalMethodRaw,
-  GlossSourceRaw,
-  GlossStateRaw,
-} from "../types";
-import phraseRepository from "../data-access/PhraseRepository";
+import { GlossApprovalMethodRaw, GlossStateRaw } from "../types";
+import { phraseRepository } from "../data-access/phraseRepository";
 import { NotFoundError } from "@/shared/errors";
+import { resolveLanguageByCode } from "@/modules/languages";
 
 export interface UpdateGlossUseCaseRequest {
   languageCode: string;
@@ -18,36 +13,25 @@ export interface UpdateGlossUseCaseRequest {
 }
 
 export async function updateGlossUseCase(request: UpdateGlossUseCaseRequest) {
-  const phrase = await phraseRepository.findWithinLanguageById(
-    request.languageCode,
-    request.phraseId,
-  );
+  const language = await resolveLanguageByCode(request.languageCode);
+  if (!language) {
+    throw new NotFoundError("Language");
+  }
+
+  const phrase = await phraseRepository.findWithinLanguage({
+    languageId: language.id,
+    phraseId: request.phraseId,
+  });
   if (!phrase) {
     throw new NotFoundError("Phrase");
   }
 
-  const existingGloss = await glossRepository.findByPhraseId(request.phraseId);
-  const wasUnapproved =
-    !existingGloss || existingGloss.state === GlossStateRaw.Unapproved;
-
-  await glossRepository.update({
-    phraseId: request.phraseId,
-    gloss: request.gloss,
-    state: request.state,
-    updatedBy: request.userId,
-    source: GlossSourceRaw.User,
+  phrase.updateGloss({
+    gloss: request.gloss ?? phrase.gloss?.gloss ?? null,
+    state: request.state ?? phrase.gloss?.state ?? GlossStateRaw.Unapproved,
+    userId: request.userId,
+    approvalMethod: request.method,
   });
 
-  if (
-    wasUnapproved &&
-    request.state === GlossStateRaw.Approved &&
-    request.method
-  ) {
-    await trackingClient.trackEvent("approved_gloss", {
-      languageId: phrase.language.id,
-      userId: request.userId,
-      phraseId: request.phraseId,
-      method: request.method,
-    });
-  }
+  await phraseRepository.commit(phrase);
 }

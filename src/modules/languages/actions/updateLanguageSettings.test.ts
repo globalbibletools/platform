@@ -3,25 +3,16 @@ import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { updateLanguageSettings } from "./updateLanguageSettings";
 import { MachineGlossStrategy, TextDirectionRaw } from "../model";
-import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
-import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import logIn from "@/tests/vitest/login";
-import { languageFactory } from "../test-utils/factories";
+import { languageFactory } from "../test-utils/languageFactory";
 import { findLanguageByCode } from "../test-utils/dbUtils";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
 
 initializeDatabase();
 
-const scenarioDefinition: ScenarioDefinition = {
-  users: {
-    admin: {
-      systemRoles: [SystemRoleRaw.Admin],
-    },
-  },
-};
-
 test("returns validation error if the request shape doesn't match the schema", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   {
     const formData = new FormData();
@@ -59,10 +50,10 @@ test("returns validation error if the request shape doesn't match the schema", a
 });
 
 test("returns not found if the user is not authorized", async () => {
-  const scenario = await createScenario({ users: { user: {} } });
-  await logIn(scenario.users.user.id);
+  const { user } = await userFactory.build();
+  await logIn(user.id);
 
-  const language = await languageFactory.build();
+  const { language } = await languageFactory.build();
 
   const formData = new FormData();
   formData.set("code", language.code);
@@ -76,8 +67,8 @@ test("returns not found if the user is not authorized", async () => {
 });
 
 test("returns not found if the language does not exist", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   const formData = new FormData();
   formData.set("code", "random");
@@ -91,36 +82,38 @@ test("returns not found if the language does not exist", async () => {
 });
 
 test("updates the language settings", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
-  const language = await languageFactory.build({
+  const { language } = await languageFactory.build({
     code: "spa",
     englishName: "Spanish",
     localName: "Español",
     textDirection: TextDirectionRaw.LTR,
     font: "Noto Sans",
   });
-  const referenceLanguage = await languageFactory.build();
+  const { language: referenceLanguage } = await languageFactory.build({
+    code: "eng",
+  });
 
   const request = {
-    localName: "Espanol",
-    englishName: "Spanish",
-    textDirection: TextDirectionRaw.LTR,
+    local_name: "Espanol",
+    english_name: "Spanish",
+    text_direction: TextDirectionRaw.LTR,
     font: "Noto Sans Arabic",
-    translationIds: ["asdf1234", "qwer1234"],
-    referenceLanguageId: referenceLanguage.id,
-    machineGlossStrategy: MachineGlossStrategy.LLM,
+    translation_ids: ["asdf1234", "qwer1234"],
+    reference_language_id: referenceLanguage.id,
+    machine_gloss_strategy: MachineGlossStrategy.LLM,
   };
   const formData = new FormData();
   formData.set("code", language.code);
-  formData.set("englishName", request.englishName);
-  formData.set("localName", request.localName);
-  formData.set("text_direction", request.textDirection);
+  formData.set("englishName", request.english_name);
+  formData.set("localName", request.local_name);
+  formData.set("text_direction", request.text_direction);
   formData.set("font", request.font);
-  formData.set("bible_translations", request.translationIds.join(","));
-  formData.set("reference_language_id", request.referenceLanguageId);
-  formData.set("machineGlossStrategy", request.machineGlossStrategy);
+  formData.set("bible_translations", request.translation_ids.join(","));
+  formData.set("reference_language_id", request.reference_language_id);
+  formData.set("machineGlossStrategy", request.machine_gloss_strategy);
   const response = await updateLanguageSettings({ state: "idle" }, formData);
   expect(response).toEqual({ state: "success" });
 

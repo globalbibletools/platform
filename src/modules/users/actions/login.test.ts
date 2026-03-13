@@ -2,8 +2,7 @@ import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { login } from "./login";
-import { Scrypt } from "oslo/password";
-import { userFactory } from "../test-utils/factories";
+import { userFactory } from "../test-utils/userFactory";
 import { findSessionsForUser } from "../test-utils/dbUtils";
 
 initializeDatabase();
@@ -47,9 +46,7 @@ test("returns error if no user is found", async () => {
 });
 
 test("returns error if password does not match", async () => {
-  const user = await userFactory.build({
-    hashedPassword: await new Scrypt().hash("pa$$word"),
-  });
+  const { user } = await userFactory.build();
 
   const formData = new FormData();
   formData.set("email", user.email);
@@ -62,9 +59,7 @@ test("returns error if password does not match", async () => {
 });
 
 test("creates session for user if password matches", async () => {
-  const user = await userFactory.build({
-    hashedPassword: await new Scrypt().hash("pa$$word"),
-  });
+  const { user } = await userFactory.build();
 
   const formData = new FormData();
   formData.set("email", user.email);
@@ -77,8 +72,8 @@ test("creates session for user if password matches", async () => {
   expect(sessions).toEqual([
     {
       id: expect.any(String),
-      userId: user.id,
-      expiresAt: expect.toBeDaysIntoFuture(30),
+      user_id: user.id,
+      expires_at: expect.toBeDaysIntoFuture(30),
     },
   ]);
 });

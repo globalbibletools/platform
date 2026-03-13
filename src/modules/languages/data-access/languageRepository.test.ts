@@ -110,7 +110,7 @@ describe("create", () => {
         font: "Noto Sans",
         reference_language_id: null,
         text_direction: TextDirectionRaw.LTR,
-        translation_ids: null,
+        translation_ids: [],
         machine_gloss_strategy: MachineGlossStrategy.Google,
       },
     ]);

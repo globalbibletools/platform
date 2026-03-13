@@ -1,5 +1,9 @@
 import { Generated } from "kysely";
-import { GlossSourceRaw, GlossStateRaw } from "../types";
+import {
+  GlossApprovalMethodRaw,
+  GlossSourceRaw,
+  GlossStateRaw,
+} from "../types";
 
 export interface PhraseTable {
   id: Generated<number>;
@@ -53,4 +57,18 @@ export interface MachineGlossTable {
   word_id: string;
   language_id: string;
   gloss: string;
+}
+
+export interface GlossEventTable {
+  id: string;
+  phrase_id: number;
+  language_id: string;
+  user_id: string;
+  word_id: string;
+  timestamp: Date;
+  prev_gloss: string;
+  prev_state: GlossStateRaw;
+  new_gloss: string;
+  new_state: GlossStateRaw;
+  approval_method: GlossApprovalMethodRaw | null;
 }

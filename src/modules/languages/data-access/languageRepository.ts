@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { Language, MachineGlossStrategy } from "../model";
+import { Language } from "../model";
 import { sql } from "kysely";
 
 const languageRepository = {
@@ -55,6 +55,7 @@ const languageRepository = {
         code: language.code,
         local_name: language.localName,
         english_name: language.englishName,
+        translation_ids: [],
       })
       .execute();
   },

@@ -11,10 +11,10 @@ vi.mock("@/shared/jobs/enqueueJob", () => ({
 }));
 
 import { requestInterlinearExport } from "./requestInterlinearExport";
-import { createScenario } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
-import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
+import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 
 initializeDatabase();
 
@@ -25,10 +25,8 @@ test("rejects unauthenticated requests", async () => {
 });
 
 test("returns validation error for unknown language before enqueue", async () => {
-  const scenario = await createScenario({
-    users: { admin: { systemRoles: [SystemRoleRaw.Admin] } },
-  });
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   const formData = new FormData();
   formData.set("languageCode", "missing");
@@ -42,13 +40,9 @@ test("returns validation error for unknown language before enqueue", async () =>
 });
 
 test("denies non-members", async () => {
-  const scenario = await createScenario({
-    users: { outsider: {} },
-    languages: { language: {} },
-  });
-  const user = scenario.users.outsider;
-  const language = scenario.languages.language;
-  await logIn(user.id);
+  const { user: outsider } = await userFactory.build();
+  const { language } = await languageFactory.build();
+  await logIn(outsider.id);
 
   const formData = new FormData();
   formData.set("languageCode", language.code);
@@ -58,17 +52,11 @@ test("denies non-members", async () => {
 });
 
 test("creates export request for language", async () => {
-  const scenario = await createScenario({
-    users: { translator: {} },
-    languages: {
-      language: {
-        members: ["translator"],
-      },
-    },
+  const { user: translator } = await userFactory.build();
+  const { language } = await languageFactory.build({
+    members: [translator.id],
   });
-  const user = scenario.users.translator;
-  const language = scenario.languages.language;
-  await logIn(user.id);
+  await logIn(translator.id);
 
   const formData = new FormData();
   formData.set("languageCode", language.code);
@@ -80,6 +68,6 @@ test("creates export request for language", async () => {
   expect(enqueueJob).toHaveBeenCalledWith("export_interlinear_pdf", {
     languageId: language.id,
     languageCode: language.code,
-    requestedBy: user.id,
+    requestedBy: translator.id,
   });
 });

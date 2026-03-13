@@ -206,7 +206,8 @@
       "resend_invite": "Resend Invite"
     },
     "headers": {
-      "name": "Name"
+      "name": "Name",
+      "activity": "Gloss Activity"
     }
   },
   "LoginPage": {

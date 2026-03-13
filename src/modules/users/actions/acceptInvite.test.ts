@@ -2,10 +2,9 @@ import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
 import { acceptInvite } from "./acceptInvite";
-import { EmailStatusRaw } from "../model/EmailStatus";
 import { cookies } from "@/tests/vitest/mocks/nextjs";
-import { invitationFactory, userFactory } from "../test-utils/factories";
-import { faker } from "@faker-js/faker/locale/en";
+import { userFactory } from "../test-utils/userFactory";
+import { EmailStatusRaw } from "../model/EmailStatus";
 import {
   findInvitationsForUser,
   findSessionsForUser,
@@ -65,17 +64,13 @@ test("returns validation error if the request shape doesn't match the schema", a
 });
 
 test("returns not found error if token is invalid", async () => {
-  const user = await userFactory.build({
-    emailStatus: EmailStatusRaw.Unverified,
-    hashedPassword: null,
-  });
-  const invitation = await invitationFactory.build({
-    userId: user.id,
-    expiresAt: faker.date.past(),
+  const { invitation } = await userFactory.build({
+    state: "invited",
+    invitation: "expired",
   });
 
   const formData = new FormData();
-  formData.set("token", invitation.token);
+  formData.set("token", invitation!.token);
   formData.set("first_name", "First");
   formData.set("last_name", "Last");
   formData.set("password", "pa$$word");
@@ -86,16 +81,10 @@ test("returns not found error if token is invalid", async () => {
 });
 
 test("sets up user and logs them in", async () => {
-  const user = await userFactory.build({
-    emailStatus: EmailStatusRaw.Unverified,
-    hashedPassword: null,
-  });
-  const invitation = await invitationFactory.build({
-    userId: user.id,
-  });
+  const { user, invitation } = await userFactory.build({ state: "invited" });
 
   const formData = new FormData();
-  formData.set("token", invitation.token);
+  formData.set("token", invitation!.token);
   formData.set("first_name", "First");
   formData.set("last_name", "Last");
   formData.set("password", "pa$$word");
@@ -107,20 +96,20 @@ test("sets up user and logs them in", async () => {
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({
     ...user,
-    emailStatus: EmailStatusRaw.Verified,
+    email_status: EmailStatusRaw.Verified,
     name: "First Last",
-    hashedPassword: expect.any(String),
+    hashed_password: expect.any(String),
   });
 
-  const invitations = await findInvitationsForUser(user.id);
-  expect(invitations).toEqual([]);
+  const remainingInvitations = await findInvitationsForUser(user.id);
+  expect(remainingInvitations).toEqual([]);
 
   const dbSessions = await findSessionsForUser(user.id);
   expect(dbSessions).toEqual([
     {
       id: expect.any(String),
-      userId: user.id,
-      expiresAt: expect.any(Date),
+      user_id: user.id,
+      expires_at: expect.any(Date),
     },
   ]);
 

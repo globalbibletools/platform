@@ -3,13 +3,14 @@
 import { query } from "@/db";
 import { parseForm } from "@/form-parser";
 import { Policy } from "@/modules/access";
+import { resolveLanguageByCode } from "@/modules/languages";
 import { serverActionLogger } from "@/server-action";
 import { verifySession } from "@/session";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import * as z from "zod";
-import phraseRepository from "../data-access/PhraseRepository";
+import { phraseRepository } from "../data-access/phraseRepository";
 
 const requestSchema = z.object({
   verseId: z.string(),
@@ -43,10 +44,16 @@ export async function updateTranslatorNoteAction(
     notFound();
   }
 
-  const phraseExists = await phraseRepository.existsForLanguage(
-    request.data.languageCode,
-    [request.data.phraseId],
-  );
+  const language = await resolveLanguageByCode(request.data.languageCode);
+  if (!language) {
+    logger.error("language not found");
+    notFound();
+  }
+
+  const phraseExists = await phraseRepository.existsWithinLanguage({
+    languageId: language.id,
+    phraseId: request.data.phraseId,
+  });
   if (!phraseExists) {
     logger.error("phrase not found");
     notFound();

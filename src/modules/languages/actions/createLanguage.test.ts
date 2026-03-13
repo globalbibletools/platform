@@ -3,26 +3,16 @@ import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { createLanguage } from "./createLanguage";
 import { MachineGlossStrategy, TextDirectionRaw } from "../model";
-import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
-import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import logIn from "@/tests/vitest/login";
-import { languageFactory } from "../test-utils/factories";
+import { languageFactory } from "../test-utils/languageFactory";
 import { findLanguageByCode } from "../test-utils/dbUtils";
-import { machineGlossRepository } from "@/modules/translation/data-access/machineGlossRepository";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
 
 initializeDatabase();
 
-const scenarioDefinition: ScenarioDefinition = {
-  users: {
-    admin: {
-      systemRoles: [SystemRoleRaw.Admin],
-    },
-  },
-};
-
 test("returns validation error if the request shape doesn't match the schema", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   {
     const formData = new FormData();
@@ -53,8 +43,8 @@ test("returns validation error if the request shape doesn't match the schema", a
 });
 
 test("returns not found if the user is not a platform admin", async () => {
-  const scenario = await createScenario({ users: { user: {} } });
-  await logIn(scenario.users.user.id);
+  const { user } = await userFactory.build();
+  await logIn(user.id);
 
   const formData = new FormData();
   formData.set("code", "spa");
@@ -65,10 +55,10 @@ test("returns not found if the user is not a platform admin", async () => {
 });
 
 test("returns error if language with the same code already exists", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
-  const existingLanguage = await languageFactory.build();
+  const { language: existingLanguage } = await languageFactory.build();
 
   const formData = new FormData();
   formData.set("code", existingLanguage.code);
@@ -82,8 +72,8 @@ test("returns error if language with the same code already exists", async () => 
 });
 
 test("creates language and redirects to its settings", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   const request = {
     code: "spa",
@@ -102,13 +92,13 @@ test("creates language and redirects to its settings", async () => {
   const language = await findLanguageByCode(request.code);
   expect(language).toEqual({
     id: expect.toBeUlid(),
-    englishName: request.englishName,
-    localName: request.localName,
+    english_name: request.englishName,
+    local_name: request.localName,
     code: request.code,
     font: "Noto Sans",
-    textDirection: TextDirectionRaw.LTR,
-    translationIds: [],
-    referenceLanguageId: null,
-    machineGlossStrategy: MachineGlossStrategy.Google,
+    text_direction: TextDirectionRaw.LTR,
+    translation_ids: [],
+    reference_language_id: null,
+    machine_gloss_strategy: MachineGlossStrategy.Google,
   });
 });

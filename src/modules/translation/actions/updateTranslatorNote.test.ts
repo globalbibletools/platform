@@ -1,29 +1,18 @@
 import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
-import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
-import { translatorNoteFactory, phraseFactory } from "../test-utils/factories";
+import { phraseFactory } from "../test-utils/phraseFactory";
 import { findTranslatorNoteForPhrase } from "../test-utils/dbUtils";
 import { updateTranslatorNoteAction } from "./updateTranslatorNote";
+import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
 
 initializeDatabase();
 
-const scenarioDefinition: ScenarioDefinition = {
-  users: {
-    translator: {},
-    nonmember: {},
-  },
-  languages: {
-    spanish: {
-      members: ["translator"],
-    },
-  },
-};
-
 test("returns and does nothing if the request shape doesn't match the schema", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.translator.id);
+  const { members } = await languageFactory.build();
+  await logIn(members[0].user_id);
 
   const formData = new FormData();
   const response = await updateTranslatorNoteAction(formData);
@@ -31,11 +20,9 @@ test("returns and does nothing if the request shape doesn't match the schema", a
 });
 
 test("returns not found if user is not logged in", async () => {
-  const scenario = await createScenario(scenarioDefinition);
+  const { language } = await languageFactory.build();
 
-  const language = scenario.languages.spanish;
-
-  const phrase = await phraseFactory.build({
+  const { phrase } = await phraseFactory.build({
     languageId: language.id,
   });
 
@@ -51,12 +38,11 @@ test("returns not found if user is not logged in", async () => {
 });
 
 test("returns not found if user is not a translator on the language", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.nonmember.id);
+  const { language } = await languageFactory.build();
+  const { user: nonmember } = await userFactory.build();
+  await logIn(nonmember.id);
 
-  const language = scenario.languages.spanish;
-
-  const phrase = await phraseFactory.build({
+  const { phrase } = await phraseFactory.build({
     languageId: language.id,
   });
 
@@ -72,10 +58,8 @@ test("returns not found if user is not a translator on the language", async () =
 });
 
 test("returns not found if the phrase does not exist", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.translator.id);
-
-  const language = scenario.languages.spanish;
+  const { language, members } = await languageFactory.build();
+  await logIn(members[0].user_id);
 
   const formData = new FormData();
   formData.set("verseId", "123");
@@ -89,24 +73,22 @@ test("returns not found if the phrase does not exist", async () => {
 });
 
 test("returns not found if phrase is not in the language", async () => {
-  const scenario = await createScenario(scenarioDefinition, {
-    languages: {
-      another: {
-        members: ["translator"],
-      },
-    },
+  const { user: translator } = await userFactory.build();
+  const { language } = await languageFactory.build({
+    members: [translator.id],
   });
-  await logIn(scenario.users.translator.id);
+  const { language: anotherLanguage } = await languageFactory.build({
+    members: [translator.id],
+  });
+  await logIn(translator.id);
 
-  const language = scenario.languages.spanish;
-
-  const phrase = await phraseFactory.build({
+  const { phrase } = await phraseFactory.build({
     languageId: language.id,
   });
 
   const formData = new FormData();
   formData.set("verseId", "123");
-  formData.set("languageCode", scenario.languages.another.code);
+  formData.set("languageCode", anotherLanguage.code);
   formData.set("phraseId", String(phrase.id));
   formData.set("note", "<p>Note text</p>");
   await expect(updateTranslatorNoteAction(formData)).toBeNextjsNotFound();
@@ -116,13 +98,11 @@ test("returns not found if phrase is not in the language", async () => {
 });
 
 test("creates a new translatorNote for the phrase", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  const translator = scenario.users.translator;
-  await logIn(translator.id);
+  const { language, members } = await languageFactory.build();
+  const translatorId = members[0].user_id;
+  await logIn(translatorId);
 
-  const language = scenario.languages.spanish;
-
-  const phrase = await phraseFactory.build({
+  const { phrase } = await phraseFactory.build({
     languageId: language.id,
   });
   const content = "<p>Note text</p>";
@@ -137,28 +117,23 @@ test("creates a new translatorNote for the phrase", async () => {
 
   const translatorNote = await findTranslatorNoteForPhrase(phrase.id);
   expect(translatorNote).toEqual({
-    phraseId: phrase.id,
+    phrase_id: phrase.id,
     content,
     timestamp: expect.toBeNow(),
-    authorId: translator.id,
+    author_id: translatorId,
   });
 
   // TODO: verify cache validation
 });
 
 test("updates an existing gloss for the phrase", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  const translator = scenario.users.translator;
-  await logIn(translator.id);
+  const { language, members } = await languageFactory.build();
+  const translatorId = members[0].user_id;
+  await logIn(translatorId);
 
-  const language = scenario.languages.spanish;
-
-  const phrase = await phraseFactory.build({
+  const { phrase } = await phraseFactory.build({
     languageId: language.id,
-  });
-  await translatorNoteFactory.build({
-    phraseId: phrase.id,
-    authorId: translator.id,
+    translatorNote: true,
   });
   const content = "<p>Note text</p>";
 
@@ -172,10 +147,10 @@ test("updates an existing gloss for the phrase", async () => {
 
   const updatedTranslatorNote = await findTranslatorNoteForPhrase(phrase.id);
   expect(updatedTranslatorNote).toEqual({
-    phraseId: phrase.id,
+    phrase_id: phrase.id,
     content,
     timestamp: expect.toBeNow(),
-    authorId: translator.id,
+    author_id: translatorId,
   });
 
   // TODO: verify cache validation

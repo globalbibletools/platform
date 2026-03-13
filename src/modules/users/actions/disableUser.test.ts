@@ -1,24 +1,13 @@
 import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
-import { EmailStatusRaw } from "../model/EmailStatus";
 import { UserStatusRaw } from "../model/UserStatus";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { ulid } from "@/shared/ulid";
 import { disableUser } from "./disableUser";
-import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
 import logIn from "@/tests/vitest/login";
-import {
-  emailVerificationFactory,
-  invitationFactory,
-  passwordResetFactory,
-  sessionFactory,
-  userFactory,
-} from "../test-utils/factories";
-import {
-  languageFactory,
-  languageMemberFactory,
-} from "@/modules/languages/test-utils/factories";
-import { SystemRoleRaw } from "../model/SystemRole";
+import { sessionFactory } from "../test-utils/sessionFactory";
+import { userFactory } from "../test-utils/userFactory";
+import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 import {
   findEmailVerificationForUser,
   findInvitationsForUser,
@@ -30,17 +19,9 @@ import { findLanguageMembersForUser } from "@/modules/languages/test-utils/dbUti
 
 initializeDatabase();
 
-const scenarioDefinition: ScenarioDefinition = {
-  users: {
-    admin: {
-      systemRoles: [SystemRoleRaw.Admin],
-    },
-  },
-};
-
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   const formData = new FormData();
   const response = await disableUser({ state: "idle" }, formData);
@@ -51,23 +32,23 @@ test("returns validation errors if the request shape doesn't match the schema", 
 });
 
 test("returns not found if actor is not a platform admin", async () => {
-  const scenario = await createScenario({ users: { user: {} } });
-  await logIn(scenario.users.user.id);
+  const { user } = await userFactory.build();
+  await logIn(user.id);
 
-  const user = await userFactory.build();
+  const { user: target } = await userFactory.build();
 
   const formData = new FormData();
-  formData.set("userId", user.id);
+  formData.set("userId", target.id);
   const response = disableUser({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 
-  const updatedUser = await findUserById(user.id);
-  expect(updatedUser).toEqual(user);
+  const updatedUser = await findUserById(target.id);
+  expect(updatedUser).toEqual(target);
 });
 
 test("returns not found if the user does not exist", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   const formData = new FormData();
   formData.set("userId", ulid());
@@ -76,19 +57,16 @@ test("returns not found if the user does not exist", async () => {
 });
 
 test("disable active user and removes all related data", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
-  const user = await userFactory.build();
-  const language = await languageFactory.build();
+  const { user } = await userFactory.build({
+    emailVerification: "active",
+    passwordReset: "active",
+  });
   await Promise.all([
-    sessionFactory.build({ userId: user.id }),
-    emailVerificationFactory.build({ userId: user.id }),
-    passwordResetFactory.build({ userId: user.id }),
-    languageMemberFactory.build({
-      userId: user.id,
-      languageId: language.id,
-    }),
+    sessionFactory.build(user.id),
+    languageFactory.build({ members: [user.id] }),
   ]);
 
   const formData = new FormData();
@@ -102,7 +80,7 @@ test("disable active user and removes all related data", async () => {
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({
     ...user,
-    hashedPassword: null,
+    hashed_password: null,
     status: UserStatusRaw.Disabled,
   });
 
@@ -113,14 +91,10 @@ test("disable active user and removes all related data", async () => {
 });
 
 test("disables invited user and removes all related data", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
-  const user = await userFactory.build({
-    name: null,
-    emailStatus: EmailStatusRaw.Unverified,
-  });
-  await invitationFactory.build({ userId: user.id });
+  const { user } = await userFactory.build({ state: "invited" });
 
   const formData = new FormData();
   formData.set("userId", user.id);
@@ -133,7 +107,7 @@ test("disables invited user and removes all related data", async () => {
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({
     ...user,
-    hashedPassword: null,
+    hashed_password: null,
     status: UserStatusRaw.Disabled,
   });
 

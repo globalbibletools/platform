@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.678.0",
+    "@date-fns/utc": "2.1.1",
     "@google-cloud/translate": "8.5.0",
     "@gracious.tech/fetch-client": "0.8.9",
     "@next/env": "15.5.7",
@@ -35,6 +36,7 @@
     "@opentelemetry/semantic-conventions": "1.28.0",
     "@tanstack/react-router": "^1.161.3",
     "@tanstack/react-start": "^1.161.3",
+    "d3": "7.9.0",
     "date-fns": "4.1.0",
     "fathom-client": "3.7.2",
     "fuzzysort": "3.0.2",
@@ -69,6 +71,7 @@
     "@tiptap/react": "3.18.0",
     "@tiptap/starter-kit": "3.18.0",
     "@types/aws-lambda": "8.10.147",
+    "@types/d3": "7.4.3",
     "@types/dompurify": "3.0.5",
     "@types/lodash": "4.17.7",
     "@types/node": "20.19.31",

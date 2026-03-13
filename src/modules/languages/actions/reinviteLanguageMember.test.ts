@@ -3,38 +3,21 @@ import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { reinviteLanguageMemberAction } from "./reinviteLanguageMember";
-import { createScenario, ScenarioDefinition } from "@/tests/scenarios";
-import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
 import logIn from "@/tests/vitest/login";
 import {
   findInvitationsForUser,
   findUserById,
 } from "@/modules/users/test-utils/dbUtils";
-import {
-  invitationFactory,
-  userFactory,
-} from "@/modules/users/test-utils/factories";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
 import { findLanguageMembersForLanguage } from "../test-utils/dbUtils";
-import { languageMemberFactory } from "../test-utils/factories";
+import { languageFactory } from "../test-utils/languageFactory";
 import { ulid } from "@/shared/ulid";
 
 initializeDatabase();
 
-const scenarioDefinition: ScenarioDefinition = {
-  users: {
-    admin: {
-      systemRoles: [SystemRoleRaw.Admin],
-    },
-    member: {},
-  },
-  languages: {
-    spanish: {},
-  },
-};
-
 test("returns validation error if the request shape doesn't match the schema", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  await logIn(admin.id);
 
   {
     const formData = new FormData();
@@ -71,23 +54,14 @@ test("returns validation error if the request shape doesn't match the schema", a
 });
 
 test("returns not found if not a platform admin", async () => {
-  const scenario = await createScenario({
-    users: { user: {} },
-    languages: { spanish: {} },
-  });
-  await logIn(scenario.users.user.id);
-
-  const language = scenario.languages.spanish;
-  const user = await userFactory.build();
-
-  await languageMemberFactory.build({
-    userId: user.id,
-    languageId: language.id,
-  });
+  const { user } = await userFactory.build();
+  const { user: member } = await userFactory.build();
+  const { language } = await languageFactory.build({ members: [member.id] });
+  await logIn(user.id);
 
   const formData = new FormData();
   formData.set("code", language.code);
-  formData.set("userId", user.id);
+  formData.set("userId", member.id);
   const response = reinviteLanguageMemberAction({ state: "idle" }, formData);
   await expect(response).toBeNextjsNotFound();
 
@@ -95,10 +69,9 @@ test("returns not found if not a platform admin", async () => {
 });
 
 test("returns not found if language does not exist", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
-
-  const user = await userFactory.build();
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  const { user } = await userFactory.build();
+  await logIn(admin.id);
 
   const formData = new FormData();
   formData.set("code", "garbage");
@@ -110,11 +83,10 @@ test("returns not found if language does not exist", async () => {
 });
 
 test("throws error if user is not a member of the language", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
-
-  const language = scenario.languages.spanish;
-  const user = await userFactory.build();
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  const { language } = await languageFactory.build();
+  const { user } = await userFactory.build();
+  await logIn(admin.id);
 
   const formData = new FormData();
   formData.set("code", language.code);
@@ -129,10 +101,9 @@ test("throws error if user is not a member of the language", async () => {
 });
 
 test("throws error if user does not exist", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
-
-  const language = scenario.languages.spanish;
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  const { language } = await languageFactory.build();
+  await logIn(admin.id);
 
   const formData = new FormData();
   formData.set("code", language.code);
@@ -147,21 +118,10 @@ test("throws error if user does not exist", async () => {
 });
 
 test("successfully reinvites a language member and sends email", async () => {
-  const scenario = await createScenario(scenarioDefinition);
-  await logIn(scenario.users.admin.id);
-
-  const language = scenario.languages.spanish;
-  const user = await userFactory.build({
-    hashedPassword: null,
-  });
-  const invite = await invitationFactory.build({
-    userId: user.id,
-  });
-
-  await languageMemberFactory.build({
-    userId: user.id,
-    languageId: language.id,
-  });
+  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  const { user, invitation } = await userFactory.build({ state: "invited" });
+  const { language } = await languageFactory.build({ members: [user.id] });
+  await logIn(admin.id);
 
   const formData = new FormData();
   formData.set("code", language.code);
@@ -177,22 +137,15 @@ test("successfully reinvites a language member and sends email", async () => {
   });
 
   const updatedUser = await findUserById(user.id);
-  expect(updatedUser).toEqual({
-    id: user.id,
-    name: user.name,
-    hashedPassword: user.hashedPassword,
-    email: user.email,
-    emailStatus: user.emailStatus,
-    status: user.status,
-  });
+  expect(updatedUser).toEqual(user);
 
   const invites = await findInvitationsForUser(user.id);
   expect(invites).toEqual([
-    invite,
+    invitation!,
     {
-      userId: user.id,
+      user_id: user.id,
       token: expect.toBeToken(24),
-      expiresAt: expect.toBeDaysIntoFuture(7),
+      expires_at: expect.toBeDaysIntoFuture(7),
     },
   ]);
 
