@@ -4,7 +4,9 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import languages from "@/shared/i18n/languages.json";
 import appCss from "@/styles.css?url";
+import TimezoneTracker from "./shared/i18n/TimezoneTracker";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -27,8 +29,11 @@ export const Route = createRootRoute({
 });
 
 function RootLayout() {
+  const locale = "en"; // TODO: replace with locale from route
+  const language = languages[locale];
+
   return (
-    <html lang="en">
+    <html lang={locale} dir={language.dir} className={language.class}>
       <head>
         <HeadContent />
       </head>

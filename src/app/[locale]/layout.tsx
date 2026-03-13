@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { hasLocale, NextIntlClientProvider, useMessages } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import "@/styles.css";
-import { headFontClass } from "@/fonts";
 import languages from "@/shared/i18n/languages.json";
 import { FlashProvider } from "@/flash";
 import { AnalyticsProvider } from "@/analytics";
@@ -35,7 +34,7 @@ export default function RootLayout(props: {
 
   return (
     <html
-      className={`${headFontClass} ${language.class}`}
+      className={`${language.class}`}
       lang={params.locale}
       dir={language.dir}
     >
