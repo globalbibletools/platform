@@ -8,24 +8,25 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root";
-import { Route as IndexRouteImport } from "./routes/index";
+import { Route as rootRouteImport } from "./root";
+import { Route as modulesLandingUiLandingRouteRouteImport } from "./modules/landing/ui/LandingRoute";
 
-const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
-  getParentRoute: () => rootRouteImport,
-} as any);
+const modulesLandingUiLandingRouteRoute =
+  modulesLandingUiLandingRouteRouteImport.update({
+    id: "/",
+    path: "/",
+    getParentRoute: () => rootRouteImport,
+  } as any);
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
+  "/": typeof modulesLandingUiLandingRouteRoute;
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
+  "/": typeof modulesLandingUiLandingRouteRoute;
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
-  "/": typeof IndexRoute;
+  "/": typeof modulesLandingUiLandingRouteRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
@@ -36,7 +37,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
+  modulesLandingUiLandingRouteRoute: typeof modulesLandingUiLandingRouteRoute;
 }
 
 declare module "@tanstack/react-router" {
@@ -45,14 +46,14 @@ declare module "@tanstack/react-router" {
       id: "/";
       path: "/";
       fullPath: "/";
-      preLoaderRoute: typeof IndexRouteImport;
+      preLoaderRoute: typeof modulesLandingUiLandingRouteRouteImport;
       parentRoute: typeof rootRouteImport;
     };
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  modulesLandingUiLandingRouteRoute: modulesLandingUiLandingRouteRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

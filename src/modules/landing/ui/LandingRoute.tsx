@@ -2,10 +2,13 @@ import { query } from "@/db";
 import { Icon } from "@/components/Icon";
 import { createServerFn } from "@tanstack/react-start";
 import ProgressChart from "./ProgressChart";
-import { getRouteApi } from "@tanstack/react-router";
 import { verifySession } from "@/session";
+import { createFileRoute } from "@tanstack/react-router";
 
-const Route = getRouteApi("/");
+export const Route = createFileRoute("/")({
+  component: LandingPage,
+  loader: () => fetchLandingPageData(),
+});
 
 export const fetchLandingPageData = createServerFn().handler(async () => {
   const [session, stats] = await Promise.all([
