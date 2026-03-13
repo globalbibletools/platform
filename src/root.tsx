@@ -7,6 +7,7 @@ import {
 import languages from "@/shared/i18n/languages.json";
 import appCss from "@/styles.css?url";
 import TimezoneTracker from "./shared/i18n/TimezoneTracker";
+import { AnalyticsProvider } from "./analytics";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -38,6 +39,8 @@ function RootLayout() {
         <HeadContent />
       </head>
       <body>
+        <TimezoneTracker />
+        <AnalyticsProvider id={process.env.VITE_FATHOM_ID} />
         <Outlet />
         <Scripts />
       </body>

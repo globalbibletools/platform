@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect } from "react";
 
 let previousTimezone: string;

@@ -5,10 +5,8 @@ import { getTranslations } from "next-intl/server";
 import "@/styles.css";
 import languages from "@/shared/i18n/languages.json";
 import { FlashProvider } from "@/flash";
-import { AnalyticsProvider } from "@/analytics";
 import { routing } from "@/shared/i18n/routing";
 import { notFound } from "next/navigation";
-import TimezoneTracker from "@/shared/i18n/TimezoneTracker";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("RootLayout");
@@ -33,13 +31,7 @@ export default function RootLayout(props: {
   const language = languages[params.locale as keyof typeof languages];
 
   return (
-    <html
-      className={`${language.class}`}
-      lang={params.locale}
-      dir={language.dir}
-    >
-      <TimezoneTracker />
-      <AnalyticsProvider id={process.env.FATHOM_ID} />
+    <html lang={params.locale} dir={language.dir}>
       <body>
         <NextIntlClientProvider
           messages={{
