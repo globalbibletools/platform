@@ -1,8 +1,36 @@
 @import "tailwindcss";
 @import "@fortawesome/fontawesome-svg-core/styles.css" layer(components);
+@import "@fontsource/noto-sans/400.css";
+@import "@fontsource/noto-sans/700.css";
+@import "@fontsource/noto-sans-arabic/400.css";
+@import "@fontsource/noto-sans-arabic/700.css";
+
+@font-face {
+  font-family: "SBL Hebrew";
+  src: url("./fonts/SBL_Hbrw.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0590-05FF;
+  size-adjust: 140%;
+}
+
+@font-face {
+  font-family: "SBL Greek";
+  src: url("./fonts/SBL_grk.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0370-03FF, U+1F00-1FFF;
+  size-adjust: 112%;
+}
 
 @layer base {
   :root {
+    --font-noto-sans: "Noto Sans";
+    --font-noto-sans-arabic: "Noto Sans Arabic";
+    --font-sbl-hebrew: "SBL Hebrew";
+    --font-sbl-greek: "SBL Greek";
     --font-sans: var(--font-noto-sans);
     --heading-height: 4rem;
     --read-nav-h: 4rem;
