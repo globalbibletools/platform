@@ -7,28 +7,6 @@ vi.mock("@tanstack/react-start/server", () => ({
   getRequest: () => ({ url: requestUrl }),
 }));
 
-// TODO: I need to find a better way to do this so I can test both implementations
-vi.mock("@tanstack/react-start", () => ({
-  createIsomorphicFn: () => {
-    let serverImpl: () => unknown = () => undefined;
-
-    const fn = (() => serverImpl()) as {
-      (): unknown;
-      server: (impl: () => unknown) => typeof fn;
-      client: (impl: () => unknown) => typeof fn;
-    };
-
-    fn.server = (impl) => {
-      serverImpl = impl;
-      return fn;
-    };
-
-    fn.client = (_impl) => fn;
-
-    return fn;
-  },
-}));
-
 import {
   defaultLocale,
   deLocalizeUrl,
