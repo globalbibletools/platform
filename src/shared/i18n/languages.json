@@ -1,12 +1,14 @@
-{
-  "en": {
+[
+  {
+    "code": "en",
     "name": "English",
     "class": "locale-en",
     "dir": "ltr"
   },
-  "ar": {
+  {
+    "code": "ar",
     "name": "اَلْعَرَبِيَّةُ",
     "class": "locale-ar",
     "dir": "rtl"
   }
-}
+]
