@@ -1,83 +1,91 @@
 import { expect, test, vi } from "vitest";
-
-vi.mock("@tanstack/react-start", async (importOriginal) => {
-  const actual = await importOriginal();
-  return {
-    // TODO: why this error?
-    ...actual,
-    createMiddleware: ({ type }: { type: string }) => ({
-      server: (
-        handler: (context: {
-          request: Request;
-          next: () => Promise<Response>;
-        }) => Promise<Response>,
-      ) => {
-        if (type !== "request") {
-          throw new Error("Unexpected middleware type");
-        }
-        return handler;
-      },
-    }),
-  };
-});
-
 import { localeMiddleware } from "./middleware";
+import {
+  RequestMiddlewareWithTypes,
+  RequestServerOptions,
+} from "@tanstack/react-start";
 
-const runLocaleMiddleware = localeMiddleware as unknown as (options: {
-  request: Request;
-  next: () => Promise<Response>;
-}) => Promise<Response>;
+function createMiddlewareTestHarness<TRegister, TMiddlewares, TServerContext>(
+  middleware: RequestMiddlewareWithTypes<
+    TRegister,
+    TMiddlewares,
+    TServerContext
+  >,
+) {
+  return async ({
+    request,
+    nextResponse = new Response("ok", { status: 200 }),
+  }: {
+    request: Request;
+    nextResponse?: Response;
+  }) => {
+    const next = vi.fn(({ context }: { context?: TServerContext } = {}) => ({
+      request,
+      pathname: new URL(request.url).pathname,
+      response: nextResponse,
+      context: context as any,
+    })) as RequestServerOptions<TRegister, TMiddlewares>["next"];
+
+    const response = await middleware.options.server?.({
+      next,
+      request,
+      pathname: new URL(request.url).pathname,
+      context: undefined as RequestServerOptions<
+        TRegister,
+        TMiddlewares
+      >["context"],
+    });
+
+    if (!response) {
+      return { response: undefined, next };
+    } else if ("response" in response) {
+      return { response: response.response, next };
+    } else {
+      return { response, next };
+    }
+  };
+}
+
+const testMiddleware = createMiddlewareTestHarness(localeMiddleware);
 
 test("continues for ignored api path", async () => {
-  const next = vi.fn(async () => new Response("ok", { status: 200 }));
-
-  const response = await runLocaleMiddleware({
+  const { response, next } = await testMiddleware({
     request: new Request("https://example.com/api/health"),
-    next,
   });
 
-  expect(next).toHaveBeenCalledTimes(1);
-  expect(response.status).toBe(200);
+  expect(next).toHaveBeenCalledExactlyOnceWith();
+  expect(response?.status).toBe(200);
 });
 
 test("redirects to locale-prefixed path when locale is missing", async () => {
-  const next = vi.fn(async () => new Response("ok", { status: 200 }));
-
-  const response = await runLocaleMiddleware({
+  const { response, next } = await testMiddleware({
     request: new Request("https://example.com/read/eng/GEN.1.1"),
-    next,
   });
 
   expect(next).not.toHaveBeenCalled();
-  expect(response.status).toBe(307);
-  expect(response.headers.get("location")).toBe(
+  expect(response?.status).toBe(307);
+  expect(response?.headers.get("location")).toBe(
     "https://example.com/en/read/eng/GEN.1.1",
   );
 });
 
 test("redirects when locale-prefixed api path is stripped to ignored path", async () => {
-  const next = vi.fn(async () => new Response("ok", { status: 200 }));
-
-  const response = await runLocaleMiddleware({
+  const { response, next } = await testMiddleware({
     request: new Request("https://example.com/en/api/health"),
-    next,
   });
 
   expect(next).not.toHaveBeenCalled();
-  expect(response.status).toBe(307);
-  expect(response.headers.get("location")).toBe(
+  expect(response?.status).toBe(307);
+  expect(response?.headers.get("location")).toBe(
     "https://example.com/api/health",
   );
 });
 
 test("continues when localized non-ignored path is valid", async () => {
-  const next = vi.fn(async () => new Response("ok", { status: 200 }));
-
-  const response = await runLocaleMiddleware({
+  const { response, next } = await testMiddleware({
     request: new Request("https://example.com/en/read/eng/GEN.1.1"),
-    next,
   });
 
-  expect(next).toHaveBeenCalledTimes(1);
-  expect(response.status).toBe(200);
+  expect(next).toHaveBeenCalledExactlyOnceWith();
+  expect(response?.status).toBe(200);
 });
