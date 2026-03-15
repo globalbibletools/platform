@@ -1,11 +1,32 @@
-import { expect, test, vi } from "vitest";
+import { expect, MockedFunction, test, vi } from "vitest";
 import { localeMiddleware } from "./middleware";
 import {
   RequestMiddlewareWithTypes,
   RequestServerOptions,
 } from "@tanstack/react-start";
 
-function createMiddlewareTestHarness<TRegister, TMiddlewares, TServerContext>(
+type MiddlewareContext<TRegister, TMiddlewares> = RequestServerOptions<
+  TRegister,
+  TMiddlewares
+>["context"];
+
+type MiddlewareHarnessArgs<TRegister, TMiddlewares> = {
+  request: Request;
+  nextResponse?: Response;
+} & (MiddlewareContext<TRegister, TMiddlewares> extends undefined ?
+  { context?: MiddlewareContext<TRegister, TMiddlewares> }
+: { context: MiddlewareContext<TRegister, TMiddlewares> });
+
+interface MiddlewareHarnessResult<TRegister, TMiddlewares> {
+  response: Response | undefined;
+  next: MockedFunction<RequestServerOptions<TRegister, TMiddlewares>["next"]>;
+}
+
+function createRequestMiddlewareTestHarness<
+  TRegister,
+  TMiddlewares,
+  TServerContext,
+>(
   middleware: RequestMiddlewareWithTypes<
     TRegister,
     TMiddlewares,
@@ -15,22 +36,24 @@ function createMiddlewareTestHarness<TRegister, TMiddlewares, TServerContext>(
   return async ({
     request,
     nextResponse = new Response("ok", { status: 200 }),
-  }: {
-    request: Request;
-    nextResponse?: Response;
-  }) => {
+    context,
+  }: MiddlewareHarnessArgs<TRegister, TMiddlewares>): Promise<
+    MiddlewareHarnessResult<TRegister, TMiddlewares>
+  > => {
     const next = vi.fn(({ context }: { context?: TServerContext } = {}) => ({
       request,
       pathname: new URL(request.url).pathname,
       response: nextResponse,
-      context: context as any,
-    })) as RequestServerOptions<TRegister, TMiddlewares>["next"];
+      context,
+    })) as MockedFunction<
+      RequestServerOptions<TRegister, TMiddlewares>["next"]
+    >;
 
     const response = await middleware.options.server?.({
-      next,
+      next: next as RequestServerOptions<TRegister, TMiddlewares>["next"],
       request,
       pathname: new URL(request.url).pathname,
-      context: undefined as RequestServerOptions<
+      context: context as RequestServerOptions<
         TRegister,
         TMiddlewares
       >["context"],
@@ -46,7 +69,7 @@ function createMiddlewareTestHarness<TRegister, TMiddlewares, TServerContext>(
   };
 }
 
-const testMiddleware = createMiddlewareTestHarness(localeMiddleware);
+const testMiddleware = createRequestMiddlewareTestHarness(localeMiddleware);
 
 test("continues for ignored api path", async () => {
   const { response, next } = await testMiddleware({
