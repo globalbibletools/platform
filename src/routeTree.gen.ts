@@ -8,52 +8,51 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./root";
-import { Route as modulesLandingUiLandingRouteRouteImport } from "./modules/landing/ui/LandingRoute";
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as landingIndexRouteImport } from "./routes/(landing)/index";
 
-const modulesLandingUiLandingRouteRoute =
-  modulesLandingUiLandingRouteRouteImport.update({
-    id: "/",
-    path: "/",
-    getParentRoute: () => rootRouteImport,
-  } as any);
+const landingIndexRoute = landingIndexRouteImport.update({
+  id: "/(landing)/",
+  path: "/",
+  getParentRoute: () => rootRouteImport,
+} as any);
 
 export interface FileRoutesByFullPath {
-  "/": typeof modulesLandingUiLandingRouteRoute;
+  "/": typeof landingIndexRoute;
 }
 export interface FileRoutesByTo {
-  "/": typeof modulesLandingUiLandingRouteRoute;
+  "/": typeof landingIndexRoute;
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
-  "/": typeof modulesLandingUiLandingRouteRoute;
+  "/(landing)/": typeof landingIndexRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths: "/";
   fileRoutesByTo: FileRoutesByTo;
   to: "/";
-  id: "__root__" | "/";
+  id: "__root__" | "/(landing)/";
   fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  modulesLandingUiLandingRouteRoute: typeof modulesLandingUiLandingRouteRoute;
+  landingIndexRoute: typeof landingIndexRoute;
 }
 
 declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    "/": {
-      id: "/";
+    "/(landing)/": {
+      id: "/(landing)/";
       path: "/";
       fullPath: "/";
-      preLoaderRoute: typeof modulesLandingUiLandingRouteRouteImport;
+      preLoaderRoute: typeof landingIndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  modulesLandingUiLandingRouteRoute: modulesLandingUiLandingRouteRoute,
+  landingIndexRoute: landingIndexRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

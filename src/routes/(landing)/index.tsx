@@ -1,11 +1,11 @@
 import { query } from "@/db";
 import { Icon } from "@/components/Icon";
 import { createServerFn } from "@tanstack/react-start";
-import ProgressChart from "./ProgressChart";
+import ProgressChart from "./-components/ProgressChart";
 import { verifySession } from "@/session";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/(landing)/")({
   component: LandingPage,
   loader: () => fetchLandingPageData(),
 });

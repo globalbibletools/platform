@@ -4,12 +4,12 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import appCss from "./styles.css?url";
-import TimezoneTracker from "./shared/i18n/TimezoneTracker";
-import { AnalyticsProvider } from "./analytics";
-import { getCurrentLocale } from "./shared/i18n/shared";
+import appCss from "@/styles.css?url";
+import TimezoneTracker from "@/shared/i18n/TimezoneTracker";
+import { AnalyticsProvider } from "@/analytics";
+import { getCurrentLocale } from "@/shared/i18n/shared";
 import { IntlProvider } from "next-intl";
-import { fetchLocaleMessages } from "./shared/i18n/fetchLocaleMessages";
+import { fetchLocaleMessages } from "@/shared/i18n/fetchLocaleMessages";
 
 export const Route = createRootRoute({
   // TODO: This probably isn't the right way to load the messages.

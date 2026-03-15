@@ -17,8 +17,6 @@ export default defineConfig({
       router: {
         semicolons: true,
         quoteStyle: "double",
-        virtualRouteConfig: "src/routes.ts",
-        routesDirectory: ".",
       },
     }),
     viteReact(),
