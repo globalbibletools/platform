@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useFlash } from "../flash";
 import { OptionalFetcher, useServerFn } from "@tanstack/react-start";
-import { useRouter } from "@tanstack/react-router";
+import { ToOptions, useRouter } from "@tanstack/react-router";
 
 export type FormState =
   | { state: "idle" }
@@ -19,22 +19,22 @@ export interface FormProps {
   className?: string;
   children?: ReactNode;
   action: OptionalFetcher<any, any, any>;
+  redirect?: ToOptions;
+  successMessage?: string;
 }
 
-export default function Form({ className = "", children, action }: FormProps) {
+export default function Form({
+  className = "",
+  children,
+  action,
+  redirect,
+  successMessage,
+}: FormProps) {
   const serverFn = useServerFn(action);
   const [state, setState] = useState<FormState>({ state: "idle" });
 
   const router = useRouter();
   const flash = useFlash();
-
-  useEffect(() => {
-    if (state.state === "error" && state.error) {
-      flash.error(state.error);
-    } else if (state.state === "success" && state.message) {
-      flash.success(state.message);
-    }
-  }, [state, flash]);
 
   return (
     <form
@@ -48,13 +48,20 @@ export default function Form({ className = "", children, action }: FormProps) {
             state: "success",
           });
 
-          router.invalidate();
+          if (successMessage) {
+            flash.success(successMessage);
+          }
+
+          if (redirect) {
+            await router.navigate(redirect);
+          }
         } catch (error) {
           const validation = processValidationError(error);
+          flash.error("Failed request"); // TODO: translate this
           if (validation) {
             setState({
               state: "error",
-              error: "Invalid request", // TODO: translate this
+              error: "Invalid request",
               validation,
             });
           } else {

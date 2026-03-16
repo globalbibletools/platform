@@ -44,5 +44,4 @@ export const resetPassword = createServerFn({ method: "POST" })
     }
 
     await createSession(userId);
-    throw redirect({ to: "/dashboard" });
   });

@@ -29,6 +29,7 @@ export default function ForgotPasswordRoute() {
       <Form
         className="max-w-[300px] w-full mx-auto"
         action={startPasswordReset}
+        redirect={{ to: "/login" }}
       >
         <div className="mb-6">
           <FormLabel htmlFor="email">{t("form.email")}</FormLabel>

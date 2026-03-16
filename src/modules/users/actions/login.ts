@@ -7,7 +7,6 @@ import { logIn as logInUseCase } from "../use-cases/logIn";
 import { IncorrectPasswordError } from "../model/errors";
 import { NotFoundError } from "@/shared/errors";
 import { createServerFn } from "@tanstack/react-start";
-import { redirect } from "@tanstack/react-router";
 import { parseForm } from "@/form-parser";
 
 const loginSchema = z.object({
@@ -43,5 +42,4 @@ export const logIn = createServerFn({ method: "POST" })
     }
 
     await createSession(userId);
-    throw redirect({ to: "/dashboard" });
   });

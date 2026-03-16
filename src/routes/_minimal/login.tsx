@@ -18,7 +18,11 @@ export default function LoginRoute() {
   return (
     <ModalView className="max-w-[480px] w-full">
       <ModalViewTitle>{t("title")}</ModalViewTitle>
-      <Form className="max-w-[300px] w-full mx-auto" action={logIn}>
+      <Form
+        className="max-w-[300px] w-full mx-auto"
+        action={logIn}
+        redirect={{ to: "/dashboard" }}
+      >
         <div className="mb-4">
           <FormLabel htmlFor="email">{t("form.email")}</FormLabel>
           <TextInput

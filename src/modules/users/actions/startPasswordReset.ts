@@ -28,6 +28,4 @@ export const startPasswordReset = createServerFn({ method: "POST" })
       logger.error("password reset request failed", error);
       throw error;
     }
-
-    throw redirect({ to: "/login" });
   });

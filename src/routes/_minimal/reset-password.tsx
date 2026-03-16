@@ -63,7 +63,11 @@ export default function ResetPasswordRoute() {
       }
     >
       <ModalViewTitle>{t("title")}</ModalViewTitle>
-      <Form className="max-w-[300px] w-full mx-auto" action={resetPassword}>
+      <Form
+        className="max-w-[300px] w-full mx-auto"
+        action={resetPassword}
+        redirect={{ to: "/dashboard" }}
+      >
         <input type="hidden" name="token" value={token} />
         <div className="mb-4">
           <FormLabel htmlFor="password">{t("form.password")}</FormLabel>
