@@ -54,7 +54,7 @@ export default function LoginRoute() {
           {t("form.submit")}
         </Button>
         <div className="text-center">
-          <Button variant="tertiary" href="/forgot-password">
+          <Button variant="tertiary" to="/forgot-password">
             {t("forgot_password")}
           </Button>
         </div>

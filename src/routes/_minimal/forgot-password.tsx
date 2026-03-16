@@ -3,40 +3,24 @@ import Button from "@/components/Button";
 import FormLabel from "@/components/FormLabel";
 import TextInput from "@/components/TextInput";
 import FieldError from "@/components/FieldError";
-import { verifySession } from "@/session";
-import { redirect, RedirectType } from "next/navigation";
-import { getLocale, getTranslations } from "next-intl/server";
-import { Metadata, ResolvingMetadata } from "next";
 import Form from "@/components/Form";
 import { startPasswordReset } from "@/modules/users/actions/startPasswordReset";
-import homeRedirect from "@/home-redirect";
+import { createFileRoute } from "@tanstack/react-router";
+import { useTranslations } from "next-intl";
 
-export async function generateMetadata(
-  _: any,
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
-  const t = await getTranslations("ForgotPasswordPage");
-  const { title } = await parent;
+// TODO: Gate to unauthed users
+export const Route = createFileRoute("/_minimal/forgot-password")({
+  component: ForgotPasswordRoute,
+});
 
-  return {
-    title: `${t("title")} | ${title?.absolute}`,
-  };
-}
-
-export default async function LoginPage() {
-  const t = await getTranslations("ForgotPasswordPage");
-  const locale = await getLocale();
-
-  const session = await verifySession();
-  if (session) {
-    redirect(await homeRedirect(), RedirectType.replace);
-  }
+export default function ForgotPasswordRoute() {
+  const t = useTranslations("ForgotPasswordPage");
 
   return (
     <ModalView
       className="max-w-[480px] w-full"
       header={
-        <Button href={`/${locale}/login`} variant="tertiary">
+        <Button to={`/login`} variant="tertiary">
           {t("actions.log_in")}
         </Button>
       }
@@ -55,7 +39,11 @@ export default async function LoginPage() {
             autoComplete="username"
             aria-describedby="email-error"
           />
-          <FieldError id="email-error" name="email" />
+          <FieldError
+            id="email-error"
+            name="email"
+            messages={{ too_small: t("errors.email_required") }}
+          />
         </div>
         <Button type="submit" className="w-full mb-2">
           {t("form.submit")}

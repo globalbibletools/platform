@@ -43,5 +43,5 @@ export const logIn = createServerFn({ method: "POST" })
     }
 
     await createSession(userId);
-    throw redirect({ to: `/` });
+    throw redirect({ to: "/dashboard" });
   });

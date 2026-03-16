@@ -1,13 +1,13 @@
 "use client";
 
-import Link, { LinkProps as NextLinkProps } from "next/link";
 import { ComponentProps, forwardRef, ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import LoadingSpinner from "./LoadingSpinner";
+import { Link, LinkProps as BaseLinkProps } from "@tanstack/react-router";
 
 type ButtonVariant = "primary" | "secondary" | "tertiary" | "link";
 
-export interface LinkProps extends NextLinkProps {
+export interface LinkProps extends BaseLinkProps {
   target?: string;
   className?: string;
   variant?: ButtonVariant;
@@ -65,11 +65,11 @@ function buttonClasses(
 }
 
 function isLinkProps(props: ButtonProps): props is LinkProps {
-  return "href" in props;
+  return "to" in props;
 }
 
 function isButtonProps(props: ButtonProps): props is ActionProps {
-  return !("href" in props);
+  return !("to" in props);
 }
 
 const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(

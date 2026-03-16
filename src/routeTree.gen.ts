@@ -13,6 +13,7 @@ import { Route as MinimalRouteRouteImport } from "./routes/_minimal/route";
 import { Route as MainRouteRouteImport } from "./routes/_main/route";
 import { Route as IndexRouteImport } from "./routes/index";
 import { Route as MinimalLoginRouteImport } from "./routes/_minimal/login";
+import { Route as MinimalForgotPasswordRouteImport } from "./routes/_minimal/forgot-password";
 import { Route as MainTestRouteImport } from "./routes/_main/test";
 import { Route as MainDashboardRouteImport } from "./routes/_main/dashboard";
 
@@ -34,6 +35,11 @@ const MinimalLoginRoute = MinimalLoginRouteImport.update({
   path: "/login",
   getParentRoute: () => MinimalRouteRoute,
 } as any);
+const MinimalForgotPasswordRoute = MinimalForgotPasswordRouteImport.update({
+  id: "/forgot-password",
+  path: "/forgot-password",
+  getParentRoute: () => MinimalRouteRoute,
+} as any);
 const MainTestRoute = MainTestRouteImport.update({
   id: "/test",
   path: "/test",
@@ -49,12 +55,14 @@ export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
   "/dashboard": typeof MainDashboardRoute;
   "/test": typeof MainTestRoute;
+  "/forgot-password": typeof MinimalForgotPasswordRoute;
   "/login": typeof MinimalLoginRoute;
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
   "/dashboard": typeof MainDashboardRoute;
   "/test": typeof MainTestRoute;
+  "/forgot-password": typeof MinimalForgotPasswordRoute;
   "/login": typeof MinimalLoginRoute;
 }
 export interface FileRoutesById {
@@ -64,13 +72,14 @@ export interface FileRoutesById {
   "/_minimal": typeof MinimalRouteRouteWithChildren;
   "/_main/dashboard": typeof MainDashboardRoute;
   "/_main/test": typeof MainTestRoute;
+  "/_minimal/forgot-password": typeof MinimalForgotPasswordRoute;
   "/_minimal/login": typeof MinimalLoginRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "/" | "/dashboard" | "/test" | "/login";
+  fullPaths: "/" | "/dashboard" | "/test" | "/forgot-password" | "/login";
   fileRoutesByTo: FileRoutesByTo;
-  to: "/" | "/dashboard" | "/test" | "/login";
+  to: "/" | "/dashboard" | "/test" | "/forgot-password" | "/login";
   id:
     | "__root__"
     | "/"
@@ -78,6 +87,7 @@ export interface FileRouteTypes {
     | "/_minimal"
     | "/_main/dashboard"
     | "/_main/test"
+    | "/_minimal/forgot-password"
     | "/_minimal/login";
   fileRoutesById: FileRoutesById;
 }
@@ -117,6 +127,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof MinimalLoginRouteImport;
       parentRoute: typeof MinimalRouteRoute;
     };
+    "/_minimal/forgot-password": {
+      id: "/_minimal/forgot-password";
+      path: "/forgot-password";
+      fullPath: "/forgot-password";
+      preLoaderRoute: typeof MinimalForgotPasswordRouteImport;
+      parentRoute: typeof MinimalRouteRoute;
+    };
     "/_main/test": {
       id: "/_main/test";
       path: "/test";
@@ -149,10 +166,12 @@ const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(
 );
 
 interface MinimalRouteRouteChildren {
+  MinimalForgotPasswordRoute: typeof MinimalForgotPasswordRoute;
   MinimalLoginRoute: typeof MinimalLoginRoute;
 }
 
 const MinimalRouteRouteChildren: MinimalRouteRouteChildren = {
+  MinimalForgotPasswordRoute: MinimalForgotPasswordRoute,
   MinimalLoginRoute: MinimalLoginRoute,
 };
 
