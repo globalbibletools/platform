@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from "./routes/__root";
 import { Route as MinimalRouteRouteImport } from "./routes/_minimal/route";
 import { Route as MainRouteRouteImport } from "./routes/_main/route";
 import { Route as IndexRouteImport } from "./routes/index";
+import { Route as MinimalVerifyEmailRouteImport } from "./routes/_minimal/verify-email";
 import { Route as MinimalResetPasswordRouteImport } from "./routes/_minimal/reset-password";
 import { Route as MinimalLoginRouteImport } from "./routes/_minimal/login";
 import { Route as MinimalInviteRouteImport } from "./routes/_minimal/invite";
@@ -31,6 +32,11 @@ const IndexRoute = IndexRouteImport.update({
   id: "/",
   path: "/",
   getParentRoute: () => rootRouteImport,
+} as any);
+const MinimalVerifyEmailRoute = MinimalVerifyEmailRouteImport.update({
+  id: "/verify-email",
+  path: "/verify-email",
+  getParentRoute: () => MinimalRouteRoute,
 } as any);
 const MinimalResetPasswordRoute = MinimalResetPasswordRouteImport.update({
   id: "/reset-password",
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   "/invite": typeof MinimalInviteRoute;
   "/login": typeof MinimalLoginRoute;
   "/reset-password": typeof MinimalResetPasswordRoute;
+  "/verify-email": typeof MinimalVerifyEmailRoute;
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   "/invite": typeof MinimalInviteRoute;
   "/login": typeof MinimalLoginRoute;
   "/reset-password": typeof MinimalResetPasswordRoute;
+  "/verify-email": typeof MinimalVerifyEmailRoute;
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   "/_minimal/invite": typeof MinimalInviteRoute;
   "/_minimal/login": typeof MinimalLoginRoute;
   "/_minimal/reset-password": typeof MinimalResetPasswordRoute;
+  "/_minimal/verify-email": typeof MinimalVerifyEmailRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
@@ -102,7 +111,8 @@ export interface FileRouteTypes {
     | "/forgot-password"
     | "/invite"
     | "/login"
-    | "/reset-password";
+    | "/reset-password"
+    | "/verify-email";
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/"
@@ -111,7 +121,8 @@ export interface FileRouteTypes {
     | "/forgot-password"
     | "/invite"
     | "/login"
-    | "/reset-password";
+    | "/reset-password"
+    | "/verify-email";
   id:
     | "__root__"
     | "/"
@@ -122,7 +133,8 @@ export interface FileRouteTypes {
     | "/_minimal/forgot-password"
     | "/_minimal/invite"
     | "/_minimal/login"
-    | "/_minimal/reset-password";
+    | "/_minimal/reset-password"
+    | "/_minimal/verify-email";
   fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
@@ -153,6 +165,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/";
       preLoaderRoute: typeof IndexRouteImport;
       parentRoute: typeof rootRouteImport;
+    };
+    "/_minimal/verify-email": {
+      id: "/_minimal/verify-email";
+      path: "/verify-email";
+      fullPath: "/verify-email";
+      preLoaderRoute: typeof MinimalVerifyEmailRouteImport;
+      parentRoute: typeof MinimalRouteRoute;
     };
     "/_minimal/reset-password": {
       id: "/_minimal/reset-password";
@@ -218,6 +237,7 @@ interface MinimalRouteRouteChildren {
   MinimalInviteRoute: typeof MinimalInviteRoute;
   MinimalLoginRoute: typeof MinimalLoginRoute;
   MinimalResetPasswordRoute: typeof MinimalResetPasswordRoute;
+  MinimalVerifyEmailRoute: typeof MinimalVerifyEmailRoute;
 }
 
 const MinimalRouteRouteChildren: MinimalRouteRouteChildren = {
@@ -225,6 +245,7 @@ const MinimalRouteRouteChildren: MinimalRouteRouteChildren = {
   MinimalInviteRoute: MinimalInviteRoute,
   MinimalLoginRoute: MinimalLoginRoute,
   MinimalResetPasswordRoute: MinimalResetPasswordRoute,
+  MinimalVerifyEmailRoute: MinimalVerifyEmailRoute,
 };
 
 const MinimalRouteRouteWithChildren = MinimalRouteRoute._addFileChildren(
