@@ -1,11 +1,10 @@
 "use server";
 
 import * as z from "zod";
-import { getLocale, getTranslations } from "next-intl/server";
-import { notFound, redirect } from "next/navigation";
+import { createServerFn } from "@tanstack/react-start";
+import { redirect, notFound } from "@tanstack/react-router";
 import { parseForm } from "@/form-parser";
 import { createSession } from "@/session";
-import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import { resetPassword as resetPasswordUseCase } from "../use-cases/resetPassword";
 import { NotFoundError } from "@/shared/errors";
@@ -20,55 +19,30 @@ const requestSchema = z
     path: ["confirm_password"],
   });
 
-export async function resetPassword(
-  _prevState: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const logger = serverActionLogger("resetPassword");
-
-  const t = await getTranslations("ResetPasswordPage");
-
-  const request = requestSchema.safeParse(parseForm(formData), {
-    errorMap: (error) => {
-      if (error.path.toString() === "password") {
-        if (error.code === "too_small") {
-          return { message: t("errors.password_format") };
-        } else {
-          return { message: t("errors.password_required") };
-        }
-      } else if (error.path.toString() === "confirm_password") {
-        if (error.code === "custom") {
-          return { message: t("errors.confirm_password_mismatch") };
-        } else {
-          return { message: t("errors.confirm_password_required") };
-        }
-      } else {
-        return { message: "Invalid" };
-      }
-    },
-  });
-  if (!request.success) {
-    logger.error("request parse error");
-    return {
-      state: "error",
-      validation: request.error.flatten().fieldErrors,
-    };
-  }
-
-  let userId;
-  try {
-    const response = await resetPasswordUseCase(request.data);
-    userId = response.userId;
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      logger.error("user not found");
-      notFound();
-    } else {
-      throw error;
+export const resetPassword = createServerFn({ method: "POST" })
+  .inputValidator((data) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
     }
-  }
 
-  await createSession(userId);
-  const locale = await getLocale();
-  redirect(`/${locale}/dashboard`);
-}
+    return requestSchema.parse(parseForm(data));
+  })
+  .handler(async ({ data }) => {
+    const logger = serverActionLogger("resetPassword");
+
+    let userId;
+    try {
+      const response = await resetPasswordUseCase(data);
+      userId = response.userId;
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        logger.error("user not found");
+        throw notFound();
+      } else {
+        throw error;
+      }
+    }
+
+    await createSession(userId);
+    throw redirect({ to: "/dashboard" });
+  });

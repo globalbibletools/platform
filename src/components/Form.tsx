@@ -50,11 +50,19 @@ export default function Form({ className = "", children, action }: FormProps) {
 
           router.invalidate();
         } catch (error) {
-          setState({
-            state: "error",
-            error: error instanceof Error ? error.message : undefined,
-            validation: processValidationError(error),
-          });
+          const validation = processValidationError(error);
+          if (validation) {
+            setState({
+              state: "error",
+              error: "Invalid request", // TODO: translate this
+              validation,
+            });
+          } else {
+            setState({
+              state: "error",
+              error: error instanceof Error ? error.message : undefined,
+            });
+          }
         }
       }}
     >
