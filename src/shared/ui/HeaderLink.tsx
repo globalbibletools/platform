@@ -3,11 +3,10 @@
 import { ReactNode, createContext, useContext, useState } from "react";
 import NavLink, { NavLinkProps } from "@/components/NavLink";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import Link from "next/link";
 import { Icon } from "@/components/Icon";
+import { Link } from "@tanstack/react-router";
 
 export interface HeaderLinkProps extends NavLinkProps {
-  href: string;
   children: ReactNode;
   className?: string;
   newTab?: boolean;

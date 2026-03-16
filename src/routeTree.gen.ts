@@ -9,50 +9,161 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from "./routes/__root";
-import { Route as landingIndexRouteImport } from "./routes/(landing)/index";
+import { Route as MinimalRouteRouteImport } from "./routes/_minimal/route";
+import { Route as MainRouteRouteImport } from "./routes/_main/route";
+import { Route as IndexRouteImport } from "./routes/index";
+import { Route as MinimalLoginRouteImport } from "./routes/_minimal/login";
+import { Route as MainTestRouteImport } from "./routes/_main/test";
+import { Route as MainDashboardRouteImport } from "./routes/_main/dashboard";
 
-const landingIndexRoute = landingIndexRouteImport.update({
-  id: "/(landing)/",
+const MinimalRouteRoute = MinimalRouteRouteImport.update({
+  id: "/_minimal",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const MainRouteRoute = MainRouteRouteImport.update({
+  id: "/_main",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const IndexRoute = IndexRouteImport.update({
+  id: "/",
   path: "/",
   getParentRoute: () => rootRouteImport,
 } as any);
+const MinimalLoginRoute = MinimalLoginRouteImport.update({
+  id: "/login",
+  path: "/login",
+  getParentRoute: () => MinimalRouteRoute,
+} as any);
+const MainTestRoute = MainTestRouteImport.update({
+  id: "/test",
+  path: "/test",
+  getParentRoute: () => MainRouteRoute,
+} as any);
+const MainDashboardRoute = MainDashboardRouteImport.update({
+  id: "/dashboard",
+  path: "/dashboard",
+  getParentRoute: () => MainRouteRoute,
+} as any);
 
 export interface FileRoutesByFullPath {
-  "/": typeof landingIndexRoute;
+  "/": typeof IndexRoute;
+  "/dashboard": typeof MainDashboardRoute;
+  "/test": typeof MainTestRoute;
+  "/login": typeof MinimalLoginRoute;
 }
 export interface FileRoutesByTo {
-  "/": typeof landingIndexRoute;
+  "/": typeof IndexRoute;
+  "/dashboard": typeof MainDashboardRoute;
+  "/test": typeof MainTestRoute;
+  "/login": typeof MinimalLoginRoute;
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
-  "/(landing)/": typeof landingIndexRoute;
+  "/": typeof IndexRoute;
+  "/_main": typeof MainRouteRouteWithChildren;
+  "/_minimal": typeof MinimalRouteRouteWithChildren;
+  "/_main/dashboard": typeof MainDashboardRoute;
+  "/_main/test": typeof MainTestRoute;
+  "/_minimal/login": typeof MinimalLoginRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "/";
+  fullPaths: "/" | "/dashboard" | "/test" | "/login";
   fileRoutesByTo: FileRoutesByTo;
-  to: "/";
-  id: "__root__" | "/(landing)/";
+  to: "/" | "/dashboard" | "/test" | "/login";
+  id:
+    | "__root__"
+    | "/"
+    | "/_main"
+    | "/_minimal"
+    | "/_main/dashboard"
+    | "/_main/test"
+    | "/_minimal/login";
   fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  landingIndexRoute: typeof landingIndexRoute;
+  IndexRoute: typeof IndexRoute;
+  MainRouteRoute: typeof MainRouteRouteWithChildren;
+  MinimalRouteRoute: typeof MinimalRouteRouteWithChildren;
 }
 
 declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    "/(landing)/": {
-      id: "/(landing)/";
+    "/_minimal": {
+      id: "/_minimal";
+      path: "";
+      fullPath: "/";
+      preLoaderRoute: typeof MinimalRouteRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_main": {
+      id: "/_main";
+      path: "";
+      fullPath: "/";
+      preLoaderRoute: typeof MainRouteRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/": {
+      id: "/";
       path: "/";
       fullPath: "/";
-      preLoaderRoute: typeof landingIndexRouteImport;
+      preLoaderRoute: typeof IndexRouteImport;
       parentRoute: typeof rootRouteImport;
+    };
+    "/_minimal/login": {
+      id: "/_minimal/login";
+      path: "/login";
+      fullPath: "/login";
+      preLoaderRoute: typeof MinimalLoginRouteImport;
+      parentRoute: typeof MinimalRouteRoute;
+    };
+    "/_main/test": {
+      id: "/_main/test";
+      path: "/test";
+      fullPath: "/test";
+      preLoaderRoute: typeof MainTestRouteImport;
+      parentRoute: typeof MainRouteRoute;
+    };
+    "/_main/dashboard": {
+      id: "/_main/dashboard";
+      path: "/dashboard";
+      fullPath: "/dashboard";
+      preLoaderRoute: typeof MainDashboardRouteImport;
+      parentRoute: typeof MainRouteRoute;
     };
   }
 }
 
+interface MainRouteRouteChildren {
+  MainDashboardRoute: typeof MainDashboardRoute;
+  MainTestRoute: typeof MainTestRoute;
+}
+
+const MainRouteRouteChildren: MainRouteRouteChildren = {
+  MainDashboardRoute: MainDashboardRoute,
+  MainTestRoute: MainTestRoute,
+};
+
+const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(
+  MainRouteRouteChildren,
+);
+
+interface MinimalRouteRouteChildren {
+  MinimalLoginRoute: typeof MinimalLoginRoute;
+}
+
+const MinimalRouteRouteChildren: MinimalRouteRouteChildren = {
+  MinimalLoginRoute: MinimalLoginRoute,
+};
+
+const MinimalRouteRouteWithChildren = MinimalRouteRoute._addFileChildren(
+  MinimalRouteRouteChildren,
+);
+
 const rootRouteChildren: RootRouteChildren = {
-  landingIndexRoute: landingIndexRoute,
+  IndexRoute: IndexRoute,
+  MainRouteRoute: MainRouteRouteWithChildren,
+  MinimalRouteRoute: MinimalRouteRouteWithChildren,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

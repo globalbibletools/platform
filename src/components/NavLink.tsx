@@ -1,30 +1,27 @@
 "use client";
 
-import Link, { LinkProps } from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, useLocation } from "@tanstack/react-router";
 import { ComponentProps, ReactNode } from "react";
 
 export interface NavLinkProps
   extends Omit<ComponentProps<typeof Link>, "className"> {
-  href: LinkProps["href"];
   children?: ReactNode;
   className?: string | ((isActive: boolean) => string);
 }
 
 export default function NavLink({
   children,
-  href,
+  to,
   className = "",
   ...props
 }: NavLinkProps) {
-  const pathname = usePathname();
-  const linkPathname = href instanceof URL ? href.pathname : href.toString();
-  const isActive = pathname.startsWith(linkPathname);
+  const pathname = useLocation({ select: ({ pathname }) => pathname });
+  const isActive = to ? pathname.startsWith(to) : false;
 
   return (
     <Link
       {...props}
-      href={href}
+      to={to}
       className={
         typeof className === "string" ? className : className(isActive)
       }
@@ -34,17 +31,14 @@ export default function NavLink({
   );
 }
 
-export function SidebarLink({
-  children,
-  href,
-}: Omit<NavLinkProps, "className">) {
+export function SidebarLink({ children, to }: Omit<NavLinkProps, "className">) {
   return (
     <NavLink
-      href={href}
+      to={to}
       className={(isActive) => `
-            block px-3 py-1 rounded-lg text-blue-800 dark:text-green-400 font-bold mb-2
-            ${isActive ? "bg-green-200 dark:bg-gray-700" : ""}
-        `}
+        block px-3 py-1 rounded-lg text-blue-800 dark:text-green-400 font-bold mb-2
+        ${isActive ? "bg-green-200 dark:bg-gray-700" : ""}
+      `}
     >
       {children}
     </NavLink>

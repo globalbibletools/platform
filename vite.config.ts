@@ -21,6 +21,9 @@ export default defineConfig({
     }),
     viteReact(),
   ],
+  optimizeDeps: {
+    exclude: ["@node-rs/argon2", "@node-rs/bcrypt"],
+  },
   test: {
     projects: [
       {

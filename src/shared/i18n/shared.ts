@@ -2,6 +2,7 @@ import languages from "./languages.json";
 
 export type Locale = (typeof languages)[number];
 
+export { languages as locales };
 export const localeMap = Object.fromEntries(
   languages.map((locale) => [locale.code, locale]),
 );
@@ -11,7 +12,7 @@ export function isValidLocale(localeCode: string | undefined): boolean {
   return languages.some((locale) => locale.code === localeCode);
 }
 
-export const ignoredPathsRegex = /^\/(?:api|rpc)(?:\/|$)/;
+export const ignoredPathsRegex = /^\/(?:api|rpc|_serverFn)(?:\/|$)/;
 export function shouldIgnorePath(pathname: string): boolean {
   return ignoredPathsRegex.test(pathname);
 }
@@ -55,8 +56,12 @@ export function deLocalizeUrl(url: URL): URL {
 export function localizeUrl(url: URL): URL {
   if (shouldIgnorePath(url.pathname)) return url;
 
-  const locale = getCurrentLocale();
+  const currentLocale = extractLocaleFromPath(url.pathname);
+  if (currentLocale) {
+    return url;
+  }
 
+  const locale = getCurrentLocale();
   return withLocalePrefix(url, locale.code);
 }
 

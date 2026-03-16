@@ -4,10 +4,11 @@ import {
   ReactNode,
   useContext,
   useEffect,
-  useActionState,
-  startTransition,
+  useState,
 } from "react";
 import { useFlash } from "../flash";
+import { OptionalFetcher, useServerFn } from "@tanstack/react-start";
+import { useRouter } from "@tanstack/react-router";
 
 export type FormState =
   | { state: "idle" }
@@ -17,15 +18,14 @@ export type FormState =
 export interface FormProps {
   className?: string;
   children?: ReactNode;
-  action: (
-    state: Awaited<FormState>,
-    formData: FormData,
-  ) => FormState | Promise<FormState>;
+  action: OptionalFetcher<any, any, any>;
 }
 
 export default function Form({ className = "", children, action }: FormProps) {
-  const [state, formAction] = useActionState(action, { state: "idle" });
+  const serverFn = useServerFn(action);
+  const [state, setState] = useState<FormState>({ state: "idle" });
 
+  const router = useRouter();
   const flash = useFlash();
 
   useEffect(() => {
@@ -39,10 +39,22 @@ export default function Form({ className = "", children, action }: FormProps) {
   return (
     <form
       className={className}
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
-        startTransition(() => formAction(formData));
+        try {
+          await serverFn({ data: formData });
+          setState({
+            state: "success",
+          });
+
+          router.invalidate();
+        } catch (error) {
+          setState({
+            state: "error",
+            error: error instanceof Error ? error.message : undefined,
+          });
+        }
       }}
     >
       <FormContext.Provider value={state}>{children}</FormContext.Provider>

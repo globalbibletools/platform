@@ -10,16 +10,13 @@ import { AnalyticsProvider } from "@/analytics";
 import { getCurrentLocale } from "@/shared/i18n/shared";
 import { IntlProvider } from "next-intl";
 import { fetchLocaleMessages } from "@/shared/i18n/fetchLocaleMessages";
+import useSWR from "swr";
+import { FlashProvider } from "@/flash";
 
 export const Route = createRootRoute({
-  // TODO: This probably isn't the right way to load the messages.
-  loaderDeps: () => {
+  loader: async () => {
     const locale = getCurrentLocale();
-
-    return { localeCode: locale.code };
-  },
-  loader: async ({ deps }) => {
-    return await fetchLocaleMessages({ data: { localeCode: deps.localeCode } });
+    return await fetchLocaleMessages({ data: { localeCode: locale.code } });
   },
   head: () => ({
     meta: [
@@ -42,7 +39,13 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   const locale = getCurrentLocale();
-  const messages = Route.useLoaderData();
+  const loaderData = Route.useLoaderData();
+
+  const { data: messages } = useSWR(
+    ["messages", locale.code],
+    ([, localeCode]) => fetchLocaleMessages({ data: { localeCode } }),
+    { fallbackData: loaderData, revalidateOnMount: false },
+  );
 
   return (
     <html lang={locale.code} dir={locale.dir} className={locale.class}>
@@ -53,7 +56,9 @@ function RootLayout() {
         <TimezoneTracker />
         <AnalyticsProvider id={process.env.VITE_FATHOM_ID} />
         <IntlProvider locale={locale.code} messages={messages}>
-          <Outlet />
+          <FlashProvider>
+            <Outlet />
+          </FlashProvider>
         </IntlProvider>
         <Scripts />
       </body>

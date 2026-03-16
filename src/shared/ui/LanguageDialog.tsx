@@ -3,13 +3,14 @@
 import { useRef } from "react";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
-import languages from "@/shared/i18n/languages.json" assert { type: "json" };
-import { useParams, usePathname } from "next/navigation";
 import ComboboxInput from "@/components/ComboboxInput";
+import { getCurrentLocale, locales } from "@/shared/i18n/shared";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 
 export default function LanguageDialog() {
-  const { locale } = useParams<{ locale: string }>();
-  const pathName = usePathname();
+  const locale = getCurrentLocale();
+  const navigate = useNavigate();
+  const pathname = useLocation({ select: ({ pathname }) => pathname });
 
   const dialog = useRef<HTMLDialogElement>(null);
 
@@ -17,7 +18,7 @@ export default function LanguageDialog() {
     <>
       <Button variant="tertiary" onClick={() => dialog.current?.show()}>
         <Icon icon="language" className="me-2" />
-        {languages[locale as keyof typeof languages]?.name}
+        {locale.name}
       </Button>
       <dialog
         ref={dialog}
@@ -32,19 +33,17 @@ export default function LanguageDialog() {
         </h2>
         <ComboboxInput
           className="block min-w-[150px]"
-          value={locale}
+          value={locale.code}
           onChange={(language) => {
-            // We need to do a hard refresh so that the tawk.to chat widget will reload with settings for the new language.
-            window.location.href = new URL(
-              pathName.replace(new RegExp(`/${locale}(?=/|$)`), `/${language}`),
-              window.location.origin,
-            ).toString();
+            navigate({
+              to: `/${language}${pathname}`,
+            });
           }}
           aria-label="Interface Language"
           up
-          items={Object.entries(languages).map(([value, config]) => ({
-            label: config.name,
-            value,
+          items={locales.map((locale) => ({
+            label: locale.name,
+            value: locale.code,
           }))}
         />
         <Button

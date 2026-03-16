@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { getLocale, getTranslations } from "next-intl/server";
 import { Icon } from "@/components/Icon";
 import {
   HeaderDropdown,
@@ -11,35 +9,41 @@ import {
   HeaderMenuItems,
 } from "./HeaderLink";
 import { verifySession } from "@/session";
-import Image from "next/image";
+import { useTranslations } from "next-intl";
+import { getCurrentLocale } from "@/shared/i18n/shared";
+import { Link } from "@tanstack/react-router";
 
-export default async function PrimaryNavigation() {
-  const t = await getTranslations("PrimaryNavigation");
+export default function PrimaryNavigation() {
+  const t = useTranslations("PrimaryNavigation");
 
+  /*
   const session = await verifySession();
   const isAdmin = session?.user.roles.includes("ADMIN");
   const canTranslate = Boolean(session);
+  */
+  const session = null;
+  const isAdmin = false;
+  const canTranslate = false;
 
-  const locale = await getLocale();
+  const locale = getCurrentLocale();
 
   return (
     <nav
       className="
         sticky top-0 z-30
-        bg-white flex items-center h-(--heading-height) border-b border-gray-200 relative px-4 lg:px-8
+        bg-white flex items-center h-(--heading-height) border-b border-gray-200 px-4 lg:px-8
         dark:bg-gray-900 dark:border-gray-700
       "
     >
       <Link
-        href={session ? `/${locale}/dashboard` : "/"}
+        // to={'/dashboard' : "/"}
+        to="/"
         className="flex items-center me-8"
       >
-        <Image
+        <img
           src="https://assets.globalbibletools.com/landing/logo.png"
           className="w-10 h-10"
           alt=""
-          width={440}
-          height={440}
         />
         <h1 className="font-bold ms-2 text-lg">{t("app_name")}</h1>
       </Link>
@@ -47,18 +51,14 @@ export default async function PrimaryNavigation() {
       <div className="shrink-0 gap-2 md:gap-4 h-full hidden sm:flex">
         <HeaderLink href={`/${locale}/read`}>{t("links.read")}</HeaderLink>
         {(isAdmin || canTranslate) && (
-          <HeaderLink href={`/${locale}/translate`}>
-            {t("links.translate")}
-          </HeaderLink>
+          <HeaderLink to="/translate">{t("links.translate")}</HeaderLink>
         )}
         {isAdmin && (
-          <HeaderLink href={`/${locale}/admin/languages`}>
-            {t("links.admin")}
-          </HeaderLink>
+          <HeaderLink to="/admin/languages">{t("links.admin")}</HeaderLink>
         )}
         <HeaderLink
           className={`hidden ${session ? "lg:block" : "sm:block"}`}
-          href="https://globalbibletools.tawk.help"
+          to="https://globalbibletools.tawk.help"
           newTab
         >
           {t("links.help")}
@@ -94,7 +94,7 @@ export default async function PrimaryNavigation() {
               </>
             }
           />
-        : <HeaderLink className="hidden sm:block" href={`/${locale}/login`}>
+        : <HeaderLink className="hidden sm:block" to={`/login`}>
             {t("links.log_in")}
           </HeaderLink>
         }

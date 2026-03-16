@@ -5,7 +5,7 @@ import ProgressChart from "./-components/ProgressChart";
 import { verifySession } from "@/session";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/(landing)/")({
+export const Route = createFileRoute("/")({
   component: LandingPage,
   loader: () => fetchLandingPageData(),
 });
