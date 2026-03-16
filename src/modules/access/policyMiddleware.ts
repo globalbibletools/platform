@@ -50,7 +50,10 @@ export function createPolicyMiddleware<
       if (policy.authorize({ actor, language })) {
         logger.debug("authentication succeeded, continuing");
         return next<ContextType>(
-          session ? { context: { session } } : undefined,
+          // I haven't found a good way to handle this without a cast
+          // since a session is only expected here
+          // if the policy permits an authenticated user through
+          session ? { context: { session } as ContextType } : undefined,
         );
       }
 

@@ -7,9 +7,16 @@ import Form from "@/components/Form";
 import { startPasswordReset } from "@/modules/users/actions/startPasswordReset";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslations } from "next-intl";
+import { Policy } from "@/modules/access";
+import { routerGuard } from "@/modules/access/routerGuard";
 
-// TODO: Gate to unauthed users
 export const Route = createFileRoute("/_minimal/forgot-password")({
+  beforeLoad: ({ context }) => {
+    routerGuard({
+      context: context.auth,
+      policy: new Policy({ authenticated: false }),
+    });
+  },
   component: ForgotPasswordRoute,
 });
 
@@ -20,7 +27,7 @@ export default function ForgotPasswordRoute() {
     <ModalView
       className="max-w-[480px] w-full"
       header={
-        <Button to={`/login`} variant="tertiary">
+        <Button to="/login" variant="tertiary">
           {t("actions.log_in")}
         </Button>
       }

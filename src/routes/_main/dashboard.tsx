@@ -11,16 +11,20 @@ import { getCurrentLocale } from "@/shared/i18n/shared";
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie } from "@tanstack/react-start/server";
+import { routerGuard } from "@/modules/access/routerGuard";
+
+const policy = new Policy({ authenticated: true });
 
 export const Route = createFileRoute("/_main/dashboard")({
+  beforeLoad: ({ context }) => {
+    routerGuard({ context: context.auth, policy });
+  },
   component: DashboardRoute,
   loader: () => loaderFn(),
 });
 
 const loaderFn = createServerFn()
-  .middleware([
-    createPolicyMiddleware({ policy: new Policy({ authenticated: true }) }),
-  ])
+  .middleware([createPolicyMiddleware({ policy })])
   .handler(async ({ context: { session } }) => {
     const languages = await getUserLanguagesReadModel(session.user.id);
     if (languages.length === 0) {

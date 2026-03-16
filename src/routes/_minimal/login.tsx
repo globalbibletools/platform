@@ -7,8 +7,16 @@ import Button from "@/components/Button";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslations } from "next-intl";
 import { logIn } from "@/modules/users/actions/login";
+import { routerGuard } from "@/modules/access/routerGuard";
+import { Policy } from "@/modules/access";
 
 export const Route = createFileRoute("/_minimal/login")({
+  beforeLoad: ({ context }) => {
+    routerGuard({
+      context: context.auth,
+      policy: new Policy({ authenticated: false }),
+    });
+  },
   component: LoginRoute,
 });
 
@@ -22,6 +30,7 @@ export default function LoginRoute() {
         className="max-w-[300px] w-full mx-auto"
         action={logIn}
         redirect={{ to: "/dashboard" }}
+        invalidate
       >
         <div className="mb-4">
           <FormLabel htmlFor="email">{t("form.email")}</FormLabel>

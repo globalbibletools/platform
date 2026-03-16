@@ -21,6 +21,7 @@ export interface FormProps {
   action: OptionalFetcher<any, any, any>;
   redirect?: ToOptions;
   successMessage?: string;
+  invalidate?: boolean;
 }
 
 export default function Form({
@@ -29,6 +30,7 @@ export default function Form({
   action,
   redirect,
   successMessage,
+  invalidate,
 }: FormProps) {
   const serverFn = useServerFn(action);
   const [state, setState] = useState<FormState>({ state: "idle" });
@@ -47,6 +49,10 @@ export default function Form({
           setState({
             state: "success",
           });
+
+          if (invalidate) {
+            router.invalidate();
+          }
 
           if (successMessage) {
             flash.success(successMessage);
