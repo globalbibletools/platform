@@ -28,7 +28,11 @@ export default function LoginRoute() {
             autoComplete="username"
             aria-describedby="email-error"
           />
-          <FieldError id="email-error" name="email" />
+          <FieldError
+            id="email-error"
+            name="email"
+            messages={{ too_small: t("errors.email_required") }}
+          />
         </div>
         <div className="mb-6">
           <FormLabel htmlFor="password">{t("form.password")}</FormLabel>
@@ -40,7 +44,11 @@ export default function LoginRoute() {
             autoComplete="current-password"
             aria-describedby="password-error"
           />
-          <FieldError id="password-error" name="password" />
+          <FieldError
+            id="password-error"
+            name="password"
+            messages={{ too_small: t("errors.password_required") }}
+          />
         </div>
         <Button type="submit" className="w-full mb-2">
           {t("form.submit")}

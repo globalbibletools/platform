@@ -53,6 +53,7 @@ export default function Form({ className = "", children, action }: FormProps) {
           setState({
             state: "error",
             error: error instanceof Error ? error.message : undefined,
+            validation: processValidationError(error),
           });
         }
       }}
@@ -60,6 +61,38 @@ export default function Form({ className = "", children, action }: FormProps) {
       <FormContext.Provider value={state}>{children}</FormContext.Provider>
     </form>
   );
+}
+
+function processValidationError(error: unknown) {
+  if (!(error instanceof Error)) return;
+
+  try {
+    const naybeValidationErrors = JSON.parse(error.message);
+    if (!Array.isArray(naybeValidationErrors)) return;
+
+    const validationErrors: Record<string, string[]> = {};
+    let hasErrors = false;
+    for (const entry of naybeValidationErrors) {
+      if (!Array.isArray(entry.path)) continue;
+      if (typeof entry.path[0] !== "string") continue;
+
+      if (typeof entry.code !== "string") continue;
+
+      const key = entry.path[0];
+      const code = entry.code;
+
+      validationErrors[key] ??= [];
+      validationErrors[key].push(code);
+
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      return validationErrors;
+    }
+  } catch {
+    return;
+  }
 }
 
 const FormContext = createContext<FormState | null>(null);
