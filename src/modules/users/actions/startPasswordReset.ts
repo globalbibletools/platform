@@ -2,7 +2,6 @@
 
 import * as z from "zod";
 import { createServerFn } from "@tanstack/react-start";
-import { redirect } from "@tanstack/react-router";
 import { parseForm } from "@/form-parser";
 import { serverActionLogger } from "@/server-action";
 import { startPasswordReset as startPasswordResetUseCase } from "../use-cases/startPasswordReset";

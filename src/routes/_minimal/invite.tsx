@@ -5,53 +5,47 @@ import FormLabel from "@/components/FormLabel";
 import ModalView, { ModalViewTitle } from "@/components/ModalView";
 import TextInput from "@/components/TextInput";
 import { query } from "@/db";
-import { resetPassword } from "@/modules/users/actions/resetPassword";
-import { verifySession } from "@/session";
-import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
+import { acceptInvite } from "@/modules/users/actions/acceptInvite";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useTranslations } from "next-intl";
 import * as z from "zod";
 
 const schema = z.object({ token: z.string().default("") });
 
-const validateResetPasswordToken = createServerFn()
+const validateInviteToken = createServerFn()
   .inputValidator(schema)
   .handler(async ({ data }) => {
-    const session = await verifySession();
-    if (session) {
-      throw redirect({ to: "/" });
-    }
-
     if (!data.token) {
       throw notFound();
     }
 
-    const tokenQuery = await query(
-      `SELECT FROM reset_password_token WHERE token = $1
-              AND expires_at > now()
-          `,
+    const inviteQuery = await query<{ email: string }>(
+      `SELECT email FROM user_invitation AS i JOIN users AS u ON u.id = i.user_id WHERE i.token = $1`,
       [data.token],
     );
-    if (tokenQuery.rows.length === 0) {
+
+    const invite = inviteQuery.rows[0];
+    if (!invite) {
       throw notFound();
     }
 
     return {
       token: data.token,
+      email: invite.email,
     };
   });
 
-export const Route = createFileRoute("/_minimal/reset-password")({
+export const Route = createFileRoute("/_minimal/invite")({
   validateSearch: schema,
   loaderDeps: ({ search }) => ({ token: search.token }),
-  loader: ({ deps }) =>
-    validateResetPasswordToken({ data: { token: deps.token } }),
-  component: ResetPasswordRoute,
-  notFoundComponent: ResetPasswordNotFoundRoute,
+  loader: ({ deps }) => validateInviteToken({ data: { token: deps.token } }),
+  component: AcceptInviteRoute,
+  notFoundComponent: AcceptInviteNotFoundRoute,
 });
 
-function ResetPasswordNotFoundRoute() {
-  const t = useTranslations("ResetPasswordPage");
+function AcceptInviteNotFoundRoute() {
+  const t = useTranslations("AcceptInvitePage");
 
   return (
     <ModalView
@@ -67,9 +61,9 @@ function ResetPasswordNotFoundRoute() {
   );
 }
 
-function ResetPasswordRoute() {
-  const t = useTranslations("ResetPasswordPage");
-  const { token } = Route.useLoaderData();
+function AcceptInviteRoute() {
+  const t = useTranslations("AcceptInvitePage");
+  const { token, email } = Route.useLoaderData();
 
   return (
     <ModalView
@@ -83,10 +77,51 @@ function ResetPasswordRoute() {
       <ModalViewTitle>{t("title")}</ModalViewTitle>
       <Form
         className="max-w-[300px] w-full mx-auto"
-        action={resetPassword}
+        action={acceptInvite}
         redirect={{ to: "/dashboard" }}
       >
         <input type="hidden" name="token" value={token} />
+        <div className="mb-4">
+          <FormLabel htmlFor="email">{t("form.email")}</FormLabel>
+          <TextInput
+            id="email"
+            className="w-full bg-gray-200"
+            readOnly
+            defaultValue={email}
+          />
+        </div>
+        <div className="flex gap-4 mb-4">
+          <div className="flex-1 w-full">
+            <FormLabel htmlFor="first-name">{t("form.first_name")}</FormLabel>
+            <TextInput
+              id="first-name"
+              name="first_name"
+              className="w-full"
+              autoComplete="given-name"
+              aria-describedby="first-name-error"
+            />
+            <FieldError
+              id="first-name-error"
+              name="first_name"
+              messages={{ too_small: t("errors.first_name_required") }}
+            />
+          </div>
+          <div className="flex-1 w-full">
+            <FormLabel htmlFor="last-name">{t("form.last_name")}</FormLabel>
+            <TextInput
+              id="last-name"
+              className="w-full"
+              name="last_name"
+              autoComplete="family-name"
+              aria-describedby="last-name-error"
+            />
+            <FieldError
+              id="last-name-error"
+              name="last_name"
+              messages={{ too_small: t("errors.last_name_required") }}
+            />
+          </div>
+        </div>
         <div className="mb-4">
           <FormLabel htmlFor="password">{t("form.password")}</FormLabel>
           <TextInput
