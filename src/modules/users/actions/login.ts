@@ -8,6 +8,7 @@ import { IncorrectPasswordError } from "../model/errors";
 import { NotFoundError } from "@/shared/errors";
 import { createServerFn } from "@tanstack/react-start";
 import { parseForm } from "@/form-parser";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 
 const loginSchema = z.object({
   email: z.string().min(1),
@@ -22,6 +23,11 @@ export const logIn = createServerFn({ method: "POST" })
 
     return loginSchema.parse(parseForm(data));
   })
+  .middleware([
+    createPolicyMiddleware({
+      policy: new Policy({ authenticated: false }),
+    }),
+  ])
   .handler(async ({ data }) => {
     const logger = serverActionLogger("logIn");
 

@@ -1,38 +1,39 @@
-import { SystemRoleRaw } from "@/modules/users";
-import claimsRepository from "./claimsRepository";
+import { SystemRoleRaw } from "@/modules/users/types";
+import { ActorClaims, LanguageClaims } from "./model";
 
-export interface PolicyOptions {
-  systemRoles?: SystemRoleRaw[];
-  languageMember?: boolean;
-}
+export type PolicyOptions =
+  | {
+      authenticated: false;
+    }
+  | {
+      authenticated?: true;
+      systemRoles?: SystemRoleRaw[];
+      languageMember?: boolean;
+    };
 
 export interface AuthorizationContext {
-  actorId?: string;
-  languageCode?: string;
+  actor?: ActorClaims;
+  language?: LanguageClaims;
 }
 
-export default class Policy {
-  constructor(private readonly options: PolicyOptions) {}
+export default class Policy<PolicyType extends PolicyOptions = PolicyOptions> {
+  constructor(readonly options: PolicyType) {}
 
-  async authorize(context: AuthorizationContext): Promise<boolean> {
-    if (!context.actorId) return false;
+  authorize(context: AuthorizationContext): boolean {
+    if (!context.actor) {
+      return this.options.authenticated === false;
+    }
 
-    const [actor, language] = await Promise.all([
-      claimsRepository.findActorClaims(context.actorId),
-      context.languageCode ?
-        claimsRepository.findLanguageClaims(
-          context.languageCode,
-          context.actorId,
-        )
-      : undefined,
-    ]);
+    if (typeof this.options.authenticated === "boolean") {
+      return this.options.authenticated;
+    }
 
     const systemRoleMatches = this.options.systemRoles?.some((role) =>
-      actor.systemRoles.includes(role),
+      context.actor!.systemRoles.includes(role),
     );
 
     const languageRoleMatches =
-      this.options.languageMember ? language?.isMember : false;
+      this.options.languageMember ? context.language?.isMember : false;
 
     return (systemRoleMatches || languageRoleMatches) ?? false;
   }

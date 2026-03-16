@@ -1,13 +1,12 @@
-"use server";
-
 import * as z from "zod";
 import { createServerFn } from "@tanstack/react-start";
-import { redirect, notFound } from "@tanstack/react-router";
+import { notFound } from "@tanstack/react-router";
 import { parseForm } from "@/form-parser";
 import { createSession } from "@/session";
 import { serverActionLogger } from "@/server-action";
 import { resetPassword as resetPasswordUseCase } from "../use-cases/resetPassword";
 import { NotFoundError } from "@/shared/errors";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 
 const requestSchema = z
   .object({
@@ -27,6 +26,11 @@ export const resetPassword = createServerFn({ method: "POST" })
 
     return requestSchema.parse(parseForm(data));
   })
+  .middleware([
+    createPolicyMiddleware({
+      policy: new Policy({ authenticated: false }),
+    }),
+  ])
   .handler(async ({ data }) => {
     const logger = serverActionLogger("resetPassword");
 

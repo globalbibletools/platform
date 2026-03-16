@@ -5,6 +5,7 @@ import FormLabel from "@/components/FormLabel";
 import ModalView, { ModalViewTitle } from "@/components/ModalView";
 import TextInput from "@/components/TextInput";
 import { query } from "@/db";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { acceptInvite } from "@/modules/users/actions/acceptInvite";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
@@ -15,6 +16,9 @@ const schema = z.object({ token: z.string().default("") });
 
 const validateInviteToken = createServerFn()
   .inputValidator(schema)
+  .middleware([
+    createPolicyMiddleware({ policy: new Policy({ authenticated: false }) }),
+  ])
   .handler(async ({ data }) => {
     if (!data.token) {
       throw notFound();

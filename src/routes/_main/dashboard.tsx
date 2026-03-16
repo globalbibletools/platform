@@ -5,10 +5,10 @@ import DashboardCard from "@/modules/dashboard/ui/DashboardCard";
 import DashboardLanguageSelector from "@/modules/dashboard/ui/DashboardLanguageSelector";
 import { getLanguageProgressReadModel } from "@/modules/languages/read-models/getLanguageProgressReadModel";
 import { getUserLanguagesReadModel } from "@/modules/languages/read-models/getUserLanguagesReadModel";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 import reportingQueryService from "@/modules/reporting/ReportingQueryService";
-import { verifySession } from "@/session";
 import { getCurrentLocale } from "@/shared/i18n/shared";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie } from "@tanstack/react-start/server";
 
@@ -17,37 +17,37 @@ export const Route = createFileRoute("/_main/dashboard")({
   loader: () => loaderFn(),
 });
 
-const loaderFn = createServerFn().handler(async () => {
-  const session = await verifySession();
-  if (!session) {
-    throw redirect({ to: "/" });
-  }
+const loaderFn = createServerFn()
+  .middleware([
+    createPolicyMiddleware({ policy: new Policy({ authenticated: true }) }),
+  ])
+  .handler(async ({ context: { session } }) => {
+    const languages = await getUserLanguagesReadModel(session.user.id);
+    if (languages.length === 0) {
+      return;
+    }
 
-  const languages = await getUserLanguagesReadModel(session.user.id);
-  if (languages.length === 0) {
-    return;
-  }
+    const cookieLanguageCode = getCookie("lang");
+    const currentLanguage =
+      languages.find((lang) => lang.code === cookieLanguageCode) ??
+      languages[0];
 
-  const cookieLanguageCode = getCookie("lang");
-  const currentLanguage =
-    languages.find((lang) => lang.code === cookieLanguageCode) ?? languages[0];
+    const [currentProgressData, contributionData] = await Promise.all([
+      getLanguageProgressReadModel(currentLanguage.code),
+      reportingQueryService.findContributionsByLanguageId({
+        languageId: currentLanguage.id,
+        limit: 8,
+      }),
+    ]);
 
-  const [currentProgressData, contributionData] = await Promise.all([
-    getLanguageProgressReadModel(currentLanguage.code),
-    reportingQueryService.findContributionsByLanguageId({
-      languageId: currentLanguage.id,
-      limit: 8,
-    }),
-  ]);
-
-  return {
-    user: session.user,
-    languages,
-    currentLanguage,
-    currentProgressData,
-    contributionData,
-  };
-});
+    return {
+      user: session.user,
+      languages,
+      currentLanguage,
+      currentProgressData,
+      contributionData,
+    };
+  });
 
 function DashboardRoute() {
   const data = Route.useLoaderData();

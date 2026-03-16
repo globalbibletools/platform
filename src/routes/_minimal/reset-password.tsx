@@ -5,9 +5,9 @@ import FormLabel from "@/components/FormLabel";
 import ModalView, { ModalViewTitle } from "@/components/ModalView";
 import TextInput from "@/components/TextInput";
 import { query } from "@/db";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { resetPassword } from "@/modules/users/actions/resetPassword";
-import { verifySession } from "@/session";
-import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useTranslations } from "next-intl";
 import * as z from "zod";
@@ -16,12 +16,10 @@ const schema = z.object({ token: z.string().default("") });
 
 const validateResetPasswordToken = createServerFn()
   .inputValidator(schema)
+  .middleware([
+    createPolicyMiddleware({ policy: new Policy({ authenticated: false }) }),
+  ])
   .handler(async ({ data }) => {
-    const session = await verifySession();
-    if (session) {
-      throw redirect({ to: "/" });
-    }
-
     if (!data.token) {
       throw notFound();
     }

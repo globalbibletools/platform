@@ -1,12 +1,11 @@
-"use server";
-
 import * as z from "zod";
 import { createServerFn } from "@tanstack/react-start";
-import { notFound, redirect } from "@tanstack/react-router";
+import { notFound } from "@tanstack/react-router";
 import { createSession } from "@/session";
 import { parseForm } from "@/form-parser";
 import { acceptInvite as acceptInviteUseCase } from "../use-cases/acceptInvite";
 import { InvalidInvitationTokenError } from "../model/errors";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 
 const loginSchema = z
   .object({
@@ -28,6 +27,11 @@ export const acceptInvite = createServerFn({ method: "POST" })
 
     return loginSchema.parse(parseForm(data));
   })
+  .middleware([
+    createPolicyMiddleware({
+      policy: new Policy({ authenticated: false }),
+    }),
+  ])
   .handler(async ({ data }) => {
     let userId;
     try {

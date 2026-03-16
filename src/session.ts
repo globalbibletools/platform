@@ -3,6 +3,7 @@
 import { query } from "@/db";
 import { useSession } from "@tanstack/react-start/server";
 import * as React from "react";
+import { SystemRoleRaw } from "./modules/users/types";
 
 const DAY_FROM_MS = 24 * 60 * 60 * 1000;
 const EXPIRES_IN =
@@ -48,12 +49,12 @@ export async function verifySession() {
   return sessionData;
 }
 
-interface Session {
+export interface Session {
   user: {
     id: string;
     name: string;
     email: string;
-    roles: string[];
+    roles: SystemRoleRaw[];
   };
 }
 
