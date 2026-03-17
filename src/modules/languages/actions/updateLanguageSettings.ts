@@ -1,15 +1,11 @@
-"use server";
-
 import * as z from "zod";
-import { getTranslations } from "next-intl/server";
-import { notFound } from "next/navigation";
-import { verifySession } from "@/session";
-import { FormState } from "@/components/Form";
+import { createServerFn } from "@tanstack/react-start";
+import { notFound } from "@tanstack/react-router";
 import { serverActionLogger } from "@/server-action";
 import { updateLanguageSettings as updateLanguageSettingsUseCase } from "../use-cases/updateLanguageSettings";
 import { MachineGlossStrategy, TextDirectionRaw } from "../model";
 import { NotFoundError } from "@/shared/errors";
-import { Policy } from "@/modules/access";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -17,7 +13,7 @@ const requestSchema = z.object({
   englishName: z.string().min(1),
   font: z.string().min(1),
   textDirection: z.nativeEnum(TextDirectionRaw),
-  translationIds: z.array(z.string()).optional(),
+  translationIds: z.array(z.string()).default([]),
   referenceLanguageId: z.string().optional(),
   machineGlossStrategy: z.nativeEnum(MachineGlossStrategy),
 });
@@ -27,77 +23,49 @@ const policy = new Policy({
   languageMember: true,
 });
 
-export async function updateLanguageSettings(
-  _prevState: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const logger = serverActionLogger("updateLanguageSettings");
+export const updateLanguageSettings = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
+    }
 
-  const t = await getTranslations("LanguageSettingsPage");
-
-  const request = requestSchema.safeParse(
-    {
-      code: formData.get("code"),
-      englishName: formData.get("englishName"),
-      localName: formData.get("localName"),
-      font: formData.get("font"),
-      textDirection: formData.get("text_direction"),
-      translationIds: formData
+    return requestSchema.parse({
+      code: data.get("code"),
+      englishName: data.get("englishName"),
+      localName: data.get("localName"),
+      font: data.get("font"),
+      textDirection: data.get("text_direction"),
+      translationIds: data
         .get("bible_translations")
         ?.toString()
         .split(",")
         .filter((id) => id !== ""),
-      referenceLanguageId: formData.get("reference_language_id") ?? undefined,
-      machineGlossStrategy: formData.get("machineGlossStrategy"),
-    },
-    {
-      errorMap: (error) => {
-        if (error.path.toString() === "englishName") {
-          return { message: t("errors.english_name_required") };
-        } else if (error.path.toString() === "localName") {
-          return { message: t("errors.local_name_required") };
-        } else if (error.path.toString() === "font") {
-          return { message: t("errors.font_required") };
-        } else if (error.path.toString() === "textDirection") {
-          return { message: t("errors.text_direction_required") };
-        } else if (error.path.toString() === "machineGlossStrategy") {
-          return { message: t("errors.machine_gloss_strategy_required") };
-        } else {
-          return { message: "Invalid" };
-        }
-      },
-    },
-  );
-  if (!request.success) {
-    logger.error("request parse error");
-    return {
-      state: "error",
-      validation: request.error.flatten().fieldErrors,
-    };
-  }
-
-  const session = await verifySession();
-  const authorized = await policy.authorize({
-    actorId: session?.user.id,
-    languageCode: request.data.code,
-  });
-  if (!authorized) {
-    logger.error("unauthorized");
-    notFound();
-  }
-
-  try {
-    await updateLanguageSettingsUseCase({
-      ...request.data,
-      translationIds: request.data.translationIds ?? [],
+      referenceLanguageId: data.get("reference_language_id") ?? undefined,
+      machineGlossStrategy: data.get("machineGlossStrategy"),
     });
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      notFound();
-    } else {
+  })
+  .middleware([
+    createPolicyMiddleware({
+      policy,
+      parseLanguageCode: (data) => {
+        if (!(data instanceof FormData)) {
+          throw new Error("expected FormData");
+        }
+
+        return z.string().parse(data.get("code"));
+      },
+    }),
+  ])
+  .handler(async ({ data }) => {
+    const logger = serverActionLogger("updateLanguageSettings");
+
+    try {
+      await updateLanguageSettingsUseCase(data);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw notFound();
+      }
+
       throw error;
     }
-  }
-
-  return { state: "success" };
-}
+  });

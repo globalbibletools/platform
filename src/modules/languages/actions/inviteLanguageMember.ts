@@ -1,15 +1,11 @@
-"use server";
-
 import * as z from "zod";
-import { getTranslations, getLocale } from "next-intl/server";
-import { notFound, redirect } from "next/navigation";
+import { createServerFn } from "@tanstack/react-start";
+import { notFound } from "@tanstack/react-router";
 import { parseForm } from "@/form-parser";
-import { verifySession } from "@/session";
-import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import { inviteLanguageMember as inviteLanguageMemberUseCase } from "../use-cases/inviteLanguageMember";
 import { NotFoundError } from "@/shared/errors";
-import { Policy } from "@/modules/access";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -20,56 +16,39 @@ const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
 
-export async function inviteLanguageMember(
-  _prevState: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const logger = serverActionLogger("inviteUser");
+export const inviteLanguageMember = createServerFn({ method: "POST" })
+  .inputValidator((data) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
+    }
 
-  const t = await getTranslations("InviteUserPage");
-
-  const request = requestSchema.safeParse(parseForm(formData), {
-    errorMap: (error) => {
-      if (error.path.toString() === "email") {
-        if (error.code === "too_small") {
-          return { message: t("errors.email_required") };
-        } else {
-          return { message: t("errors.email_format") };
+    return requestSchema.parse(parseForm(data));
+  })
+  .middleware([
+    createPolicyMiddleware({
+      policy,
+      parseLanguageCode: (data) => {
+        if (!(data instanceof FormData)) {
+          throw new Error("expected FormData");
         }
-      } else {
-        return { message: "Invalid" };
+
+        return z.string().parse(data.get("code"));
+      },
+    }),
+  ])
+  .handler(async ({ data }) => {
+    const logger = serverActionLogger("inviteUser");
+
+    try {
+      await inviteLanguageMemberUseCase(data);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        logger.error("language not found");
+        throw notFound();
       }
-    },
-  });
-  if (!request.success) {
-    logger.error("request parse error");
-    return {
-      state: "error",
-      validation: request.error.flatten().fieldErrors,
-    };
-  }
 
-  const session = await verifySession();
-  const authorized = await policy.authorize({
-    actorId: session?.user.id,
-    languageCode: request.data.code,
-  });
-  if (!authorized) {
-    logger.error("unauthorized");
-    notFound();
-  }
-
-  try {
-    await inviteLanguageMemberUseCase(request.data);
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      logger.error("language not found");
-      notFound();
-    } else {
       throw error;
     }
-  }
 
-  const locale = await getLocale();
-  redirect(`/${locale}/admin/languages/${request.data.code}/users`);
-}
+    // TODO: redirect on client
+  });

@@ -17,15 +17,12 @@ export class UnauthorizedError extends Error {
   }
 }
 
-export function createPolicyMiddleware<
-  TData,
-  PolicyType extends PolicyOptions,
->({
+export function createPolicyMiddleware<PolicyType extends PolicyOptions>({
   policy,
-  getLanguageCode,
+  parseLanguageCode,
 }: {
   policy: Policy<PolicyType>;
-  getLanguageCode?: (data: TData) => string | undefined;
+  parseLanguageCode?: (data: unknown) => string | undefined;
 }) {
   type ContextType =
     PolicyType extends { authenticated: false } ? undefined
@@ -33,8 +30,9 @@ export function createPolicyMiddleware<
         session: Session;
       };
 
-  return createMiddleware({ type: "function" }).server(
-    async ({ data, next, serverFnMeta }) => {
+  return createMiddleware({ type: "function" })
+    .inputValidator(parseLanguageCode)
+    .server(async ({ data: languageCode, next, serverFnMeta }) => {
       const logger = createLogger({
         serverFn: serverFnMeta.name,
         middleware: "policyMiddleware",
@@ -42,7 +40,6 @@ export function createPolicyMiddleware<
 
       const session = await verifySession();
       const actorId = session?.user.id;
-      const languageCode = getLanguageCode?.(data as TData);
 
       const [actor, language] = await Promise.all([
         actorId ?
@@ -64,6 +61,5 @@ export function createPolicyMiddleware<
         // if the policy permits an authenticated user through
         session ? { context: { session } as ContextType } : undefined,
       );
-    },
-  );
+    });
 }

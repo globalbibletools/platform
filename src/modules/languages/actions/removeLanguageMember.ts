@@ -1,16 +1,11 @@
-"use server";
-
 import * as z from "zod";
-import { getLocale, getTranslations } from "next-intl/server";
 import { parseForm } from "@/form-parser";
-import { revalidatePath } from "next/cache";
-import { verifySession } from "@/session";
-import { notFound } from "next/navigation";
-import { FormState } from "@/components/Form";
+import { createServerFn } from "@tanstack/react-start";
+import { notFound } from "@tanstack/react-router";
 import { serverActionLogger } from "@/server-action";
 import { removeLanguageMember as removeLanguageMemberUseCase } from "../use-cases/removeLanguageMember";
 import { NotFoundError } from "@/shared/errors";
-import { Policy } from "@/modules/access";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -21,45 +16,39 @@ const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
 
-export async function removeLanguageMember(
-  _prevState: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const logger = serverActionLogger("removeLanguageUser");
+export const removeLanguageMember = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
+    }
 
-  const t = await getTranslations("AdminUsersPage");
+    return requestSchema.parse(parseForm(data));
+  })
+  .middleware([
+    createPolicyMiddleware({
+      policy,
+      parseLanguageCode: (data) => {
+        if (!(data instanceof FormData)) {
+          throw new Error("expected FormData");
+        }
 
-  const request = requestSchema.safeParse(parseForm(formData));
-  if (!request.success) {
-    logger.error("request parse error");
-    return {
-      state: "error",
-      error: t("errors.invalid_request"),
-    };
-  }
+        return z.string().parse(data.get("code"));
+      },
+    }),
+  ])
+  .handler(async ({ data }) => {
+    const logger = serverActionLogger("removeLanguageUser");
 
-  const session = await verifySession();
-  const authorized = await policy.authorize({
-    actorId: session?.user.id,
-    languageCode: request.data.code,
-  });
-  if (!authorized) {
-    logger.error("unauthorized");
-    notFound();
-  }
+    try {
+      await removeLanguageMemberUseCase(data);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw notFound();
+      }
 
-  try {
-    await removeLanguageMemberUseCase(request.data);
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      notFound();
-    } else {
       throw error;
     }
-  }
 
-  const locale = await getLocale();
-  revalidatePath(`/${locale}/admin/languages/${request.data.code}/users`);
-
-  return { state: "success", message: "User removed successfully." };
-}
+    // TODO: success message on client
+    // TODO: invalidate route on client
+  });

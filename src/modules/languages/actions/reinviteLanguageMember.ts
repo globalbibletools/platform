@@ -1,13 +1,10 @@
-"use server";
-
 import * as z from "zod";
-import { notFound } from "next/navigation";
+import { createServerFn } from "@tanstack/react-start";
+import { notFound } from "@tanstack/react-router";
 import { parseForm } from "@/form-parser";
-import { verifySession } from "@/session";
-import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import { NotFoundError } from "@/shared/errors";
-import { Policy } from "@/modules/access";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { reinviteLanguageMember } from "../use-cases/reinviteLanguageMember";
 
 const requestSchema = z.object({
@@ -19,40 +16,39 @@ const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
 
-export async function reinviteLanguageMemberAction(
-  _prevState: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const logger = serverActionLogger("reinviteUser");
+export const reinviteLanguageMemberAction = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
+    }
 
-  const request = requestSchema.safeParse(parseForm(formData));
-  if (!request.success) {
-    logger.error("request parse error");
-    return {
-      state: "error",
-    };
-  }
+    return requestSchema.parse(parseForm(data));
+  })
+  .middleware([
+    createPolicyMiddleware({
+      policy,
+      parseLanguageCode: (data) => {
+        if (!(data instanceof FormData)) {
+          throw new Error("expected FormData");
+        }
 
-  const session = await verifySession();
-  const authorized = await policy.authorize({
-    actorId: session?.user.id,
-    languageCode: request.data.code,
-  });
-  if (!authorized) {
-    logger.error("unauthorized");
-    notFound();
-  }
+        return z.string().parse(data.get("code"));
+      },
+    }),
+  ])
+  .handler(async ({ data }) => {
+    const logger = serverActionLogger("reinviteUser");
 
-  try {
-    await reinviteLanguageMember(request.data);
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      logger.error("language not found");
-      notFound();
-    } else {
+    try {
+      await reinviteLanguageMember(data);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        logger.error("language not found");
+        throw notFound();
+      }
+
       throw error;
     }
-  }
 
-  return { state: "success", message: "User invitation resent" };
-}
+    // TODO: success message on client
+  });
