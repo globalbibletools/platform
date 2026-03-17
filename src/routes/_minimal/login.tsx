@@ -4,11 +4,12 @@ import FormLabel from "@/components/FormLabel";
 import ModalView, { ModalViewTitle } from "@/components/ModalView";
 import TextInput from "@/components/TextInput";
 import Button from "@/components/Button";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslations } from "next-intl";
 import { logIn } from "@/modules/users/actions/login";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { Policy } from "@/modules/access";
+import { useAuthRefresh } from "@/modules/access/authState";
 
 export const Route = createFileRoute("/_minimal/login")({
   beforeLoad: ({ context }) => {
@@ -22,6 +23,8 @@ export const Route = createFileRoute("/_minimal/login")({
 
 export default function LoginRoute() {
   const t = useTranslations("LoginPage");
+  const navigate = useNavigate();
+  const refreshAuth = useAuthRefresh();
 
   return (
     <ModalView className="max-w-[480px] w-full">
@@ -29,7 +32,10 @@ export default function LoginRoute() {
       <Form
         className="max-w-[300px] w-full mx-auto"
         action={logIn}
-        redirect={{ to: "/dashboard" }}
+        onSuccess={async () => {
+          await refreshAuth();
+          await navigate({ to: "/dashboard" });
+        }}
       >
         <div className="mb-4">
           <FormLabel htmlFor="email">{t("form.email")}</FormLabel>

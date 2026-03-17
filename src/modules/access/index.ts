@@ -3,8 +3,4 @@ export {
   type AuthorizationContext,
   type PolicyOptions,
 } from "./Policy";
-export {
-  createPolicyMiddleware,
-  type PolicyContext,
-  type PolicyMiddlewareOptions,
-} from "./policyMiddleware";
+export { createPolicyMiddleware, type PolicyContext } from "./policyMiddleware";

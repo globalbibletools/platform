@@ -6,9 +6,10 @@ import ModalView, { ModalViewTitle } from "@/components/ModalView";
 import TextInput from "@/components/TextInput";
 import { query } from "@/db";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
+import { useAuthRefresh } from "@/modules/access/authState";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { acceptInvite } from "@/modules/users/actions/acceptInvite";
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useTranslations } from "next-intl";
 import * as z from "zod";
@@ -71,6 +72,8 @@ function AcceptInviteNotFoundRoute() {
 function AcceptInviteRoute() {
   const t = useTranslations("AcceptInvitePage");
   const { token, email } = Route.useLoaderData();
+  const navigate = useNavigate();
+  const refreshAuth = useAuthRefresh();
 
   return (
     <ModalView
@@ -85,7 +88,10 @@ function AcceptInviteRoute() {
       <Form
         className="max-w-[300px] w-full mx-auto"
         action={acceptInvite}
-        redirect={{ to: "/dashboard" }}
+        onSuccess={async () => {
+          await refreshAuth();
+          await navigate({ to: "/dashboard" });
+        }}
       >
         <input type="hidden" name="token" value={token} />
         <div className="mb-4">
