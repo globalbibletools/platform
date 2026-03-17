@@ -17,8 +17,10 @@ import { Route as MinimalResetPasswordRouteImport } from "./routes/_minimal/rese
 import { Route as MinimalLoginRouteImport } from "./routes/_minimal/login";
 import { Route as MinimalInviteRouteImport } from "./routes/_minimal/invite";
 import { Route as MinimalForgotPasswordRouteImport } from "./routes/_minimal/forgot-password";
-import { Route as MainTestRouteImport } from "./routes/_main/test";
 import { Route as MainDashboardRouteImport } from "./routes/_main/dashboard";
+import { Route as MainReadRouteRouteImport } from "./routes/_main/read/route";
+import { Route as MainReadCodeRouteImport } from "./routes/_main/read/$code";
+import { Route as MainReadCodeChapterIdRouteImport } from "./routes/_main/read/$code.$chapterId";
 
 const MinimalRouteRoute = MinimalRouteRouteImport.update({
   id: "/_minimal",
@@ -58,83 +60,105 @@ const MinimalForgotPasswordRoute = MinimalForgotPasswordRouteImport.update({
   path: "/forgot-password",
   getParentRoute: () => MinimalRouteRoute,
 } as any);
-const MainTestRoute = MainTestRouteImport.update({
-  id: "/test",
-  path: "/test",
-  getParentRoute: () => MainRouteRoute,
-} as any);
 const MainDashboardRoute = MainDashboardRouteImport.update({
   id: "/dashboard",
   path: "/dashboard",
   getParentRoute: () => MainRouteRoute,
 } as any);
+const MainReadRouteRoute = MainReadRouteRouteImport.update({
+  id: "/read",
+  path: "/read",
+  getParentRoute: () => MainRouteRoute,
+} as any);
+const MainReadCodeRoute = MainReadCodeRouteImport.update({
+  id: "/$code",
+  path: "/$code",
+  getParentRoute: () => MainReadRouteRoute,
+} as any);
+const MainReadCodeChapterIdRoute = MainReadCodeChapterIdRouteImport.update({
+  id: "/$chapterId",
+  path: "/$chapterId",
+  getParentRoute: () => MainReadCodeRoute,
+} as any);
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
+  "/read": typeof MainReadRouteRouteWithChildren;
   "/dashboard": typeof MainDashboardRoute;
-  "/test": typeof MainTestRoute;
   "/forgot-password": typeof MinimalForgotPasswordRoute;
   "/invite": typeof MinimalInviteRoute;
   "/login": typeof MinimalLoginRoute;
   "/reset-password": typeof MinimalResetPasswordRoute;
   "/verify-email": typeof MinimalVerifyEmailRoute;
+  "/read/$code": typeof MainReadCodeRouteWithChildren;
+  "/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
+  "/read": typeof MainReadRouteRouteWithChildren;
   "/dashboard": typeof MainDashboardRoute;
-  "/test": typeof MainTestRoute;
   "/forgot-password": typeof MinimalForgotPasswordRoute;
   "/invite": typeof MinimalInviteRoute;
   "/login": typeof MinimalLoginRoute;
   "/reset-password": typeof MinimalResetPasswordRoute;
   "/verify-email": typeof MinimalVerifyEmailRoute;
+  "/read/$code": typeof MainReadCodeRouteWithChildren;
+  "/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   "/": typeof IndexRoute;
   "/_main": typeof MainRouteRouteWithChildren;
   "/_minimal": typeof MinimalRouteRouteWithChildren;
+  "/_main/read": typeof MainReadRouteRouteWithChildren;
   "/_main/dashboard": typeof MainDashboardRoute;
-  "/_main/test": typeof MainTestRoute;
   "/_minimal/forgot-password": typeof MinimalForgotPasswordRoute;
   "/_minimal/invite": typeof MinimalInviteRoute;
   "/_minimal/login": typeof MinimalLoginRoute;
   "/_minimal/reset-password": typeof MinimalResetPasswordRoute;
   "/_minimal/verify-email": typeof MinimalVerifyEmailRoute;
+  "/_main/read/$code": typeof MainReadCodeRouteWithChildren;
+  "/_main/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | "/"
+    | "/read"
     | "/dashboard"
-    | "/test"
     | "/forgot-password"
     | "/invite"
     | "/login"
     | "/reset-password"
-    | "/verify-email";
+    | "/verify-email"
+    | "/read/$code"
+    | "/read/$code/$chapterId";
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/"
+    | "/read"
     | "/dashboard"
-    | "/test"
     | "/forgot-password"
     | "/invite"
     | "/login"
     | "/reset-password"
-    | "/verify-email";
+    | "/verify-email"
+    | "/read/$code"
+    | "/read/$code/$chapterId";
   id:
     | "__root__"
     | "/"
     | "/_main"
     | "/_minimal"
+    | "/_main/read"
     | "/_main/dashboard"
-    | "/_main/test"
     | "/_minimal/forgot-password"
     | "/_minimal/invite"
     | "/_minimal/login"
     | "/_minimal/reset-password"
-    | "/_minimal/verify-email";
+    | "/_minimal/verify-email"
+    | "/_main/read/$code"
+    | "/_main/read/$code/$chapterId";
   fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
@@ -201,13 +225,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof MinimalForgotPasswordRouteImport;
       parentRoute: typeof MinimalRouteRoute;
     };
-    "/_main/test": {
-      id: "/_main/test";
-      path: "/test";
-      fullPath: "/test";
-      preLoaderRoute: typeof MainTestRouteImport;
-      parentRoute: typeof MainRouteRoute;
-    };
     "/_main/dashboard": {
       id: "/_main/dashboard";
       path: "/dashboard";
@@ -215,17 +232,62 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof MainDashboardRouteImport;
       parentRoute: typeof MainRouteRoute;
     };
+    "/_main/read": {
+      id: "/_main/read";
+      path: "/read";
+      fullPath: "/read";
+      preLoaderRoute: typeof MainReadRouteRouteImport;
+      parentRoute: typeof MainRouteRoute;
+    };
+    "/_main/read/$code": {
+      id: "/_main/read/$code";
+      path: "/$code";
+      fullPath: "/read/$code";
+      preLoaderRoute: typeof MainReadCodeRouteImport;
+      parentRoute: typeof MainReadRouteRoute;
+    };
+    "/_main/read/$code/$chapterId": {
+      id: "/_main/read/$code/$chapterId";
+      path: "/$chapterId";
+      fullPath: "/read/$code/$chapterId";
+      preLoaderRoute: typeof MainReadCodeChapterIdRouteImport;
+      parentRoute: typeof MainReadCodeRoute;
+    };
   }
 }
 
+interface MainReadCodeRouteChildren {
+  MainReadCodeChapterIdRoute: typeof MainReadCodeChapterIdRoute;
+}
+
+const MainReadCodeRouteChildren: MainReadCodeRouteChildren = {
+  MainReadCodeChapterIdRoute: MainReadCodeChapterIdRoute,
+};
+
+const MainReadCodeRouteWithChildren = MainReadCodeRoute._addFileChildren(
+  MainReadCodeRouteChildren,
+);
+
+interface MainReadRouteRouteChildren {
+  MainReadCodeRoute: typeof MainReadCodeRouteWithChildren;
+}
+
+const MainReadRouteRouteChildren: MainReadRouteRouteChildren = {
+  MainReadCodeRoute: MainReadCodeRouteWithChildren,
+};
+
+const MainReadRouteRouteWithChildren = MainReadRouteRoute._addFileChildren(
+  MainReadRouteRouteChildren,
+);
+
 interface MainRouteRouteChildren {
+  MainReadRouteRoute: typeof MainReadRouteRouteWithChildren;
   MainDashboardRoute: typeof MainDashboardRoute;
-  MainTestRoute: typeof MainTestRoute;
 }
 
 const MainRouteRouteChildren: MainRouteRouteChildren = {
+  MainReadRouteRoute: MainReadRouteRouteWithChildren,
   MainDashboardRoute: MainDashboardRoute,
-  MainTestRoute: MainTestRoute,
 };
 
 const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(

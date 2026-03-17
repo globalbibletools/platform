@@ -3,7 +3,6 @@
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import TextInput from "@/components/TextInput";
-import { changeChapter } from "../actions/changeChapter";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
@@ -12,18 +11,17 @@ import {
   bookLastChapterId,
   decrementChapterId,
   incrementChapterId,
+  parseReference,
 } from "@/verse-utils";
-import { useParams, useRouter } from "next/navigation";
+import { useNavigate, useParams } from "@tanstack/react-router";
 
 export default function CommandInput() {
-  const { chapterId, code: languageCode } = useParams<{
-    locale: string;
-    code: string;
-    chapterId: string;
-  }>();
+  const { chapterId, code: languageCode } = useParams({
+    from: "/_main/read/$code/$chapterId",
+  });
 
   const t = useTranslations("ReadingToolbar");
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const bookId = parseInt(chapterId.slice(0, 2)) || 1;
   const chapter = parseInt(chapterId.slice(2, 5)) || 1;
@@ -40,30 +38,50 @@ export default function CommandInput() {
       if (hasShortcutModifier(e) && !e.shiftKey && !e.altKey) {
         switch (e.key) {
           case "ArrowUp":
-            return router.push(`./${decrementChapterId(chapterId)}`);
+            return navigate({
+              to: `read/${languageCode}/${decrementChapterId(chapterId)}`,
+            });
           case "ArrowDown":
-            return router.push(`./${incrementChapterId(chapterId)}`);
+            return navigate({
+              to: `read/${languageCode}/${incrementChapterId(chapterId)}`,
+            });
         }
       } else if (hasShortcutModifier(e) && e.shiftKey && !e.altKey) {
         switch (e.key) {
           case "Home":
-            return router.push(
-              `./${bookFirstChapterId(parseInt(chapterId.slice(0, 2)))}`,
-            );
+            return navigate({
+              to: `read/${languageCode}/${bookFirstChapterId(parseInt(chapterId.slice(0, 2)))}`,
+            });
           case "End":
-            return router.push(
-              `./${bookLastChapterId(parseInt(chapterId.slice(0, 2)))}`,
-            );
+            return navigate({
+              to: `read/${languageCode}/${bookLastChapterId(parseInt(chapterId.slice(0, 2)))}`,
+            });
         }
       }
     };
 
     window.addEventListener("keydown", keydownCallback);
     return () => window.removeEventListener("keydown", keydownCallback);
-  }, [router, chapterId]);
+  }, [navigate, chapterId, languageCode]);
 
   return (
-    <form action={changeChapter} className="relative w-56 shrink">
+    <form
+      className="relative w-56 shrink"
+      onSubmit={(e) => {
+        e.preventDefault();
+
+        const referenceElement = e.target.elements.namedItem("reference");
+        if (!(referenceElement instanceof HTMLInputElement)) return;
+
+        const verseId = parseReference(
+          referenceElement.value,
+          t.raw("book_names"),
+        );
+        if (verseId) {
+          navigate({ to: `/read/${languageCode}/${verseId.slice(0, -3)}` });
+        }
+      }}
+    >
       <input type="hidden" value={languageCode} name="language" />
       <TextInput
         id="chapter-reference"
@@ -78,7 +96,11 @@ export default function CommandInput() {
       <Button
         className="absolute end-8 top-1 w-7 h-7!"
         variant="tertiary"
-        href={chapterId ? `./${decrementChapterId(chapterId)}` : "#"}
+        to={
+          chapterId ?
+            `/read/${languageCode}/${decrementChapterId(chapterId)}`
+          : "."
+        }
       >
         <Icon icon="arrow-up" />
         <span className="sr-only">{t("previous_chapter")}</span>
@@ -86,7 +108,11 @@ export default function CommandInput() {
       <Button
         className="absolute end-1 top-1 w-7 h-7!"
         variant="tertiary"
-        href={chapterId ? `./${incrementChapterId(chapterId)}` : "#"}
+        to={
+          chapterId ?
+            `/read/${languageCode}/${incrementChapterId(chapterId)}`
+          : "."
+        }
         prefetch
       >
         <Icon icon="arrow-down" />

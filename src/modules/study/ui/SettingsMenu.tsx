@@ -7,8 +7,8 @@ import FormLabel from "@/components/FormLabel";
 import { Icon } from "@/components/Icon";
 import SliderInput from "@/components/SliderInput";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { useTranslations } from "next-intl";
-import { useParams, useRouter } from "next/navigation";
 
 export interface SettingsMenuProps {
   textSize: number;
@@ -29,8 +29,8 @@ export default function SettingsMenu({
 }: SettingsMenuProps) {
   const t = useTranslations("SettingsMenu");
 
-  const router = useRouter();
-  const params = useParams();
+  const navigate = useNavigate();
+  const params = useParams({ from: "/_main/read/$code/$chapterId" });
 
   return (
     <Popover className="relative">
@@ -48,7 +48,9 @@ export default function SettingsMenu({
                 value: l.code,
               }))}
               value={languageCode}
-              onChange={(code) => router.push(`../${code}/${params.chapterId}`)}
+              onChange={(code) =>
+                navigate({ to: `/read/${code}/${params.chapterId}` })
+              }
               className="w-full"
               autoComplete="off"
             />

@@ -4,7 +4,6 @@ import Button from "@/components/Button";
 import ComboboxInput from "@/components/ComboboxInput";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "next-intl";
-import { useParams, useRouter } from "next/navigation";
 import {
   createContext,
   ReactNode,
@@ -16,6 +15,7 @@ import AudioDialog from "./AudioDialog";
 import SettingsMenu from "./SettingsMenu";
 import CommandInput from "./CommandInput";
 import { useFlash } from "@/flash";
+import { useNavigate, useParams } from "@tanstack/react-router";
 
 export interface TranslationToolbarProps {
   languages: { englishName: string; localName: string; code: string }[];
@@ -27,12 +27,10 @@ export default function ReadingToolbar({
   children,
 }: TranslationToolbarProps) {
   const t = useTranslations("ReadingToolbar");
-  const { chapterId, code } = useParams<{
-    locale: string;
-    code: string;
-    chapterId: string;
-  }>();
-  const router = useRouter();
+  const { chapterId, code } = useParams({
+    from: "/_main/read/$code/$chapterId",
+  });
+  const navigate = useNavigate();
   const [textSize, setTextSize] = useState(3);
   const [mode, setMode] = useState<"immersive" | "standard">("standard");
   const [audioVerse, setAudioVerse] = useState<string>();
@@ -61,7 +59,7 @@ export default function ReadingToolbar({
             value: l.code,
           }))}
           value={code}
-          onChange={(code) => router.push(`../${code}/${chapterId}`)}
+          onChange={(code) => navigate({ to: `/read/${code}/${chapterId}` })}
           className="w-40 hidden sm:block"
           autoComplete="off"
           aria-label={t("language")}

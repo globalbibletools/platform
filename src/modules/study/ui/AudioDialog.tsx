@@ -1,5 +1,6 @@
 "use client";
 
+import * as z from "zod";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import ListboxInput from "@/components/ListboxInput";
@@ -13,8 +14,11 @@ import {
   useRef,
   useState,
 } from "react";
-import useSWR from "swr";
 import throttle from "@/components/throttle";
+import { createServerFn } from "@tanstack/react-start";
+import { notFound } from "@tanstack/react-router";
+import { query } from "@/db";
+import { useQuery } from "@tanstack/react-query";
 
 interface VerseAudioTiming {
   verseId: string;
@@ -53,13 +57,12 @@ export default function AudioDialog({
   const [speaker, setSpeaker] = useState("HEB");
   const [speed, setSpeed] = useState(2);
 
-  const { data } = useSWR(
-    ["chapter-audio", speaker, chapterId],
-    async ([, speaker, chapterId]) => {
-      const response = await fetch(`/api/audio/${speaker}/${chapterId}`);
-      return (await response.json()) as Promise<VerseAudioTiming[]>;
+  const { data } = useQuery({
+    queryKey: ["chapter-audio", speaker, chapterId],
+    queryFn: async () => {
+      return getAudioTimings({ data: { speaker, chapterId } });
     },
-  );
+  });
 
   const [length, setLength] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -516,4 +519,52 @@ function useTimeRange({
       length: end - start,
     };
   }, [timings, verseId, length]);
+}
+
+// TODO: cache this, it should rarely change
+const getAudioTimings = createServerFn()
+  .inputValidator(
+    z.object({
+      chapterId: z.string(),
+      speaker: z.string(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const bookId = parseInt(data.chapterId.slice(0, 2)) || 1;
+    const chapterNumber = parseInt(data.chapterId.slice(2, 5)) || 1;
+
+    const verseTimings = await getVerseTimings(
+      data.speaker,
+      bookId,
+      chapterNumber,
+    );
+    if (!verseTimings) throw notFound();
+
+    return verseTimings;
+  });
+
+interface VerseAudioTiming {
+  verseId: string;
+  start: number;
+}
+
+// TODO: move this to a read model
+async function getVerseTimings(
+  speaker: string,
+  bookId: number,
+  chapter: number,
+) {
+  const result = await query<VerseAudioTiming>(
+    `
+        SELECT t.verse_id AS "verseId", t.start FROM verse_audio_timing AS t
+        JOIN verse AS v ON v.id = t.verse_id
+        WHERE t.recording_id = $1
+            AND v.book_id = $2
+            AND v.chapter = $3
+            AND t.start IS NOT NULL
+        ORDER BY t.verse_id
+        `,
+    [speaker, bookId, chapter],
+  );
+  return result.rows;
 }
