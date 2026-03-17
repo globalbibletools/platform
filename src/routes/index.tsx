@@ -2,7 +2,6 @@ import { query } from "@/db";
 import { Icon } from "@/components/Icon";
 import { createServerFn } from "@tanstack/react-start";
 import ProgressChart from "./-components/ProgressChart";
-import { verifySession } from "@/session";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
@@ -11,16 +10,16 @@ export const Route = createFileRoute("/")({
 });
 
 export const fetchLandingPageData = createServerFn().handler(async () => {
-  const [session, stats] = await Promise.all([
-    verifySession(),
-    fetchLanguageProgressStats(),
-  ]);
+  const [stats] = await Promise.all([fetchLanguageProgressStats()]);
 
-  return { session, stats };
+  return { stats };
 });
 
 export function LandingPage() {
-  const { session, stats } = Route.useLoaderData();
+  const context = Route.useRouteContext();
+  const { stats } = Route.useLoaderData();
+
+  const isAuthed = Boolean(context.auth.user);
 
   return (
     <div className="text-gray-800">
@@ -62,10 +61,10 @@ export function LandingPage() {
         </a>
         <div className="md:grow"></div>
         <a
-          href={session ? "/dashboard" : "/read"}
+          href={isAuthed ? "/dashboard" : "/read"}
           className="shrink-0 rounded-lg bg-blue-800 text-white font-bold shadow-md px-4 flex items-center justify-center h-8 md:mt-[4px] ms-1"
         >
-          {session ? "Go to Dashboard" : "Reader's Bible"}
+          {isAuthed ? "Go to Dashboard" : "Reader's Bible"}
         </a>
       </nav>
       <main>

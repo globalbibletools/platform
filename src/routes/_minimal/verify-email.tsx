@@ -1,13 +1,19 @@
 import ModalView from "@/components/ModalView";
+import { Policy } from "@/modules/access";
+import { routerGuard } from "@/modules/access/routerGuard";
 import { verifyEmail } from "@/modules/users/actions/verifyEmail";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslations } from "next-intl";
 import * as z from "zod";
 
 const schema = z.object({ token: z.string().optional() });
+const policy = new Policy({ authenticated: false });
 
 export const Route = createFileRoute("/_minimal/verify-email")({
   validateSearch: schema,
+  beforeLoad: ({ context }) => {
+    routerGuard({ context: context.auth, policy });
+  },
   loaderDeps: ({ search }) => ({ token: search.token }),
   loader: ({ deps }) => verifyEmail({ data: { token: deps.token } }),
   component: VerifyEmailRoute,

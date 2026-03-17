@@ -1,6 +1,6 @@
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
-import { deLocalizeUrl, localizeUrl } from "./shared/i18n/shared";
+import { deLocalizeUrl, localizeUrl } from "@/shared/i18n/shared";
 
 export function getRouter() {
   const router = createRouter({
@@ -19,4 +19,10 @@ export function getRouter() {
   });
 
   return router;
+}
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: ReturnType<typeof getRouter>;
+  }
 }

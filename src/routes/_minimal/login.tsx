@@ -4,7 +4,7 @@ import FormLabel from "@/components/FormLabel";
 import ModalView, { ModalViewTitle } from "@/components/ModalView";
 import TextInput from "@/components/TextInput";
 import Button from "@/components/Button";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useTranslations } from "next-intl";
 import { logIn } from "@/modules/users/actions/login";
 import { routerGuard } from "@/modules/access/routerGuard";
@@ -30,7 +30,6 @@ export default function LoginRoute() {
         className="max-w-[300px] w-full mx-auto"
         action={logIn}
         redirect={{ to: "/dashboard" }}
-        invalidate
       >
         <div className="mb-4">
           <FormLabel htmlFor="email">{t("form.email")}</FormLabel>

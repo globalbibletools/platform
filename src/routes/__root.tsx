@@ -2,7 +2,7 @@ import {
   Outlet,
   HeadContent,
   Scripts,
-  createRootRouteWithContext,
+  createRootRoute,
 } from "@tanstack/react-router";
 import appCss from "@/styles.css?url";
 import TimezoneTracker from "@/shared/i18n/TimezoneTracker";
@@ -13,14 +13,9 @@ import { fetchLocaleMessages } from "@/shared/i18n/fetchLocaleMessages";
 import useSWR from "swr";
 import { FlashProvider } from "@/flash";
 import { fetchAuthState } from "@/modules/access/fetchAuthState";
-import { AuthContext } from "@/modules/access/routerGuard";
 
-interface RouterContext {
-  auth: AuthContext;
-}
-
-export const Route = createRootRouteWithContext<RouterContext>()({
-  // TODO: these two refetch on every navigation, so this definitely isn't the right way to do this.
+export const Route = createRootRoute({
+  // Move these to react query so we don't constantly refetch auth state
   beforeLoad: async () => {
     const auth = await fetchAuthState();
     return { auth };

@@ -6,6 +6,7 @@ import ModalView, { ModalViewTitle } from "@/components/ModalView";
 import TextInput from "@/components/TextInput";
 import { query } from "@/db";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
+import { routerGuard } from "@/modules/access/routerGuard";
 import { resetPassword } from "@/modules/users/actions/resetPassword";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
@@ -13,12 +14,11 @@ import { useTranslations } from "next-intl";
 import * as z from "zod";
 
 const schema = z.object({ token: z.string().default("") });
+const policy = new Policy({ authenticated: false });
 
 const validateResetPasswordToken = createServerFn()
   .inputValidator(schema)
-  .middleware([
-    createPolicyMiddleware({ policy: new Policy({ authenticated: false }) }),
-  ])
+  .middleware([createPolicyMiddleware({ policy })])
   .handler(async ({ data }) => {
     if (!data.token) {
       throw notFound();
@@ -40,6 +40,9 @@ const validateResetPasswordToken = createServerFn()
   });
 
 export const Route = createFileRoute("/_minimal/reset-password")({
+  beforeLoad: ({ context }) => {
+    routerGuard({ context: context.auth, policy });
+  },
   validateSearch: schema,
   loaderDeps: ({ search }) => ({ token: search.token }),
   loader: ({ deps }) =>

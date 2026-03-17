@@ -11,6 +11,12 @@ export interface PolicyContext {
   language: LanguageClaims | undefined;
 }
 
+export class UnauthorizedError extends Error {
+  constructor() {
+    super("UnauthorizedError");
+  }
+}
+
 export function createPolicyMiddleware<
   TData,
   PolicyType extends PolicyOptions,
@@ -47,23 +53,17 @@ export function createPolicyMiddleware<
         : Promise.resolve(undefined),
       ]);
 
-      if (policy.authorize({ actor, language })) {
-        logger.debug("authentication succeeded, continuing");
-        return next<ContextType>(
-          // I haven't found a good way to handle this without a cast
-          // since a session is only expected here
-          // if the policy permits an authenticated user through
-          session ? { context: { session } as ContextType } : undefined,
-        );
+      if (!policy.authorize({ actor, language })) {
+        logger.info("authorization failed");
+        throw new UnauthorizedError();
       }
 
-      if (policy.options.authenticated === false) {
-        throw redirect({ to: "/dashboard" });
-      } else if (!actor) {
-        throw redirect({ to: "/login" });
-      } else {
-        throw notFound();
-      }
+      return next<ContextType>(
+        // I haven't found a good way to handle this without a cast
+        // since a session is only expected here
+        // if the policy permits an authenticated user through
+        session ? { context: { session } as ContextType } : undefined,
+      );
     },
   );
 }

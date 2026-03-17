@@ -21,7 +21,7 @@ export interface FormProps {
   action: OptionalFetcher<any, any, any>;
   redirect?: ToOptions;
   successMessage?: string;
-  invalidate?: boolean;
+  onSuccess?(): void;
 }
 
 export default function Form({
@@ -30,7 +30,7 @@ export default function Form({
   action,
   redirect,
   successMessage,
-  invalidate,
+  onSuccess,
 }: FormProps) {
   const serverFn = useServerFn(action);
   const [state, setState] = useState<FormState>({ state: "idle" });
@@ -50,18 +50,19 @@ export default function Form({
             state: "success",
           });
 
-          if (invalidate) {
-            router.invalidate();
-          }
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            if (successMessage) {
+              flash.success(successMessage);
+            }
 
-          if (successMessage) {
-            flash.success(successMessage);
-          }
-
-          if (redirect) {
-            await router.navigate(redirect);
+            if (redirect) {
+              await router.navigate(redirect);
+            }
           }
         } catch (error) {
+          console.log(error);
           const validation = processValidationError(error);
           flash.error("Failed request"); // TODO: translate this
           if (validation) {
