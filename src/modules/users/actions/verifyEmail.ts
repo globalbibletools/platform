@@ -1,5 +1,3 @@
-"use server";
-
 import * as z from "zod";
 import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";

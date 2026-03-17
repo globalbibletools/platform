@@ -1,5 +1,3 @@
-"use server";
-
 import * as z from "zod";
 import { createSession } from "@/session";
 import { serverActionLogger } from "@/server-action";

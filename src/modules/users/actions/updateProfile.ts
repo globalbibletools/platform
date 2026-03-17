@@ -1,14 +1,11 @@
-"use server";
-
 import * as z from "zod";
-import { getLocale, getTranslations } from "next-intl/server";
-import { FormState } from "@/components/Form";
-import { revalidatePath } from "next/cache";
+import { createServerFn } from "@tanstack/react-start";
+import { notFound } from "@tanstack/react-router";
 import { parseForm } from "@/form-parser";
 import { serverActionLogger } from "@/server-action";
-import { verifySession } from "@/session";
-import { notFound } from "next/navigation";
 import { updateProfile as updateProfileUseCase } from "../use-cases/updateProfile";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
+import { NotFoundError } from "@/shared/errors";
 
 const profileValidationSchema = z
   .object({
@@ -21,49 +18,32 @@ const profileValidationSchema = z
     path: ["confirm_password"],
   });
 
-export async function updateProfile(
-  _prevState: FormState,
-  data: FormData,
-): Promise<FormState> {
-  const logger = serverActionLogger("updateProfile");
+const policy = new Policy({ authenticated: true });
 
-  const t = await getTranslations("ProfileView");
-  const request = profileValidationSchema.safeParse(parseForm(data), {
-    errorMap: (error) => {
-      switch (error.path[0]) {
-        case "email":
-          if (error.code === "invalid_string") {
-            return { message: t("errors.email_format") };
-          } else {
-            return { message: t("errors.email_required") };
-          }
-        case "name":
-          return { message: t("errors.name_required") };
-        case "password":
-          return { message: t("errors.password_format") };
-        case "confirm_password":
-          return { message: t("errors.password_confirmation") };
-        default:
-          return { message: "Invalid" };
+export const updateProfile = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
+    }
+
+    return profileValidationSchema.parse(parseForm(data));
+  })
+  .middleware([createPolicyMiddleware({ policy })])
+  .handler(async ({ data, context }) => {
+    const logger = serverActionLogger("updateProfile");
+
+    try {
+      await updateProfileUseCase({
+        id: context.session.user.id,
+        ...data,
+      });
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw notFound();
       }
-    },
+
+      throw error;
+    }
+
+    // TODO: refresh page
   });
-  if (!request.success) {
-    logger.error("request parse error");
-    return {
-      state: "error",
-      validation: request.error.flatten().fieldErrors,
-    };
-  }
-
-  const session = await verifySession();
-  if (!session) notFound();
-
-  await updateProfileUseCase({
-    id: session.user.id,
-    ...request.data,
-  });
-
-  revalidatePath(`/${await getLocale()}/profile`);
-  return { state: "success", message: t("profile_updated") };
-}

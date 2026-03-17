@@ -1,80 +1,40 @@
-"use server";
-
 import * as z from "zod";
-import { getTranslations, getLocale } from "next-intl/server";
-import { notFound, redirect } from "next/navigation";
-import { verifySession } from "@/session";
-import { FormState } from "@/components/Form";
+import { createServerFn } from "@tanstack/react-start";
+import { parseForm } from "@/form-parser";
 import { serverActionLogger } from "@/server-action";
 import { inviteUser as inviteUserUseCase } from "../use-cases/inviteUser";
 import { UserAlreadyActiveError } from "../model/errors";
-import { Policy } from "@/modules/access";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   email: z.string().email().min(1),
 });
 
-const policy = new Policy({
-  systemRoles: [Policy.SystemRole.Admin],
-});
+const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
-export async function inviteUser(
-  _prevState: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const logger = serverActionLogger("inviteUser");
+export const inviteUser = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
+    }
 
-  const t = await getTranslations("InviteUserPage");
+    return requestSchema.parse(parseForm(data));
+  })
+  .middleware([createPolicyMiddleware({ policy })])
+  .handler(async ({ data }) => {
+    const logger = serverActionLogger("inviteUser");
 
-  const request = requestSchema.safeParse(
-    {
-      email: formData.get("email"),
-    },
-    {
-      errorMap: (error) => {
-        if (error.path.toString() === "email") {
-          if (error.code === "invalid_string") {
-            return { message: t("errors.email_format") };
-          } else {
-            return { message: t("errors.email_required") };
-          }
-        } else {
-          return { message: "Invalid" };
-        }
-      },
-    },
-  );
-  if (!request.success) {
-    logger.error("request parse error");
-    return {
-      state: "error",
-      validation: request.error.flatten().fieldErrors,
-    };
-  }
+    try {
+      await inviteUserUseCase({ email: data.email });
+    } catch (error) {
+      if (error instanceof UserAlreadyActiveError) {
+        logger.error("user already exists");
+        // TODO: Convert to error code
+        throw new Error("errors.user_exists");
+      }
 
-  const session = await verifySession();
-  const authorized = await policy.authorize({
-    actorId: session?.user.id,
-  });
-  if (!authorized) {
-    logger.error("unauthorized");
-    notFound();
-  }
-
-  try {
-    await inviteUserUseCase({ email: request.data.email });
-  } catch (error) {
-    if (error instanceof UserAlreadyActiveError) {
-      logger.error("user already exists");
-      return {
-        state: "error",
-        error: t("errors.user_exists"),
-      };
-    } else {
       throw error;
     }
-  }
 
-  const locale = await getLocale();
-  redirect(`/${locale}/admin/users`);
-}
+    // TODO: redirect on the client
+  });
