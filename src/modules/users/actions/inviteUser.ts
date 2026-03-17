@@ -35,6 +35,4 @@ export const inviteUser = createServerFn({ method: "POST" })
 
       throw error;
     }
-
-    // TODO: redirect on the client
   });

@@ -1,3 +1,4 @@
+import * as z from "zod";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import {
@@ -9,54 +10,55 @@ import {
   ListRow,
 } from "@/components/List";
 import ViewTitle from "@/components/ViewTitle";
-import { getMessages, getTranslations } from "next-intl/server";
-import { Metadata, ResolvingMetadata } from "next";
 import { changeUserRoles } from "@/modules/users/actions/changeUserRoles";
 import { disableUser } from "@/modules/users/actions/disableUser";
 import MultiselectInput from "@/components/MultiselectInput";
 import Form from "@/components/Form";
 import ServerAction from "@/components/ServerAction";
-import { redirect } from "next/navigation";
-import { NextIntlClientProvider } from "next-intl";
+import { useTranslations } from "next-intl";
 import Pagination from "@/components/Pagination";
-import { searchUsersReadModel } from "../read-models/searchUsersReadModel";
-import { reinviteUserAction } from "../actions/reinviteUser";
-
-export async function generateMetadata(
-  _: any,
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
-  const t = await getTranslations("AdminUsersPage");
-  const { title } = await parent;
-
-  return {
-    title: `${t("title")} | ${title?.absolute}`,
-  };
-}
-
-interface AdminUsersPageProps {
-  searchParams: Promise<{ page?: string }>;
-}
+import { searchUsersReadModel } from "@/modules/users/read-models/searchUsersReadModel";
+import { reinviteUserAction } from "@/modules/users/actions/reinviteUser";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 
 const LIMIT = 20;
 
-export default async function AdminUsersPage(props: AdminUsersPageProps) {
-  const t = await getTranslations("AdminUsersPage");
-  const messages = await getMessages();
-  const searchParams = await props.searchParams;
+const schema = z.object({
+  page: z.coerce.number().int().default(1),
+});
 
-  const page = parseInt(searchParams.page ?? "");
-  if (page <= 0 || isNaN(page) || page.toString() !== searchParams.page) {
-    redirect("./users?page=1");
-  }
+export const Route = createFileRoute("/_main/admin/users/")({
+  validateSearch: schema,
+  loaderDeps: ({ search }) => search,
+  loader: ({ deps }) => {
+    return loaderFn({ data: deps });
+  },
+  component: AdminUsersPage,
+});
 
-  const { page: users, total } = await searchUsersReadModel({
-    page: page - 1,
-    limit: LIMIT,
+const loaderFn = createServerFn()
+  .inputValidator(schema)
+  .handler(async ({ data }) => {
+    if (data.page <= 0) {
+      throw redirect({ to: "/admin/users", search: { page: 1 } });
+    }
+
+    const { page: users, total } = await searchUsersReadModel({
+      page: data.page - 1,
+      limit: LIMIT,
+    });
+
+    if (users.length === 0 && data.page !== 1) {
+      throw redirect({ to: "/admin/users", search: { page: 1 } });
+    }
+
+    return { users, total };
   });
-  if (users.length === 0 && page !== 1) {
-    redirect("./users?page=1");
-  }
+
+function AdminUsersPage() {
+  const { users, total } = Route.useLoaderData();
+  const t = useTranslations("AdminUsersPage");
 
   return (
     <div className="absolute w-full h-full overflow-auto">
@@ -64,7 +66,7 @@ export default async function AdminUsersPage(props: AdminUsersPageProps) {
         <div className="flex items-baseline mb-4">
           <ViewTitle>{t("title")}</ViewTitle>
           <div className="grow" />
-          <Button variant="primary" href="./users/invite">
+          <Button variant="primary" to="/admin/users/invite">
             <Icon icon="plus" className="me-1" />
             {t("links.add_user")}
           </Button>
@@ -100,7 +102,11 @@ export default async function AdminUsersPage(props: AdminUsersPageProps) {
                   )}
                 </ListCell>
                 <ListCell className="py-2 ps-2">
-                  <Form action={changeUserRoles}>
+                  <Form
+                    action={changeUserRoles}
+                    invalidate
+                    successMessage="User roles updated!"
+                  >
                     <input type="hidden" name="userId" value={user.id} />
                     <MultiselectInput
                       className="w-28"
@@ -126,6 +132,7 @@ export default async function AdminUsersPage(props: AdminUsersPageProps) {
                         variant="tertiary"
                         actionData={{ userId: user.id }}
                         action={reinviteUserAction}
+                        successMessage="Invite reset!"
                       >
                         {t("links.resend_invite")}
                       </ServerAction>
@@ -138,6 +145,8 @@ export default async function AdminUsersPage(props: AdminUsersPageProps) {
                     actionData={{ userId: user.id }}
                     action={disableUser}
                     confirm={t("confirm_disable")}
+                    successMessage="User disabled"
+                    invalidate
                   >
                     {t("links.disable")}
                   </ServerAction>
@@ -146,9 +155,7 @@ export default async function AdminUsersPage(props: AdminUsersPageProps) {
             ))}
           </ListBody>
         </List>
-        <NextIntlClientProvider messages={{ Pagination: messages.Pagination }}>
-          <Pagination className="mt-6" limit={LIMIT} total={total} />
-        </NextIntlClientProvider>
+        <Pagination className="mt-6" limit={LIMIT} total={total} />
       </div>
     </div>
   );

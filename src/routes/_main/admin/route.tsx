@@ -1,26 +1,28 @@
 import { ReactNode } from "react";
 import { SidebarLink } from "@/components/NavLink";
 import { Icon } from "@/components/Icon";
-import { verifySession } from "@/session";
-import { getTranslations } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { useTranslations } from "next-intl";
+import { routerGuard } from "@/modules/access/routerGuard";
+import { Policy } from "@/modules/access";
+
+export const Route = createFileRoute("/_main/admin")({
+  beforeLoad: ({ context }) => {
+    routerGuard({
+      context: context.auth,
+      policy: new Policy({ systemRoles: [Policy.SystemRole.Admin] }),
+    });
+  },
+  component: AdminLayout,
+});
 
 export interface AdminLayoutProps {
   children?: ReactNode;
   params: Promise<{ locale: string }>;
 }
 
-export default async function AdminLayout(props: AdminLayoutProps) {
-  const params = await props.params;
-
-  const { children } = props;
-
-  const t = await getTranslations("AdminLayout");
-
-  const session = await verifySession();
-  if (!session?.user.roles.includes("ADMIN")) {
-    notFound();
-  }
+function AdminLayout() {
+  const t = useTranslations("AdminLayout");
 
   return (
     <div className="grow flex items-stretch">
@@ -37,20 +39,22 @@ export default async function AdminLayout(props: AdminLayoutProps) {
         </div>
         <ul>
           <li>
-            <SidebarLink href={`/${params.locale}/admin/languages`}>
+            <SidebarLink to="/admin/languages">
               <Icon icon="language" className="w-4 me-2" />
               {t("links.languages")}
             </SidebarLink>
           </li>
           <li>
-            <SidebarLink href={`/${params.locale}/admin/users`}>
+            <SidebarLink to="/admin/users">
               <Icon icon="user" className="w-4 me-2" />
               {t("links.users")}
             </SidebarLink>
           </li>
         </ul>
       </div>
-      <div className="grow relative">{children}</div>
+      <div className="grow relative">
+        <Outlet />
+      </div>
     </div>
   );
 }

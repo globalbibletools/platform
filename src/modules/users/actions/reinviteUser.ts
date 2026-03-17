@@ -1,7 +1,6 @@
 import * as z from "zod";
 import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";
-import { parseForm } from "@/form-parser";
 import { serverActionLogger } from "@/server-action";
 import { reinviteUser as reinviteUserUseCase } from "../use-cases/reinviteUser";
 import { UserAlreadyActiveError } from "../model/errors";
@@ -15,13 +14,7 @@ const requestSchema = z.object({
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
 export const reinviteUserAction = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => {
-    if (!(data instanceof FormData)) {
-      throw new Error("expected FormData");
-    }
-
-    return requestSchema.parse(parseForm(data));
-  })
+  .inputValidator(requestSchema)
   .middleware([createPolicyMiddleware({ policy })])
   .handler(async ({ data }) => {
     const logger = serverActionLogger("reinviteUserAction");
@@ -37,7 +30,7 @@ export const reinviteUserAction = createServerFn({ method: "POST" })
       if (error instanceof UserAlreadyActiveError) {
         logger.error("user already active");
         // TODO: convert to error code
-        throw new Error("errors.user_exists");
+        throw new Error("user_exists");
       }
 
       throw error;

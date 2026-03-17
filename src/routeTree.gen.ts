@@ -19,8 +19,11 @@ import { Route as MinimalInviteRouteImport } from "./routes/_minimal/invite";
 import { Route as MinimalForgotPasswordRouteImport } from "./routes/_minimal/forgot-password";
 import { Route as MainDashboardRouteImport } from "./routes/_main/dashboard";
 import { Route as MainReadRouteRouteImport } from "./routes/_main/read/route";
+import { Route as MainAdminRouteRouteImport } from "./routes/_main/admin/route";
 import { Route as MainReadCodeRouteImport } from "./routes/_main/read/$code";
+import { Route as MainAdminUsersIndexRouteImport } from "./routes/_main/admin/users/index";
 import { Route as MainReadCodeChapterIdRouteImport } from "./routes/_main/read/$code.$chapterId";
+import { Route as MainAdminUsersInviteRouteImport } from "./routes/_main/admin/users/invite";
 
 const MinimalRouteRoute = MinimalRouteRouteImport.update({
   id: "/_minimal",
@@ -70,19 +73,35 @@ const MainReadRouteRoute = MainReadRouteRouteImport.update({
   path: "/read",
   getParentRoute: () => MainRouteRoute,
 } as any);
+const MainAdminRouteRoute = MainAdminRouteRouteImport.update({
+  id: "/admin",
+  path: "/admin",
+  getParentRoute: () => MainRouteRoute,
+} as any);
 const MainReadCodeRoute = MainReadCodeRouteImport.update({
   id: "/$code",
   path: "/$code",
   getParentRoute: () => MainReadRouteRoute,
+} as any);
+const MainAdminUsersIndexRoute = MainAdminUsersIndexRouteImport.update({
+  id: "/users/",
+  path: "/users/",
+  getParentRoute: () => MainAdminRouteRoute,
 } as any);
 const MainReadCodeChapterIdRoute = MainReadCodeChapterIdRouteImport.update({
   id: "/$chapterId",
   path: "/$chapterId",
   getParentRoute: () => MainReadCodeRoute,
 } as any);
+const MainAdminUsersInviteRoute = MainAdminUsersInviteRouteImport.update({
+  id: "/users/invite",
+  path: "/users/invite",
+  getParentRoute: () => MainAdminRouteRoute,
+} as any);
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
+  "/admin": typeof MainAdminRouteRouteWithChildren;
   "/read": typeof MainReadRouteRouteWithChildren;
   "/dashboard": typeof MainDashboardRoute;
   "/forgot-password": typeof MinimalForgotPasswordRoute;
@@ -91,10 +110,13 @@ export interface FileRoutesByFullPath {
   "/reset-password": typeof MinimalResetPasswordRoute;
   "/verify-email": typeof MinimalVerifyEmailRoute;
   "/read/$code": typeof MainReadCodeRouteWithChildren;
+  "/admin/users/invite": typeof MainAdminUsersInviteRoute;
   "/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
+  "/admin/users/": typeof MainAdminUsersIndexRoute;
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
+  "/admin": typeof MainAdminRouteRouteWithChildren;
   "/read": typeof MainReadRouteRouteWithChildren;
   "/dashboard": typeof MainDashboardRoute;
   "/forgot-password": typeof MinimalForgotPasswordRoute;
@@ -103,13 +125,16 @@ export interface FileRoutesByTo {
   "/reset-password": typeof MinimalResetPasswordRoute;
   "/verify-email": typeof MinimalVerifyEmailRoute;
   "/read/$code": typeof MainReadCodeRouteWithChildren;
+  "/admin/users/invite": typeof MainAdminUsersInviteRoute;
   "/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
+  "/admin/users": typeof MainAdminUsersIndexRoute;
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   "/": typeof IndexRoute;
   "/_main": typeof MainRouteRouteWithChildren;
   "/_minimal": typeof MinimalRouteRouteWithChildren;
+  "/_main/admin": typeof MainAdminRouteRouteWithChildren;
   "/_main/read": typeof MainReadRouteRouteWithChildren;
   "/_main/dashboard": typeof MainDashboardRoute;
   "/_minimal/forgot-password": typeof MinimalForgotPasswordRoute;
@@ -118,12 +143,15 @@ export interface FileRoutesById {
   "/_minimal/reset-password": typeof MinimalResetPasswordRoute;
   "/_minimal/verify-email": typeof MinimalVerifyEmailRoute;
   "/_main/read/$code": typeof MainReadCodeRouteWithChildren;
+  "/_main/admin/users/invite": typeof MainAdminUsersInviteRoute;
   "/_main/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
+  "/_main/admin/users/": typeof MainAdminUsersIndexRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | "/"
+    | "/admin"
     | "/read"
     | "/dashboard"
     | "/forgot-password"
@@ -132,10 +160,13 @@ export interface FileRouteTypes {
     | "/reset-password"
     | "/verify-email"
     | "/read/$code"
-    | "/read/$code/$chapterId";
+    | "/admin/users/invite"
+    | "/read/$code/$chapterId"
+    | "/admin/users/";
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/"
+    | "/admin"
     | "/read"
     | "/dashboard"
     | "/forgot-password"
@@ -144,12 +175,15 @@ export interface FileRouteTypes {
     | "/reset-password"
     | "/verify-email"
     | "/read/$code"
-    | "/read/$code/$chapterId";
+    | "/admin/users/invite"
+    | "/read/$code/$chapterId"
+    | "/admin/users";
   id:
     | "__root__"
     | "/"
     | "/_main"
     | "/_minimal"
+    | "/_main/admin"
     | "/_main/read"
     | "/_main/dashboard"
     | "/_minimal/forgot-password"
@@ -158,7 +192,9 @@ export interface FileRouteTypes {
     | "/_minimal/reset-password"
     | "/_minimal/verify-email"
     | "/_main/read/$code"
-    | "/_main/read/$code/$chapterId";
+    | "/_main/admin/users/invite"
+    | "/_main/read/$code/$chapterId"
+    | "/_main/admin/users/";
   fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
@@ -239,12 +275,26 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof MainReadRouteRouteImport;
       parentRoute: typeof MainRouteRoute;
     };
+    "/_main/admin": {
+      id: "/_main/admin";
+      path: "/admin";
+      fullPath: "/admin";
+      preLoaderRoute: typeof MainAdminRouteRouteImport;
+      parentRoute: typeof MainRouteRoute;
+    };
     "/_main/read/$code": {
       id: "/_main/read/$code";
       path: "/$code";
       fullPath: "/read/$code";
       preLoaderRoute: typeof MainReadCodeRouteImport;
       parentRoute: typeof MainReadRouteRoute;
+    };
+    "/_main/admin/users/": {
+      id: "/_main/admin/users/";
+      path: "/users";
+      fullPath: "/admin/users/";
+      preLoaderRoute: typeof MainAdminUsersIndexRouteImport;
+      parentRoute: typeof MainAdminRouteRoute;
     };
     "/_main/read/$code/$chapterId": {
       id: "/_main/read/$code/$chapterId";
@@ -253,8 +303,29 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof MainReadCodeChapterIdRouteImport;
       parentRoute: typeof MainReadCodeRoute;
     };
+    "/_main/admin/users/invite": {
+      id: "/_main/admin/users/invite";
+      path: "/users/invite";
+      fullPath: "/admin/users/invite";
+      preLoaderRoute: typeof MainAdminUsersInviteRouteImport;
+      parentRoute: typeof MainAdminRouteRoute;
+    };
   }
 }
+
+interface MainAdminRouteRouteChildren {
+  MainAdminUsersInviteRoute: typeof MainAdminUsersInviteRoute;
+  MainAdminUsersIndexRoute: typeof MainAdminUsersIndexRoute;
+}
+
+const MainAdminRouteRouteChildren: MainAdminRouteRouteChildren = {
+  MainAdminUsersInviteRoute: MainAdminUsersInviteRoute,
+  MainAdminUsersIndexRoute: MainAdminUsersIndexRoute,
+};
+
+const MainAdminRouteRouteWithChildren = MainAdminRouteRoute._addFileChildren(
+  MainAdminRouteRouteChildren,
+);
 
 interface MainReadCodeRouteChildren {
   MainReadCodeChapterIdRoute: typeof MainReadCodeChapterIdRoute;
@@ -281,11 +352,13 @@ const MainReadRouteRouteWithChildren = MainReadRouteRoute._addFileChildren(
 );
 
 interface MainRouteRouteChildren {
+  MainAdminRouteRoute: typeof MainAdminRouteRouteWithChildren;
   MainReadRouteRoute: typeof MainReadRouteRouteWithChildren;
   MainDashboardRoute: typeof MainDashboardRoute;
 }
 
 const MainRouteRouteChildren: MainRouteRouteChildren = {
+  MainAdminRouteRoute: MainAdminRouteRouteWithChildren,
   MainReadRouteRoute: MainReadRouteRouteWithChildren,
   MainDashboardRoute: MainDashboardRoute,
 };

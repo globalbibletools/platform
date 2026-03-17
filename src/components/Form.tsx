@@ -22,6 +22,7 @@ export interface FormProps {
   redirect?: ToOptions;
   successMessage?: string;
   onSuccess?(): void;
+  invalidate?: boolean;
 }
 
 export default function Form({
@@ -30,6 +31,7 @@ export default function Form({
   action,
   redirect,
   successMessage,
+  invalidate,
   onSuccess,
 }: FormProps) {
   const serverFn = useServerFn(action);
@@ -53,6 +55,10 @@ export default function Form({
           if (onSuccess) {
             onSuccess();
           } else {
+            if (invalidate) {
+              router.invalidate();
+            }
+
             if (successMessage) {
               flash.success(successMessage);
             }

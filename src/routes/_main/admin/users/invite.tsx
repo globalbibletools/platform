@@ -4,30 +4,21 @@ import FormLabel from "@/components/FormLabel";
 import TextInput from "@/components/TextInput";
 import FieldError from "@/components/FieldError";
 import ViewTitle from "@/components/ViewTitle";
-import { getTranslations } from "next-intl/server";
-import { Metadata, ResolvingMetadata } from "next";
 import Form from "@/components/Form";
 import { inviteUser } from "@/modules/users/actions/inviteUser";
+import { createFileRoute } from "@tanstack/react-router";
 
-export async function generateMetadata(
-  _: any,
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
-  const t = await getTranslations("InviteUserPage");
-  const { title } = await parent;
+export const Route = createFileRoute("/_main/admin/users/invite")({
+  component: InviteUserRoute,
+});
 
-  return {
-    title: `${t("title")} | ${title?.absolute}`,
-  };
-}
-
-export default function NewLanguagePage() {
+export default function InviteUserRoute() {
   const t = useTranslations("InviteUserPage");
 
   return (
     <div className="px-8 py-6">
       <ViewTitle>{t("title")}</ViewTitle>
-      <Form action={inviteUser}>
+      <Form action={inviteUser} redirect={{ to: "/admin/users" }}>
         <div className="mb-4">
           <FormLabel htmlFor="email">{t("form.email")}</FormLabel>
           <TextInput

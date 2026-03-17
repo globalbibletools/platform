@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import Button from "./Button";
 import { Icon } from "./Icon";
 import TextInput from "./TextInput";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 
 export interface PaginationProps {
   className?: string;
@@ -19,17 +19,14 @@ export default function Pagination({
 }: PaginationProps) {
   const t = useTranslations("Pagination");
 
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const router = useRouter();
+  const navigate = useNavigate();
+  const search = useSearch({ strict: false });
 
+  const page = search.page ?? 1;
   const maxPages = Math.ceil(total / limit);
-  const page = parseInt(searchParams.get("page") ?? "");
 
   function navigateToPage(page: number) {
-    const search = new URLSearchParams(searchParams);
-    search.set("page", page.toString());
-    router.push(`${pathname}?${search.toString()}`);
+    navigate({ to: ".", search: (prev) => ({ ...prev, page }) });
   }
 
   return (
