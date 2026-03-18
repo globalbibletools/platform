@@ -17,23 +17,10 @@ const policy = new Policy({
 });
 
 export const reinviteLanguageMemberAction = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => {
-    if (!(data instanceof FormData)) {
-      throw new Error("expected FormData");
-    }
-
-    return requestSchema.parse(parseForm(data));
-  })
+  .inputValidator(requestSchema)
   .middleware([
     createPolicyMiddleware({
       policy,
-      parseLanguageCode: (data) => {
-        if (!(data instanceof FormData)) {
-          throw new Error("expected FormData");
-        }
-
-        return z.string().parse(data.get("code"));
-      },
     }),
   ])
   .handler(async ({ data }) => {
@@ -49,6 +36,4 @@ export const reinviteLanguageMemberAction = createServerFn({ method: "POST" })
 
       throw error;
     }
-
-    // TODO: success message on client
   });

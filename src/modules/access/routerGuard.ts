@@ -11,9 +11,11 @@ export interface AuthContext {
 export function routerGuard({
   context,
   policy,
+  languageCode,
 }: {
   context: AuthContext;
   policy: Policy;
+  languageCode?: string;
 }) {
   const actor =
     context.user ?
@@ -22,9 +24,17 @@ export function routerGuard({
         systemRoles: context.systemRoles,
       }
     : undefined;
+  const language =
+    languageCode ?
+      {
+        code: languageCode,
+        isMember: context.languages.some((l) => l.code === languageCode),
+      }
+    : undefined;
 
   const authorized = policy.authorize({
     actor,
+    language,
   });
   if (authorized) return;
 

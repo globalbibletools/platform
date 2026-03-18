@@ -1,57 +1,73 @@
-import ViewTitle from "@/components/ViewTitle";
-import { getTranslations } from "next-intl/server";
-import FormLabel from "@/components/FormLabel";
-import TextInput from "@/components/TextInput";
-import FieldError from "@/components/FieldError";
-import Button from "@/components/Button";
-import { Icon } from "@/components/Icon";
-import ComboboxInput from "@/components/ComboboxInput";
+import { BibleClient } from "@gracious.tech/fetch-client";
 import {
   ButtonSelectorInput,
   ButtonSelectorOption,
 } from "@/components/ButtonSelectorInput";
-import SortableMultiselectInput from "@/components/SortableMultiselectInput";
-import { BibleClient } from "@gracious.tech/fetch-client";
-import SavingIndicator from "./SavingIndicator";
-import { Metadata, ResolvingMetadata } from "next";
-import { fontMap } from "@/fonts";
-import { updateLanguageSettings } from "../actions/updateLanguageSettings";
+import ComboboxInput from "@/components/ComboboxInput";
+import FieldError from "@/components/FieldError";
 import Form from "@/components/Form";
-import { notFound } from "next/navigation";
-import { getAllLanguagesReadModel } from "../read-models/getAllLanguagesReadModel";
-import { getLanguageSettingsReadModel } from "../read-models/getLanguageSettingsReadModel";
-import { MachineGlossStrategy } from "../model";
+import FormLabel from "@/components/FormLabel";
+import { Icon } from "@/components/Icon";
+import SortableMultiselectInput from "@/components/SortableMultiselectInput";
+import TextInput from "@/components/TextInput";
+import ViewTitle from "@/components/ViewTitle";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
+import { routerGuard } from "@/modules/access/routerGuard";
+import { updateLanguageSettings } from "@/modules/languages/actions/updateLanguageSettings";
+import { MachineGlossStrategy } from "@/modules/languages/model";
+import { getAllLanguagesReadModel } from "@/modules/languages/read-models/getAllLanguagesReadModel";
+import { getLanguageSettingsReadModel } from "@/modules/languages/read-models/getLanguageSettingsReadModel";
+import SavingIndicator from "@/modules/languages/ui/SavingIndicator";
+import { fontMap } from "@/fonts";
+import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { useTranslations } from "next-intl";
+import * as z from "zod";
 
-interface LanguageSettingsPageProps {
-  params: Promise<{ code: string }>;
-}
+const policy = new Policy({
+  systemRoles: [Policy.SystemRole.Admin],
+  languageMember: true,
+});
 
-export async function generateMetadata(
-  _: any,
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
-  const t = await getTranslations("LanguageSettingsPage");
-  const { title } = await parent;
+const paramsSchema = z.object({ code: z.string() });
 
-  return {
-    title: `${t("title")} | ${title?.absolute}`,
-  };
-}
+export const Route = createFileRoute("/_main/admin/languages/$code/settings")({
+  beforeLoad: ({ context, params }) => {
+    routerGuard({
+      context: context.auth,
+      policy,
+      languageCode: params.code,
+    });
+  },
+  loader: ({ params }) => loaderFn({ data: params }),
+  component: LanguageSettingsRoute,
+});
 
-export default async function LanguageSettingsPage(
-  props: LanguageSettingsPageProps,
-) {
-  const t = await getTranslations("LanguageSettingsPage");
-  const params = await props.params;
+const loaderFn = createServerFn()
+  .inputValidator(paramsSchema)
+  .middleware([
+    createPolicyMiddleware({
+      policy,
+      parseLanguageCode: (data) => paramsSchema.parse(data).code,
+    }),
+  ])
+  .handler(async ({ data }) => {
+    const [languageSettings, languages, translations] = await Promise.all([
+      getLanguageSettingsReadModel(data.code),
+      getAllLanguagesReadModel(),
+      fetchTranslations(data.code),
+    ]);
 
-  const [languageSettings, languages, translations] = await Promise.all([
-    getLanguageSettingsReadModel(params.code),
-    getAllLanguagesReadModel(),
-    fetchTranslations(params.code),
-  ]);
-  if (!languageSettings) {
-    notFound();
-  }
+    if (!languageSettings) {
+      throw notFound();
+    }
+
+    return { languageSettings, languages, translations };
+  });
+
+function LanguageSettingsRoute() {
+  const t = useTranslations("LanguageSettingsPage");
+  const { languageSettings, languages, translations } = Route.useLoaderData();
 
   return (
     <div className="px-8 py-6 w-fit">
@@ -75,15 +91,15 @@ export default async function LanguageSettingsPage(
             <p className="text-sm">
               {t.rich("code_description", {
                 a: () => (
-                  <Button
+                  <a
+                    className="inline font-bold focus:underline text-blue-800 dark:text-green-400"
                     href="https://en.wikipedia.org/wiki/ISO_639-3"
-                    variant="link"
                     target="_blank"
                     rel="noopener"
                   >
                     ISO 639-3
                     <Icon icon="external-link" className="ms-1" />
-                  </Button>
+                  </a>
                 ),
               })}
             </p>
@@ -97,7 +113,7 @@ export default async function LanguageSettingsPage(
                 id="english_name"
                 name="englishName"
                 className="block w-56"
-                defaultValue={languageSettings?.englishName ?? ""}
+                defaultValue={languageSettings.englishName}
                 autoComplete="off"
                 aria-describedby="english-name-error"
                 autosubmit
@@ -110,7 +126,7 @@ export default async function LanguageSettingsPage(
                 id="local_name"
                 name="localName"
                 className="block w-56"
-                defaultValue={languageSettings?.localName ?? ""}
+                defaultValue={languageSettings.localName}
                 autoComplete="off"
                 aria-describedby="local-name-error"
                 autosubmit
@@ -171,15 +187,11 @@ export default async function LanguageSettingsPage(
                 >
                   <ButtonSelectorOption value={"ltr"}>
                     <Icon icon="align-left" className="me-2" />
-                    {t("form.text_direction_option", {
-                      dir: "ltr",
-                    })}
+                    {t("form.text_direction_option", { dir: "ltr" })}
                   </ButtonSelectorOption>
                   <ButtonSelectorOption value={"rtl"}>
                     <Icon icon="align-right" className="me-2" />
-                    {t("form.text_direction_option", {
-                      dir: "rtl",
-                    })}
+                    {t("form.text_direction_option", { dir: "rtl" })}
                   </ButtonSelectorOption>
                 </ButtonSelectorInput>
               </div>
@@ -199,9 +211,9 @@ export default async function LanguageSettingsPage(
               name="bible_translations"
               className="w-full"
               defaultValue={languageSettings.translationIds}
-              items={translations.map((t) => ({
-                label: t.name,
-                value: t.id,
+              items={translations.map((translation) => ({
+                label: translation.name,
+                value: translation.id,
               }))}
               placeholder={t("form.translation_placeholder").toString()}
               autosubmit
@@ -278,13 +290,13 @@ async function fetchTranslations(
 ): Promise<{ id: string; name: string }[]> {
   const client = new BibleClient();
   const collection = await client.fetch_collection();
-  const options: { sort_by_year?: boolean; language?: string } = {};
-  options.sort_by_year = true;
-  options.language = languageCode;
-  const translations = collection.get_translations(options);
+  const translations = collection.get_translations({
+    sort_by_year: true,
+    language: languageCode,
+  });
+
   return translations.map(({ id, name_english, name_local }) => ({
     id,
-    // Sometimes name_local is an empty string, so fallback to name_english
     name: name_local ? name_local : name_english,
   }));
 }

@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { Policy } from "@/modules/access";
 
-export const Route = createFileRoute("/_main/admin")({
+export const Route = createFileRoute("/_main/admin/_main")({
   beforeLoad: ({ context }) => {
     routerGuard({
       context: context.auth,

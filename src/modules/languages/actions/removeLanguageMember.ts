@@ -17,25 +17,8 @@ const policy = new Policy({
 });
 
 export const removeLanguageMember = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => {
-    if (!(data instanceof FormData)) {
-      throw new Error("expected FormData");
-    }
-
-    return requestSchema.parse(parseForm(data));
-  })
-  .middleware([
-    createPolicyMiddleware({
-      policy,
-      parseLanguageCode: (data) => {
-        if (!(data instanceof FormData)) {
-          throw new Error("expected FormData");
-        }
-
-        return z.string().parse(data.get("code"));
-      },
-    }),
-  ])
+  .inputValidator(requestSchema)
+  .middleware([createPolicyMiddleware({ policy })])
   .handler(async ({ data }) => {
     const logger = serverActionLogger("removeLanguageUser");
 
@@ -48,7 +31,4 @@ export const removeLanguageMember = createServerFn({ method: "POST" })
 
       throw error;
     }
-
-    // TODO: success message on client
-    // TODO: invalidate route on client
   });

@@ -8,7 +8,7 @@ import Form from "@/components/Form";
 import { inviteUser } from "@/modules/users/actions/inviteUser";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_main/admin/users/invite")({
+export const Route = createFileRoute("/_main/admin/_main/users/invite")({
   component: InviteUserRoute,
 });
 

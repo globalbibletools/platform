@@ -22,8 +22,7 @@ import {
 } from "date-fns";
 import { UTCDate } from "@date-fns/utc";
 import Button from "@/components/Button";
-import { useSearchParams } from "next/navigation";
-import { usePathname, useRouter } from "@/shared/i18n/navigation";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 
 export interface ActivityChartEntry {
   date: Date;
@@ -60,21 +59,16 @@ export function ActivityChartRangeToggle({
 }: {
   range?: ActivityChartRange;
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
+  const navigate = useNavigate();
+  const search = useSearch({ from: "/_main/admin/languages/$code/users" });
 
   function onClick() {
-    if (range === "30d") {
-      router.replace({
-        pathname,
-        query: { range: "6m" },
-      });
-    } else {
-      router.replace({
-        pathname,
-        query: { range: "30d" },
-      });
-    }
+    const nextRange = range === "30d" ? "6m" : "30d";
+    navigate({
+      to: ".",
+      search: { ...search, range: nextRange },
+      replace: true,
+    });
   }
 
   return (

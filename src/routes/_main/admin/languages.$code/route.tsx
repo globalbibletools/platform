@@ -1,0 +1,107 @@
+import { Icon } from "@/components/Icon";
+import { SidebarLink } from "@/components/NavLink";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
+import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
+import { createParseMiddleware } from "@/parseMiddleware";
+import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
+import { createFileRoute, notFound, Outlet } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { useTranslations } from "next-intl";
+import * as z from "zod";
+
+const policy = new Policy({
+  systemRoles: [Policy.SystemRole.Admin],
+  languageMember: true,
+});
+
+const schema = z.object({ code: z.string() });
+
+export const Route = createFileRoute("/_main/admin/languages/$code")({
+  loader: ({ params }) => {
+    return loaderFn({ data: params });
+  },
+  component: AdminLanguageLayoutRoute,
+});
+
+const loaderFn = createServerFn()
+  .middleware([
+    createPolicyMiddleware({
+      policy,
+      parseMiddleware: createParseMiddleware(schema),
+      selectLanguageCode: (data) => data.code,
+    }),
+  ])
+  .handler(async ({ data }) => {
+    const language = await getLanguageByCodeReadModel(data.code);
+    if (!language) {
+      throw notFound();
+    }
+
+    return { language };
+  });
+
+function AdminLanguageLayoutRoute() {
+  const t = useTranslations("LanguageLayout");
+  const { code } = Route.useParams();
+  const { language } = Route.useLoaderData();
+
+  return (
+    <div className="grow flex items-stretch">
+      <div
+        className="
+          sticky h-[calc(100dvh-var(--heading-height))] top-(--heading-height)
+          w-56 shrink-0 bg-brown-100 dark:bg-gray-800 p-6 pt-7
+        "
+      >
+        <div className="px-3 mb-4">
+          <h2 className="font-bold text-lg">{language.englishName}</h2>
+        </div>
+        <ul>
+          <li>
+            <SidebarLink to={`/admin/languages/${code}/settings`}>
+              <Icon icon="sliders" className="w-4 me-2" />
+              {t("links.settings")}
+            </SidebarLink>
+          </li>
+          <li>
+            <SidebarLink to={`/admin/languages/${code}/users`}>
+              <Icon icon="user" className="w-4 me-2" />
+              {t("links.users")}
+            </SidebarLink>
+          </li>
+          <li>
+            <SidebarLink to={`/admin/languages/${code}/import`}>
+              <Icon icon="file-import" className="w-4 me-2" />
+              {t("links.import")}
+            </SidebarLink>
+          </li>
+          <FeatureFlagged
+            feature="ff-interlinear-pdf-export"
+            enabledChildren={
+              <li>
+                <SidebarLink to={`/admin/languages/${code}/exports`}>
+                  <Icon icon="file-arrow-down" className="w-4 me-2" />
+                  {t("links.exports")}
+                </SidebarLink>
+              </li>
+            }
+          />
+          <FeatureFlagged
+            feature="ff-snapshots"
+            enabledChildren={
+              <li>
+                <SidebarLink href={`/admin/languages/${code}/snapshots`}>
+                  <Icon icon="database" className="w-4 me-2" />
+                  {t("links.snapshots")}
+                </SidebarLink>
+              </li>
+            }
+          />
+        </ul>
+      </div>
+      <div className="grow relative">
+        <Outlet />
+      </div>
+    </div>
+  );
+}

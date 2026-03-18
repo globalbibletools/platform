@@ -39,6 +39,4 @@ export const createLanguage = createServerFn({ method: "POST" })
 
       throw error;
     }
-
-    // TODO: redirect on client
   });

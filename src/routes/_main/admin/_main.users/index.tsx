@@ -28,7 +28,7 @@ const schema = z.object({
   page: z.coerce.number().int().default(1),
 });
 
-export const Route = createFileRoute("/_main/admin/users/")({
+export const Route = createFileRoute("/_main/admin/_main/users/")({
   validateSearch: schema,
   loaderDeps: ({ search }) => search,
   loader: ({ deps }) => {
