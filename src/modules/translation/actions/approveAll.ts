@@ -1,13 +1,15 @@
-"use server";
-
 import * as z from "zod";
 import { getLocale } from "next-intl/server";
 import { parseForm } from "@/form-parser";
-import { notFound } from "next/navigation";
-import { verifySession } from "@/session";
+import { createServerFn } from "@tanstack/react-start";
+import { notFound } from "@tanstack/react-router";
 import { revalidatePath } from "next/cache";
 import { serverActionLogger } from "@/server-action";
-import { Policy } from "@/modules/access";
+import {
+  createPolicyMiddleware,
+  Policy,
+  PolicyOptions,
+} from "@/modules/access";
 import { GlossApprovalMethodRaw } from "../types";
 import { approveAllUseCase } from "../use-cases/approveAll";
 import { NotFoundError } from "@/shared/errors";
@@ -28,42 +30,48 @@ const policy = new Policy({
   languageMember: true,
 });
 
-export async function approveAll(formData: FormData): Promise<void> {
-  const logger = serverActionLogger("approveAll");
+type Request = z.infer<typeof requestSchema>;
 
-  const request = requestSchema.safeParse(parseForm(formData));
-  if (!request.success) {
-    logger.error("request parse error");
-    return;
-  }
-
-  const session = await verifySession();
-  const authorized = await policy.authorize({
-    actorId: session?.user.id,
-    languageCode: request.data.code,
-  });
-  if (!authorized) {
-    logger.error("unauthorized");
-    notFound();
-  }
-
-  try {
-    await approveAllUseCase({
-      languageCode: request.data.code,
-      phrases: request.data.phrases,
-      userId: session!.user.id,
-    });
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      logger.error("not found");
-      notFound();
-    } else {
-      throw error;
+export const approveAll = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
     }
-  }
 
-  const locale = await getLocale();
-  revalidatePath(
-    `/${locale}/translate/${request.data.code}/${request.data.verseId}`,
+    return requestSchema.parse(parseForm(data));
+  })
+  .middleware([
+    createPolicyMiddleware<Request, PolicyOptions>({
+      policy,
+      getLanguageCode: (data) => data.code,
+    }),
+  ])
+  .handler(
+    async ({
+      data,
+      context,
+    }: {
+      data: Request;
+      context: { session: { user: { id: string } } };
+    }) => {
+      const logger = serverActionLogger("approveAll");
+
+      try {
+        await approveAllUseCase({
+          languageCode: data.code,
+          phrases: data.phrases,
+          userId: context.session.user.id,
+        });
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          logger.error("not found");
+          throw notFound();
+        }
+
+        throw error;
+      }
+
+      const locale = await getLocale();
+      revalidatePath(`/${locale}/translate/${data.code}/${data.verseId}`);
+    },
   );
-}

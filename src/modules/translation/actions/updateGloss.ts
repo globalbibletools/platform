@@ -1,12 +1,14 @@
-"use server";
-
 import { parseForm } from "@/form-parser";
-import { Policy } from "@/modules/access";
+import {
+  createPolicyMiddleware,
+  Policy,
+  PolicyOptions,
+} from "@/modules/access";
 import { serverActionLogger } from "@/server-action";
-import { verifySession } from "@/session";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
-import { notFound } from "next/navigation";
+import { createServerFn } from "@tanstack/react-start";
+import { notFound } from "@tanstack/react-router";
 import * as z from "zod";
 import { GlossApprovalMethodRaw, GlossStateRaw } from "../types";
 import { updateGlossUseCase } from "../use-cases/updateGloss";
@@ -25,41 +27,49 @@ const policy = new Policy({
   languageMember: true,
 });
 
-export async function updateGlossAction(formData: FormData): Promise<any> {
-  const logger = serverActionLogger("updateGloss");
+type Request = z.infer<typeof requestSchema>;
 
-  const request = requestSchema.safeParse(parseForm(formData));
-  if (!request.success) {
-    logger.error("request parse error");
-    return;
-  }
-
-  const session = await verifySession();
-  const authorized = await policy.authorize({
-    actorId: session?.user.id,
-    languageCode: request.data.languageCode,
-  });
-  if (!authorized) {
-    logger.error("unauthorized");
-    notFound();
-  }
-
-  try {
-    await updateGlossUseCase({
-      ...request.data,
-      userId: session!.user.id,
-    });
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      logger.error("not found");
-      notFound();
-    } else {
-      throw error;
+export const updateGlossAction = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
     }
-  }
 
-  const locale = await getLocale();
-  revalidatePath(
-    `/${locale}/translate/${request.data.languageCode}/${request.data.verseId}`,
+    return requestSchema.parse(parseForm(data));
+  })
+  .middleware([
+    createPolicyMiddleware<Request, PolicyOptions>({
+      policy,
+      getLanguageCode: (data) => data.languageCode,
+    }),
+  ])
+  .handler(
+    async ({
+      data,
+      context,
+    }: {
+      data: Request;
+      context: { session: { user: { id: string } } };
+    }) => {
+      const logger = serverActionLogger("updateGloss");
+
+      try {
+        await updateGlossUseCase({
+          ...data,
+          userId: context.session.user.id,
+        });
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          logger.error("not found");
+          throw notFound();
+        }
+
+        throw error;
+      }
+
+      const locale = await getLocale();
+      revalidatePath(
+        `/${locale}/translate/${data.languageCode}/${data.verseId}`,
+      );
+    },
   );
-}

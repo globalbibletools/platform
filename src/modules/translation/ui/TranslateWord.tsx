@@ -15,6 +15,7 @@ import { useParams } from "next/navigation";
 import { GlossApprovalMethodRaw } from "../types";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import { MachineGlossStrategy } from "@/modules/languages/model";
+import { useServerFn } from "@tanstack/react-start";
 
 export interface TranslateWordProps {
   verseId: string;
@@ -69,6 +70,7 @@ export default function TranslateWord({
 }: TranslateWordProps) {
   const t = useTranslations("TranslateWord");
   const { mutate } = useSWRConfig();
+  const updateGlossFn = useServerFn(updateGlossAction);
 
   const root = useRef<HTMLLIElement>(null);
   const ancientWord = useRef<HTMLSpanElement>(null);
@@ -150,7 +152,7 @@ export default function TranslateWord({
     }
 
     // TODO: handle errors in the result
-    await updateGlossAction(formData);
+    await updateGlossFn({ data: formData });
 
     mutate({
       type: "book-progress",

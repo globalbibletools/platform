@@ -22,6 +22,7 @@ import { updateFootnoteAction } from "../actions/updateFootnote";
 import { updateTranslatorNoteAction } from "../actions/updateTranslatorNote";
 import { parseReferenceRange } from "@/verse-utils";
 import { VersesPreview } from "@/components/VersesPreview";
+import { useServerFn } from "@tanstack/react-start";
 
 export interface Word {
   id: string;
@@ -70,6 +71,8 @@ const TranslationSidebar = forwardRef<
   TranslationSidebarProps
 >(({ className = "", language, word, phrase, verseId, onClose }, ref) => {
   const t = useTranslations("TranslationSidebar");
+  const updateFootnoteFn = useServerFn(updateFootnoteAction);
+  const updateTranslatorNoteFn = useServerFn(updateTranslatorNoteAction);
 
   const canReadTranslatorNotes = language.isMember;
   const canEditNotes = language.isMember;
@@ -109,14 +112,14 @@ const TranslationSidebar = forwardRef<
             form.set("phraseId", phrase.id.toString());
             form.set("note", note);
             form.set("languageCode", language.code);
-            await updateFootnoteAction(form);
+            await updateFootnoteFn({ data: form });
             setSavingFootnote(false);
           }
         },
         5000,
         { leading: false, trailing: true },
       ),
-    [phrase.id, language.code, verseId],
+    [phrase.id, language.code, verseId, updateFootnoteFn],
   );
 
   const [isSavingTranslatorNote, setSavingTranslatorNote] = useState(false);
@@ -131,14 +134,14 @@ const TranslationSidebar = forwardRef<
             form.set("phraseId", phrase.id.toString());
             form.set("note", note);
             form.set("languageCode", language.code);
-            await updateTranslatorNoteAction(form);
+            await updateTranslatorNoteFn({ data: form });
             setSavingTranslatorNote(false);
           }
         },
         5000,
         { leading: false, trailing: true },
       ),
-    [phrase.id, language.code, verseId],
+    [phrase.id, language.code, verseId, updateTranslatorNoteFn],
   );
 
   const lexiconEntryRef = useRef<HTMLDivElement>(null);

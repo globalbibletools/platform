@@ -1,13 +1,15 @@
-"use server";
-
 import * as z from "zod";
 import { getLocale } from "next-intl/server";
 import { parseForm } from "@/form-parser";
-import { notFound } from "next/navigation";
-import { verifySession } from "@/session";
+import { createServerFn } from "@tanstack/react-start";
+import { notFound } from "@tanstack/react-router";
 import { revalidatePath } from "next/cache";
 import { phraseRepository } from "../data-access/phraseRepository";
-import { Policy } from "@/modules/access";
+import {
+  createPolicyMiddleware,
+  Policy,
+  PolicyOptions,
+} from "@/modules/access";
 import { kyselyTransaction } from "@/db";
 import { resolveLanguageByCode } from "@/modules/languages";
 
@@ -21,43 +23,51 @@ const policy = new Policy({
   languageMember: true,
 });
 
-export async function unlinkPhrase(formData: FormData): Promise<void> {
-  const request = unlinkPhraseSchema.safeParse(parseForm(formData));
-  if (!request.success) {
-    return;
-  }
+type Request = z.infer<typeof unlinkPhraseSchema>;
 
-  const session = await verifySession();
-  const authorized = await policy.authorize({
-    actorId: session?.user.id,
-    languageCode: request.data.code,
-  });
-  if (!authorized) {
-    notFound();
-  }
-
-  const language = await resolveLanguageByCode(request.data.code);
-  if (!language) {
-    notFound();
-  }
-
-  await kyselyTransaction(async (trx) => {
-    const phrase = await phraseRepository.findWithinLanguage({
-      phraseId: request.data.phraseId,
-      languageId: language.id,
-      trx,
-    });
-    if (!phrase) {
-      notFound();
+export const unlinkPhrase = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
     }
 
-    phrase.delete(session!.user.id);
+    return unlinkPhraseSchema.parse(parseForm(data));
+  })
+  .middleware([
+    createPolicyMiddleware<Request, PolicyOptions>({
+      policy,
+      getLanguageCode: (data) => data.code,
+    }),
+  ])
+  .handler(
+    async ({
+      data,
+      context,
+    }: {
+      data: Request;
+      context: { session: { user: { id: string } } };
+    }) => {
+      const language = await resolveLanguageByCode(data.code);
+      if (!language) {
+        throw notFound();
+      }
 
-    await phraseRepository.commit(phrase, trx);
-  });
+      await kyselyTransaction(async (trx) => {
+        const phrase = await phraseRepository.findWithinLanguage({
+          phraseId: data.phraseId,
+          languageId: language.id,
+          trx,
+        });
+        if (!phrase) {
+          throw notFound();
+        }
 
-  const locale = await getLocale();
-  revalidatePath(
-    `/${locale}/translate/${request.data.code}/${request.data.verseId}`,
+        phrase.delete(context.session.user.id);
+
+        await phraseRepository.commit(phrase, trx);
+      });
+
+      const locale = await getLocale();
+      revalidatePath(`/${locale}/translate/${data.code}/${data.verseId}`);
+    },
   );
-}

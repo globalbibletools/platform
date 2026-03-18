@@ -32,6 +32,7 @@ import { useFlash } from "@/flash";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import AudioDialog from "@/modules/study/ui/AudioDialog";
 import { useElementDimensions } from "@/utils/measure-element";
+import { useServerFn } from "@tanstack/react-start";
 
 export interface TranslationToolbarProps {
   languages: { englishName: string; localName: string; code: string }[];
@@ -53,6 +54,12 @@ export default function TranslationToolbar({
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const flash = useFlash();
+  const redirectToUnapprovedFn = useServerFn(redirectToUnapproved);
+  const approveAllFn = useServerFn(approveAll);
+  const linkWordsFn = useServerFn(linkWords);
+  const unlinkPhraseFn = useServerFn(unlinkPhrase);
+  const sanityCheckFn = useServerFn(sanityCheck);
+  const changeInterlinearLocationFn = useServerFn(changeInterlinearLocation);
 
   const isTranslator = currentLanguage?.isMember;
   const isPlatformAdmin = userRoles.includes("ADMIN");
@@ -80,11 +87,14 @@ export default function TranslationToolbar({
     const form = new FormData();
     form.set("verseId", verseId);
     form.set("code", code);
-    const error = await redirectToUnapproved(form);
-    if (error) {
-      flash.success(error);
+    try {
+      await redirectToUnapprovedFn({ data: form });
+    } catch (error) {
+      if (error instanceof Error) {
+        flash.success(error.message);
+      }
     }
-  }, [verseId, code, flash]);
+  }, [verseId, code, flash, redirectToUnapprovedFn]);
 
   const approveAllGlosses = useCallback(async () => {
     const inputs = document.querySelectorAll("[data-phrase]");
@@ -107,14 +117,14 @@ export default function TranslationToolbar({
       }
     });
 
-    await approveAll(form);
+    await approveAllFn({ data: form });
     await mutate({
       type: "book-progress",
       bookId: parseInt(verseId.slice(0, 2)),
       locale,
       code,
     });
-  }, [code, mutate, locale, verseId]);
+  }, [approveAllFn, code, mutate, locale, verseId]);
 
   const onLinkWords = useCallback(async () => {
     const form = new FormData();
@@ -124,14 +134,22 @@ export default function TranslationToolbar({
       form.set(`wordIds[${i}]`, wordId);
     });
     clearSelectedWords();
-    await linkWords(form);
+    await linkWordsFn({ data: form });
     await mutate({
       type: "book-progress",
       bookId: parseInt(verseId.slice(0, 2)),
       locale,
       code,
     });
-  }, [code, selectedWords, clearSelectedWords, locale, mutate, verseId]);
+  }, [
+    code,
+    selectedWords,
+    clearSelectedWords,
+    linkWordsFn,
+    locale,
+    mutate,
+    verseId,
+  ]);
 
   const onUnlinkWords = useCallback(async () => {
     if (focusedPhrase) {
@@ -139,7 +157,7 @@ export default function TranslationToolbar({
       form.set("code", code);
       form.set("phraseId", focusedPhrase.id.toString());
       form.set("verseId", verseId);
-      unlinkPhrase(form);
+      await unlinkPhraseFn({ data: form });
       await mutate({
         type: "book-progress",
         bookId: parseInt(verseId.slice(0, 2)),
@@ -147,7 +165,7 @@ export default function TranslationToolbar({
         code,
       });
     }
-  }, [code, focusedPhrase, verseId, locale, mutate]);
+  }, [code, focusedPhrase, unlinkPhraseFn, verseId, locale, mutate]);
 
   const [runningSanityCheck, setRunningSanityCheck] = useState(false);
   const onSanityCheck = useCallback(async () => {
@@ -155,14 +173,14 @@ export default function TranslationToolbar({
     form.set("code", code);
     form.set("verseId", verseId);
     setRunningSanityCheck(true);
-    const result = await sanityCheck({ state: "idle" }, form);
+    const result = await sanityCheckFn({ data: form });
     if (result.state === "error" && result.error) {
       flash.error(result.error);
     } else if (result.state === "success" && result.data) {
       setBacktranslations(result.data);
     }
     setRunningSanityCheck(false);
-  }, [code, verseId, flash, setBacktranslations]);
+  }, [code, verseId, flash, sanityCheckFn, setBacktranslations]);
 
   useEffect(() => {
     if (!verseId) return;
@@ -303,8 +321,12 @@ export default function TranslationToolbar({
       >
         <div className="shrink-0 flex items-center">
           <form
-            action={changeInterlinearLocation}
             className={isTranslator ? "me-2" : ""}
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              await changeInterlinearLocationFn({ data: formData });
+            }}
           >
             <input type="hidden" value={code} name="language" />
             <div className="relative">

@@ -11,6 +11,7 @@ import Poller from "./Poller";
 import { legacySiteService } from "../data-access/legacySiteService";
 import { Icon } from "@/components/Icon";
 import { getLegacyGlossImportJobReadModel } from "../read-models/getLegacyGlossImportJobReadModel";
+import ServerAction from "@/components/ServerAction";
 
 export default async function LegacyGlossImportForm({
   code,
@@ -52,10 +53,9 @@ export default async function LegacyGlossImportForm({
           <Icon icon="check-circle" className="text-green-400 me-2" size="lg" />
           {t("status.success")}
         </p>
-        <form action={resetImport}>
-          <input type="hidden" name="code" value={code} />
-          <Button type="submit">{t("actions.reset")}</Button>
-        </form>
+        <ServerAction action={resetImport} actionData={{ code }}>
+          {t("actions.reset")}
+        </ServerAction>
       </>
     );
   } else if (job.succeeded === false) {
@@ -69,10 +69,9 @@ export default async function LegacyGlossImportForm({
           />
           {t("status.fail")}
         </p>
-        <form action={resetImport}>
-          <input type="hidden" name="code" value={code} />
-          <Button type="submit">{t("actions.reset")}</Button>
-        </form>
+        <ServerAction action={resetImport} actionData={{ code }}>
+          {t("actions.reset")}
+        </ServerAction>
       </>
     );
   } else {

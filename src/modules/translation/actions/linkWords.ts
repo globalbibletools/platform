@@ -1,12 +1,14 @@
-"use server";
-
 import * as z from "zod";
 import { getLocale } from "next-intl/server";
 import { parseForm } from "@/form-parser";
-import { notFound } from "next/navigation";
-import { verifySession } from "@/session";
+import { createServerFn } from "@tanstack/react-start";
+import { notFound } from "@tanstack/react-router";
 import { revalidatePath } from "next/cache";
-import { Policy } from "@/modules/access";
+import {
+  createPolicyMiddleware,
+  Policy,
+  PolicyOptions,
+} from "@/modules/access";
 import { phraseRepository } from "../data-access/phraseRepository";
 import { resolveLanguageByCode } from "@/modules/languages";
 import { kyselyTransaction } from "@/db";
@@ -22,48 +24,56 @@ const policy = new Policy({
   languageMember: true,
 });
 
-export async function linkWords(formData: FormData): Promise<void> {
-  const request = requestSchema.safeParse(parseForm(formData));
-  if (!request.success) {
-    return;
-  }
+type Request = z.infer<typeof requestSchema>;
 
-  const session = await verifySession();
-  const authorized = await policy.authorize({
-    actorId: session?.user.id,
-    languageCode: request.data.code,
-  });
-  if (!authorized) {
-    notFound();
-  }
-
-  const language = await resolveLanguageByCode(request.data.code);
-  if (!language) {
-    notFound();
-  }
-
-  await kyselyTransaction(async (trx) => {
-    const oldPhrases = await phraseRepository.findByWordIdsWithinLanguage({
-      languageId: language.id,
-      wordIds: request.data.wordIds,
-      trx,
-    });
-
-    for (const phrase of oldPhrases) {
-      phrase.delete(session!.user.id);
-      await phraseRepository.commit(phrase, trx);
+export const linkWords = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
     }
 
-    const linkedPhrase = Phrase.create({
-      languageId: language.id,
-      userId: session!.user.id,
-      wordIds: request.data.wordIds,
-    });
-    await phraseRepository.commit(linkedPhrase, trx);
-  });
+    return requestSchema.parse(parseForm(data));
+  })
+  .middleware([
+    createPolicyMiddleware<Request, PolicyOptions>({
+      policy,
+      getLanguageCode: (data) => data.code,
+    }),
+  ])
+  .handler(
+    async ({
+      data,
+      context,
+    }: {
+      data: Request;
+      context: { session: { user: { id: string } } };
+    }) => {
+      const language = await resolveLanguageByCode(data.code);
+      if (!language) {
+        throw notFound();
+      }
 
-  const locale = await getLocale();
-  revalidatePath(
-    `/${locale}/translate/${request.data.code}/${request.data.verseId}`,
+      await kyselyTransaction(async (trx) => {
+        const oldPhrases = await phraseRepository.findByWordIdsWithinLanguage({
+          languageId: language.id,
+          wordIds: data.wordIds,
+          trx,
+        });
+
+        for (const phrase of oldPhrases) {
+          phrase.delete(context.session.user.id);
+          await phraseRepository.commit(phrase, trx);
+        }
+
+        const linkedPhrase = Phrase.create({
+          languageId: language.id,
+          userId: context.session.user.id,
+          wordIds: data.wordIds,
+        });
+        await phraseRepository.commit(linkedPhrase, trx);
+      });
+
+      const locale = await getLocale();
+      revalidatePath(`/${locale}/translate/${data.code}/${data.verseId}`);
+    },
   );
-}

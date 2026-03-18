@@ -1,14 +1,16 @@
-"use server";
-
 import { query } from "@/db";
 import { parseForm } from "@/form-parser";
-import { Policy } from "@/modules/access";
+import {
+  createPolicyMiddleware,
+  Policy,
+  PolicyOptions,
+} from "@/modules/access";
 import { resolveLanguageByCode } from "@/modules/languages";
 import { serverActionLogger } from "@/server-action";
-import { verifySession } from "@/session";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
-import { notFound } from "next/navigation";
+import { createServerFn } from "@tanstack/react-start";
+import { notFound } from "@tanstack/react-router";
 import * as z from "zod";
 import { phraseRepository } from "../data-access/phraseRepository";
 
@@ -23,59 +25,65 @@ const policy = new Policy({
   languageMember: true,
 });
 
-export async function updateTranslatorNoteAction(
-  formData: FormData,
-): Promise<any> {
-  const logger = serverActionLogger("updateTranslatorNote");
+type Request = z.infer<typeof requestSchema>;
 
-  const request = requestSchema.safeParse(parseForm(formData));
-  if (!request.success) {
-    logger.error("request parse error");
-    return;
-  }
+export const updateTranslatorNoteAction = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
+    }
 
-  const session = await verifySession();
-  const authorized = await policy.authorize({
-    actorId: session?.user.id,
-    languageCode: request.data.languageCode,
-  });
-  if (!authorized) {
-    logger.error("unauthorized");
-    notFound();
-  }
+    return requestSchema.parse(parseForm(data));
+  })
+  .middleware([
+    createPolicyMiddleware<Request, PolicyOptions>({
+      policy,
+      getLanguageCode: (data) => data.languageCode,
+    }),
+  ])
+  .handler(
+    async ({
+      data,
+      context,
+    }: {
+      data: Request;
+      context: { session: { user: { id: string } } };
+    }) => {
+      const logger = serverActionLogger("updateTranslatorNote");
 
-  const language = await resolveLanguageByCode(request.data.languageCode);
-  if (!language) {
-    logger.error("language not found");
-    notFound();
-  }
+      const language = await resolveLanguageByCode(data.languageCode);
+      if (!language) {
+        logger.error("language not found");
+        throw notFound();
+      }
 
-  const phraseExists = await phraseRepository.existsWithinLanguage({
-    languageId: language.id,
-    phraseId: request.data.phraseId,
-  });
-  if (!phraseExists) {
-    logger.error("phrase not found");
-    notFound();
-  }
+      const phraseExists = await phraseRepository.existsWithinLanguage({
+        languageId: language.id,
+        phraseId: data.phraseId,
+      });
+      if (!phraseExists) {
+        logger.error("phrase not found");
+        throw notFound();
+      }
 
-  const result = await query<{ state: string; gloss: string }>(
-    `INSERT INTO translator_note (phrase_id, author_id, timestamp, content)
+      const result = await query<{ state: string; gloss: string }>(
+        `INSERT INTO translator_note (phrase_id, author_id, timestamp, content)
         VALUES ($1, $2, $3, $4)
         ON CONFLICT (phrase_id) DO UPDATE SET
             author_id = EXCLUDED.author_id,
             timestamp = EXCLUDED.timestamp,
             content = EXCLUDED.content
         `,
-    [request.data.phraseId, session!.user.id, new Date(), request.data.note],
-  );
-  if (result.rowCount === 0) {
-    logger.error("phrase not found");
-    notFound();
-  }
+        [data.phraseId, context.session.user.id, new Date(), data.note],
+      );
+      if (result.rowCount === 0) {
+        logger.error("phrase not found");
+        throw notFound();
+      }
 
-  const locale = await getLocale();
-  revalidatePath(
-    `/${locale}/translate/${request.data.languageCode}/${request.data.verseId}`,
+      const locale = await getLocale();
+      revalidatePath(
+        `/${locale}/translate/${data.languageCode}/${data.verseId}`,
+      );
+    },
   );
-}
