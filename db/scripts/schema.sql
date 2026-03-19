@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict oN38ge4yWo3ClLboii0tek5bPJloF75Z2BwQeJ7y853XdgwGtctQDwasX5wHbVV
+\restrict fjV0LUjAzBjGsrAEV53xbsVZGf8sxQp8SoknONfuDmGidI6Y5NPuo3Wqpy0Rs77
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -1762,14 +1762,6 @@ ALTER TABLE ONLY public.lemma_form_suggestion
 
 
 --
--- Name: lemma_resource lemma_resource_lemma_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.lemma_resource
-    ADD CONSTRAINT lemma_resource_lemma_id_fkey FOREIGN KEY (lemma_id) REFERENCES public.lemma(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
 -- Name: machine_gloss machine_gloss_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1989,5 +1981,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict oN38ge4yWo3ClLboii0tek5bPJloF75Z2BwQeJ7y853XdgwGtctQDwasX5wHbVV
+\unrestrict fjV0LUjAzBjGsrAEV53xbsVZGf8sxQp8SoknONfuDmGidI6Y5NPuo3Wqpy0Rs77
 
