@@ -43,12 +43,14 @@ import {
 import { JobTable } from "./shared/jobs/db/schema";
 import {
   BookCompletionProgressTable,
+  BookWordMapView,
   TrackingEventTable,
 } from "./modules/reporting/db/schema";
 
 export interface Database {
   book: BookTable;
   book_completion_progress: BookCompletionProgressTable;
+  book_word_map: BookWordMapView;
   footnote: FootnoteTable;
   gloss: GlossTable;
   gloss_event: GlossEventTable;

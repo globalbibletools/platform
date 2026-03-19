@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict DCYFy4iHbP34bs4qVhezUQeO9mU7dXDSgFpnQLCENrlsWM1RA00jvZlfgd7Wpp2
+\restrict J1yHi9ctYRB6Jmi7CwTPNR96W0kIWlvL7fBUUgKCL4chhDbIf4Fl0XG3ISrQQHh
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -448,6 +448,42 @@ ALTER TABLE public.book_completion_progress ALTER COLUMN id ADD GENERATED ALWAYS
 
 
 --
+-- Name: verse; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.verse (
+    id text NOT NULL,
+    number integer NOT NULL,
+    book_id integer NOT NULL,
+    chapter integer NOT NULL
+);
+
+
+--
+-- Name: word; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.word (
+    id text NOT NULL,
+    text text NOT NULL,
+    verse_id text NOT NULL,
+    form_id text NOT NULL
+);
+
+
+--
+-- Name: book_word_map; Type: MATERIALIZED VIEW; Schema: public; Owner: -
+--
+
+CREATE MATERIALIZED VIEW public.book_word_map AS
+ SELECT w.id AS word_id,
+    v.book_id
+   FROM (public.word w
+     JOIN public.verse v ON ((v.id = w.verse_id)))
+  WITH NO DATA;
+
+
+--
 -- Name: footnote; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -560,19 +596,6 @@ CREATE TABLE public.language (
 
 
 --
--- Name: language_import_job; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.language_import_job (
-    language_id uuid NOT NULL,
-    start_date timestamp with time zone NOT NULL,
-    end_date timestamp with time zone,
-    succeeded boolean,
-    user_id uuid
-);
-
-
---
 -- Name: language_member; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -615,30 +638,6 @@ CREATE TABLE public.phrase (
 CREATE TABLE public.phrase_word (
     phrase_id integer NOT NULL,
     word_id text NOT NULL
-);
-
-
---
--- Name: verse; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.verse (
-    id text NOT NULL,
-    number integer NOT NULL,
-    book_id integer NOT NULL,
-    chapter integer NOT NULL
-);
-
-
---
--- Name: word; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.word (
-    id text NOT NULL,
-    text text NOT NULL,
-    verse_id text NOT NULL,
-    form_id text NOT NULL
 );
 
 
@@ -1143,14 +1142,6 @@ ALTER TABLE ONLY public.job
 
 
 --
--- Name: language_import_job language_import_job_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.language_import_job
-    ADD CONSTRAINT language_import_job_pkey PRIMARY KEY (language_id);
-
-
---
 -- Name: language_member language_member_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1420,6 +1411,20 @@ CREATE UNIQUE INDEX book_name_key ON public.book USING btree (name);
 
 
 --
+-- Name: book_word_map_book_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX book_word_map_book_id ON public.book_word_map USING btree (book_id);
+
+
+--
+-- Name: book_word_map_word_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX book_word_map_word_id ON public.book_word_map USING btree (word_id);
+
+
+--
 -- Name: footnote_phrase_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1656,22 +1661,6 @@ ALTER TABLE ONLY public.gloss
 
 
 --
--- Name: language_import_job language_import_job_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.language_import_job
-    ADD CONSTRAINT language_import_job_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: language_import_job language_import_job_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.language_import_job
-    ADD CONSTRAINT language_import_job_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
 -- Name: language_member language_member_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1733,14 +1722,6 @@ ALTER TABLE ONLY public.lemma_form_suggestion
 
 ALTER TABLE ONLY public.lemma_form_suggestion
     ADD CONSTRAINT lemma_form_suggestion_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id);
-
-
---
--- Name: lemma_resource lemma_resource_lemma_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.lemma_resource
-    ADD CONSTRAINT lemma_resource_lemma_id_fkey FOREIGN KEY (lemma_id) REFERENCES public.lemma(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 
 --
@@ -1963,5 +1944,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict DCYFy4iHbP34bs4qVhezUQeO9mU7dXDSgFpnQLCENrlsWM1RA00jvZlfgd7Wpp2
+\unrestrict J1yHi9ctYRB6Jmi7CwTPNR96W0kIWlvL7fBUUgKCL4chhDbIf4Fl0XG3ISrQQHh
 

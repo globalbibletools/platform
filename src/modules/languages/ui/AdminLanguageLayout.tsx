@@ -71,6 +71,14 @@ export default async function LanguageLayout({
         <ul>
           <li>
             <SidebarLink
+              href={`/${params.locale}/admin/languages/${params.code}/dashboard`}
+            >
+              <Icon icon="chart-line" className="w-4 me-2" />
+              {t("links.dashboard")}
+            </SidebarLink>
+          </li>
+          <li>
+            <SidebarLink
               href={`/${params.locale}/admin/languages/${params.code}/settings`}
             >
               <Icon icon="sliders" className="w-4 me-2" />
@@ -102,19 +110,6 @@ export default async function LanguageLayout({
                 >
                   <Icon icon="file-arrow-down" className="w-4 me-2" />
                   {t("links.exports")}
-                </SidebarLink>
-              </li>
-            }
-          />
-          <FeatureFlagged
-            feature="ff-snapshots"
-            enabledChildren={
-              <li>
-                <SidebarLink
-                  href={`/${params.locale}/admin/languages/${params.code}/snapshots`}
-                >
-                  <Icon icon="database" className="w-4 me-2" />
-                  {t("links.snapshots")}
                 </SidebarLink>
               </li>
             }

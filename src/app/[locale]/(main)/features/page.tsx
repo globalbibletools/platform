@@ -10,7 +10,6 @@ export default function FeaturesPage() {
         dark:bg-gray-800 dark:border-gray-700 dark:shadow-none"
       >
         <ViewTitle>Features</ViewTitle>
-        <FeatureSwitch feature="ff-snapshots" label="Snapshots" />
         <FeatureSwitch
           feature="ff-interlinear-pdf-export"
           label="Interlinear PDF Export"

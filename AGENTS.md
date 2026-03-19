@@ -51,7 +51,7 @@ docker compose exec server npx vitest run --reporter=verbose src/modules/transla
 
 ## Architecture
 
-The codebase follows **Domain-Driven Design** layering inside `src/modules/`. Each of the 10 modules (`access`, `bible-core`, `dashboard`, `export`, `languages`, `reporting`, `snapshots`, `study`, `translation`, `users`) is structured as:
+The codebase follows **Domain-Driven Design** layering inside `src/modules/`. Each of the 10 modules (`access`, `bible-core`, `dashboard`, `export`, `languages`, `reporting`, `study`, `translation`, `users`) is structured as:
 
 ```
 src/modules/<module>/
