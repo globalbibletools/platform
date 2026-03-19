@@ -1,0 +1,1957 @@
+{
+  "versification-tradition": "vtbhs",
+  "contents": [
+    {
+      "type": "book39",
+      "osisID": "Lam",
+      "contents": [
+        {
+          "type": "chapter",
+          "osisID": "Lam.1",
+          "contents": [
+            {
+              "osisID": "Lam.1.1",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "אֵיכָ֣ה"
+                },
+                {
+                  "type": "lp-legarmeih"
+                },
+                {
+                  "type": "text",
+                  "text": " יָשְׁבָ֣ה בָדָ֗ד הָעִיר֙ רַבָּ֣תִי עָ֔ם הָיְתָ֖ה כְּאַלְמָנָ֑ה רַבָּ֣תִי בַגּוֹיִ֗ם שָׂרָ֙תִי֙ בַּמְּדִינ֔וֹת הָיְתָ֖ה לָמַֽס׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.2",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "בָּכ֨וֹ תִבְכֶּ֜ה בַּלַּ֗יְלָה וְדִמְעָתָהּ֙ עַ֣ל לֶֽחֱיָ֔הּ אֵֽין־לָ֥הּ מְנַחֵ֖ם מִכׇּל־אֹהֲבֶ֑יהָ כׇּל־רֵעֶ֙יהָ֙ בָּ֣גְדוּ בָ֔הּ הָ֥יוּ לָ֖הּ לְאֹיְבִֽים׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.3",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "גָּֽלְתָ֨ה יְהוּדָ֤ה מֵעֹ֙נִי֙ וּמֵרֹ֣ב עֲבֹדָ֔ה הִ֚יא יָשְׁבָ֣ה בַגּוֹיִ֔ם לֹ֥א מָצְאָ֖ה מָנ֑וֹחַ כׇּל־רֹדְפֶ֥יהָ הִשִּׂיג֖וּהָ בֵּ֥ין הַמְּצָרִֽים׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.4",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "דַּרְכֵ֨י צִיּ֜וֹן אֲבֵל֗וֹת מִבְּלִי֙ בָּאֵ֣י מוֹעֵ֔ד כׇּל־שְׁעָרֶ֙יהָ֙ שֽׁוֹמֵמִ֔ין כֹּהֲנֶ֖יהָ נֶאֱנָחִ֑ים בְּתוּלֹתֶ֥יהָ נּוּג֖וֹת וְהִ֥יא מַר־לָֽהּ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.5",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "הָי֨וּ צָרֶ֤יהָ לְרֹאשׁ֙ אֹיְבֶ֣יהָ שָׁל֔וּ כִּֽי־יְהֹוָ֥ה הוֹגָ֖הּ עַ֣ל רֹב־פְּשָׁעֶ֑יהָ עוֹלָלֶ֛יהָ הָלְכ֥וּ שְׁבִ֖י לִפְנֵי־צָֽר׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.6",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "וַיֵּצֵ֥א "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "מן בת"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "מִבַּת־"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "צִיּ֖וֹן כׇּל־הֲדָרָ֑הּ הָי֣וּ שָׂרֶ֗יהָ כְּאַיָּלִים֙ לֹא־מָצְא֣וּ מִרְעֶ֔ה וַיֵּלְכ֥וּ בְלֹא־כֹ֖חַ לִפְנֵ֥י רוֹדֵֽף׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.7",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "זָֽכְרָ֣ה יְרוּשָׁלַ֗͏ִם יְמֵ֤י עׇנְיָהּ֙ וּמְרוּדֶ֔יהָ כֹּ֚ל מַחֲמֻדֶ֔יהָ אֲשֶׁ֥ר הָי֖וּ מִ֣ימֵי קֶ֑דֶם בִּנְפֹ֧ל עַמָּ֣הּ בְּיַד־צָ֗ר וְאֵ֤ין עוֹזֵר֙ לָ֔הּ רָא֣וּהָ צָרִ֔ים שָׂחֲק֖וּ עַ֥ל מִשְׁבַּתֶּֽהָ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.8",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "חֵ֤טְא חָֽטְאָה֙ יְר֣וּשָׁלַ֔͏ִם עַל־כֵּ֖ן לְנִידָ֣ה הָיָ֑תָה כׇּֽל־מְכַבְּדֶ֤יהָ הִזִּיל֙וּהָ֙ כִּי־רָא֣וּ עֶרְוָתָ֔הּ גַּם־הִ֥יא נֶאֶנְחָ֖ה וַתָּ֥שׇׁב אָחֽוֹר׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.9",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "טֻמְאָתָ֣הּ בְּשׁוּלֶ֗יהָ לֹ֤א זָֽכְרָה֙ אַחֲרִיתָ֔הּ וַתֵּ֣רֶד פְּלָאִ֔ים אֵ֥ין מְנַחֵ֖ם לָ֑הּ רְאֵ֤ה יְהֹוָה֙ אֶת־עׇנְיִ֔י כִּ֥י הִגְדִּ֖יל אוֹיֵֽב׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.10",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "יָדוֹ֙ פָּ֣רַשׂ צָ֔ר עַ֖ל כׇּל־מַחֲמַדֶּ֑יהָ כִּֽי־רָאֲתָ֤ה גוֹיִם֙ בָּ֣אוּ מִקְדָּשָׁ֔הּ אֲשֶׁ֣ר צִוִּ֔יתָה לֹא־יָבֹ֥אוּ בַקָּהָ֖ל לָֽךְ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.11",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "כׇּל־עַמָּ֤הּ נֶאֱנָחִים֙ מְבַקְשִׁ֣ים לֶ֔חֶם נָתְנ֧וּ "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "מחמודיהם"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "מַחֲמַדֵּיהֶ֛ם"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " בְּאֹ֖כֶל לְהָשִׁ֣יב נָ֑פֶשׁ רְאֵ֤ה יְהֹוָה֙ וְֽהַבִּ֔יטָה כִּ֥י הָיִ֖יתִי זוֹלֵלָֽה׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.12",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "slh-word",
+                  "slhw-desc-0": "ל֣וֹא",
+                  "slhw-desc-1": "ל..",
+                  "slhw-desc-2": "ק",
+                  "slhw-desc-3": "ל/ק",
+                  "contents": [
+                    {
+                      "type": "letter-small",
+                      "text": "ל֣"
+                    },
+                    {
+                      "type": "text",
+                      "text": "וֹא"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " אֲלֵיכֶם֮ כׇּל־עֹ֣בְרֵי דֶ֒רֶךְ֒ הַבִּ֣יטוּ וּרְא֔וּ אִם־יֵ֤שׁ מַכְאוֹב֙ כְּמַכְאֹבִ֔י אֲשֶׁ֥ר עוֹלַ֖ל לִ֑י אֲשֶׁר֙ הוֹגָ֣ה יְהֹוָ֔ה בְּי֖וֹם חֲר֥וֹן אַפּֽוֹ׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.13",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "מִמָּר֛וֹם שָֽׁלַח־אֵ֥שׁ בְּעַצְמֹתַ֖י וַיִּרְדֶּ֑נָּה פָּרַ֨שׂ רֶ֤שֶׁת לְרַגְלַי֙ הֱשִׁיבַ֣נִי אָח֔וֹר נְתָנַ֙נִי֙ שֹֽׁמֵמָ֔ה כׇּל־הַיּ֖וֹם דָּוָֽה׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.14",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "נִשְׂקַד֩ עֹ֨ל פְּשָׁעַ֜י בְּיָד֗וֹ יִשְׂתָּ֥רְג֛וּ עָל֥וּ עַל־צַוָּארִ֖י הִכְשִׁ֣יל כֹּחִ֑י נְתָנַ֣נִי אֲדֹנָ֔י בִּידֵ֖י לֹא־אוּכַ֥ל קֽוּם׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.15",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "סִלָּ֨ה כׇל־אַבִּירַ֤י"
+                },
+                {
+                  "type": "lp-paseq"
+                },
+                {
+                  "type": "text",
+                  "text": "אֲדֹנָי֙ בְּקִרְבִּ֔י קָרָ֥א עָלַ֛י מוֹעֵ֖ד לִשְׁבֹּ֣ר בַּחוּרָ֑י גַּ֚ת דָּרַ֣ךְ אֲדֹנָ֔י לִבְתוּלַ֖ת בַּת־יְהוּדָֽה׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.16",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "עַל־אֵ֣לֶּה"
+                },
+                {
+                  "type": "lp-legarmeih"
+                },
+                {
+                  "type": "text",
+                  "text": " אֲנִ֣י בוֹכִיָּ֗ה עֵינִ֤י"
+                },
+                {
+                  "type": "lp-paseq"
+                },
+                {
+                  "type": "text",
+                  "text": "עֵינִי֙ יֹ֣רְדָה מַּ֔יִם כִּֽי־רָחַ֥ק מִמֶּ֛נִּי מְנַחֵ֖ם מֵשִׁ֣יב נַפְשִׁ֑י הָי֤וּ בָנַי֙ שֽׁוֹמֵמִ֔ים כִּ֥י גָבַ֖ר אוֹיֵֽב׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.17",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "פֵּֽרְשָׂ֨ה צִיּ֜וֹן בְּיָדֶ֗יהָ אֵ֤ין מְנַחֵם֙ לָ֔הּ צִוָּ֧ה יְהֹוָ֛ה לְיַעֲקֹ֖ב סְבִיבָ֣יו צָרָ֑יו הָיְתָ֧ה יְרוּשָׁלַ֛͏ִם לְנִדָּ֖ה בֵּינֵיהֶֽם׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.18",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "צַדִּ֥יק ה֛וּא יְהֹוָ֖ה כִּ֣י פִ֣יהוּ מָרִ֑יתִי שִׁמְעוּ־נָ֣א כׇל־"
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-q",
+                      "text": "הָֽעַמִּ֗ים"
+                    },
+                    {
+                      "type": "kq-k",
+                      "text": "עמים"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " וּרְאוּ֙ מַכְאֹבִ֔י בְּתוּלֹתַ֥י וּבַחוּרַ֖י הָלְכ֥וּ בַשֶּֽׁבִי׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.19",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "קָרָ֤אתִי לַֽמְאַהֲבַי֙ הֵ֣מָּה רִמּ֔וּנִי כֹּהֲנַ֥י וּזְקֵנַ֖י בָּעִ֣יר גָּוָ֑עוּ כִּֽי־בִקְשׁ֥וּ אֹ֙כֶל֙ לָ֔מוֹ וְיָשִׁ֖יבוּ אֶת־נַפְשָֽׁם׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.20",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "רְאֵ֨ה יְהֹוָ֤ה כִּֽי־צַר־לִי֙ מֵעַ֣י חֳמַרְמָ֔רוּ נֶהְפַּ֤ךְ לִבִּי֙ בְּקִרְבִּ֔י כִּ֥י מָר֖וֹ מָרִ֑יתִי מִח֥וּץ שִׁכְּלָה־חֶ֖רֶב בַּבַּ֥יִת כַּמָּֽוֶת׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.21",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "שָׁמְע֞וּ כִּ֧י נֶאֱנָחָ֣ה אָ֗נִי אֵ֤ין מְנַחֵם֙ לִ֔י כׇּל־אֹ֨יְבַ֜י שָׁמְע֤וּ רָֽעָתִי֙ שָׂ֔שׂוּ כִּ֥י אַתָּ֖ה עָשִׂ֑יתָ הֵבֵ֥אתָ יוֹם־קָרָ֖אתָ וְיִֽהְי֥וּ כָמֹֽנִי׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.1.22",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "pe2",
+              "text": "תָּבֹ֨א כׇל־רָעָתָ֤ם לְפָנֶ֙יךָ֙ וְעוֹלֵ֣ל לָ֔מוֹ כַּאֲשֶׁ֥ר עוֹלַ֛לְתָּ לִ֖י עַ֣ל כׇּל־פְּשָׁעָ֑י כִּֽי־רַבּ֥וֹת אַנְחֹתַ֖י וְלִבִּ֥י דַוָּֽי׃"
+            }
+          ]
+        },
+        {
+          "type": "spi-pe2"
+        },
+        {
+          "type": "chapter",
+          "osisID": "Lam.2",
+          "contents": [
+            {
+              "osisID": "Lam.2.1",
+              "starts-with-sampe": "pe2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "אֵיכָה֩ יָעִ֨יב בְּאַפּ֤וֹ"
+                },
+                {
+                  "type": "lp-paseq"
+                },
+                {
+                  "type": "text",
+                  "text": "אֲדֹנָי֙ אֶת־בַּת־צִיּ֔וֹן הִשְׁלִ֤יךְ מִשָּׁמַ֙יִם֙ אֶ֔רֶץ תִּפְאֶ֖רֶת יִשְׂרָאֵ֑ל וְלֹא־זָכַ֥ר הֲדֹם־רַגְלָ֖יו בְּי֥וֹם אַפּֽוֹ׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.2",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "בִּלַּ֨ע אֲדֹנָ֜י "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "לא"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "וְלֹ֣א"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " חָמַ֗ל אֵ֚ת כׇּל־נְא֣וֹת יַעֲקֹ֔ב הָרַ֧ס בְּעֶבְרָת֛וֹ מִבְצְרֵ֥י בַת־יְהוּדָ֖ה הִגִּ֣יעַ לָאָ֑רֶץ חִלֵּ֥ל מַמְלָכָ֖ה וְשָׂרֶֽיהָ׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.3",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "גָּדַ֣ע בׇּֽחֳרִי־אַ֗ף כֹּ֚ל קֶ֣רֶן יִשְׂרָאֵ֔ל הֵשִׁ֥יב אָח֛וֹר יְמִינ֖וֹ מִפְּנֵ֣י אוֹיֵ֑ב וַיִּבְעַ֤ר בְּיַעֲקֹב֙ כְּאֵ֣שׁ לֶֽהָבָ֔ה אָכְלָ֖ה סָבִֽיב׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.4",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "דָּרַ֨ךְ קַשְׁתּ֜וֹ כְּאוֹיֵ֗ב נִצָּ֤ב יְמִינוֹ֙ כְּצָ֔ר וַֽיַּהֲרֹ֔ג כֹּ֖ל מַחֲמַדֵּי־עָ֑יִן בְּאֹ֙הֶל֙ בַּת־צִיּ֔וֹן שָׁפַ֥ךְ כָּאֵ֖שׁ חֲמָתֽוֹ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.5",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "הָיָ֨ה אֲדֹנָ֤י"
+                },
+                {
+                  "type": "lp-paseq"
+                },
+                {
+                  "type": "text",
+                  "text": "כְּאוֹיֵב֙ בִּלַּ֣ע יִשְׂרָאֵ֔ל בִּלַּע֙ כׇּל־אַרְמְנוֹתֶ֔יהָ שִׁחֵ֖ת מִבְצָרָ֑יו וַיֶּ֙רֶב֙ בְּבַת־יְהוּדָ֔ה תַּאֲנִיָּ֖ה וַאֲנִיָּֽה׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.6",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "וַיַּחְמֹ֤ס כַּגַּן֙ שֻׂכּ֔וֹ שִׁחֵ֖ת מֹעֲד֑וֹ שִׁכַּ֨ח יְהֹוָ֤ה"
+                },
+                {
+                  "type": "lp-paseq"
+                },
+                {
+                  "type": "text",
+                  "text": "בְּצִיּוֹן֙ מוֹעֵ֣ד וְשַׁבָּ֔ת וַיִּנְאַ֥ץ בְּזַֽעַם־אַפּ֖וֹ מֶ֥לֶךְ וְכֹהֵֽן׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.7",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "זָנַ֨ח אֲדֹנָ֤י"
+                },
+                {
+                  "type": "lp-paseq"
+                },
+                {
+                  "type": "text",
+                  "text": "מִזְבְּחוֹ֙ נִאֵ֣ר מִקְדָּשׁ֔וֹ הִסְגִּיר֙ בְּיַד־אוֹיֵ֔ב חוֹמֹ֖ת אַרְמְנוֹתֶ֑יהָ ק֛וֹל נָתְנ֥וּ בְּבֵית־יְהֹוָ֖ה כְּי֥וֹם מוֹעֵֽד׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.8",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "חָשַׁ֨ב יְהֹוָ֤ה"
+                },
+                {
+                  "type": "lp-paseq"
+                },
+                {
+                  "type": "text",
+                  "text": "לְהַשְׁחִית֙ חוֹמַ֣ת בַּת־צִיּ֔וֹן נָ֣טָה קָ֔ו לֹא־הֵשִׁ֥יב יָד֖וֹ מִבַּלֵּ֑עַ וַיַּֽאֲבֶל־חֵ֥ל וְחוֹמָ֖ה יַחְדָּ֥ו אֻמְלָֽלוּ׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.9",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "slh-word",
+                  "slhw-desc-0": "טָבְע֤וּ",
+                  "slhw-desc-1": "ט...",
+                  "slhw-desc-2": "ק",
+                  "slhw-desc-3": "ט/ק",
+                  "contents": [
+                    {
+                      "type": "letter-small",
+                      "text": "טָ"
+                    },
+                    {
+                      "type": "text",
+                      "text": "בְע֤וּ"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " בָאָ֙רֶץ֙ שְׁעָרֶ֔יהָ אִבַּ֥ד וְשִׁבַּ֖ר בְּרִיחֶ֑יהָ מַלְכָּ֨הּ וְשָׂרֶ֤יהָ בַגּוֹיִם֙ אֵ֣ין תּוֹרָ֔ה גַּם־נְבִיאֶ֕יהָ לֹא־מָצְא֥וּ חָז֖וֹן מֵיְהֹוָֽה׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.10",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "יֵשְׁב֨וּ לָאָ֤רֶץ יִדְּמוּ֙ זִקְנֵ֣י בַת־צִיּ֔וֹן הֶֽעֱל֤וּ עָפָר֙ עַל־רֹאשָׁ֔ם חָגְר֖וּ שַׂקִּ֑ים הוֹרִ֤ידוּ לָאָ֙רֶץ֙ רֹאשָׁ֔ן בְּתוּלֹ֖ת יְרוּשָׁלָֽ͏ִם׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.11",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "כָּל֨וּ בַדְּמָע֤וֹת עֵינַי֙ חֳמַרְמְר֣וּ מֵעַ֔י נִשְׁפַּ֤ךְ לָאָ֙רֶץ֙ כְּבֵדִ֔י עַל־שֶׁ֖בֶר בַּת־עַמִּ֑י בֵּֽעָטֵ֤ף עוֹלֵל֙ וְיוֹנֵ֔ק בִּרְחֹב֖וֹת קִרְיָֽה׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.12",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "לְאִמֹּתָם֙ יֹֽאמְר֔וּ אַיֵּ֖ה דָּגָ֣ן וָיָ֑יִן בְּהִֽתְעַטְּפָ֤ם כֶּֽחָלָל֙ בִּרְחֹב֣וֹת עִ֔יר בְּהִשְׁתַּפֵּ֣ךְ נַפְשָׁ֔ם אֶל־חֵ֖יק אִמֹּתָֽם׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.13",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "מָֽה־אֲעִידֵ֞ךְ מָ֣ה אֲדַמֶּה־לָּ֗ךְ הַבַּת֙ יְר֣וּשָׁלַ֔͏ִם מָ֤ה אַשְׁוֶה־לָּךְ֙ וַאֲנַֽחֲמֵ֔ךְ בְּתוּלַ֖ת בַּת־צִיּ֑וֹן כִּֽי־גָד֥וֹל כַּיָּ֛ם שִׁבְרֵ֖ךְ מִ֥י יִרְפָּא־לָֽךְ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.14",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "נְבִיאַ֗יִךְ חָ֤זוּ לָךְ֙ שָׁ֣וְא וְתָפֵ֔ל וְלֹֽא־גִלּ֥וּ עַל־עֲוֺנֵ֖ךְ לְהָשִׁ֣יב "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "שביתך"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "שְׁבוּתֵ֑ךְ"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " וַיֶּ֣חֱזוּ לָ֔ךְ מַשְׂא֥וֹת שָׁ֖וְא וּמַדּוּחִֽים׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.15",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "סָֽפְק֨וּ עָלַ֤יִךְ כַּפַּ֙יִם֙ כׇּל־עֹ֣בְרֵי דֶ֔רֶךְ שָֽׁרְקוּ֙ וַיָּנִ֣עוּ רֹאשָׁ֔ם עַל־בַּ֖ת יְרוּשָׁלָ֑͏ִם הֲזֹ֣את הָעִ֗יר שֶׁיֹּֽאמְרוּ֙ כְּלִ֣ילַת יֹ֔פִי מָשׂ֖וֹשׂ לְכׇל־הָאָֽרֶץ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.16",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "פָּצ֨וּ עָלַ֤יִךְ פִּיהֶם֙ כׇּל־אֹ֣יְבַ֔יִךְ שָֽׁרְקוּ֙ וַיַּֽחַרְקוּ־שֵׁ֔ן אָמְר֖וּ בִּלָּ֑עְנוּ אַ֣ךְ זֶ֥ה הַיּ֛וֹם שֶׁקִּוִּינֻ֖הוּ מָצָ֥אנוּ רָאִֽינוּ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.17",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "עָשָׂ֨ה יְהֹוָ֜ה אֲשֶׁ֣ר זָמָ֗ם בִּצַּ֤ע אֶמְרָתוֹ֙ אֲשֶׁ֣ר צִוָּ֣ה מִֽימֵי־קֶ֔דֶם הָרַ֖ס וְלֹ֣א חָמָ֑ל וַיְשַׂמַּ֤ח עָלַ֙יִךְ֙ אוֹיֵ֔ב הֵרִ֖ים קֶ֥רֶן צָרָֽיִךְ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.18",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "צָעַ֥ק לִבָּ֖ם אֶל־אֲדֹנָ֑י חוֹמַ֣ת בַּת־צִ֠יּ֠וֹן הוֹרִ֨ידִי כַנַּ֤חַל דִּמְעָה֙ יוֹמָ֣ם וָלַ֔יְלָה אַֽל־תִּתְּנִ֤י פוּגַת֙ לָ֔ךְ אַל־תִּדֹּ֖ם בַּת־עֵינֵֽךְ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.19",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "ק֣וּמִי"
+                },
+                {
+                  "type": "lp-legarmeih"
+                },
+                {
+                  "type": "text",
+                  "text": " רֹ֣נִּי "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "בליל"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "בַלַּ֗יְלָה"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " לְרֹאשׁ֙ אַשְׁמֻר֔וֹת שִׁפְכִ֤י כַמַּ֙יִם֙ לִבֵּ֔ךְ נֹ֖כַח פְּנֵ֣י אֲדֹנָ֑י שְׂאִ֧י אֵלָ֣יו כַּפַּ֗יִךְ עַל־נֶ֙פֶשׁ֙ עֽוֹלָלַ֔יִךְ הָעֲטוּפִ֥ים בְּרָעָ֖ב בְּרֹ֥אשׁ כׇּל־חוּצֽוֹת׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.20",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "רְאֵ֤ה יְהֹוָה֙ וְֽהַבִּ֔יטָה לְמִ֖י עוֹלַ֣לְתָּ כֹּ֑ה אִם־תֹּאכַ֨לְנָה נָשִׁ֤ים פִּרְיָם֙ עֹלְלֵ֣י טִפֻּחִ֔ים אִם־יֵהָרֵ֛ג בְּמִקְדַּ֥שׁ אֲדֹנָ֖י כֹּהֵ֥ן וְנָבִֽיא׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.21",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "שָׁכְב֨וּ לָאָ֤רֶץ חוּצוֹת֙ נַ֣עַר וְזָקֵ֔ן בְּתוּלֹתַ֥י וּבַחוּרַ֖י נָפְל֣וּ בֶחָ֑רֶב הָרַ֙גְתָּ֙ בְּי֣וֹם אַפֶּ֔ךָ טָבַ֖חְתָּ לֹ֥א חָמָֽלְתָּ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.2.22",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "pe2",
+              "text": "תִּקְרָא֩ כְי֨וֹם מוֹעֵ֤ד מְגוּרַי֙ מִסָּבִ֔יב וְלֹ֥א הָיָ֛ה בְּי֥וֹם אַף־יְהֹוָ֖ה פָּלִ֣יט וְשָׂרִ֑יד אֲשֶׁר־טִפַּ֥חְתִּי וְרִבִּ֖יתִי אֹיְבִ֥י כִלָּֽם׃"
+            }
+          ]
+        },
+        {
+          "type": "spi-pe2"
+        },
+        {
+          "type": "chapter",
+          "osisID": "Lam.3",
+          "contents": [
+            {
+              "osisID": "Lam.3.1",
+              "starts-with-sampe": "pe2",
+              "ends-with-sampe": "samekh3",
+              "text": "אֲנִ֤י הַגֶּ֙בֶר֙ רָאָ֣ה עֳנִ֔י בְּשֵׁ֖בֶט עֶבְרָתֽוֹ׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.2",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "אוֹתִ֥י נָהַ֛ג וַיֹּלַ֖ךְ חֹ֥שֶׁךְ וְלֹא־אֽוֹר׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.3",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "אַ֣ךְ בִּ֥י יָשֻׁ֛ב יַהֲפֹ֥ךְ יָד֖וֹ כׇּל־הַיּֽוֹם׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.4",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "בִּלָּ֤ה בְשָׂרִי֙ וְעוֹרִ֔י שִׁבַּ֖ר עַצְמוֹתָֽי׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.5",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "בָּנָ֥ה עָלַ֛י וַיַּקַּ֖ף רֹ֥אשׁ וּתְלָאָֽה׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.6",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "בְּמַחֲשַׁכִּ֥ים הוֹשִׁיבַ֖נִי כְּמֵתֵ֥י עוֹלָֽם׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.7",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "גָּדַ֧ר בַּעֲדִ֛י וְלֹ֥א אֵצֵ֖א הִכְבִּ֥יד נְחׇשְׁתִּֽי׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.8",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "גַּ֣ם כִּ֤י אֶזְעַק֙ וַאֲשַׁוֵּ֔עַ שָׂתַ֖ם תְּפִלָּתִֽי׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.9",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "גָּדַ֤ר דְּרָכַי֙ בְּגָזִ֔ית נְתִיבֹתַ֖י עִוָּֽה׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.10",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "דֹּ֣ב אֹרֵ֥ב הוּא֙ לִ֔י "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "אריה"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "אֲרִ֖י"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " בְּמִסְתָּרִֽים׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.11",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "דְּרָכַ֥י סוֹרֵ֛ר וַֽיְפַשְּׁחֵ֖נִי שָׂמַ֥נִי שֹׁמֵֽם׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.12",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "דָּרַ֤ךְ קַשְׁתּוֹ֙ וַיַּצִּיבֵ֔נִי כַּמַּטָּרָ֖א לַחֵֽץ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.13",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "הֵבִיא֙ בְּכִלְיֹתָ֔י בְּנֵ֖י אַשְׁפָּתֽוֹ׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.14",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "הָיִ֤יתִי שְּׂחֹק֙ לְכׇל־עַמִּ֔י נְגִינָתָ֖ם כׇּל־הַיּֽוֹם׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.15",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "הִשְׂבִּיעַ֥נִי בַמְּרוֹרִ֖ים הִרְוַ֥נִי לַעֲנָֽה׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.16",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "וַיַּגְרֵ֤ס בֶּֽחָצָץ֙ שִׁנָּ֔י הִכְפִּישַׁ֖נִי בָּאֵֽפֶר׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.17",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "וַתִּזְנַ֧ח מִשָּׁל֛וֹם נַפְשִׁ֖י נָשִׁ֥יתִי טוֹבָֽה׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.18",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "וָאֹמַר֙ אָבַ֣ד נִצְחִ֔י וְתוֹחַלְתִּ֖י מֵיְהֹוָֽה׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.19",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "זְכׇר־עׇנְיִ֥י וּמְרוּדִ֖י לַעֲנָ֥ה וָרֹֽאשׁ׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.20",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "זָכ֣וֹר תִּזְכּ֔וֹר "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "ותשיח"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "וְתָשׁ֥וֹחַ"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " עָלַ֖י נַפְשִֽׁי׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.21",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "זֹ֛את אָשִׁ֥יב אֶל־לִבִּ֖י עַל־כֵּ֥ן אוֹחִֽיל׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.22",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "חַֽסְדֵ֤י יְהֹוָה֙ כִּ֣י לֹא־תָ֔מְנוּ כִּ֥י לֹא־כָל֖וּ רַחֲמָֽיו׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.23",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "חֲדָשִׁים֙ לַבְּקָרִ֔ים רַבָּ֖ה אֱמוּנָתֶֽךָ׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.24",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "חֶלְקִ֤י יְהֹוָה֙ אָמְרָ֣ה נַפְשִׁ֔י עַל־כֵּ֖ן אוֹחִ֥יל לֽוֹ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.25",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "ט֤וֹב יְהֹוָה֙ לְקֹוָ֔ו לְנֶ֖פֶשׁ תִּדְרְשֶֽׁנּוּ׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.26",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "ט֤וֹב וְיָחִיל֙ וְדוּמָ֔ם לִתְשׁוּעַ֖ת יְהֹוָֽה׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.27",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "ט֣וֹב לַגֶּ֔בֶר כִּֽי־יִשָּׂ֥א עֹ֖ל בִּנְעוּרָֽיו׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.28",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "יֵשֵׁ֤ב בָּדָד֙ וְיִדֹּ֔ם כִּ֥י נָטַ֖ל עָלָֽיו׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.29",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "יִתֵּ֤ן בֶּֽעָפָר֙ פִּ֔יהוּ אוּלַ֖י יֵ֥שׁ תִּקְוָֽה׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.30",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "יִתֵּ֧ן לְמַכֵּ֛הוּ לֶ֖חִי יִשְׂבַּ֥ע בְּחֶרְפָּֽה׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.31",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "כִּ֣י לֹ֥א יִזְנַ֛ח לְעוֹלָ֖ם אֲדֹנָֽי׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.32",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "כִּ֣י אִם־הוֹגָ֔ה וְרִחַ֖ם כְּרֹ֥ב חֲסָדָֽיו׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.33",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "כִּ֣י לֹ֤א עִנָּה֙ מִלִּבּ֔וֹ וַיַּגֶּ֖ה בְּנֵי־אִֽישׁ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.34",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "לְדַכֵּא֙ תַּ֣חַת רַגְלָ֔יו כֹּ֖ל אֲסִ֥ירֵי אָֽרֶץ׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.35",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "לְהַטּוֹת֙ מִשְׁפַּט־גָּ֔בֶר נֶ֖גֶד פְּנֵ֥י עֶלְיֽוֹן׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.36",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "slh-word",
+                  "slhw-desc-0": "לְעַוֵּ֤ת",
+                  "slhw-desc-1": ".ע..",
+                  "slhw-desc-2": "ק",
+                  "slhw-desc-3": "ע/ק",
+                  "contents": [
+                    {
+                      "type": "text",
+                      "text": "לְ"
+                    },
+                    {
+                      "type": "letter-small",
+                      "text": "עַ"
+                    },
+                    {
+                      "type": "text",
+                      "text": "וֵּ֤ת"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " אָדָם֙ בְּרִיב֔וֹ אֲדֹנָ֖י לֹ֥א רָאָֽה׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.37",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "מִ֣י זֶ֤ה אָמַר֙ וַתֶּ֔הִי אֲדֹנָ֖י לֹ֥א צִוָּֽה׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.38",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "מִפִּ֤י עֶלְיוֹן֙ לֹ֣א תֵצֵ֔א הָרָע֖וֹת וְהַטּֽוֹב׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.39",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "מַה־יִּתְאוֹנֵן֙ אָדָ֣ם חָ֔י גֶּ֖בֶר עַל־"
+                },
+                {
+                  "type": "kq-trivial",
+                  "text": "חֲטָאָֽו"
+                },
+                {
+                  "type": "text",
+                  "text": "׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.40",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "נַחְפְּשָׂ֤ה דְרָכֵ֙ינוּ֙ וְֽנַחְקֹ֔רָה וְנָשׁ֖וּבָה עַד־יְהֹוָֽה׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.41",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "נִשָּׂ֤א לְבָבֵ֙נוּ֙ אֶל־כַּפָּ֔יִם אֶל־אֵ֖ל בַּשָּׁמָֽיִם׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.42",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "נַ֤חְנוּ פָשַׁ֙עְנוּ֙ וּמָרִ֔ינוּ אַתָּ֖ה לֹ֥א סָלָֽחְתָּ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.43",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "סַכּ֤וֹתָה בָאַף֙ וַֽתִּרְדְּפֵ֔נוּ הָרַ֖גְתָּ לֹ֥א חָמָֽלְתָּ׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.44",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "סַכּ֤וֹתָה בֶֽעָנָן֙ לָ֔ךְ מֵעֲב֖וֹר תְּפִלָּֽה׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.45",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "סְחִ֧י וּמָא֛וֹס תְּשִׂימֵ֖נוּ בְּקֶ֥רֶב הָעַמִּֽים׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.46",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "פָּצ֥וּ עָלֵ֛ינוּ פִּיהֶ֖ם כׇּל־אֹיְבֵֽינוּ׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.47",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "פַּ֧חַד וָפַ֛חַת הָ֥יָה לָ֖נוּ הַשֵּׁ֥את וְהַשָּֽׁבֶר׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.48",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "פַּלְגֵי־מַ֙יִם֙ תֵּרַ֣ד עֵינִ֔י עַל־שֶׁ֖בֶר בַּת־עַמִּֽי׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.49",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "עֵינִ֧י נִגְּרָ֛ה וְלֹ֥א תִדְמֶ֖ה מֵאֵ֥ין הֲפֻגֽוֹת׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.50",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "עַד־יַשְׁקִ֣יף וְיֵ֔רֶא יְהֹוָ֖ה מִשָּׁמָֽיִם׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.51",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "עֵינִי֙ עֽוֹלְלָ֣ה לְנַפְשִׁ֔י מִכֹּ֖ל בְּנ֥וֹת עִירִֽי׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.52",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "צ֥וֹד צָד֛וּנִי כַּצִּפּ֖וֹר אֹיְבַ֥י חִנָּֽם׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.53",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "צָֽמְת֤וּ בַבּוֹר֙ חַיָּ֔י וַיַּדּוּ־אֶ֖בֶן בִּֽי׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.54",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "צָֽפוּ־מַ֥יִם עַל־רֹאשִׁ֖י אָמַ֥רְתִּי נִגְזָֽרְתִּי׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.55",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "קָרָ֤אתִי שִׁמְךָ֙ יְהֹוָ֔ה מִבּ֖וֹר תַּחְתִּיּֽוֹת׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.56",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "קוֹלִ֖י שָׁמָ֑עְתָּ אַל־תַּעְלֵ֧ם אׇזְנְךָ֛ לְרַוְחָתִ֖י לְשַׁוְעָתִֽי׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.57",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "קָרַ֙בְתָּ֙ בְּי֣וֹם אֶקְרָאֶ֔ךָּ אָמַ֖רְתָּ אַל־תִּירָֽא׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.58",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "רַ֧בְתָּ אֲדֹנָ֛י רִיבֵ֥י נַפְשִׁ֖י גָּאַ֥לְתָּ חַיָּֽי׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.59",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "רָאִ֤יתָה יְהֹוָה֙ עַוָּ֣תָתִ֔י שׇׁפְטָ֖ה מִשְׁפָּטִֽי׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.60",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "רָאִ֙יתָה֙ כׇּל־נִקְמָתָ֔ם כׇּל־מַחְשְׁבֹתָ֖ם לִֽי׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.61",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "שָׁמַ֤עְתָּ חֶרְפָּתָם֙ יְהֹוָ֔ה כׇּל־מַחְשְׁבֹתָ֖ם עָלָֽי׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.62",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "שִׂפְתֵ֤י קָמַי֙ וְהֶגְיוֹנָ֔ם עָלַ֖י כׇּל־הַיּֽוֹם׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.63",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh2",
+              "text": "שִׁבְתָּ֤ם וְקִֽימָתָם֙ הַבִּ֔יטָה אֲנִ֖י מַנְגִּינָתָֽם׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.3.64",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh3",
+              "text": "תָּשִׁ֨יב לָהֶ֥ם גְּמ֛וּל יְהֹוָ֖ה כְּמַעֲשֵׂ֥ה יְדֵיהֶֽם׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.65",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "samekh3",
+              "text": "תִּתֵּ֤ן לָהֶם֙ מְגִנַּת־לֵ֔ב תַּאֲלָֽתְךָ֖ לָהֶֽם׃"
+            },
+            {
+              "type": "spi-samekh3"
+            },
+            {
+              "osisID": "Lam.3.66",
+              "starts-with-sampe": "samekh3",
+              "ends-with-sampe": "pe2",
+              "text": "תִּרְדֹּ֤ף בְּאַף֙ וְתַשְׁמִידֵ֔ם מִתַּ֖חַת שְׁמֵ֥י יְהֹוָֽה׃"
+            }
+          ]
+        },
+        {
+          "type": "spi-pe2"
+        },
+        {
+          "type": "chapter",
+          "osisID": "Lam.4",
+          "contents": [
+            {
+              "osisID": "Lam.4.1",
+              "starts-with-sampe": "pe2",
+              "ends-with-sampe": "samekh2",
+              "text": "אֵיכָה֙ יוּעַ֣ם זָהָ֔ב יִשְׁנֶ֖א הַכֶּ֣תֶם הַטּ֑וֹב תִּשְׁתַּפֵּ֙כְנָה֙ אַבְנֵי־קֹ֔דֶשׁ בְּרֹ֖אשׁ כׇּל־חוּצֽוֹת׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.2",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "בְּנֵ֤י צִיּוֹן֙ הַיְקָרִ֔ים הַמְסֻלָּאִ֖ים בַּפָּ֑ז אֵיכָ֤ה נֶחְשְׁבוּ֙ לְנִבְלֵי־חֶ֔רֶשׂ מַעֲשֵׂ֖ה יְדֵ֥י יוֹצֵֽר׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.3",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "גַּם־"
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-q",
+                      "text": "תַּנִּים֙"
+                    },
+                    {
+                      "type": "kq-k",
+                      "text": "תנין"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " חָ֣לְצוּ שַׁ֔ד הֵינִ֖יקוּ גּוּרֵיהֶ֑ן בַּת־עַמִּ֣י לְאַכְזָ֔ר "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "כי ענים"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "כַּיְעֵינִ֖ים"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " בַּמִּדְבָּֽר׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.4",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "דָּבַ֨ק לְשׁ֥וֹן יוֹנֵ֛ק אֶל־חִכּ֖וֹ בַּצָּמָ֑א עֽוֹלָלִים֙ שָׁ֣אֲלוּ לֶ֔חֶם פֹּרֵ֖שׂ אֵ֥ין לָהֶֽם׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.5",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "הָאֹֽכְלִים֙ לְמַ֣עֲדַנִּ֔ים נָשַׁ֖מּוּ בַּחוּצ֑וֹת הָאֱמֻנִים֙ עֲלֵ֣י תוֹלָ֔ע חִבְּק֖וּ אַשְׁפַּתּֽוֹת׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.6",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "וַיִּגְדַּל֙ עֲוֺ֣ן בַּת־עַמִּ֔י מֵֽחַטַּ֖את סְדֹ֑ם הַֽהֲפוּכָ֣ה כְמוֹ־רָ֔גַע וְלֹא־חָ֥לוּ בָ֖הּ יָדָֽיִם׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.7",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "זַכּ֤וּ נְזִירֶ֙יהָ֙ מִשֶּׁ֔לֶג צַח֖וּ מֵחָלָ֑ב אָ֤דְמוּ עֶ֙צֶם֙ מִפְּנִינִ֔ים סַפִּ֖יר גִּזְרָתָֽם׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.8",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "חָשַׁ֤ךְ מִשְּׁחוֹר֙ תׇּֽאֳרָ֔ם לֹ֥א נִכְּר֖וּ בַּחוּצ֑וֹת צָפַ֤ד עוֹרָם֙ עַל־עַצְמָ֔ם יָבֵ֖שׁ הָיָ֥ה כָעֵֽץ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.9",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "טוֹבִ֤ים הָיוּ֙ חַלְלֵי־חֶ֔רֶב מֵֽחַלְלֵ֖י רָעָ֑ב שֶׁ֣הֵ֤ם יָזֻ֙בוּ֙ מְדֻקָּרִ֔ים מִתְּנוּבֹ֖ת שָׂדָֽי׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.10",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "יְדֵ֗י נָשִׁים֙ רַחֲמָ֣נִיּ֔וֹת בִּשְּׁל֖וּ יַלְדֵיהֶ֑ן הָי֤וּ לְבָרוֹת֙ לָ֔מוֹ בְּשֶׁ֖בֶר בַּת־עַמִּֽי׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.11",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "כִּלָּ֤ה יְהֹוָה֙ אֶת־חֲמָת֔וֹ שָׁפַ֖ךְ חֲר֣וֹן אַפּ֑וֹ וַיַּצֶּת־אֵ֣שׁ בְּצִיּ֔וֹן וַתֹּ֖אכַל יְסֹדֹתֶֽיהָ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.12",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "לֹ֤א הֶאֱמִ֙ינוּ֙ מַלְכֵי־אֶ֔רֶץ "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "וכל"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "כֹּ֖ל"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " יֹשְׁבֵ֣י תֵבֵ֑ל כִּ֤י יָבֹא֙ צַ֣ר וְאוֹיֵ֔ב בְּשַׁעֲרֵ֖י יְרוּשָׁלָֽ͏ִם׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.13",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "מֵֽחַטֹּ֣אות נְבִיאֶ֔יהָ עֲוֺנֹ֖ת כֹּהֲנֶ֑יהָ הַשֹּׁפְכִ֥ים בְּקִרְבָּ֖הּ דַּ֥ם צַדִּיקִֽים׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.14",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "נָע֤וּ עִוְרִים֙ בַּֽחוּצ֔וֹת נְגֹֽאֲל֖וּ בַּדָּ֑ם בְּלֹ֣א יֽוּכְל֔וּ יִגְּע֖וּ בִּלְבֻשֵׁיהֶֽם׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.15",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "ס֣וּרוּ טָמֵ֞א קָ֣רְאוּ לָ֗מוֹ ס֤וּרוּ ס֙וּרוּ֙ אַל־תִּגָּ֔עוּ כִּ֥י נָצ֖וּ גַּם־נָ֑עוּ אָֽמְרוּ֙ בַּגּוֹיִ֔ם לֹ֥א יוֹסִ֖פוּ לָגֽוּר׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.16",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "פְּנֵ֤י יְהֹוָה֙ חִלְּקָ֔ם לֹ֥א יוֹסִ֖יף לְהַבִּיטָ֑ם פְּנֵ֤י כֹהֲנִים֙ לֹ֣א נָשָׂ֔אוּ "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "זקנים"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "וּזְקֵנִ֖ים"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " לֹ֥א חָנָֽנוּ׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.17",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "עודינה"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "עוֹדֵ֙ינוּ֙"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " תִּכְלֶ֣ינָה עֵינֵ֔ינוּ אֶל־עֶזְרָתֵ֖נוּ הָ֑בֶל בְּצִפִּיָּתֵ֣נוּ צִפִּ֔ינוּ אֶל־גּ֖וֹי לֹ֥א יוֹשִֽׁעַ׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.18",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "צָד֣וּ צְעָדֵ֔ינוּ מִלֶּ֖כֶת בִּרְחֹבֹתֵ֑ינוּ קָרַ֥ב קִצֵּ֛נוּ מָלְא֥וּ יָמֵ֖ינוּ כִּי־בָ֥א קִצֵּֽנוּ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.19",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "קַלִּ֤ים הָיוּ֙ רֹדְפֵ֔ינוּ מִנִּשְׁרֵ֖י שָׁמָ֑יִם עַל־הֶהָרִ֣ים דְּלָקֻ֔נוּ בַּמִּדְבָּ֖ר אָ֥רְבוּ לָֽנוּ׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.20",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "text": "ר֤וּחַ אַפֵּ֙ינוּ֙ מְשִׁ֣יחַ יְהֹוָ֔ה נִלְכַּ֖ד בִּשְׁחִיתוֹתָ֑ם אֲשֶׁ֣ר אָמַ֔רְנוּ בְּצִלּ֖וֹ נִֽחְיֶ֥ה בַגּוֹיִֽם׃"
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.21",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "samekh2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "שִׂ֤ישִׂי וְשִׂמְחִי֙ בַּת־אֱד֔וֹם "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "יושבתי"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "יוֹשֶׁ֖בֶת"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " בְּאֶ֣רֶץ ע֑וּץ גַּם־עָלַ֙יִךְ֙ תַּעֲבׇר־כּ֔וֹס תִּשְׁכְּרִ֖י וְתִתְעָרִֽי׃"
+                }
+              ]
+            },
+            {
+              "type": "spi-samekh2"
+            },
+            {
+              "osisID": "Lam.4.22",
+              "starts-with-sampe": "samekh2",
+              "ends-with-sampe": "pe2",
+              "text": "תַּם־עֲוֺנֵךְ֙ בַּת־צִיּ֔וֹן לֹ֥א יוֹסִ֖יף לְהַגְלוֹתֵ֑ךְ פָּקַ֤ד עֲוֺנֵךְ֙ בַּת־אֱד֔וֹם גִּלָּ֖ה עַל־חַטֹּאתָֽיִךְ׃"
+            }
+          ]
+        },
+        {
+          "type": "spi-pe2"
+        },
+        {
+          "type": "chapter",
+          "osisID": "Lam.5",
+          "contents": [
+            {
+              "osisID": "Lam.5.1",
+              "starts-with-sampe": "pe2",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "זְכֹ֤ר יְהֹוָה֙ מֶֽה־הָ֣יָה לָ֔נוּ "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "הביט"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "הַבִּ֖יטָה"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " וּרְאֵ֥ה אֶת־חֶרְפָּתֵֽנוּ׃"
+                }
+              ]
+            },
+            {
+              "osisID": "Lam.5.2",
+              "text": "נַחֲלָתֵ֙נוּ֙ נֶֽהֶפְכָ֣ה לְזָרִ֔ים בָּתֵּ֖ינוּ לְנׇכְרִֽים׃"
+            },
+            {
+              "osisID": "Lam.5.3",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "יְתוֹמִ֤ים הָיִ֙ינוּ֙ "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "אין"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "וְאֵ֣ין"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " אָ֔ב אִמֹּתֵ֖ינוּ כְּאַלְמָנֽוֹת׃"
+                }
+              ]
+            },
+            {
+              "osisID": "Lam.5.4",
+              "text": "מֵימֵ֙ינוּ֙ בְּכֶ֣סֶף שָׁתִ֔ינוּ עֵצֵ֖ינוּ בִּמְחִ֥יר יָבֹֽאוּ׃"
+            },
+            {
+              "osisID": "Lam.5.5",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "עַ֤ל צַוָּארֵ֙נוּ֙ נִרְדָּ֔פְנוּ יָגַ֖עְנוּ "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "לא"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "וְלֹ֥א"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " הֽוּנַֽח־לָֽנוּ׃"
+                }
+              ]
+            },
+            {
+              "osisID": "Lam.5.6",
+              "text": "מִצְרַ֙יִם֙ נָתַ֣נּוּ יָ֔ד אַשּׁ֖וּר לִשְׂבֹּ֥עַֽ לָֽחֶם׃"
+            },
+            {
+              "osisID": "Lam.5.7",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "אֲבֹתֵ֤ינוּ חָֽטְאוּ֙ "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "אינם"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "וְאֵינָ֔ם"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "אנחנו"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "וַאֲנַ֖חְנוּ"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " עֲוֺנֹתֵיהֶ֥ם סָבָֽלְנוּ׃"
+                }
+              ]
+            },
+            {
+              "osisID": "Lam.5.8",
+              "text": "עֲבָדִים֙ מָ֣שְׁלוּ בָ֔נוּ פֹּרֵ֖ק אֵ֥ין מִיָּדָֽם׃"
+            },
+            {
+              "osisID": "Lam.5.9",
+              "text": "בְּנַפְשֵׁ֙נוּ֙ נָבִ֣יא לַחְמֵ֔נוּ מִפְּנֵ֖י חֶ֥רֶב הַמִּדְבָּֽר׃"
+            },
+            {
+              "osisID": "Lam.5.10",
+              "text": "עוֹרֵ֙נוּ֙ כְּתַנּ֣וּר נִכְמָ֔רוּ מִפְּנֵ֖י זַלְעֲפ֥וֹת רָעָֽב׃"
+            },
+            {
+              "osisID": "Lam.5.11",
+              "text": "נָשִׁים֙ בְּצִיּ֣וֹן עִנּ֔וּ בְּתֻלֹ֖ת בְּעָרֵ֥י יְהוּדָֽה׃"
+            },
+            {
+              "osisID": "Lam.5.12",
+              "text": "שָׂרִים֙ בְּיָדָ֣ם נִתְל֔וּ פְּנֵ֥י זְקֵנִ֖ים לֹ֥א נֶהְדָּֽרוּ׃"
+            },
+            {
+              "osisID": "Lam.5.13",
+              "text": "בַּחוּרִים֙ טְח֣וֹן נָשָׂ֔אוּ וּנְעָרִ֖ים בָּעֵ֥ץ כָּשָֽׁלוּ׃"
+            },
+            {
+              "osisID": "Lam.5.14",
+              "text": "זְקֵנִים֙ מִשַּׁ֣עַר שָׁבָ֔תוּ בַּחוּרִ֖ים מִנְּגִינָתָֽם׃"
+            },
+            {
+              "osisID": "Lam.5.15",
+              "text": "שָׁבַת֙ מְשׂ֣וֹשׂ לִבֵּ֔נוּ נֶהְפַּ֥ךְ לְאֵ֖בֶל מְחֹלֵֽנוּ׃"
+            },
+            {
+              "osisID": "Lam.5.16",
+              "text": "נָֽפְלָה֙ עֲטֶ֣רֶת רֹאשֵׁ֔נוּ אֽוֹי־נָ֥א לָ֖נוּ כִּ֥י חָטָֽאנוּ׃"
+            },
+            {
+              "osisID": "Lam.5.17",
+              "text": "עַל־זֶ֗ה הָיָ֤ה דָוֶה֙ לִבֵּ֔נוּ עַל־אֵ֖לֶּה חָשְׁכ֥וּ עֵינֵֽינוּ׃"
+            },
+            {
+              "osisID": "Lam.5.18",
+              "ends-with-sampe": "pe2",
+              "text": "עַ֤ל הַר־צִיּוֹן֙ שֶׁשָּׁמֵ֔ם שׁוּעָלִ֖ים הִלְּכוּ־בֽוֹ׃"
+            },
+            {
+              "type": "spi-pe2"
+            },
+            {
+              "osisID": "Lam.5.19",
+              "starts-with-sampe": "pe2",
+              "text": "אַתָּ֤ה יְהֹוָה֙ לְעוֹלָ֣ם תֵּשֵׁ֔ב כִּסְאֲךָ֖ לְד֥וֹר וָדֽוֹר׃"
+            },
+            {
+              "osisID": "Lam.5.20",
+              "text": "לָ֤מָּה לָנֶ֙צַח֙ תִּשְׁכָּחֵ֔נוּ תַּֽעַזְבֵ֖נוּ לְאֹ֥רֶךְ יָמִֽים׃"
+            },
+            {
+              "osisID": "Lam.5.21",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "הֲשִׁיבֵ֨נוּ יְהֹוָ֤ה"
+                },
+                {
+                  "type": "lp-paseq"
+                },
+                {
+                  "type": "text",
+                  "text": "אֵלֶ֙יךָ֙ "
+                },
+                {
+                  "type": "kq",
+                  "contents": [
+                    {
+                      "type": "kq-k",
+                      "text": "ונשוב"
+                    },
+                    {
+                      "type": "kq-q",
+                      "text": "וְֽנָשׁ֔וּבָה"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " חַדֵּ֥שׁ יָמֵ֖ינוּ כְּקֶֽדֶם׃"
+                }
+              ]
+            },
+            {
+              "osisID": "Lam.5.22",
+              "contents": [
+                {
+                  "type": "text",
+                  "text": "כִּ֚י אִם־מָאֹ֣ס מְאַסְתָּ֔נוּ קָצַ֥פְתָּ עָלֵ֖ינוּ עַד־מְאֹֽד׃"
+                },
+                {
+                  "type": "good-ending",
+                  "text": "השיבנו יהוה אליך ונשובה חדש ימינו כקדם"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
