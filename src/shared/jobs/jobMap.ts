@@ -3,9 +3,6 @@ import { Job } from "./model";
 import { exportAnalyticsJob } from "@/modules/reporting/jobs/exportAnalyticsJob";
 import { updateBookCompletionProgressJob } from "@/modules/reporting/jobs/updateBookCompletionProgress";
 import { REPORTING_JOB_TYPES } from "@/modules/reporting/jobs/jobTypes";
-import { SNAPSHOT_JOB_TYPES } from "@/modules/snapshots/jobs/jobTypes";
-import { createSnapshotJob } from "@/modules/snapshots/jobs/createSnapshotJob";
-import { restoreSnapshotJob } from "@/modules/snapshots/jobs/restoreSnapshotJob";
 import { EXPORT_JOB_TYPES } from "@/modules/export/jobs/jobTypes";
 import exportInterlinearPdfJob from "@/modules/export/jobs/exportInterlinearPdfJob";
 import { TRANSLATION_JOB_TYPES } from "@/modules/translation/jobs/jobType";
@@ -38,14 +35,6 @@ const jobMap: Record<string, JobMapEntry<any>> = {
   [EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF]: {
     handler: exportInterlinearPdfJob,
     timeout: 60 * 5, // 5 minutes
-  },
-  [SNAPSHOT_JOB_TYPES.CREATE_SNAPSHOT]: {
-    handler: createSnapshotJob,
-    timeout: 60 * 15, // 15 minutes
-  },
-  [SNAPSHOT_JOB_TYPES.RESTORE_SNAPSHOT]: {
-    handler: restoreSnapshotJob,
-    timeout: 60 * 15, // 15 minutes
   },
   [TRANSLATION_JOB_TYPES.IMPORT_AI_GLOSSES]: {
     handler: importAIGlosses,

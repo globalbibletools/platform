@@ -157,8 +157,7 @@
       "dashboard": "Dashboard",
       "reports": "Reports",
       "import": "Import",
-      "exports": "Exports",
-      "snapshots": "Snapshots"
+      "exports": "Exports"
     }
   },
   "LanguageExportsPage": {

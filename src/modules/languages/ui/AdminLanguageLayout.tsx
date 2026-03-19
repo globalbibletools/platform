@@ -114,19 +114,6 @@ export default async function LanguageLayout({
               </li>
             }
           />
-          <FeatureFlagged
-            feature="ff-snapshots"
-            enabledChildren={
-              <li>
-                <SidebarLink
-                  href={`/${params.locale}/admin/languages/${params.code}/snapshots`}
-                >
-                  <Icon icon="database" className="w-4 me-2" />
-                  {t("links.snapshots")}
-                </SidebarLink>
-              </li>
-            }
-          />
         </ul>
       </div>
       <div className="grow relative">{children}</div>
