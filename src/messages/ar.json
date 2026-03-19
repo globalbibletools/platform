@@ -157,8 +157,7 @@
       "dashboard": "لوحة التحكم",
       "reports": "التقارير",
       "import": "استيراد",
-      "exports": "التصدير",
-      "snapshots": "لقطات"
+      "exports": "التصدير"
     }
   },
   "LanguageExportsPage": {
