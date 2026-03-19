@@ -7,7 +7,6 @@ import { verifySession } from "@/session";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Icon } from "@/components/Icon";
-import LegacyGlossImportForm from "./LegacyImportForm";
 import AIGlossesImportForm from "./AIGlossesImportForm";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
