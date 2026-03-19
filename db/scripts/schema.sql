@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict fjV0LUjAzBjGsrAEV53xbsVZGf8sxQp8SoknONfuDmGidI6Y5NPuo3Wqpy0Rs77
+\restrict J1yHi9ctYRB6Jmi7CwTPNR96W0kIWlvL7fBUUgKCL4chhDbIf4Fl0XG3ISrQQHh
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -596,19 +596,6 @@ CREATE TABLE public.language (
 
 
 --
--- Name: language_import_job; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.language_import_job (
-    language_id uuid NOT NULL,
-    start_date timestamp with time zone NOT NULL,
-    end_date timestamp with time zone,
-    succeeded boolean,
-    user_id uuid
-);
-
-
---
 -- Name: language_member; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1155,14 +1142,6 @@ ALTER TABLE ONLY public.job
 
 
 --
--- Name: language_import_job language_import_job_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.language_import_job
-    ADD CONSTRAINT language_import_job_pkey PRIMARY KEY (language_id);
-
-
---
 -- Name: language_member language_member_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1682,22 +1661,6 @@ ALTER TABLE ONLY public.gloss
 
 
 --
--- Name: language_import_job language_import_job_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.language_import_job
-    ADD CONSTRAINT language_import_job_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
--- Name: language_import_job language_import_job_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.language_import_job
-    ADD CONSTRAINT language_import_job_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
 -- Name: language_member language_member_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1981,5 +1944,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict fjV0LUjAzBjGsrAEV53xbsVZGf8sxQp8SoknONfuDmGidI6Y5NPuo3Wqpy0Rs77
+\unrestrict J1yHi9ctYRB6Jmi7CwTPNR96W0kIWlvL7fBUUgKCL4chhDbIf4Fl0XG3ISrQQHh
 

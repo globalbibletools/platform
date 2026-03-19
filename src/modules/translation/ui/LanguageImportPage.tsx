@@ -47,30 +47,7 @@ export default async function LanguageImportPage(
   return (
     <div className="px-8 py-6 max-w-[1000px]">
       <ViewTitle className="mb-4">{t("title")}</ViewTitle>
-      <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 pb-8 px-10 border-b border-b-green-300 dark:border-b-blue-800">
-        <div className="grow">
-          <h3 className="font-bold text-lg mb-2">Legacy Glosses</h3>
-          <p className="text-sm mb-2">
-            Import glosses from{" "}
-            <Button
-              href="https://hebrewgreekbible.online"
-              variant="link"
-              target="_blank"
-              rel="noopener"
-            >
-              hebrewgreekbible.online
-              <Icon icon="external-link" className="ms-1" />
-            </Button>
-            .
-          </p>
-        </div>
-        <div className="shrink-0 w-80">
-          <Suspense fallback={<LoadingSpinner className="w-fit" />}>
-            <LegacyGlossImportForm code={params.code} />
-          </Suspense>
-        </div>
-      </section>
-      <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 px-10">
+      <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 pb-8 px-10">
         <div className="grow">
           <h3 className="font-bold text-lg mb-2">AI Translated Glosses</h3>
           <p className="text-sm mb-2">
