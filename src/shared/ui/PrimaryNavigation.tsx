@@ -8,24 +8,21 @@ import {
   HeaderMenuItem,
   HeaderMenuItems,
 } from "./HeaderLink";
-import { verifySession } from "@/session";
 import { useTranslations } from "next-intl";
 import { getCurrentLocale } from "@/shared/i18n/shared";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouteContext } from "@tanstack/react-router";
+import { SystemRoleRaw } from "@/modules/users/types";
 
 export default function PrimaryNavigation() {
   const t = useTranslations("PrimaryNavigation");
 
-  /*
-  const session = await verifySession();
-  const isAdmin = session?.user.roles.includes("ADMIN");
-  const canTranslate = Boolean(session);
-  */
-  const session = null;
-  const isAdmin = false;
-  const canTranslate = false;
+  const context = useRouteContext({ strict: false });
 
-  const locale = getCurrentLocale();
+  const isAdmin =
+    context.auth?.systemRoles.includes(SystemRoleRaw.Admin) ?? false;
+  const canTranslate = (context.auth?.languages.length ?? 0) > 0;
+  const isLoggedIn = Boolean(context.auth);
+  const user = context.auth?.user;
 
   return (
     <nav
@@ -49,7 +46,7 @@ export default function PrimaryNavigation() {
       </Link>
       <div className="grow" />
       <div className="shrink-0 gap-2 md:gap-4 h-full hidden sm:flex">
-        <HeaderLink href={`/${locale}/read`}>{t("links.read")}</HeaderLink>
+        <HeaderLink to="/read">{t("links.read")}</HeaderLink>
         {(isAdmin || canTranslate) && (
           <HeaderLink to="/translate">{t("links.translate")}</HeaderLink>
         )}
@@ -57,37 +54,37 @@ export default function PrimaryNavigation() {
           <HeaderLink to="/admin/languages">{t("links.admin")}</HeaderLink>
         )}
         <HeaderLink
-          className={`hidden ${session ? "lg:block" : "sm:block"}`}
+          className={`hidden ${isLoggedIn ? "lg:block" : "sm:block"}`}
           to="https://globalbibletools.tawk.help"
           newTab
         >
           {t("links.help")}
         </HeaderLink>
-        {session ?
+        {isLoggedIn ?
           <HeaderDropdown
             button={
               <>
                 <Icon icon="user" className="md:hidden" />
                 <span className="sr-only md:not-sr-only md:inline">
-                  {session?.user.name ?? ""}
+                  {user?.name ?? ""}
                 </span>
               </>
             }
             items={
               <>
-                <HeaderDropdownItem href={`/${locale}/profile`}>
+                <HeaderDropdownItem to="/profile">
                   <Icon icon="user" className="me-2" fixedWidth />
                   <span className="font-bold">{t("links.profile")}</span>
                 </HeaderDropdownItem>
                 <HeaderDropdownItem
                   className="lg:hidden"
-                  href="https://globalbibletools.tawk.help"
+                  to="https://globalbibletools.tawk.help"
                   newTab
                 >
                   <Icon icon="question-circle" className="me-2" fixedWidth />
                   <span className="font-bold">{t("links.help")}</span>
                 </HeaderDropdownItem>
-                <HeaderDropdownItem href={`/${locale}/logout`} prefetch={false}>
+                <HeaderDropdownItem to="/logout">
                   <Icon icon="right-from-bracket" className="me-2" fixedWidth />
                   <span className="font-bold">{t("links.log_out")}</span>
                 </HeaderDropdownItem>
@@ -102,44 +99,44 @@ export default function PrimaryNavigation() {
       <HeaderMenu>
         <HeaderMenuButton className="sm:hidden -me-3" />
         <HeaderMenuItems className="sm:hidden">
-          {session ?
-            <HeaderMenuItem href={`/${locale}/profile`}>
+          {isLoggedIn ?
+            <HeaderMenuItem to="/profile">
               <Icon icon="user" className="me-2" fixedWidth />
               <span className="font-bold">
-                {session?.user.name ?? t("links.profile")}
+                {user?.name ?? t("links.profile")}
               </span>
             </HeaderMenuItem>
-          : <HeaderMenuItem href={`/${locale}/login`}>
+          : <HeaderMenuItem to="/login">
               <Icon icon="user" className="me-2" fixedWidth />
               <span className="font-bold">{t("links.log_in")}</span>
             </HeaderMenuItem>
           }
           <div className="border-b border-gray-200 dark:border-gray-700 my-2" />
-          <HeaderMenuItem href={`/${locale}/read`}>
+          <HeaderMenuItem to="/read">
             <Icon icon="book-open" className="me-2" fixedWidth />
             <span className="font-bold">{t("links.read")}</span>
           </HeaderMenuItem>
-          <HeaderMenuItem href={`/${locale}/translate`}>
+          <HeaderMenuItem to="/translate">
             <Icon icon="feather" className="me-2" fixedWidth />
             <span className="font-bold">{t("links.translate")}</span>
           </HeaderMenuItem>
-          <HeaderMenuItem href={`/${locale}/admin/languages`}>
+          <HeaderMenuItem to="/admin/languages">
             <Icon icon="sliders" className="me-2" fixedWidth />
             <span className="font-bold">{t("links.admin")}</span>
           </HeaderMenuItem>
           <HeaderMenuItem
             className="lg:hidden"
-            href="https://globalbibletools.tawk.help"
+            to="https://globalbibletools.tawk.help"
             newTab
           >
             <Icon icon="question-circle" className="me-2" fixedWidth />
             <span className="font-bold">{t("links.help")}</span>
           </HeaderMenuItem>
-          {session && (
+          {isLoggedIn && (
             <>
               <div className="grow" />
               <div className="border-b border-gray-200 dark:border-gray-700 mb-2" />
-              <HeaderMenuItem href={`/${locale}/logout`} prefetch={false}>
+              <HeaderMenuItem to="/logout">
                 <Icon icon="right-from-bracket" className="me-2" fixedWidth />
                 <span className="font-bold">{t("links.log_out")}</span>
               </HeaderMenuItem>

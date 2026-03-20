@@ -1,39 +1,41 @@
+import Button from "@/components/Button";
+import FieldError from "@/components/FieldError";
+import Form from "@/components/Form";
 import FormLabel from "@/components/FormLabel";
 import TextInput from "@/components/TextInput";
 import ViewTitle from "@/components/ViewTitle";
-import { verifySession } from "@/session";
-import { ResolvingMetadata, Metadata } from "next";
-import { getTranslations } from "next-intl/server";
-import FieldError from "@/components/FieldError";
-import Button from "@/components/Button";
-import { notFound } from "next/navigation";
-import Form from "@/components/Form";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
+import { routerGuard } from "@/modules/access/routerGuard";
 import { updateProfile } from "@/modules/users/actions/updateProfile";
 import { query } from "@/db";
+import { createFileRoute } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { useTranslations } from "next-intl";
 
-export async function generateMetadata(
-  _: any,
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
-  const t = await getTranslations("ProfileView");
-  const { title } = await parent;
+const policy = new Policy({ authenticated: true });
 
-  return {
-    title: `${t("title")} | ${title?.absolute}`,
-  };
-}
+export const Route = createFileRoute("/_main/profile")({
+  beforeLoad: ({ context }) => {
+    routerGuard({ context: context.auth, policy });
+  },
+  loader: () => profileLoader(),
+  component: ProfileRoute,
+});
 
-export default async function ProfileView() {
-  const session = await verifySession();
-  if (!session) notFound();
+const profileLoader = createServerFn()
+  .middleware([createPolicyMiddleware({ policy })])
+  .handler(async ({ context: { session } }) => {
+    const result = await query<{ name?: string; email: string }>(
+      "SELECT name, email FROM users WHERE id = $1",
+      [session.user.id],
+    );
 
-  const result = await query<{ name?: string; email: string }>(
-    `SELECT name, email FROM users WHERE id = $1`,
-    [session.user.id],
-  );
-  const user = result?.rows[0];
+    return result.rows[0];
+  });
 
-  const t = await getTranslations("ProfileView");
+function ProfileRoute() {
+  const t = useTranslations("ProfileView");
+  const user = Route.useLoaderData();
 
   return (
     <div className="grow flex items-start justify-center">
@@ -43,7 +45,11 @@ export default async function ProfileView() {
         dark:bg-gray-800 dark:border-gray-700 dark:shadow-none"
       >
         <ViewTitle>{t("title")}</ViewTitle>
-        <Form action={updateProfile}>
+        <Form
+          action={updateProfile}
+          successMessage={t("profile_updated")}
+          invalidate
+        >
           <div className="mb-2">
             <FormLabel htmlFor="email">{t("form.email")}</FormLabel>
             <TextInput
@@ -55,7 +61,14 @@ export default async function ProfileView() {
               aria-describedby="email-error"
               defaultValue={user?.email}
             />
-            <FieldError id="email-error" name="email" />
+            <FieldError
+              id="email-error"
+              name="email"
+              messages={{
+                too_small: t("errors.email_required"),
+                invalid_string: t("errors.email_format"),
+              }}
+            />
           </div>
           <div className="mb-2">
             <FormLabel htmlFor="name">{t("form.name")}</FormLabel>
@@ -67,7 +80,11 @@ export default async function ProfileView() {
               aria-describedby="name-error"
               defaultValue={user?.name}
             />
-            <FieldError id="name-error" name="name" />
+            <FieldError
+              id="name-error"
+              name="name"
+              messages={{ too_small: t("errors.name_required") }}
+            />
           </div>
           <div className="mb-2">
             <FormLabel htmlFor="password">{t("form.password")}</FormLabel>
@@ -79,7 +96,11 @@ export default async function ProfileView() {
               autoComplete="new-password"
               aria-describedby="password-error"
             />
-            <FieldError id="password-error" name="password" />
+            <FieldError
+              id="password-error"
+              name="password"
+              messages={{ too_small: t("errors.password_format") }}
+            />
           </div>
           <div className="mb-4">
             <FormLabel htmlFor="confirm-password">
@@ -93,7 +114,11 @@ export default async function ProfileView() {
               autoComplete="new-password"
               aria-describedby="confirm-password-error"
             />
-            <FieldError id="confirm-password-error" name="confirm_password" />
+            <FieldError
+              id="confirm-password-error"
+              name="confirm_password"
+              messages={{ custom: t("errors.password_confirmation") }}
+            />
           </div>
           <div>
             <Button type="submit" className="w-full mb-2">

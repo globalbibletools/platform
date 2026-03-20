@@ -17,6 +17,9 @@ import { Route as MinimalResetPasswordRouteImport } from "./routes/_minimal/rese
 import { Route as MinimalLoginRouteImport } from "./routes/_minimal/login";
 import { Route as MinimalInviteRouteImport } from "./routes/_minimal/invite";
 import { Route as MinimalForgotPasswordRouteImport } from "./routes/_minimal/forgot-password";
+import { Route as MainProfileRouteImport } from "./routes/_main/profile";
+import { Route as MainLogoutRouteImport } from "./routes/_main/logout";
+import { Route as MainFeaturesRouteImport } from "./routes/_main/features";
 import { Route as MainDashboardRouteImport } from "./routes/_main/dashboard";
 import { Route as MainReadRouteRouteImport } from "./routes/_main/read/route";
 import { Route as MainReadCodeRouteImport } from "./routes/_main/read/$code";
@@ -71,6 +74,21 @@ const MinimalForgotPasswordRoute = MinimalForgotPasswordRouteImport.update({
   id: "/forgot-password",
   path: "/forgot-password",
   getParentRoute: () => MinimalRouteRoute,
+} as any);
+const MainProfileRoute = MainProfileRouteImport.update({
+  id: "/profile",
+  path: "/profile",
+  getParentRoute: () => MainRouteRoute,
+} as any);
+const MainLogoutRoute = MainLogoutRouteImport.update({
+  id: "/logout",
+  path: "/logout",
+  getParentRoute: () => MainRouteRoute,
+} as any);
+const MainFeaturesRoute = MainFeaturesRouteImport.update({
+  id: "/features",
+  path: "/features",
+  getParentRoute: () => MainRouteRoute,
 } as any);
 const MainDashboardRoute = MainDashboardRouteImport.update({
   id: "/dashboard",
@@ -166,6 +184,9 @@ export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
   "/read": typeof MainReadRouteRouteWithChildren;
   "/dashboard": typeof MainDashboardRoute;
+  "/features": typeof MainFeaturesRoute;
+  "/logout": typeof MainLogoutRoute;
+  "/profile": typeof MainProfileRoute;
   "/forgot-password": typeof MinimalForgotPasswordRoute;
   "/invite": typeof MinimalInviteRoute;
   "/login": typeof MinimalLoginRoute;
@@ -190,6 +211,9 @@ export interface FileRoutesByTo {
   "/": typeof IndexRoute;
   "/read": typeof MainReadRouteRouteWithChildren;
   "/dashboard": typeof MainDashboardRoute;
+  "/features": typeof MainFeaturesRoute;
+  "/logout": typeof MainLogoutRoute;
+  "/profile": typeof MainProfileRoute;
   "/forgot-password": typeof MinimalForgotPasswordRoute;
   "/invite": typeof MinimalInviteRoute;
   "/login": typeof MinimalLoginRoute;
@@ -217,6 +241,9 @@ export interface FileRoutesById {
   "/_minimal": typeof MinimalRouteRouteWithChildren;
   "/_main/read": typeof MainReadRouteRouteWithChildren;
   "/_main/dashboard": typeof MainDashboardRoute;
+  "/_main/features": typeof MainFeaturesRoute;
+  "/_main/logout": typeof MainLogoutRoute;
+  "/_main/profile": typeof MainProfileRoute;
   "/_minimal/forgot-password": typeof MinimalForgotPasswordRoute;
   "/_minimal/invite": typeof MinimalInviteRoute;
   "/_minimal/login": typeof MinimalLoginRoute;
@@ -243,6 +270,9 @@ export interface FileRouteTypes {
     | "/"
     | "/read"
     | "/dashboard"
+    | "/features"
+    | "/logout"
+    | "/profile"
     | "/forgot-password"
     | "/invite"
     | "/login"
@@ -267,6 +297,9 @@ export interface FileRouteTypes {
     | "/"
     | "/read"
     | "/dashboard"
+    | "/features"
+    | "/logout"
+    | "/profile"
     | "/forgot-password"
     | "/invite"
     | "/login"
@@ -293,6 +326,9 @@ export interface FileRouteTypes {
     | "/_minimal"
     | "/_main/read"
     | "/_main/dashboard"
+    | "/_main/features"
+    | "/_main/logout"
+    | "/_main/profile"
     | "/_minimal/forgot-password"
     | "/_minimal/invite"
     | "/_minimal/login"
@@ -377,6 +413,27 @@ declare module "@tanstack/react-router" {
       fullPath: "/forgot-password";
       preLoaderRoute: typeof MinimalForgotPasswordRouteImport;
       parentRoute: typeof MinimalRouteRoute;
+    };
+    "/_main/profile": {
+      id: "/_main/profile";
+      path: "/profile";
+      fullPath: "/profile";
+      preLoaderRoute: typeof MainProfileRouteImport;
+      parentRoute: typeof MainRouteRoute;
+    };
+    "/_main/logout": {
+      id: "/_main/logout";
+      path: "/logout";
+      fullPath: "/logout";
+      preLoaderRoute: typeof MainLogoutRouteImport;
+      parentRoute: typeof MainRouteRoute;
+    };
+    "/_main/features": {
+      id: "/_main/features";
+      path: "/features";
+      fullPath: "/features";
+      preLoaderRoute: typeof MainFeaturesRouteImport;
+      parentRoute: typeof MainRouteRoute;
     };
     "/_main/dashboard": {
       id: "/_main/dashboard";
@@ -562,6 +619,9 @@ const MainAdminLanguagesCodeRouteRouteWithChildren =
 interface MainRouteRouteChildren {
   MainReadRouteRoute: typeof MainReadRouteRouteWithChildren;
   MainDashboardRoute: typeof MainDashboardRoute;
+  MainFeaturesRoute: typeof MainFeaturesRoute;
+  MainLogoutRoute: typeof MainLogoutRoute;
+  MainProfileRoute: typeof MainProfileRoute;
   MainAdminMainRoute: typeof MainAdminMainRouteWithChildren;
   MainAdminLanguagesCodeRouteRoute: typeof MainAdminLanguagesCodeRouteRouteWithChildren;
 }
@@ -569,6 +629,9 @@ interface MainRouteRouteChildren {
 const MainRouteRouteChildren: MainRouteRouteChildren = {
   MainReadRouteRoute: MainReadRouteRouteWithChildren,
   MainDashboardRoute: MainDashboardRoute,
+  MainFeaturesRoute: MainFeaturesRoute,
+  MainLogoutRoute: MainLogoutRoute,
+  MainProfileRoute: MainProfileRoute,
   MainAdminMainRoute: MainAdminMainRouteWithChildren,
   MainAdminLanguagesCodeRouteRoute:
     MainAdminLanguagesCodeRouteRouteWithChildren,

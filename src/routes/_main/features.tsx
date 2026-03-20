@@ -1,7 +1,12 @@
 import ViewTitle from "@/components/ViewTitle";
-import FeatureSwitch from "./FeatureSwitch";
+import { createFileRoute } from "@tanstack/react-router";
+import FeatureSwitch from "./-components/FeatureSwitch";
 
-export default function FeaturesPage() {
+export const Route = createFileRoute("/_main/features")({
+  component: FeaturesRoute,
+});
+
+function FeaturesRoute() {
   return (
     <div className="grow flex items-start justify-center">
       <div
