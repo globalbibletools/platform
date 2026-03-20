@@ -1,10 +1,6 @@
 import { query } from "@/db";
 import { parseForm } from "@/form-parser";
-import {
-  createPolicyMiddleware,
-  Policy,
-  PolicyOptions,
-} from "@/modules/access";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { resolveLanguageByCode } from "@/modules/languages";
 import { serverActionLogger } from "@/server-action";
 import { getLocale } from "next-intl/server";
@@ -36,9 +32,9 @@ export const updateTranslatorNoteAction = createServerFn({ method: "POST" })
     return requestSchema.parse(parseForm(data));
   })
   .middleware([
-    createPolicyMiddleware<Request, PolicyOptions>({
+    createPolicyMiddleware({
       policy,
-      getLanguageCode: (data) => data.languageCode,
+      languageCodeField: "languageCode",
     }),
   ])
   .handler(

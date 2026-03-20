@@ -3,12 +3,11 @@ import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
 import BookProgressList from "@/modules/languages/ui/BookProgressList";
 import { getLanguageBookProgressReadModel } from "@/modules/reporting";
-import { createParseMiddleware } from "@/parseMiddleware";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
 
-const paramsSchema = z.object({ code: z.string() });
+const requestSchema = z.object({ code: z.string() });
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
@@ -22,11 +21,11 @@ export const Route = createFileRoute(
 });
 
 const loaderFn = createServerFn()
+  .inputValidator(requestSchema)
   .middleware([
     createPolicyMiddleware({
       policy,
-      parseMiddleware: createParseMiddleware(paramsSchema),
-      selectLanguageCode: (data) => data.code,
+      languageCodeField: "code",
     }),
   ])
   .handler(async ({ data }) => {

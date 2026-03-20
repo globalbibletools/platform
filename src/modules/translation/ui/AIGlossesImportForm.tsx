@@ -8,7 +8,6 @@ import JobStatusPoller from "@/shared/jobs/ui/JobStatusPoller";
 import { JobStatus } from "@/shared/jobs/model";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createServerFn, useServerFn } from "@tanstack/react-start";
-import { createParseMiddleware } from "@/parseMiddleware";
 import * as z from "zod";
 
 const requestSchema = z.object({
@@ -21,11 +20,11 @@ const policy = new Policy({
 });
 
 export const getAIGlossesImportFormData = createServerFn()
+  .inputValidator(requestSchema)
   .middleware([
     createPolicyMiddleware({
       policy,
-      parseMiddleware: createParseMiddleware(requestSchema),
-      selectLanguageCode: (data) => data.code,
+      languageCodeField: "code",
     }),
   ])
   .handler(async ({ data }) => {

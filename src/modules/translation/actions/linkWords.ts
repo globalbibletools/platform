@@ -4,11 +4,7 @@ import { parseForm } from "@/form-parser";
 import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";
 import { revalidatePath } from "next/cache";
-import {
-  createPolicyMiddleware,
-  Policy,
-  PolicyOptions,
-} from "@/modules/access";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { phraseRepository } from "../data-access/phraseRepository";
 import { resolveLanguageByCode } from "@/modules/languages";
 import { kyselyTransaction } from "@/db";
@@ -35,9 +31,9 @@ export const linkWords = createServerFn({ method: "POST" })
     return requestSchema.parse(parseForm(data));
   })
   .middleware([
-    createPolicyMiddleware<Request, PolicyOptions>({
+    createPolicyMiddleware({
       policy,
-      getLanguageCode: (data) => data.code,
+      languageCodeField: "code",
     }),
   ])
   .handler(

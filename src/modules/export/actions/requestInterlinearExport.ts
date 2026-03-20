@@ -2,11 +2,7 @@ import * as z from "zod";
 import { notFound } from "@tanstack/react-router";
 import { getLocale } from "next-intl/server";
 import { createServerFn } from "@tanstack/react-start";
-import {
-  createPolicyMiddleware,
-  Policy,
-  PolicyOptions,
-} from "@/modules/access";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { serverActionLogger } from "@/server-action";
 import { requestInterlinearExport as requestInterlinearExportUseCase } from "../use-cases/requestInterlinearExport";
 import { revalidatePath } from "next/cache";
@@ -32,9 +28,9 @@ export const requestInterlinearExport = createServerFn({ method: "POST" })
     return requestSchema.parse(parseForm(data));
   })
   .middleware([
-    createPolicyMiddleware<Request, PolicyOptions>({
+    createPolicyMiddleware({
       policy: exportPolicy,
-      getLanguageCode: (data) => data.languageCode,
+      languageCodeField: "languageCode",
     }),
   ])
   .handler(

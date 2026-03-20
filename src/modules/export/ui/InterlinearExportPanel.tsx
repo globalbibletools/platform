@@ -7,7 +7,6 @@ import { Icon } from "@/components/Icon";
 import exportJobQueryService from "../data-access/ExportJobQueryService";
 import JobStatusPoller from "@/shared/jobs/ui/JobStatusPoller";
 import { useTranslations } from "next-intl";
-import { createParseMiddleware } from "@/parseMiddleware";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
@@ -22,11 +21,10 @@ const policy = new Policy({
 });
 
 export const getInterlinearExportPanelData = createServerFn()
+  .inputValidator(requestSchema)
   .middleware([
     createPolicyMiddleware({
       policy,
-      parseMiddleware: createParseMiddleware(requestSchema),
-      selectLanguageCode: (data) => data.languageCode,
     }),
   ])
   .handler(async ({ data }) => {

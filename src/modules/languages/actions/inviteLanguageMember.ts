@@ -27,13 +27,7 @@ export const inviteLanguageMember = createServerFn({ method: "POST" })
   .middleware([
     createPolicyMiddleware({
       policy,
-      parseLanguageCode: (data) => {
-        if (!(data instanceof FormData)) {
-          throw new Error("expected FormData");
-        }
-
-        return z.string().parse(data.get("code"));
-      },
+      languageCodeField: "code",
     }),
   ])
   .handler(async ({ data }) => {

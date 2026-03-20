@@ -5,11 +5,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";
 import { revalidatePath } from "next/cache";
 import { phraseRepository } from "../data-access/phraseRepository";
-import {
-  createPolicyMiddleware,
-  Policy,
-  PolicyOptions,
-} from "@/modules/access";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { kyselyTransaction } from "@/db";
 import { resolveLanguageByCode } from "@/modules/languages";
 
@@ -34,9 +30,9 @@ export const unlinkPhrase = createServerFn({ method: "POST" })
     return unlinkPhraseSchema.parse(parseForm(data));
   })
   .middleware([
-    createPolicyMiddleware<Request, PolicyOptions>({
+    createPolicyMiddleware({
       policy,
-      getLanguageCode: (data) => data.code,
+      languageCodeField: "code",
     }),
   ])
   .handler(

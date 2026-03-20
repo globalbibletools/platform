@@ -3,7 +3,6 @@ import { SidebarLink } from "@/components/NavLink";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
-import { createParseMiddleware } from "@/parseMiddleware";
 import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
 import {
   createFileRoute,
@@ -20,7 +19,7 @@ const policy = new Policy({
   languageMember: true,
 });
 
-const schema = z.object({ code: z.string() });
+const requestSchema = z.object({ code: z.string() });
 
 export const Route = createFileRoute("/_main/admin/languages/$code")({
   beforeLoad: ({ location }) => {
@@ -40,11 +39,11 @@ export const Route = createFileRoute("/_main/admin/languages/$code")({
 });
 
 const loaderFn = createServerFn()
+  .inputValidator(requestSchema)
   .middleware([
     createPolicyMiddleware({
       policy,
-      parseMiddleware: createParseMiddleware(schema),
-      selectLanguageCode: (data) => data.code,
+      languageCodeField: "code",
     }),
   ])
   .handler(async ({ data }) => {

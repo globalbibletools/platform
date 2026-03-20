@@ -1,9 +1,5 @@
 import { parseForm } from "@/form-parser";
-import {
-  createPolicyMiddleware,
-  Policy,
-  PolicyOptions,
-} from "@/modules/access";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { serverActionLogger } from "@/server-action";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
@@ -38,9 +34,9 @@ export const updateGlossAction = createServerFn({ method: "POST" })
     return requestSchema.parse(parseForm(data));
   })
   .middleware([
-    createPolicyMiddleware<Request, PolicyOptions>({
+    createPolicyMiddleware({
       policy,
-      getLanguageCode: (data) => data.languageCode,
+      languageCodeField: "languageCode",
     }),
   ])
   .handler(

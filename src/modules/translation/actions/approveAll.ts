@@ -5,11 +5,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";
 import { revalidatePath } from "next/cache";
 import { serverActionLogger } from "@/server-action";
-import {
-  createPolicyMiddleware,
-  Policy,
-  PolicyOptions,
-} from "@/modules/access";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { GlossApprovalMethodRaw } from "../types";
 import { approveAllUseCase } from "../use-cases/approveAll";
 import { NotFoundError } from "@/shared/errors";
@@ -41,9 +37,9 @@ export const approveAll = createServerFn({ method: "POST" })
     return requestSchema.parse(parseForm(data));
   })
   .middleware([
-    createPolicyMiddleware<Request, PolicyOptions>({
+    createPolicyMiddleware({
       policy,
-      getLanguageCode: (data) => data.code,
+      languageCodeField: "code",
     }),
   ])
   .handler(

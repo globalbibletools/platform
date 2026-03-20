@@ -30,6 +30,7 @@ const policy = new Policy({
 });
 
 const paramsSchema = z.object({ code: z.string() });
+const loaderRequestSchema = z.object({ code: z.string() });
 
 export const Route = createFileRoute("/_main/admin/languages/$code/settings")({
   beforeLoad: ({ context, params }) => {
@@ -44,11 +45,11 @@ export const Route = createFileRoute("/_main/admin/languages/$code/settings")({
 });
 
 const loaderFn = createServerFn()
-  .inputValidator(paramsSchema)
+  .inputValidator(loaderRequestSchema)
   .middleware([
     createPolicyMiddleware({
       policy,
-      parseLanguageCode: (data) => paramsSchema.parse(data).code,
+      languageCodeField: "code",
     }),
   ])
   .handler(async ({ data }) => {
