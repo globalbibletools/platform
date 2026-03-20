@@ -28,6 +28,9 @@ import { Route as MainAdminMainUsersIndexRouteImport } from "./routes/_main/admi
 import { Route as MainAdminMainLanguagesIndexRouteImport } from "./routes/_main/admin/_main.languages/index";
 import { Route as MainAdminLanguagesCodeUsersRouteImport } from "./routes/_main/admin/languages.$code/users";
 import { Route as MainAdminLanguagesCodeSettingsRouteImport } from "./routes/_main/admin/languages.$code/settings";
+import { Route as MainAdminLanguagesCodeImportRouteImport } from "./routes/_main/admin/languages.$code/import";
+import { Route as MainAdminLanguagesCodeExportsRouteImport } from "./routes/_main/admin/languages.$code/exports";
+import { Route as MainAdminLanguagesCodeDashboardRouteImport } from "./routes/_main/admin/languages.$code/dashboard";
 import { Route as MainAdminMainUsersInviteRouteImport } from "./routes/_main/admin/_main.users/invite";
 import { Route as MainAdminMainLanguagesNewRouteImport } from "./routes/_main/admin/_main.languages/new";
 
@@ -128,6 +131,24 @@ const MainAdminLanguagesCodeSettingsRoute =
     path: "/settings",
     getParentRoute: () => MainAdminLanguagesCodeRouteRoute,
   } as any);
+const MainAdminLanguagesCodeImportRoute =
+  MainAdminLanguagesCodeImportRouteImport.update({
+    id: "/import",
+    path: "/import",
+    getParentRoute: () => MainAdminLanguagesCodeRouteRoute,
+  } as any);
+const MainAdminLanguagesCodeExportsRoute =
+  MainAdminLanguagesCodeExportsRouteImport.update({
+    id: "/exports",
+    path: "/exports",
+    getParentRoute: () => MainAdminLanguagesCodeRouteRoute,
+  } as any);
+const MainAdminLanguagesCodeDashboardRoute =
+  MainAdminLanguagesCodeDashboardRouteImport.update({
+    id: "/dashboard",
+    path: "/dashboard",
+    getParentRoute: () => MainAdminLanguagesCodeRouteRoute,
+  } as any);
 const MainAdminMainUsersInviteRoute =
   MainAdminMainUsersInviteRouteImport.update({
     id: "/users/invite",
@@ -157,6 +178,9 @@ export interface FileRoutesByFullPath {
   "/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
   "/admin/languages/new": typeof MainAdminMainLanguagesNewRoute;
   "/admin/users/invite": typeof MainAdminMainUsersInviteRoute;
+  "/admin/languages/$code/dashboard": typeof MainAdminLanguagesCodeDashboardRoute;
+  "/admin/languages/$code/exports": typeof MainAdminLanguagesCodeExportsRoute;
+  "/admin/languages/$code/import": typeof MainAdminLanguagesCodeImportRoute;
   "/admin/languages/$code/settings": typeof MainAdminLanguagesCodeSettingsRoute;
   "/admin/languages/$code/users": typeof MainAdminLanguagesCodeUsersRoute;
   "/admin/languages/": typeof MainAdminMainLanguagesIndexRoute;
@@ -178,6 +202,9 @@ export interface FileRoutesByTo {
   "/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
   "/admin/languages/new": typeof MainAdminMainLanguagesNewRoute;
   "/admin/users/invite": typeof MainAdminMainUsersInviteRoute;
+  "/admin/languages/$code/dashboard": typeof MainAdminLanguagesCodeDashboardRoute;
+  "/admin/languages/$code/exports": typeof MainAdminLanguagesCodeExportsRoute;
+  "/admin/languages/$code/import": typeof MainAdminLanguagesCodeImportRoute;
   "/admin/languages/$code/settings": typeof MainAdminLanguagesCodeSettingsRoute;
   "/admin/languages/$code/users": typeof MainAdminLanguagesCodeUsersRoute;
   "/admin/languages": typeof MainAdminMainLanguagesIndexRoute;
@@ -202,6 +229,9 @@ export interface FileRoutesById {
   "/_main/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
   "/_main/admin/_main/languages/new": typeof MainAdminMainLanguagesNewRoute;
   "/_main/admin/_main/users/invite": typeof MainAdminMainUsersInviteRoute;
+  "/_main/admin/languages/$code/dashboard": typeof MainAdminLanguagesCodeDashboardRoute;
+  "/_main/admin/languages/$code/exports": typeof MainAdminLanguagesCodeExportsRoute;
+  "/_main/admin/languages/$code/import": typeof MainAdminLanguagesCodeImportRoute;
   "/_main/admin/languages/$code/settings": typeof MainAdminLanguagesCodeSettingsRoute;
   "/_main/admin/languages/$code/users": typeof MainAdminLanguagesCodeUsersRoute;
   "/_main/admin/_main/languages/": typeof MainAdminMainLanguagesIndexRoute;
@@ -225,6 +255,9 @@ export interface FileRouteTypes {
     | "/read/$code/$chapterId"
     | "/admin/languages/new"
     | "/admin/users/invite"
+    | "/admin/languages/$code/dashboard"
+    | "/admin/languages/$code/exports"
+    | "/admin/languages/$code/import"
     | "/admin/languages/$code/settings"
     | "/admin/languages/$code/users"
     | "/admin/languages/"
@@ -246,6 +279,9 @@ export interface FileRouteTypes {
     | "/read/$code/$chapterId"
     | "/admin/languages/new"
     | "/admin/users/invite"
+    | "/admin/languages/$code/dashboard"
+    | "/admin/languages/$code/exports"
+    | "/admin/languages/$code/import"
     | "/admin/languages/$code/settings"
     | "/admin/languages/$code/users"
     | "/admin/languages"
@@ -269,6 +305,9 @@ export interface FileRouteTypes {
     | "/_main/read/$code/$chapterId"
     | "/_main/admin/_main/languages/new"
     | "/_main/admin/_main/users/invite"
+    | "/_main/admin/languages/$code/dashboard"
+    | "/_main/admin/languages/$code/exports"
+    | "/_main/admin/languages/$code/import"
     | "/_main/admin/languages/$code/settings"
     | "/_main/admin/languages/$code/users"
     | "/_main/admin/_main/languages/"
@@ -416,6 +455,27 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof MainAdminLanguagesCodeSettingsRouteImport;
       parentRoute: typeof MainAdminLanguagesCodeRouteRoute;
     };
+    "/_main/admin/languages/$code/import": {
+      id: "/_main/admin/languages/$code/import";
+      path: "/import";
+      fullPath: "/admin/languages/$code/import";
+      preLoaderRoute: typeof MainAdminLanguagesCodeImportRouteImport;
+      parentRoute: typeof MainAdminLanguagesCodeRouteRoute;
+    };
+    "/_main/admin/languages/$code/exports": {
+      id: "/_main/admin/languages/$code/exports";
+      path: "/exports";
+      fullPath: "/admin/languages/$code/exports";
+      preLoaderRoute: typeof MainAdminLanguagesCodeExportsRouteImport;
+      parentRoute: typeof MainAdminLanguagesCodeRouteRoute;
+    };
+    "/_main/admin/languages/$code/dashboard": {
+      id: "/_main/admin/languages/$code/dashboard";
+      path: "/dashboard";
+      fullPath: "/admin/languages/$code/dashboard";
+      preLoaderRoute: typeof MainAdminLanguagesCodeDashboardRouteImport;
+      parentRoute: typeof MainAdminLanguagesCodeRouteRoute;
+    };
     "/_main/admin/_main/users/invite": {
       id: "/_main/admin/_main/users/invite";
       path: "/users/invite";
@@ -478,12 +538,18 @@ const MainAdminMainRouteWithChildren = MainAdminMainRoute._addFileChildren(
 );
 
 interface MainAdminLanguagesCodeRouteRouteChildren {
+  MainAdminLanguagesCodeDashboardRoute: typeof MainAdminLanguagesCodeDashboardRoute;
+  MainAdminLanguagesCodeExportsRoute: typeof MainAdminLanguagesCodeExportsRoute;
+  MainAdminLanguagesCodeImportRoute: typeof MainAdminLanguagesCodeImportRoute;
   MainAdminLanguagesCodeSettingsRoute: typeof MainAdminLanguagesCodeSettingsRoute;
   MainAdminLanguagesCodeUsersRoute: typeof MainAdminLanguagesCodeUsersRoute;
 }
 
 const MainAdminLanguagesCodeRouteRouteChildren: MainAdminLanguagesCodeRouteRouteChildren =
   {
+    MainAdminLanguagesCodeDashboardRoute: MainAdminLanguagesCodeDashboardRoute,
+    MainAdminLanguagesCodeExportsRoute: MainAdminLanguagesCodeExportsRoute,
+    MainAdminLanguagesCodeImportRoute: MainAdminLanguagesCodeImportRoute,
     MainAdminLanguagesCodeSettingsRoute: MainAdminLanguagesCodeSettingsRoute,
     MainAdminLanguagesCodeUsersRoute: MainAdminLanguagesCodeUsersRoute,
   };

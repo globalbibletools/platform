@@ -1,22 +1,56 @@
 import { requestInterlinearExport } from "@/modules/export/actions/requestInterlinearExport";
-import { getTranslations } from "next-intl/server";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { JobStatus } from "@/shared/jobs/model";
 import Form from "@/components/Form";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import exportJobQueryService from "../data-access/ExportJobQueryService";
 import JobStatusPoller from "@/shared/jobs/ui/JobStatusPoller";
+import { useTranslations } from "next-intl";
+import { createParseMiddleware } from "@/parseMiddleware";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createServerFn } from "@tanstack/react-start";
+import * as z from "zod";
 
-export default async function InterlinearExportPanel({
+const requestSchema = z.object({
+  languageCode: z.string().min(1),
+});
+
+const policy = new Policy({
+  systemRoles: [Policy.SystemRole.Admin],
+  languageMember: true,
+});
+
+export const getInterlinearExportPanelData = createServerFn()
+  .middleware([
+    createPolicyMiddleware({
+      policy,
+      parseMiddleware: createParseMiddleware(requestSchema),
+      selectLanguageCode: (data) => data.languageCode,
+    }),
+  ])
+  .handler(async ({ data }) => {
+    const [jobs, pendingJob] = await Promise.all([
+      exportJobQueryService.findRecentForLanguage(data.languageCode),
+      exportJobQueryService.findPendingForLanguage(data.languageCode),
+    ]);
+
+    return { jobs, pendingJob };
+  });
+
+export default function InterlinearExportPanel({
   languageCode,
 }: {
   languageCode: string;
 }) {
-  const t = await getTranslations("InterlinearExport");
-  const [jobs, pendingJob] = await Promise.all([
-    exportJobQueryService.findRecentForLanguage(languageCode),
-    exportJobQueryService.findPendingForLanguage(languageCode),
-  ]);
+  const t = useTranslations("InterlinearExport");
+
+  const { data } = useSuspenseQuery({
+    queryKey: ["interlinear-export-panel", languageCode],
+    queryFn: () => getInterlinearExportPanelData({ data: { languageCode } }),
+  });
+
+  const { jobs, pendingJob } = data;
 
   const statusLabels = {
     [JobStatus.Pending]: t("status.labels.pending"),

@@ -1,18 +1,54 @@
-import LoadingSpinner from "@/components/LoadingSpinner";
 import { Icon } from "@/components/Icon";
 import ServerAction from "@/components/ServerAction";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { importAIGlosses } from "../actions/importAIGlosses";
 import { getAIGlossImportJobReadModel } from "../read-models/getAIGlossImportJobReadModel";
-import { JobStatus } from "@/shared/jobs/model";
 import { getAIGlossImportLanguagesReadModel } from "../read-models/getAIGlossImportLanguagesReadModel";
-import { getClientTimezone } from "@/shared/i18n/getClientTimezone";
-import { getLocale } from "next-intl/server";
 import JobStatusPoller from "@/shared/jobs/ui/JobStatusPoller";
+import { JobStatus } from "@/shared/jobs/model";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createServerFn, useServerFn } from "@tanstack/react-start";
+import { createParseMiddleware } from "@/parseMiddleware";
+import * as z from "zod";
 
-export default async function AIGlossesImportForm({ code }: { code: string }) {
-  const job = await getAIGlossImportJobReadModel(code);
-  const tz = await getClientTimezone();
-  const locale = await getLocale();
+const requestSchema = z.object({
+  code: z.string(),
+});
+
+const policy = new Policy({
+  systemRoles: [Policy.SystemRole.Admin],
+  languageMember: true,
+});
+
+export const getAIGlossesImportFormData = createServerFn()
+  .middleware([
+    createPolicyMiddleware({
+      policy,
+      parseMiddleware: createParseMiddleware(requestSchema),
+      selectLanguageCode: (data) => data.code,
+    }),
+  ])
+  .handler(async ({ data }) => {
+    const [job, availableLanguages] = await Promise.all([
+      getAIGlossImportJobReadModel(data.code),
+      getAIGlossImportLanguagesReadModel(),
+    ]);
+
+    const language = availableLanguages.find(
+      (entry) => entry.code === data.code,
+    );
+
+    return { job, languageAvailable: !!language };
+  });
+
+export default function AIGlossesImportForm({ code }: { code: string }) {
+  const getData = useServerFn(getAIGlossesImportFormData);
+  const { data } = useSuspenseQuery({
+    queryKey: ["ai-glosses-import-form", code],
+    queryFn: () => getData({ data: { code } }),
+  });
+
+  const { job, languageAvailable } = data;
 
   if (
     job?.status === JobStatus.Pending ||
@@ -21,14 +57,11 @@ export default async function AIGlossesImportForm({ code }: { code: string }) {
     return (
       <>
         <p className="mb-2">AI gloss import running</p>
-        <LoadingSpinner className="w-fit" />
         <JobStatusPoller jobId={job.id} />
       </>
     );
   } else {
-    const availableLanguages = await getAIGlossImportLanguagesReadModel();
-    const language = availableLanguages.find((lang) => lang.code === code);
-    if (!language) {
+    if (!languageAvailable) {
       return (
         <p className="flex gap-2 items-top">
           <Icon
@@ -64,11 +97,7 @@ export default async function AIGlossesImportForm({ code }: { code: string }) {
                 : "Error importing AI glosses"}
               </p>
               <p className="italic text-sm">
-                {new Intl.DateTimeFormat(locale, {
-                  timeZone: tz,
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                }).format(job.updatedAt)}
+                {new Date(job.updatedAt).toLocaleString()}
               </p>
             </div>
           </div>
