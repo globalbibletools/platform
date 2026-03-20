@@ -1,17 +1,25 @@
 import { ReactNode } from "react";
 import { SidebarLink } from "@/components/NavLink";
 import { Icon } from "@/components/Icon";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useTranslations } from "next-intl";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { Policy } from "@/modules/access";
 
 export const Route = createFileRoute("/_main/admin/_main")({
-  beforeLoad: ({ context }) => {
+  beforeLoad: ({ context, location }) => {
     routerGuard({
       context: context.auth,
       policy: new Policy({ systemRoles: [Policy.SystemRole.Admin] }),
     });
+
+    const pathParts = location.pathname.split("/");
+    if (pathParts.length < 3) {
+      throw redirect({
+        to: "/admin/languages",
+        search: { page: 1 },
+      });
+    }
   },
   component: AdminLayout,
 });

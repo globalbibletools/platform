@@ -1,10 +1,16 @@
 import { Icon } from "@/components/Icon";
 import { SidebarLink } from "@/components/NavLink";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
+import { routerGuard } from "@/modules/access/routerGuard";
 import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
 import { createParseMiddleware } from "@/parseMiddleware";
 import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
-import { createFileRoute, notFound, Outlet } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  notFound,
+  Outlet,
+  redirect,
+} from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useTranslations } from "next-intl";
 import * as z from "zod";
@@ -17,6 +23,16 @@ const policy = new Policy({
 const schema = z.object({ code: z.string() });
 
 export const Route = createFileRoute("/_main/admin/languages/$code")({
+  beforeLoad: ({ location }) => {
+    const pathParts = location.pathname.split("/");
+    if (pathParts.length >= 5) return;
+
+    const [, , , code] = pathParts;
+    throw redirect({
+      to: "/admin/languages/$code/dashboard",
+      params: { code },
+    });
+  },
   loader: ({ params }) => {
     return loaderFn({ data: params });
   },
@@ -58,6 +74,12 @@ function AdminLanguageLayoutRoute() {
         </div>
         <ul>
           <li>
+            <SidebarLink to={`/admin/languages/${code}/dashboard`}>
+              <Icon icon="chart-line" className="w-4 me-2" />
+              Dashboard
+            </SidebarLink>
+          </li>
+          <li>
             <SidebarLink to={`/admin/languages/${code}/settings`}>
               <Icon icon="sliders" className="w-4 me-2" />
               {t("links.settings")}
@@ -82,17 +104,6 @@ function AdminLanguageLayoutRoute() {
                 <SidebarLink to={`/admin/languages/${code}/exports`}>
                   <Icon icon="file-arrow-down" className="w-4 me-2" />
                   {t("links.exports")}
-                </SidebarLink>
-              </li>
-            }
-          />
-          <FeatureFlagged
-            feature="ff-snapshots"
-            enabledChildren={
-              <li>
-                <SidebarLink href={`/admin/languages/${code}/snapshots`}>
-                  <Icon icon="database" className="w-4 me-2" />
-                  {t("links.snapshots")}
                 </SidebarLink>
               </li>
             }
