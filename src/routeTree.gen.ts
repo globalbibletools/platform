@@ -22,6 +22,7 @@ import { Route as MainReadRouteRouteImport } from "./routes/_main/read/route";
 import { Route as MainReadCodeRouteImport } from "./routes/_main/read/$code";
 import { Route as MainAdminMainRouteImport } from "./routes/_main/admin/_main";
 import { Route as MainReadCodeChapterIdRouteImport } from "./routes/_main/read/$code.$chapterId";
+import { Route as MainAdminMainJobsRouteImport } from "./routes/_main/admin/_main.jobs";
 import { Route as MainAdminLanguagesCodeRouteRouteImport } from "./routes/_main/admin/languages.$code/route";
 import { Route as MainAdminMainUsersIndexRouteImport } from "./routes/_main/admin/_main.users/index";
 import { Route as MainAdminMainLanguagesIndexRouteImport } from "./routes/_main/admin/_main.languages/index";
@@ -93,6 +94,11 @@ const MainReadCodeChapterIdRoute = MainReadCodeChapterIdRouteImport.update({
   path: "/$chapterId",
   getParentRoute: () => MainReadCodeRoute,
 } as any);
+const MainAdminMainJobsRoute = MainAdminMainJobsRouteImport.update({
+  id: "/jobs",
+  path: "/jobs",
+  getParentRoute: () => MainAdminMainRoute,
+} as any);
 const MainAdminLanguagesCodeRouteRoute =
   MainAdminLanguagesCodeRouteRouteImport.update({
     id: "/admin/languages/$code",
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   "/admin": typeof MainAdminMainRouteWithChildren;
   "/read/$code": typeof MainReadCodeRouteWithChildren;
   "/admin/languages/$code": typeof MainAdminLanguagesCodeRouteRouteWithChildren;
+  "/admin/jobs": typeof MainAdminMainJobsRoute;
   "/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
   "/admin/languages/new": typeof MainAdminMainLanguagesNewRoute;
   "/admin/users/invite": typeof MainAdminMainUsersInviteRoute;
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   "/admin": typeof MainAdminMainRouteWithChildren;
   "/read/$code": typeof MainReadCodeRouteWithChildren;
   "/admin/languages/$code": typeof MainAdminLanguagesCodeRouteRouteWithChildren;
+  "/admin/jobs": typeof MainAdminMainJobsRoute;
   "/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
   "/admin/languages/new": typeof MainAdminMainLanguagesNewRoute;
   "/admin/users/invite": typeof MainAdminMainUsersInviteRoute;
@@ -190,6 +198,7 @@ export interface FileRoutesById {
   "/_main/admin/_main": typeof MainAdminMainRouteWithChildren;
   "/_main/read/$code": typeof MainReadCodeRouteWithChildren;
   "/_main/admin/languages/$code": typeof MainAdminLanguagesCodeRouteRouteWithChildren;
+  "/_main/admin/_main/jobs": typeof MainAdminMainJobsRoute;
   "/_main/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
   "/_main/admin/_main/languages/new": typeof MainAdminMainLanguagesNewRoute;
   "/_main/admin/_main/users/invite": typeof MainAdminMainUsersInviteRoute;
@@ -212,6 +221,7 @@ export interface FileRouteTypes {
     | "/admin"
     | "/read/$code"
     | "/admin/languages/$code"
+    | "/admin/jobs"
     | "/read/$code/$chapterId"
     | "/admin/languages/new"
     | "/admin/users/invite"
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | "/admin"
     | "/read/$code"
     | "/admin/languages/$code"
+    | "/admin/jobs"
     | "/read/$code/$chapterId"
     | "/admin/languages/new"
     | "/admin/users/invite"
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | "/_main/admin/_main"
     | "/_main/read/$code"
     | "/_main/admin/languages/$code"
+    | "/_main/admin/_main/jobs"
     | "/_main/read/$code/$chapterId"
     | "/_main/admin/_main/languages/new"
     | "/_main/admin/_main/users/invite"
@@ -362,6 +374,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof MainReadCodeChapterIdRouteImport;
       parentRoute: typeof MainReadCodeRoute;
     };
+    "/_main/admin/_main/jobs": {
+      id: "/_main/admin/_main/jobs";
+      path: "/jobs";
+      fullPath: "/admin/jobs";
+      preLoaderRoute: typeof MainAdminMainJobsRouteImport;
+      parentRoute: typeof MainAdminMainRoute;
+    };
     "/_main/admin/languages/$code": {
       id: "/_main/admin/languages/$code";
       path: "/admin/languages/$code";
@@ -439,6 +458,7 @@ const MainReadRouteRouteWithChildren = MainReadRouteRoute._addFileChildren(
 );
 
 interface MainAdminMainRouteChildren {
+  MainAdminMainJobsRoute: typeof MainAdminMainJobsRoute;
   MainAdminMainLanguagesNewRoute: typeof MainAdminMainLanguagesNewRoute;
   MainAdminMainUsersInviteRoute: typeof MainAdminMainUsersInviteRoute;
   MainAdminMainLanguagesIndexRoute: typeof MainAdminMainLanguagesIndexRoute;
@@ -446,6 +466,7 @@ interface MainAdminMainRouteChildren {
 }
 
 const MainAdminMainRouteChildren: MainAdminMainRouteChildren = {
+  MainAdminMainJobsRoute: MainAdminMainJobsRoute,
   MainAdminMainLanguagesNewRoute: MainAdminMainLanguagesNewRoute,
   MainAdminMainUsersInviteRoute: MainAdminMainUsersInviteRoute,
   MainAdminMainLanguagesIndexRoute: MainAdminMainLanguagesIndexRoute,

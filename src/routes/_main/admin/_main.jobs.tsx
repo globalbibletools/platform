@@ -1,21 +1,14 @@
-import { Metadata, ResolvingMetadata } from "next";
 import ViewTitle from "@/components/ViewTitle";
 import ServerAction from "@/components/ServerAction";
-import { queueJobAction } from "./queueJobAction";
+import { queueJobAction } from "@/shared/jobs/queueJobAction";
 import { REPORTING_JOB_TYPES } from "@/modules/reporting/jobs/jobTypes";
+import { createFileRoute } from "@tanstack/react-router";
 
-export async function generateMetadata(
-  _: any,
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
-  const { title } = await parent;
+export const Route = createFileRoute("/_main/admin/_main/jobs" as any)({
+  component: AdminJobsView,
+});
 
-  return {
-    title: `Jobs | ${title?.absolute}`,
-  };
-}
-
-export default async function AdminJobsView() {
+function AdminJobsView() {
   return (
     <div className="absolute w-full h-full overflow-auto">
       <div className="px-8 py-6 w-fit">
