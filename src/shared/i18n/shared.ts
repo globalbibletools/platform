@@ -12,7 +12,7 @@ export function isValidLocale(localeCode: string | undefined): boolean {
   return languages.some((locale) => locale.code === localeCode);
 }
 
-export const ignoredPathsRegex = /^\/(?:api|rpc|_serverFn)(?:\/|$)/;
+export const ignoredPathsRegex = /^\/(?:api|rpc|_serverFn|p)(?:\/|$)/;
 export function shouldIgnorePath(pathname: string): boolean {
   return ignoredPathsRegex.test(pathname);
 }

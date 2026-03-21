@@ -22,11 +22,11 @@ import { Route as MainProfileRouteImport } from "./routes/_main/profile";
 import { Route as MainLogoutRouteImport } from "./routes/_main/logout";
 import { Route as MainFeaturesRouteImport } from "./routes/_main/features";
 import { Route as MainDashboardRouteImport } from "./routes/_main/dashboard";
-import { Route as MainSplatRouteImport } from "./routes/_main.$";
 import { Route as MainTranslateRouteRouteImport } from "./routes/_main/translate/route";
 import { Route as MainReadRouteRouteImport } from "./routes/_main/read/route";
 import { Route as MainTranslateCodeRouteImport } from "./routes/_main/translate/$code";
 import { Route as MainReadCodeRouteImport } from "./routes/_main/read/$code";
+import { Route as MainPSplatRouteImport } from "./routes/_main/p.$";
 import { Route as MainAdminMainRouteImport } from "./routes/_main/admin/_main";
 import { Route as MainTranslateCodeVerseIdRouteImport } from "./routes/_main/translate/$code.$verseId";
 import { Route as MainReadCodeChapterIdRouteImport } from "./routes/_main/read/$code.$chapterId";
@@ -105,11 +105,6 @@ const MainDashboardRoute = MainDashboardRouteImport.update({
   path: "/dashboard",
   getParentRoute: () => MainRouteRoute,
 } as any);
-const MainSplatRoute = MainSplatRouteImport.update({
-  id: "/$",
-  path: "/$",
-  getParentRoute: () => MainRouteRoute,
-} as any);
 const MainTranslateRouteRoute = MainTranslateRouteRouteImport.update({
   id: "/translate",
   path: "/translate",
@@ -129,6 +124,11 @@ const MainReadCodeRoute = MainReadCodeRouteImport.update({
   id: "/$code",
   path: "/$code",
   getParentRoute: () => MainReadRouteRoute,
+} as any);
+const MainPSplatRoute = MainPSplatRouteImport.update({
+  id: "/p/$",
+  path: "/p/$",
+  getParentRoute: () => MainRouteRoute,
 } as any);
 const MainAdminMainRoute = MainAdminMainRouteImport.update({
   id: "/admin/_main",
@@ -215,7 +215,6 @@ export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
   "/read": typeof MainReadRouteRouteWithChildren;
   "/translate": typeof MainTranslateRouteRouteWithChildren;
-  "/$": typeof MainSplatRoute;
   "/dashboard": typeof MainDashboardRoute;
   "/features": typeof MainFeaturesRoute;
   "/logout": typeof MainLogoutRoute;
@@ -227,6 +226,7 @@ export interface FileRoutesByFullPath {
   "/verify-email": typeof MinimalVerifyEmailRoute;
   "/email/notifications": typeof EmailNotificationsRoute;
   "/admin": typeof MainAdminMainRouteWithChildren;
+  "/p/$": typeof MainPSplatRoute;
   "/read/$code": typeof MainReadCodeRouteWithChildren;
   "/translate/$code": typeof MainTranslateCodeRouteWithChildren;
   "/admin/languages/$code": typeof MainAdminLanguagesCodeRouteRouteWithChildren;
@@ -247,7 +247,6 @@ export interface FileRoutesByTo {
   "/": typeof IndexRoute;
   "/read": typeof MainReadRouteRouteWithChildren;
   "/translate": typeof MainTranslateRouteRouteWithChildren;
-  "/$": typeof MainSplatRoute;
   "/dashboard": typeof MainDashboardRoute;
   "/features": typeof MainFeaturesRoute;
   "/logout": typeof MainLogoutRoute;
@@ -259,6 +258,7 @@ export interface FileRoutesByTo {
   "/verify-email": typeof MinimalVerifyEmailRoute;
   "/email/notifications": typeof EmailNotificationsRoute;
   "/admin": typeof MainAdminMainRouteWithChildren;
+  "/p/$": typeof MainPSplatRoute;
   "/read/$code": typeof MainReadCodeRouteWithChildren;
   "/translate/$code": typeof MainTranslateCodeRouteWithChildren;
   "/admin/languages/$code": typeof MainAdminLanguagesCodeRouteRouteWithChildren;
@@ -282,7 +282,6 @@ export interface FileRoutesById {
   "/_minimal": typeof MinimalRouteRouteWithChildren;
   "/_main/read": typeof MainReadRouteRouteWithChildren;
   "/_main/translate": typeof MainTranslateRouteRouteWithChildren;
-  "/_main/$": typeof MainSplatRoute;
   "/_main/dashboard": typeof MainDashboardRoute;
   "/_main/features": typeof MainFeaturesRoute;
   "/_main/logout": typeof MainLogoutRoute;
@@ -294,6 +293,7 @@ export interface FileRoutesById {
   "/_minimal/verify-email": typeof MinimalVerifyEmailRoute;
   "/email/notifications": typeof EmailNotificationsRoute;
   "/_main/admin/_main": typeof MainAdminMainRouteWithChildren;
+  "/_main/p/$": typeof MainPSplatRoute;
   "/_main/read/$code": typeof MainReadCodeRouteWithChildren;
   "/_main/translate/$code": typeof MainTranslateCodeRouteWithChildren;
   "/_main/admin/languages/$code": typeof MainAdminLanguagesCodeRouteRouteWithChildren;
@@ -316,7 +316,6 @@ export interface FileRouteTypes {
     | "/"
     | "/read"
     | "/translate"
-    | "/$"
     | "/dashboard"
     | "/features"
     | "/logout"
@@ -328,6 +327,7 @@ export interface FileRouteTypes {
     | "/verify-email"
     | "/email/notifications"
     | "/admin"
+    | "/p/$"
     | "/read/$code"
     | "/translate/$code"
     | "/admin/languages/$code"
@@ -348,7 +348,6 @@ export interface FileRouteTypes {
     | "/"
     | "/read"
     | "/translate"
-    | "/$"
     | "/dashboard"
     | "/features"
     | "/logout"
@@ -360,6 +359,7 @@ export interface FileRouteTypes {
     | "/verify-email"
     | "/email/notifications"
     | "/admin"
+    | "/p/$"
     | "/read/$code"
     | "/translate/$code"
     | "/admin/languages/$code"
@@ -382,7 +382,6 @@ export interface FileRouteTypes {
     | "/_minimal"
     | "/_main/read"
     | "/_main/translate"
-    | "/_main/$"
     | "/_main/dashboard"
     | "/_main/features"
     | "/_main/logout"
@@ -394,6 +393,7 @@ export interface FileRouteTypes {
     | "/_minimal/verify-email"
     | "/email/notifications"
     | "/_main/admin/_main"
+    | "/_main/p/$"
     | "/_main/read/$code"
     | "/_main/translate/$code"
     | "/_main/admin/languages/$code"
@@ -511,13 +511,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof MainDashboardRouteImport;
       parentRoute: typeof MainRouteRoute;
     };
-    "/_main/$": {
-      id: "/_main/$";
-      path: "/$";
-      fullPath: "/$";
-      preLoaderRoute: typeof MainSplatRouteImport;
-      parentRoute: typeof MainRouteRoute;
-    };
     "/_main/translate": {
       id: "/_main/translate";
       path: "/translate";
@@ -545,6 +538,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/read/$code";
       preLoaderRoute: typeof MainReadCodeRouteImport;
       parentRoute: typeof MainReadRouteRoute;
+    };
+    "/_main/p/$": {
+      id: "/_main/p/$";
+      path: "/p/$";
+      fullPath: "/p/$";
+      preLoaderRoute: typeof MainPSplatRouteImport;
+      parentRoute: typeof MainRouteRoute;
     };
     "/_main/admin/_main": {
       id: "/_main/admin/_main";
@@ -738,24 +738,24 @@ const MainAdminLanguagesCodeRouteRouteWithChildren =
 interface MainRouteRouteChildren {
   MainReadRouteRoute: typeof MainReadRouteRouteWithChildren;
   MainTranslateRouteRoute: typeof MainTranslateRouteRouteWithChildren;
-  MainSplatRoute: typeof MainSplatRoute;
   MainDashboardRoute: typeof MainDashboardRoute;
   MainFeaturesRoute: typeof MainFeaturesRoute;
   MainLogoutRoute: typeof MainLogoutRoute;
   MainProfileRoute: typeof MainProfileRoute;
   MainAdminMainRoute: typeof MainAdminMainRouteWithChildren;
+  MainPSplatRoute: typeof MainPSplatRoute;
   MainAdminLanguagesCodeRouteRoute: typeof MainAdminLanguagesCodeRouteRouteWithChildren;
 }
 
 const MainRouteRouteChildren: MainRouteRouteChildren = {
   MainReadRouteRoute: MainReadRouteRouteWithChildren,
   MainTranslateRouteRoute: MainTranslateRouteRouteWithChildren,
-  MainSplatRoute: MainSplatRoute,
   MainDashboardRoute: MainDashboardRoute,
   MainFeaturesRoute: MainFeaturesRoute,
   MainLogoutRoute: MainLogoutRoute,
   MainProfileRoute: MainProfileRoute,
   MainAdminMainRoute: MainAdminMainRouteWithChildren,
+  MainPSplatRoute: MainPSplatRoute,
   MainAdminLanguagesCodeRouteRoute:
     MainAdminLanguagesCodeRouteRouteWithChildren,
 };
