@@ -1,37 +1,39 @@
 "use client";
 
 import { useTextWidth } from "@/utils/text-width";
-import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import useSWR from "swr";
+import { getBookProgress } from "../actions/getBookProgress";
+import { useTranslations } from "next-intl";
 
 export default function TranslationProgressBar({
   className = "",
 }: {
   className?: string;
 }) {
-  const { locale, verseId, code } = useParams<{
-    locale: string;
-    verseId: string;
-    code: string;
-  }>();
+  const { verseId, code } = useParams({
+    from: "/_main/translate/$code/$verseId",
+  });
   const bookId = parseInt(verseId.slice(0, 2));
-  const { isLoading, data } = useSWR(
-    { type: "book-progress", locale, bookId, code },
-    async ({ locale, bookId, code }) => {
-      const response = await fetch(
-        `/${locale}/translate/${code}/books/${bookId}/progress`,
-      );
-      const data = await response.json();
-      return data as {
-        wordCount: number;
-        approvedCount: number;
-        description: string;
-      };
-    },
-  );
 
-  const { approvedCount = 0, wordCount = 0, description = "" } = data ?? {};
+  const { isLoading, data } = useQuery({
+    queryKey: ["book-progress", bookId, code],
+    queryFn: () => getBookProgress({ data: { bookId, code } }),
+    enabled: bookId > 0 && code.length > 0,
+  });
+
+  const t = useTranslations("TranslationProgressBar");
+
+  const { approvedCount = 0, wordCount = 0 } = data ?? {};
+  const description =
+    wordCount > 0 ?
+      t("progress", {
+        wordCount,
+        approvedCount,
+        percent: ((100 * approvedCount) / wordCount).toFixed(1),
+      })
+    : "";
   const percentage = (wordCount === 0 ? 0 : approvedCount / wordCount) * 100;
 
   const progressElementRef = useRef<HTMLDivElement>(null);

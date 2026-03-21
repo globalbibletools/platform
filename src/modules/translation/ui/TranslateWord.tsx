@@ -6,23 +6,28 @@ import Checkbox from "@/components/Checkbox";
 import { Icon } from "@/components/Icon";
 import { useTextWidth } from "@/utils/text-width";
 import { useTranslations } from "next-intl";
-import { MouseEvent, useLayoutEffect, useRef, useState } from "react";
+import {
+  MouseEvent,
+  useEffect,
+  useEffectEvent,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { updateGlossAction } from "../actions/updateGloss";
 import { fontMap } from "@/fonts";
-import { isRichTextEmpty } from "@/components/RichTextInput";
-import { useSWRConfig } from "swr";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "@tanstack/react-router";
 import { GlossApprovalMethodRaw } from "../types";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import { MachineGlossStrategy } from "@/modules/languages/model";
 import { useServerFn } from "@tanstack/react-start";
+import { useQueryClient } from "@tanstack/react-query";
 
 export interface TranslateWordProps {
-  verseId: string;
   word: {
     id: string;
     text: string;
-    referenceGloss?: string;
+    referenceGloss: string | null;
     suggestions: string[];
     machineSuggestion?: string;
   };
@@ -30,12 +35,8 @@ export interface TranslateWordProps {
     id: number;
     wordIds: string[];
     gloss?: { text: string; state: string };
-    translatorNote?: {
-      authorName: string;
-      timestamp: string;
-      content: string;
-    };
-    footnote?: { authorName: string; timestamp: string; content: string };
+    hasTranslatorNote: boolean;
+    hasFootnote: boolean;
   };
   backtranslation?: string;
   language: {
@@ -57,7 +58,6 @@ export interface TranslateWordProps {
 export default function TranslateWord({
   word,
   phrase,
-  verseId,
   isHebrew,
   language,
   phraseFocused,
@@ -69,7 +69,7 @@ export default function TranslateWord({
   onOpenNotes,
 }: TranslateWordProps) {
   const t = useTranslations("TranslateWord");
-  const { mutate } = useSWRConfig();
+  const queryClient = useQueryClient();
   const updateGlossFn = useServerFn(updateGlossAction);
 
   const root = useRef<HTMLLIElement>(null);
@@ -84,9 +84,7 @@ export default function TranslateWord({
   const canViewTranslatorNotes = language.isMember;
 
   const hasNote =
-    !isRichTextEmpty(phrase.footnote?.content ?? "") ||
-    (!isRichTextEmpty(phrase.translatorNote?.content ?? "") &&
-      canViewTranslatorNotes);
+    phrase.hasFootnote || (phrase.hasTranslatorNote && canViewTranslatorNotes);
   const dir = "ltr";
 
   const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
@@ -119,46 +117,49 @@ export default function TranslateWord({
     }
   }
 
-  const { locale, code } = useParams<{ locale: string; code: string }>();
+  const { code } = useParams({ from: "/_main/translate/$code/$verseId" });
   const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    setSaving(false);
+  }, [phrase.id]);
   const autosaveQueued = useRef(false);
+  const router = useRouter();
   async function saveGloss(state: "APPROVED" | "UNAPPROVED") {
     setSaving(true);
     autosaveQueued.current = false;
 
-    const formData = new FormData();
-    formData.set("verseId", verseId);
-    formData.set("languageCode", language.code);
-    formData.set("phraseId", phrase.id.toString());
-    formData.set("state", state);
-
     const updatedGloss = input.current?.value ?? "";
 
-    formData.set("gloss", updatedGloss);
+    const data = {
+      languageCode: language.code,
+      phraseId: phrase.id,
+      state: state,
+      gloss: updatedGloss,
+      method: GlossApprovalMethodRaw.UserInput as GlossApprovalMethodRaw,
+    };
 
-    formData.set("method", GlossApprovalMethodRaw.UserInput);
     if (language.machineGlossStrategy === MachineGlossStrategy.Google) {
       if (word.suggestions[0] && updatedGloss === word.suggestions[0]) {
-        formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
+        data.method = GlossApprovalMethodRaw.MachineSuggestion;
       } else if (machineSuggestion && updatedGloss === machineSuggestion) {
-        formData.set("method", GlossApprovalMethodRaw.GoogleSuggestion);
+        data.method = GlossApprovalMethodRaw.GoogleSuggestion;
       }
     } else if (language.machineGlossStrategy === MachineGlossStrategy.LLM) {
       if (machineSuggestion && updatedGloss === machineSuggestion) {
-        formData.set("method", GlossApprovalMethodRaw.LLMSuggestion);
+        data.method = GlossApprovalMethodRaw.LLMSuggestion;
       } else if (word.suggestions[0] && updatedGloss === word.suggestions[0]) {
-        formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
+        data.method = GlossApprovalMethodRaw.MachineSuggestion;
       }
     }
 
     // TODO: handle errors in the result
-    await updateGlossFn({ data: formData });
+    await updateGlossFn({ data });
 
-    mutate({
-      type: "book-progress",
-      bookId: parseInt(word.id.slice(0, 2)),
-      locale,
-      code,
+    // TODO: move state into useQuery so it can be refreshed independently
+    router.invalidate();
+
+    await queryClient.invalidateQueries({
+      queryKey: ["book-progress", parseInt(word.id.slice(0, 2)), code],
     });
     setSaving(false);
   }

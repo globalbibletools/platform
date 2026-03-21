@@ -1,41 +1,32 @@
 import { query } from "@/db";
-import { getTranslations } from "next-intl/server";
-import { notFound } from "next/navigation";
-import { NextRequest } from "next/server";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
+import { createServerFn } from "@tanstack/react-start";
+import { notFound } from "@tanstack/react-router";
+import * as z from "zod";
 
-export async function GET(
-  _request: NextRequest,
-  props: { params: Promise<{ bookId: string; code: string; locale: string }> },
-) {
-  const params = await props.params;
-  const bookProgress = await fetchBookProgress(
-    parseInt(params.bookId),
-    params.code,
-  );
-  if (!bookProgress) {
-    notFound();
-  }
+const requestSchema = z.object({
+  bookId: z.coerce.number().int().positive(),
+  code: z.string(),
+});
 
-  const t = await getTranslations("TranslationProgressBar");
-
-  return Response.json({
-    wordCount: bookProgress.wordCount,
-    approvedCount: bookProgress.approvedCount,
-    description: t("progress", {
-      wordCount: bookProgress.wordCount,
-      approvedCount: bookProgress.approvedCount,
-      percent: (
-        (100 * bookProgress.approvedCount) /
-        bookProgress.wordCount
-      ).toFixed(1),
-    }),
-  });
-}
+const policy = new Policy({ authenticated: true });
 
 interface BookProgress {
   wordCount: number;
   approvedCount: number;
 }
+
+export const getBookProgress = createServerFn({ method: "GET" })
+  .inputValidator((input: unknown) => requestSchema.parse(input))
+  .middleware([createPolicyMiddleware({ policy, languageCodeField: "code" })])
+  .handler(async ({ data }) => {
+    const bookProgress = await fetchBookProgress(data.bookId, data.code);
+    if (!bookProgress) {
+      throw notFound();
+    }
+
+    return bookProgress;
+  });
 
 async function fetchBookProgress(
   bookId: number,
@@ -67,5 +58,6 @@ async function fetchBookProgress(
         `,
     [bookId, languageCode],
   );
+
   return result.rows[0];
 }

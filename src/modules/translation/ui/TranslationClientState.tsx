@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams } from "@tanstack/react-router";
 import {
   createContext,
   ReactNode,
@@ -33,7 +33,7 @@ export function TranslationClientStateProvider({
 }: {
   children: ReactNode;
 }) {
-  const { verseId } = useParams<{ verseId: string }>();
+  const { verseId } = useParams({ from: "/_main/translate/$code/$verseId" });
 
   const [focusedPhrase, focusPhrase] = useState<Phrase>();
   const [selectedWords, setSelectedWords] = useState<string[]>([]);

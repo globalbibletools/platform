@@ -16,20 +16,19 @@ import { MachineGlossStrategy } from "@/modules/languages/model";
 interface Word {
   id: string;
   text: string;
-  referenceGloss?: string;
+  referenceGloss: string | null;
   suggestions: string[];
   machineGloss?: string;
   lemma: string;
   grammar: string;
-  resource?: { name: string; entry: string };
   machineSuggestion?: string;
 }
 interface Phrase {
   id: number;
   wordIds: string[];
   gloss?: { text: string; state: string };
-  translatorNote?: { authorName: string; timestamp: string; content: string };
-  footnote?: { authorName: string; timestamp: string; content: string };
+  hasTranslatorNote: boolean;
+  hasFootnote: boolean;
 }
 
 export interface TranslationViewProps {
@@ -134,7 +133,6 @@ export default function TranslateView({
             return (
               <TranslateWord
                 key={word.id}
-                verseId={verseId}
                 word={word}
                 wordSelected={selectedWords.includes(word.id)}
                 phrase={phrase}
@@ -162,7 +160,7 @@ export default function TranslateView({
               <Button
                 variant="tertiary"
                 className="mt-[72px]"
-                href={`./${incrementVerseId(verseId)}`}
+                to={`/translate/${language.code}/${incrementVerseId(verseId)}`}
               >
                 Next
                 <Icon
@@ -177,10 +175,9 @@ export default function TranslateView({
       {showSidebar && (
         <TranslationSidebar
           ref={sidebarRef}
-          verseId={verseId}
           language={language}
           word={sidebarWord}
-          phrase={sidebarPhrase!}
+          phraseId={sidebarPhrase!.id}
           className="
             sticky z-10
             h-[320px] bottom-10 mb-10

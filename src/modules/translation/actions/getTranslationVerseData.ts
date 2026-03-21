@@ -1,108 +1,91 @@
 import { query } from "@/db";
-import { notFound } from "next/navigation";
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
-import { verifySession } from "@/session";
-import ClientTranslateView from "./ClientTranslationView";
 import { translateClient } from "@/google-translate";
 import { logger } from "@/logging";
-import { getCurrentLanguageReadModel } from "@/modules/languages/read-models/getCurrentLanguageReadModel";
-import { getVerseWordsReadModel } from "../read-models/getVerseWordsReadModel";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { MachineGlossStrategy } from "@/modules/languages/model";
+import { getCurrentLanguageReadModel } from "@/modules/languages/read-models/getCurrentLanguageReadModel";
+import { createServerFn } from "@tanstack/react-start";
+import * as z from "zod";
+import { getVerseWordsReadModel } from "../read-models/getVerseWordsReadModel";
 
-interface Props {
-  params: Promise<{ code: string; verseId: string }>;
-}
+const requestSchema = z.object({
+  code: z.string(),
+  verseId: z.string(),
+});
 
+const policy = new Policy({ authenticated: true });
 const CHAR_REGEX = /\w/;
 
-export default async function InterlinearView(props: Props) {
-  const messages = await getMessages();
-  const params = await props.params;
+export const getTranslationVerseData = createServerFn({ method: "GET" })
+  .inputValidator((input: unknown) => requestSchema.parse(input))
+  .middleware([createPolicyMiddleware({ policy })])
+  .handler(async ({ data, context }) => {
+    const [language, verse, phrases, suggestions, machineSuggestions] =
+      await Promise.all([
+        getCurrentLanguageReadModel(data.code, context.session.user.id),
+        getVerseWordsReadModel(data.verseId, data.code),
+        fetchPhrases(data.verseId, data.code, context.session.user.id),
+        fetchSuggestions(data.verseId, data.code),
+        fetchMachineSuggestions(data.verseId, data.code),
+      ]);
 
-  const session = await verifySession();
+    if (!verse || !language) {
+      return { language: null, words: [], phrases: [] };
+    }
 
-  const [language, verse, phrases, suggestions, machineSuggestions] =
-    await Promise.all([
-      getCurrentLanguageReadModel(params.code, session?.user.id),
-      getVerseWordsReadModel(params.verseId, params.code),
-      fetchPhrases(params.verseId, params.code, session?.user.id),
-      fetchSuggestions(params.verseId, params.code),
-      fetchMachineSuggestions(params.verseId, params.code),
-    ]);
+    const verseWords = verse.words;
 
-  if (!verse || !language) {
-    notFound();
-  }
+    const wordsToTranslate = Array.from(
+      new Set(
+        verseWords
+          .filter(
+            (w) =>
+              phrases.find((ph) => ph.wordIds.includes(w.id))?.gloss?.state !==
+                "APPROVED" &&
+              machineSuggestions.every((s) => s.wordId !== w.id) &&
+              !suggestions.find((s) => s.formId === w.formId)?.suggestions
+                .length &&
+              !!w.referenceGloss?.match(CHAR_REGEX),
+          )
+          .map((w) => (w.referenceGloss ?? "").toLowerCase()),
+      ),
+    );
 
-  // We only want to machine translate words that
-  // 1. Don't have an approved gloss
-  // 2. Already have a machine gloss
-  // 3. Have no suggestions from other verses
-  // 4. Have a reference gloss in English to translate from.
-  const wordsToTranslate = Array.from(
-    new Set(
-      verse.words
-        .filter(
-          (w) =>
-            phrases.find((ph) => ph.wordIds.includes(w.id))?.gloss?.state !==
-              "APPROVED" &&
-            machineSuggestions.every((s) => s.wordId !== w.id) &&
-            !suggestions.find((s) => s.formId === w.formId)?.suggestions
-              .length &&
-            !!w.referenceGloss?.match(CHAR_REGEX),
+    const newMachineSuggestions =
+      (
+        language.isMember &&
+        language.referenceLanguage &&
+        language.machineGlossStrategy === MachineGlossStrategy.Google
+      ) ?
+        await machineTranslate(
+          wordsToTranslate,
+          data.code,
+          language.referenceLanguage,
         )
-        .map((w) => (w.referenceGloss ?? "").toLowerCase()),
-    ),
-  );
+      : {};
 
-  const newMachineSuggestions =
-    (
-      language.isMember &&
-      language.referenceLanguage &&
-      language.machineGlossStrategy === MachineGlossStrategy.Google
-    ) ?
-      await machineTranslate(
-        wordsToTranslate,
-        params.code,
-        language.referenceLanguage,
-      )
-    : {};
+    const words = verseWords.map((w) => ({
+      ...w,
+      suggestions:
+        suggestions.find((s) => s.formId === w.formId)?.suggestions ?? [],
+      machineSuggestion:
+        machineSuggestions.find((s) => s.wordId === w.id)?.gloss ??
+        newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? ""],
+    }));
 
-  const words = verse.words.map((w) => ({
-    ...w,
-    suggestions:
-      suggestions.find((s) => s.formId === w.formId)?.suggestions ?? [],
-    machineSuggestion:
-      machineSuggestions.find((s) => s.wordId === w.id)?.gloss ??
-      newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? ""],
-  }));
-
-  return (
-    <NextIntlClientProvider
-      messages={{
-        TranslateWord: messages.TranslateWord,
-        TranslationSidebar: messages.TranslationSidebar,
-        RichTextInput: messages.RichTextInput,
-        VersesPreview: messages.VersesPreview,
-      }}
-    >
-      <ClientTranslateView
-        verseId={params.verseId}
-        words={words}
-        phrases={phrases}
-        language={language}
-      />
-    </NextIntlClientProvider>
-  );
-}
+    return {
+      language,
+      words,
+      phrases,
+    };
+  });
 
 interface Phrase {
   id: number;
   wordIds: string[];
   gloss?: { text: string; state: string };
-  translatorNote?: { authorName: string; timestamp: string; content: string };
-  footnote?: { authorName: string; timestamp: string; content: string };
+  hasTranslatorNote: boolean;
+  hasFootnote: boolean;
 }
 
 async function fetchPhrases(
@@ -145,8 +128,8 @@ async function fetchPhrases(
 				)
 				ELSE NULL
 			END AS gloss,
-			fn.note AS "footnote",
-			tn.note AS "translatorNote"
+            (fn.content is not null and fn.content <> '<p></p>') as "hasFootnote",
+            (tn.content is not null and tn.content <> '<p></p>') as "hasTranslatorNote"
 		FROM (
 			SELECT ph.id, ARRAY_AGG(phw.word_id ORDER BY phw.word_id) AS word_ids FROM phrase AS ph
 			JOIN phrase_word AS phw ON phw.phrase_id = ph.id
@@ -163,32 +146,13 @@ async function fetchPhrases(
 		) AS ph
 		
 		LEFT JOIN gloss AS g ON g.phrase_id = ph.id
-		LEFT JOIN (
-			SELECT
-				n.phrase_id,
-				JSON_BUILD_OBJECT(
-				  'timestamp', n.timestamp,
-				  'content', n.content,
-				  'authorName', COALESCE(u.name, '')
-				) AS note
-			FROM footnote AS n
-			JOIN users AS u ON u.id = n.author_id
-		) AS fn ON fn.phrase_id = ph.id
-		LEFT JOIN LATERAL (
-			SELECT
-				n.phrase_id,
-				JSON_BUILD_OBJECT(
-				  'timestamp', n.timestamp,
-				  'content', n.content,
-				  'authorName', COALESCE(u.name, '')
-				) AS note
-			FROM translator_note AS n
-			JOIN users AS u ON u.id = n.author_id
-		) AS tn ON tn.phrase_id = ph.id
+		LEFT JOIN footnote AS fn ON fn.phrase_id = ph.id
+		LEFT JOIN translator_note AS tn ON tn.phrase_id = ph.id
 		ORDER BY ph.id
         `,
     [verseId, languageCode],
   );
+
   return result.rows;
 }
 
@@ -213,6 +177,7 @@ async function fetchMachineSuggestions(
         `,
     [verseId, languageCode],
   );
+
   return result.rows;
 }
 
@@ -227,7 +192,7 @@ async function fetchSuggestions(
 ): Promise<FormSuggestion[]> {
   const result = await query<FormSuggestion>(
     `
-        SELECT 
+        SELECT
             sc.form_id AS "formId",
             ARRAY_AGG(sc.gloss ORDER BY sc.count DESC) AS suggestions
         FROM lemma_form_suggestion AS sc
@@ -241,6 +206,7 @@ async function fetchSuggestions(
         `,
     [verseId, languageCode],
   );
+
   return result.rows;
 }
 
@@ -274,7 +240,6 @@ async function machineTranslate(
     console.log(`Translated to ${code}: ${ref} --> ${gloss}`),
   );
 
-  // We do not await this so that the request can return quickly. It is not needed to finish the request.
   saveMachineTranslations(code, words, machineGlosses);
 
   return wordMap;
