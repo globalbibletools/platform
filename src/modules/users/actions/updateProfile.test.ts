@@ -1,7 +1,6 @@
 import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
-import { Scrypt } from "oslo/password";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { updateProfile } from "./updateProfile";
 import { userFactory } from "../test-utils/userFactory";
@@ -10,6 +9,7 @@ import {
   findEmailVerificationForUser,
   findUserById,
 } from "../test-utils/dbUtils";
+import Password from "../model/Password";
 
 initializeDatabase();
 
@@ -127,7 +127,7 @@ test("rehashes password if it changed", async () => {
     hashed_password: expect.any(String),
   });
   await expect(
-    new Scrypt().verify(updatedUser?.hashed_password ?? "", newPassword),
+    Password.verify(updatedUser?.hashed_password ?? "", newPassword),
   ).resolves.toEqual(true);
   const emailVerification = await findEmailVerificationForUser(user.id);
   expect(emailVerification).toBeUndefined();

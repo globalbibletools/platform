@@ -9,12 +9,16 @@ import {
   HeaderMenuItems,
 } from "./HeaderLink";
 import { useTranslations } from "next-intl";
-import { getCurrentLocale } from "@/shared/i18n/shared";
-import { Link, useRouteContext } from "@tanstack/react-router";
+import { Link, useRouteContext, useRouter } from "@tanstack/react-router";
 import { SystemRoleRaw } from "@/modules/users/types";
+import { logout } from "@/modules/users/actions/logout";
+import { useServerFn } from "@tanstack/react-start";
 
 export default function PrimaryNavigation() {
   const t = useTranslations("PrimaryNavigation");
+
+  const router = useRouter();
+  const logoutFn = useServerFn(logout);
 
   const context = useRouteContext({ strict: false });
 
@@ -84,7 +88,13 @@ export default function PrimaryNavigation() {
                   <Icon icon="question-circle" className="me-2" fixedWidth />
                   <span className="font-bold">{t("links.help")}</span>
                 </HeaderDropdownItem>
-                <HeaderDropdownItem to="/logout">
+                <HeaderDropdownItem
+                  onClick={async () => {
+                    await logoutFn();
+                    await router.invalidate();
+                    await router.navigate({ to: "/login" });
+                  }}
+                >
                   <Icon icon="right-from-bracket" className="me-2" fixedWidth />
                   <span className="font-bold">{t("links.log_out")}</span>
                 </HeaderDropdownItem>

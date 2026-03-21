@@ -19,7 +19,6 @@ import { Route as MinimalLoginRouteImport } from "./routes/_minimal/login";
 import { Route as MinimalInviteRouteImport } from "./routes/_minimal/invite";
 import { Route as MinimalForgotPasswordRouteImport } from "./routes/_minimal/forgot-password";
 import { Route as MainProfileRouteImport } from "./routes/_main/profile";
-import { Route as MainLogoutRouteImport } from "./routes/_main/logout";
 import { Route as MainFeaturesRouteImport } from "./routes/_main/features";
 import { Route as MainDashboardRouteImport } from "./routes/_main/dashboard";
 import { Route as MainTranslateRouteRouteImport } from "./routes/_main/translate/route";
@@ -88,11 +87,6 @@ const MinimalForgotPasswordRoute = MinimalForgotPasswordRouteImport.update({
 const MainProfileRoute = MainProfileRouteImport.update({
   id: "/profile",
   path: "/profile",
-  getParentRoute: () => MainRouteRoute,
-} as any);
-const MainLogoutRoute = MainLogoutRouteImport.update({
-  id: "/logout",
-  path: "/logout",
   getParentRoute: () => MainRouteRoute,
 } as any);
 const MainFeaturesRoute = MainFeaturesRouteImport.update({
@@ -217,7 +211,6 @@ export interface FileRoutesByFullPath {
   "/translate": typeof MainTranslateRouteRouteWithChildren;
   "/dashboard": typeof MainDashboardRoute;
   "/features": typeof MainFeaturesRoute;
-  "/logout": typeof MainLogoutRoute;
   "/profile": typeof MainProfileRoute;
   "/forgot-password": typeof MinimalForgotPasswordRoute;
   "/invite": typeof MinimalInviteRoute;
@@ -249,7 +242,6 @@ export interface FileRoutesByTo {
   "/translate": typeof MainTranslateRouteRouteWithChildren;
   "/dashboard": typeof MainDashboardRoute;
   "/features": typeof MainFeaturesRoute;
-  "/logout": typeof MainLogoutRoute;
   "/profile": typeof MainProfileRoute;
   "/forgot-password": typeof MinimalForgotPasswordRoute;
   "/invite": typeof MinimalInviteRoute;
@@ -284,7 +276,6 @@ export interface FileRoutesById {
   "/_main/translate": typeof MainTranslateRouteRouteWithChildren;
   "/_main/dashboard": typeof MainDashboardRoute;
   "/_main/features": typeof MainFeaturesRoute;
-  "/_main/logout": typeof MainLogoutRoute;
   "/_main/profile": typeof MainProfileRoute;
   "/_minimal/forgot-password": typeof MinimalForgotPasswordRoute;
   "/_minimal/invite": typeof MinimalInviteRoute;
@@ -318,7 +309,6 @@ export interface FileRouteTypes {
     | "/translate"
     | "/dashboard"
     | "/features"
-    | "/logout"
     | "/profile"
     | "/forgot-password"
     | "/invite"
@@ -350,7 +340,6 @@ export interface FileRouteTypes {
     | "/translate"
     | "/dashboard"
     | "/features"
-    | "/logout"
     | "/profile"
     | "/forgot-password"
     | "/invite"
@@ -384,7 +373,6 @@ export interface FileRouteTypes {
     | "/_main/translate"
     | "/_main/dashboard"
     | "/_main/features"
-    | "/_main/logout"
     | "/_main/profile"
     | "/_minimal/forgot-password"
     | "/_minimal/invite"
@@ -488,13 +476,6 @@ declare module "@tanstack/react-router" {
       path: "/profile";
       fullPath: "/profile";
       preLoaderRoute: typeof MainProfileRouteImport;
-      parentRoute: typeof MainRouteRoute;
-    };
-    "/_main/logout": {
-      id: "/_main/logout";
-      path: "/logout";
-      fullPath: "/logout";
-      preLoaderRoute: typeof MainLogoutRouteImport;
       parentRoute: typeof MainRouteRoute;
     };
     "/_main/features": {
@@ -740,7 +721,6 @@ interface MainRouteRouteChildren {
   MainTranslateRouteRoute: typeof MainTranslateRouteRouteWithChildren;
   MainDashboardRoute: typeof MainDashboardRoute;
   MainFeaturesRoute: typeof MainFeaturesRoute;
-  MainLogoutRoute: typeof MainLogoutRoute;
   MainProfileRoute: typeof MainProfileRoute;
   MainAdminMainRoute: typeof MainAdminMainRouteWithChildren;
   MainPSplatRoute: typeof MainPSplatRoute;
@@ -752,7 +732,6 @@ const MainRouteRouteChildren: MainRouteRouteChildren = {
   MainTranslateRouteRoute: MainTranslateRouteRouteWithChildren,
   MainDashboardRoute: MainDashboardRoute,
   MainFeaturesRoute: MainFeaturesRoute,
-  MainLogoutRoute: MainLogoutRoute,
   MainProfileRoute: MainProfileRoute,
   MainAdminMainRoute: MainAdminMainRouteWithChildren,
   MainPSplatRoute: MainPSplatRoute,

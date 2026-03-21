@@ -1,5 +1,4 @@
 import { faker } from "@faker-js/faker/locale/en";
-import { Scrypt } from "oslo/password";
 import { getDb } from "@/db";
 import { ulid } from "@/shared/ulid";
 import { EmailStatusRaw } from "../model/EmailStatus";
@@ -13,8 +12,9 @@ import type {
   UserSystemRoleTable,
   UserTable,
 } from "../data-access/types";
+import Password from "../model/Password";
 
-const HASHED_PASSWORD = await new Scrypt().hash("pa$$word");
+const HASHED_PASSWORD = await Password.hash("pa$$word");
 
 export interface UserFactoryOptions {
   roles?: "admin"[];

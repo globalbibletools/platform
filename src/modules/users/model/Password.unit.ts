@@ -1,8 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { Scrypt } from "oslo/password";
 import Password from "./Password";
-
-const scrypt = new Scrypt();
 
 describe("create", async () => {
   test("return Password with updated hashed password", async () => {
@@ -13,28 +10,22 @@ describe("create", async () => {
         hash: expect.any(String),
       }),
     );
-    await expect(scrypt.verify(result.hash, newPassword)).resolves.toEqual(
+    await expect(Password.verify(result.hash, newPassword)).resolves.toEqual(
       true,
     );
   });
 });
 
 describe("verify", async () => {
+  const password = new Password({
+    hash: "D6CgDdCE9kB7qLLu:19c04c5f479c1af6772c8cb4efe106ef3f8353d05b74145b4f7a1c903a7b87f6fe74a492ad8c445f326c4f968bb6f1166056b37d28e527621fa1d0b40edd9f31",
+  });
+
   test("returns true if password is valid", async () => {
-    const password = "pa$$word";
-    const props = {
-      hash: await scrypt.hash(password),
-    };
-    const pw = new Password(props);
-    await expect(pw.verify(password)).resolves.toEqual(true);
+    await expect(password.verify("asdf1234")).resolves.toEqual(true);
   });
 
   test("returns false if password is invalid", async () => {
-    const password = "pa$$word";
-    const props = {
-      hash: await scrypt.hash(password),
-    };
-    const pw = new Password(props);
-    await expect(pw.verify("garbage")).resolves.toEqual(false);
+    await expect(password.verify("garbage")).resolves.toEqual(false);
   });
 });

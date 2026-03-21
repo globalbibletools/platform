@@ -11,7 +11,6 @@
     "format": "prettier . --write",
     "check-types": "tsc --noEmit",
     "prepare": "husky || true",
-    "postinstall": "patch-package",
     "test": "vitest",
     "test:run": "vitest run"
   },
@@ -85,6 +84,7 @@
     "kysely": "0.28.2",
     "lint-staged": "15.2.11",
     "lodash": "4.17.21",
+    "nitro": "3.0.260311-beta",
     "pg-cursor": "2.15.3",
     "pg-query-stream": "4.10.3",
     "playwright": "1.51.0",
