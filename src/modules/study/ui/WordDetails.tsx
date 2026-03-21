@@ -9,8 +9,10 @@ import { createPortal } from "react-dom";
 import { parseReferenceRange } from "@/verse-utils";
 import { VersesPreview } from "@/components/VersesPreview";
 import { isRichTextEmpty } from "@/components/RichTextInput";
-import useSWR from "swr";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getLemmaResource } from "../actions/getLemmaResource";
 
 export interface Word {
   id: string;
@@ -28,12 +30,6 @@ export interface WordDetailsProps {
   mode: "immersive" | "standard";
 }
 
-export interface LemmaResource {
-  lemmaId: string;
-  name: string;
-  entry: string;
-}
-
 export default function WordDetails({
   language,
   word,
@@ -45,13 +41,11 @@ export default function WordDetails({
 
   const hasNotes = !isRichTextEmpty(word.footnote ?? "");
 
-  const { data, isLoading } = useSWR(
-    ["lemma-resource", word.lemma],
-    async ([, lemmaId]) => {
-      const response = await fetch(`/api/lemma-resources/${lemmaId}`);
-      return (await response.json()) as Promise<LemmaResource | undefined>;
-    },
-  );
+  const getLemmaResourceFn = useServerFn(getLemmaResource);
+  const { data, isLoading } = useQuery({
+    queryKey: ["lemma-resource", word.lemma],
+    queryFn: () => getLemmaResourceFn({ data: { lemmaId: word.lemma } }),
+  });
 
   const lexiconEntryRef = useRef<HTMLDivElement>(null);
   const [previewElement, setPreviewElement] = useState<HTMLDivElement | null>(

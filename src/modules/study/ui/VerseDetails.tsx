@@ -4,11 +4,7 @@ import * as z from "zod";
 import { useState, Fragment } from "react";
 import { Tab, TabPanels, TabPanel, TabList, TabGroup } from "@headlessui/react";
 import { useTranslations } from "next-intl";
-import useSWR from "swr";
-import {
-  getVerseImmseriveContentReadModel,
-  VerseImmersiveContentReadModel,
-} from "@/modules/bible-core/read-models/getVerseImmersiveContentReadModel";
+import { getVerseImmseriveContentReadModel } from "@/modules/bible-core/read-models/getVerseImmersiveContentReadModel";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";

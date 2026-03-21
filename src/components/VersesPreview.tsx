@@ -3,7 +3,9 @@ import { isOldTestament, parseVerseId } from "@/verse-utils";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useTranslations } from "next-intl";
 import { fontMap } from "@/fonts";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getVersesPreview } from "@/modules/study/actions/getVersesPreview";
 
 type VersesPreviewProps = {
   language: { font: string; textDirection: string; code: string };
@@ -36,27 +38,18 @@ export const VersesPreview = ({
     isValid = false;
   }
 
-  const { isLoading, data, error } = useSWR(
-    ["verses-preview", language.code, verseIds],
-    async ([, code, verseIds]) => {
-      const searchParams = new URLSearchParams({
-        code,
-        verseIds: verseIds.join(","),
-      });
-      const response = await fetch(
-        `/api/verse-preview?${searchParams.toString()}`,
-      );
-      return response.json() as Promise<{
-        verses: {
-          id: string;
-          original: string;
-          translation?: string;
-        }[];
-      }>;
-    },
-  );
+  const getVersesPreviewFn = useServerFn(getVersesPreview);
 
-  console.log(error);
+  const { isLoading, data } = useQuery({
+    queryKey: ["verses-preview", language.code, verseIds],
+    queryFn: () =>
+      getVersesPreviewFn({
+        data: {
+          code: language.code,
+          verseIds,
+        },
+      }),
+  });
 
   return (
     <div className="my-1 -mx-4 py-2 px-4 bg-brown-50 dark:bg-gray-700">
