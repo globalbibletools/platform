@@ -1,8 +1,8 @@
 import { fontMap } from "@/fonts";
-import useSWR from "swr";
 import { parseVerseId } from "@/verse-utils";
 import bookKeys from "@/data/book-keys.json";
 import { BibleClient } from "@gracious.tech/fetch-client";
+import { useQuery } from "@tanstack/react-query";
 
 export interface TranslationReferenceProps {
   verseId: string;
@@ -38,9 +38,9 @@ export default function TranslationReference({
 }
 
 function useTranslationQuery(verseId: string, translationIds: string[]) {
-  return useSWR(
-    ["verse-translation", verseId, translationIds],
-    async ([, verseId, translationIds]) => {
+  return useQuery({
+    queryKey: ["verse-translation", verseId, translationIds],
+    queryFn: async () => {
       const { bookId, chapterNumber, verseNumber } = parseVerseId(verseId);
       const bookKey = bookKeys[bookId - 1].toLowerCase();
       const collection = await client.fetch_collection();
@@ -76,5 +76,5 @@ function useTranslationQuery(verseId: string, translationIds: string[]) {
       }
       return;
     },
-  );
+  });
 }
