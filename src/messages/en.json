@@ -470,7 +470,10 @@
     "app_name": "Global Bible Tools"
   },
   "RootNotFoundPage": {
-    "title": "Not Found"
+    "title": "Not Found",
+    "actions": {
+      "log_in": "Log In"
+    }
   },
   "SettingsMenu": {
     "text_size": "Text Size",

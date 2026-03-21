@@ -21,6 +21,7 @@ import { Route as MainProfileRouteImport } from "./routes/_main/profile";
 import { Route as MainLogoutRouteImport } from "./routes/_main/logout";
 import { Route as MainFeaturesRouteImport } from "./routes/_main/features";
 import { Route as MainDashboardRouteImport } from "./routes/_main/dashboard";
+import { Route as MainSplatRouteImport } from "./routes/_main.$";
 import { Route as MainTranslateRouteRouteImport } from "./routes/_main/translate/route";
 import { Route as MainReadRouteRouteImport } from "./routes/_main/read/route";
 import { Route as MainTranslateCodeRouteImport } from "./routes/_main/translate/$code";
@@ -96,6 +97,11 @@ const MainFeaturesRoute = MainFeaturesRouteImport.update({
 const MainDashboardRoute = MainDashboardRouteImport.update({
   id: "/dashboard",
   path: "/dashboard",
+  getParentRoute: () => MainRouteRoute,
+} as any);
+const MainSplatRoute = MainSplatRouteImport.update({
+  id: "/$",
+  path: "/$",
   getParentRoute: () => MainRouteRoute,
 } as any);
 const MainTranslateRouteRoute = MainTranslateRouteRouteImport.update({
@@ -203,6 +209,7 @@ export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
   "/read": typeof MainReadRouteRouteWithChildren;
   "/translate": typeof MainTranslateRouteRouteWithChildren;
+  "/$": typeof MainSplatRoute;
   "/dashboard": typeof MainDashboardRoute;
   "/features": typeof MainFeaturesRoute;
   "/logout": typeof MainLogoutRoute;
@@ -233,6 +240,7 @@ export interface FileRoutesByTo {
   "/": typeof IndexRoute;
   "/read": typeof MainReadRouteRouteWithChildren;
   "/translate": typeof MainTranslateRouteRouteWithChildren;
+  "/$": typeof MainSplatRoute;
   "/dashboard": typeof MainDashboardRoute;
   "/features": typeof MainFeaturesRoute;
   "/logout": typeof MainLogoutRoute;
@@ -266,6 +274,7 @@ export interface FileRoutesById {
   "/_minimal": typeof MinimalRouteRouteWithChildren;
   "/_main/read": typeof MainReadRouteRouteWithChildren;
   "/_main/translate": typeof MainTranslateRouteRouteWithChildren;
+  "/_main/$": typeof MainSplatRoute;
   "/_main/dashboard": typeof MainDashboardRoute;
   "/_main/features": typeof MainFeaturesRoute;
   "/_main/logout": typeof MainLogoutRoute;
@@ -298,6 +307,7 @@ export interface FileRouteTypes {
     | "/"
     | "/read"
     | "/translate"
+    | "/$"
     | "/dashboard"
     | "/features"
     | "/logout"
@@ -328,6 +338,7 @@ export interface FileRouteTypes {
     | "/"
     | "/read"
     | "/translate"
+    | "/$"
     | "/dashboard"
     | "/features"
     | "/logout"
@@ -360,6 +371,7 @@ export interface FileRouteTypes {
     | "/_minimal"
     | "/_main/read"
     | "/_main/translate"
+    | "/_main/$"
     | "/_main/dashboard"
     | "/_main/features"
     | "/_main/logout"
@@ -477,6 +489,13 @@ declare module "@tanstack/react-router" {
       path: "/dashboard";
       fullPath: "/dashboard";
       preLoaderRoute: typeof MainDashboardRouteImport;
+      parentRoute: typeof MainRouteRoute;
+    };
+    "/_main/$": {
+      id: "/_main/$";
+      path: "/$";
+      fullPath: "/$";
+      preLoaderRoute: typeof MainSplatRouteImport;
       parentRoute: typeof MainRouteRoute;
     };
     "/_main/translate": {
@@ -699,6 +718,7 @@ const MainAdminLanguagesCodeRouteRouteWithChildren =
 interface MainRouteRouteChildren {
   MainReadRouteRoute: typeof MainReadRouteRouteWithChildren;
   MainTranslateRouteRoute: typeof MainTranslateRouteRouteWithChildren;
+  MainSplatRoute: typeof MainSplatRoute;
   MainDashboardRoute: typeof MainDashboardRoute;
   MainFeaturesRoute: typeof MainFeaturesRoute;
   MainLogoutRoute: typeof MainLogoutRoute;
@@ -710,6 +730,7 @@ interface MainRouteRouteChildren {
 const MainRouteRouteChildren: MainRouteRouteChildren = {
   MainReadRouteRoute: MainReadRouteRouteWithChildren,
   MainTranslateRouteRoute: MainTranslateRouteRouteWithChildren,
+  MainSplatRoute: MainSplatRoute,
   MainDashboardRoute: MainDashboardRoute,
   MainFeaturesRoute: MainFeaturesRoute,
   MainLogoutRoute: MainLogoutRoute,

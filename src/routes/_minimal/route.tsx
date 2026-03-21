@@ -6,7 +6,6 @@ import {
 import { useEffect } from "react";
 import Button from "@/components/Button";
 import ModalView, { ModalViewTitle } from "@/components/ModalView";
-import LoadingSpinner from "@/components/LoadingSpinner";
 import { useTranslations } from "next-intl";
 
 export const Route = createFileRoute("/_minimal")({
