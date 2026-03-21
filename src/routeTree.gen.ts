@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from "./routes/__root";
 import { Route as MinimalRouteRouteImport } from "./routes/_minimal/route";
 import { Route as MainRouteRouteImport } from "./routes/_main/route";
 import { Route as IndexRouteImport } from "./routes/index";
+import { Route as EmailNotificationsRouteImport } from "./routes/email.notifications";
 import { Route as MinimalVerifyEmailRouteImport } from "./routes/_minimal/verify-email";
 import { Route as MinimalResetPasswordRouteImport } from "./routes/_minimal/reset-password";
 import { Route as MinimalLoginRouteImport } from "./routes/_minimal/login";
@@ -52,6 +53,11 @@ const MainRouteRoute = MainRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: "/",
   path: "/",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const EmailNotificationsRoute = EmailNotificationsRouteImport.update({
+  id: "/email/notifications",
+  path: "/email/notifications",
   getParentRoute: () => rootRouteImport,
 } as any);
 const MinimalVerifyEmailRoute = MinimalVerifyEmailRouteImport.update({
@@ -219,6 +225,7 @@ export interface FileRoutesByFullPath {
   "/login": typeof MinimalLoginRoute;
   "/reset-password": typeof MinimalResetPasswordRoute;
   "/verify-email": typeof MinimalVerifyEmailRoute;
+  "/email/notifications": typeof EmailNotificationsRoute;
   "/admin": typeof MainAdminMainRouteWithChildren;
   "/read/$code": typeof MainReadCodeRouteWithChildren;
   "/translate/$code": typeof MainTranslateCodeRouteWithChildren;
@@ -250,6 +257,7 @@ export interface FileRoutesByTo {
   "/login": typeof MinimalLoginRoute;
   "/reset-password": typeof MinimalResetPasswordRoute;
   "/verify-email": typeof MinimalVerifyEmailRoute;
+  "/email/notifications": typeof EmailNotificationsRoute;
   "/admin": typeof MainAdminMainRouteWithChildren;
   "/read/$code": typeof MainReadCodeRouteWithChildren;
   "/translate/$code": typeof MainTranslateCodeRouteWithChildren;
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   "/_minimal/login": typeof MinimalLoginRoute;
   "/_minimal/reset-password": typeof MinimalResetPasswordRoute;
   "/_minimal/verify-email": typeof MinimalVerifyEmailRoute;
+  "/email/notifications": typeof EmailNotificationsRoute;
   "/_main/admin/_main": typeof MainAdminMainRouteWithChildren;
   "/_main/read/$code": typeof MainReadCodeRouteWithChildren;
   "/_main/translate/$code": typeof MainTranslateCodeRouteWithChildren;
@@ -317,6 +326,7 @@ export interface FileRouteTypes {
     | "/login"
     | "/reset-password"
     | "/verify-email"
+    | "/email/notifications"
     | "/admin"
     | "/read/$code"
     | "/translate/$code"
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
     | "/login"
     | "/reset-password"
     | "/verify-email"
+    | "/email/notifications"
     | "/admin"
     | "/read/$code"
     | "/translate/$code"
@@ -381,6 +392,7 @@ export interface FileRouteTypes {
     | "/_minimal/login"
     | "/_minimal/reset-password"
     | "/_minimal/verify-email"
+    | "/email/notifications"
     | "/_main/admin/_main"
     | "/_main/read/$code"
     | "/_main/translate/$code"
@@ -403,6 +415,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
   MainRouteRoute: typeof MainRouteRouteWithChildren;
   MinimalRouteRoute: typeof MinimalRouteRouteWithChildren;
+  EmailNotificationsRoute: typeof EmailNotificationsRoute;
 }
 
 declare module "@tanstack/react-router" {
@@ -426,6 +439,13 @@ declare module "@tanstack/react-router" {
       path: "/";
       fullPath: "/";
       preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/email/notifications": {
+      id: "/email/notifications";
+      path: "/email/notifications";
+      fullPath: "/email/notifications";
+      preLoaderRoute: typeof EmailNotificationsRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/_minimal/verify-email": {
@@ -768,6 +788,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MainRouteRoute: MainRouteRouteWithChildren,
   MinimalRouteRoute: MinimalRouteRouteWithChildren,
+  EmailNotificationsRoute: EmailNotificationsRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
