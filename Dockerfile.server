@@ -5,14 +5,12 @@ FROM node:20-slim AS base
 FROM base AS deps
 WORKDIR /app
 COPY package*.json .
-COPY patches/ ./patches/
-RUN npm ci
+RUN ["npm", "ci"]
 
 FROM deps AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN --mount=type=secret,id=database-url,env=DATABASE_URL \
-    npm run build
+RUN ["npm", "run", "build"]
  
 FROM base AS runner
 WORKDIR /app
@@ -23,9 +21,8 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-COPY --from=build --chown=nextjs:nodejs /app/.next/standalone .
-COPY --from=build --chown=nextjs:nodejs /app/.next/static .next/static
-CMD node server.js
+COPY --from=build --chown=nextjs:nodejs /app/.output .
+CMD ["node", "server/index.mjs"]
 
 FROM node:20 AS dev
 RUN apt-get update

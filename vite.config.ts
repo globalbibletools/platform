@@ -4,6 +4,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
+import { nitro } from "nitro/vite";
 
 export default defineConfig({
   server: {
@@ -19,11 +20,9 @@ export default defineConfig({
         quoteStyle: "double",
       },
     }),
+    nitro(),
     viteReact(),
   ],
-  optimizeDeps: {
-    exclude: ["@node-rs/argon2", "@node-rs/bcrypt"],
-  },
   test: {
     projects: [
       {

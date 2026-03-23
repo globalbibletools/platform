@@ -1,4 +1,3 @@
-import { logger } from "@/logging";
 import { parseChapterPermalinkReference } from "@/verse-utils";
 import { notFound, ParsedLocation, redirect } from "@tanstack/react-router";
 
@@ -20,8 +19,7 @@ export function resolvePermalink(location: ParsedLocation): never {
       let chapterId;
       try {
         chapterId = parseChapterPermalinkReference(identifier);
-      } catch (error) {
-        logger.error(error);
+      } catch {
         throw notFound();
       }
 
