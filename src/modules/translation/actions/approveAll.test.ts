@@ -1,8 +1,7 @@
-import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
 import { approveAll } from "./approveAll";
-import logIn from "@/tests/vitest/login";
 import { phraseFactory } from "../test-utils/phraseFactory";
 import {
   findGlossForPhrase,
@@ -22,15 +21,32 @@ import { findTrackingEvents } from "@/modules/reporting/test-utils/dbUtils";
 initializeDatabase();
 
 test("returns and does nothing if the request shape doesn't match the schema", async () => {
-  const { members } = await languageFactory.build();
-  await logIn(members[0].user_id);
+  const { session } = await userFactory.build({ session: true });
 
-  const formData = new FormData();
-  const response = await approveAll(formData);
-  expect(response).toBeUndefined();
+  await expect(
+    runServerFn(approveAll, {
+      data: {},
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
 
   const events = await findTrackingEvents();
   expect(events).toEqual([]);
+});
+
+test("returns unauthorized error if user is not a language member", async () => {
+  const { session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build();
+
+  await expect(
+    runServerFn(approveAll, {
+      data: {
+        code: language.code,
+        phrases: [{ id: 1, gloss: "asdf" }],
+      },
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
 });
 
 test("returns not found if user is not logged in", async () => {
@@ -41,16 +57,18 @@ test("returns not found if user is not logged in", async () => {
     languageId: language.id,
   });
 
-  const formData = new FormData();
-  formData.set("verseId", "123");
-  formData.set("code", language.code);
-  formData.set(`phrases[0][id]`, String(phrases[0].phrase.id));
-  formData.set(`phrases[0][gloss]`, faker.lorem.word());
-  formData.set(`phrases[1][id]`, String(phrases[1].phrase.id));
-  formData.set(`phrases[1][gloss]`, faker.lorem.word());
-  formData.set(`phrases[2][id]`, String(phrases[2].phrase.id));
-  formData.set(`phrases[2][gloss]`, faker.lorem.word());
-  await expect(approveAll(formData)).toBeNextjsNotFound();
+  await expect(
+    runServerFn(approveAll, {
+      data: {
+        code: language.code,
+        phrases: [
+          { id: phrases[0].phrase.id, gloss: faker.lorem.word() },
+          { id: phrases[1].phrase.id, gloss: faker.lorem.word() },
+          { id: phrases[2].phrase.id, gloss: faker.lorem.word() },
+        ],
+      },
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
 
   const updatedGloss1 = await findGlossForPhrase(phrases[0].phrase.id);
   expect(updatedGloss1).toBeUndefined();
@@ -65,24 +83,26 @@ test("returns not found if user is not logged in", async () => {
 
 test("returns not found if user is not a translator on the language", async () => {
   const { language } = await languageFactory.build();
-  const { user: nonmember } = await userFactory.build();
-  await logIn(nonmember.id);
+  const { session } = await userFactory.build({ session: true });
 
   const { phrases } = await phraseFactory.buildMany({
     scope: 3,
     languageId: language.id,
   });
 
-  const formData = new FormData();
-  formData.set("verseId", "123");
-  formData.set("code", language.code);
-  formData.set(`phrases[0][id]`, String(phrases[0].phrase.id));
-  formData.set(`phrases[0][gloss]`, faker.lorem.word());
-  formData.set(`phrases[1][id]`, String(phrases[1].phrase.id));
-  formData.set(`phrases[1][gloss]`, faker.lorem.word());
-  formData.set(`phrases[2][id]`, String(phrases[2].phrase.id));
-  formData.set(`phrases[2][gloss]`, faker.lorem.word());
-  await expect(approveAll(formData)).toBeNextjsNotFound();
+  await expect(
+    runServerFn(approveAll, {
+      data: {
+        code: language.code,
+        phrases: [
+          { id: phrases[0].phrase.id, gloss: faker.lorem.word() },
+          { id: phrases[1].phrase.id, gloss: faker.lorem.word() },
+          { id: phrases[2].phrase.id, gloss: faker.lorem.word() },
+        ],
+      },
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
 
   const updatedGloss1 = await findGlossForPhrase(phrases[0].phrase.id);
   expect(updatedGloss1).toBeUndefined();
@@ -96,9 +116,8 @@ test("returns not found if user is not a translator on the language", async () =
 });
 
 test("updates found phrases and skips missing phrase IDs", async () => {
-  const { language, members } = await languageFactory.build();
-  const translatorId = members[0].user_id;
-  await logIn(translatorId);
+  const { user, session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build({ members: [user.id] });
 
   const { phrases } = await phraseFactory.buildMany({
     scope: 2,
@@ -107,17 +126,18 @@ test("updates found phrases and skips missing phrase IDs", async () => {
   const missingPhraseId = 9999999;
   const glosses = [faker.lorem.word(), faker.lorem.word(), faker.lorem.word()];
 
-  const formData = new FormData();
-  formData.set("verseId", "123");
-  formData.set("code", language.code);
-  formData.set(`phrases[0][id]`, String(phrases[0].phrase.id));
-  formData.set(`phrases[0][gloss]`, glosses[0]);
-  formData.set(`phrases[1][id]`, String(phrases[1].phrase.id));
-  formData.set(`phrases[1][gloss]`, glosses[1]);
-  formData.set(`phrases[2][id]`, String(missingPhraseId));
-  formData.set(`phrases[2][gloss]`, glosses[2]);
-  const result = await approveAll(formData);
-  expect(result).toBeUndefined();
+  const { response } = await runServerFn(approveAll, {
+    data: {
+      code: language.code,
+      phrases: [
+        { id: phrases[0].phrase.id, gloss: glosses[0] },
+        { id: phrases[1].phrase.id, gloss: glosses[1] },
+        { id: missingPhraseId, gloss: glosses[2] },
+      ],
+    },
+    sessionId: session!.id,
+  });
+  expect(response.status).toEqual(204);
 
   const updatedGloss1 = await findGlossForPhrase(phrases[0].phrase.id);
   expect(updatedGloss1).toEqual({
@@ -125,7 +145,7 @@ test("updates found phrases and skips missing phrase IDs", async () => {
     gloss: glosses[0],
     state: GlossStateRaw.Approved,
     updated_at: expect.toBeNow(),
-    updated_by: translatorId,
+    updated_by: user.id,
     source: GlossSourceRaw.User,
   });
   const updatedGloss2 = await findGlossForPhrase(phrases[1].phrase.id);
@@ -134,7 +154,7 @@ test("updates found phrases and skips missing phrase IDs", async () => {
     gloss: glosses[1],
     state: GlossStateRaw.Approved,
     updated_at: expect.toBeNow(),
-    updated_by: translatorId,
+    updated_by: user.id,
     source: GlossSourceRaw.User,
   });
   const updatedGloss3 = await findGlossForPhrase(missingPhraseId);
@@ -145,14 +165,15 @@ test("updates found phrases and skips missing phrase IDs", async () => {
 });
 
 test("updates found phrases and skips phrases belonging to a different language", async () => {
-  const { user: translator } = await userFactory.build();
+  const { user: translator, session } = await userFactory.build({
+    session: true,
+  });
   const { language } = await languageFactory.build({
     members: [translator.id],
   });
   const { language: otherLanguage } = await languageFactory.build({
     members: [translator.id],
   });
-  await logIn(translator.id);
 
   const { phrase } = await phraseFactory.build({
     languageId: language.id,
@@ -162,15 +183,17 @@ test("updates found phrases and skips phrases belonging to a different language"
   });
   const glosses = [faker.lorem.word(), faker.lorem.word()];
 
-  const formData = new FormData();
-  formData.set("verseId", "123");
-  formData.set("code", language.code);
-  formData.set(`phrases[0][id]`, String(phrase.id));
-  formData.set(`phrases[0][gloss]`, glosses[0]);
-  formData.set(`phrases[1][id]`, String(phraseInOtherLanguage.id));
-  formData.set(`phrases[1][gloss]`, glosses[1]);
-  const result = await approveAll(formData);
-  expect(result).toBeUndefined();
+  const { response } = await runServerFn(approveAll, {
+    data: {
+      code: language.code,
+      phrases: [
+        { id: phrase.id, gloss: glosses[0] },
+        { id: phraseInOtherLanguage.id, gloss: glosses[1] },
+      ],
+    },
+    sessionId: session!.id,
+  });
+  expect(response.status).toEqual(204);
 
   const updatedGloss1 = await findGlossForPhrase(phrase.id);
   expect(updatedGloss1).toEqual({
@@ -189,9 +212,8 @@ test("updates found phrases and skips phrases belonging to a different language"
 });
 
 test("creates a new glosses and updates existing glosses for each phrase", async () => {
-  const { language, members } = await languageFactory.build();
-  const translatorId = members[0].user_id;
-  await logIn(translatorId);
+  const { user, session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build({ members: [user.id] });
 
   const { phrases } = await phraseFactory.buildMany({
     scope: 3,
@@ -207,20 +229,30 @@ test("creates a new glosses and updates existing glosses for each phrase", async
     faker.lorem.word(),
   ];
 
-  const formData = new FormData();
-  formData.set("verseId", "123");
-  formData.set("code", language.code);
-  formData.set(`phrases[0][id]`, String(phrases[0].phrase.id));
-  formData.set(`phrases[0][gloss]`, updatedGlosses[0]);
-  formData.set(`phrases[0][method]`, GlossApprovalMethodRaw.UserInput);
-  formData.set(`phrases[1][id]`, String(phrases[1].phrase.id));
-  formData.set(`phrases[1][gloss]`, updatedGlosses[1]);
-  formData.set(`phrases[1][method]`, GlossApprovalMethodRaw.GoogleSuggestion);
-  formData.set(`phrases[2][id]`, String(phrases[2].phrase.id));
-  formData.set(`phrases[2][gloss]`, updatedGlosses[2]);
-  formData.set(`phrases[2][method]`, GlossApprovalMethodRaw.MachineSuggestion);
-  const result = await approveAll(formData);
-  expect(result).toBeUndefined();
+  const { response } = await runServerFn(approveAll, {
+    data: {
+      code: language.code,
+      phrases: [
+        {
+          id: phrases[0].phrase.id,
+          gloss: updatedGlosses[0],
+          method: GlossApprovalMethodRaw.UserInput,
+        },
+        {
+          id: phrases[1].phrase.id,
+          gloss: updatedGlosses[1],
+          method: GlossApprovalMethodRaw.GoogleSuggestion,
+        },
+        {
+          id: phrases[2].phrase.id,
+          gloss: updatedGlosses[2],
+          method: GlossApprovalMethodRaw.MachineSuggestion,
+        },
+      ],
+    },
+    sessionId: session!.id,
+  });
+  expect(response.status).toEqual(204);
 
   const updatedGloss1 = await findGlossForPhrase(phrases[0].phrase.id);
   expect(updatedGloss1).toEqual({
@@ -228,7 +260,7 @@ test("creates a new glosses and updates existing glosses for each phrase", async
     gloss: updatedGlosses[0],
     state: GlossStateRaw.Approved,
     updated_at: expect.toBeNow(),
-    updated_by: translatorId,
+    updated_by: user.id,
     source: GlossSourceRaw.User,
   });
   const updatedGloss1History = await findGlossHistoryForPhrase(
@@ -247,7 +279,7 @@ test("creates a new glosses and updates existing glosses for each phrase", async
     gloss: updatedGlosses[1],
     state: GlossStateRaw.Approved,
     updated_at: expect.toBeNow(),
-    updated_by: translatorId,
+    updated_by: user.id,
     source: GlossSourceRaw.User,
   });
   const updatedGloss2History = await findGlossHistoryForPhrase(
@@ -266,7 +298,7 @@ test("creates a new glosses and updates existing glosses for each phrase", async
     gloss: updatedGlosses[2],
     state: GlossStateRaw.Approved,
     updated_at: expect.toBeNow(),
-    updated_by: translatorId,
+    updated_by: user.id,
     source: GlossSourceRaw.User,
   });
   const updatedGloss3History = await findGlossHistoryForPhrase(
@@ -283,7 +315,7 @@ test("creates a new glosses and updates existing glosses for each phrase", async
         phraseId: phrases[1].phrase.id,
         method: GlossApprovalMethodRaw.GoogleSuggestion,
       },
-      user_id: translatorId,
+      user_id: user.id,
       language_id: language.id,
       created_at: expect.toBeNow(),
     },
@@ -294,7 +326,7 @@ test("creates a new glosses and updates existing glosses for each phrase", async
         phraseId: phrases[2].phrase.id,
         method: GlossApprovalMethodRaw.MachineSuggestion,
       },
-      user_id: translatorId,
+      user_id: user.id,
       language_id: language.id,
       created_at: expect.toBeNow(),
     },
@@ -306,7 +338,7 @@ test("creates a new glosses and updates existing glosses for each phrase", async
       id: expect.toBeUlid(),
       phrase_id: phrases[0].phrase.id,
       language_id: language.id,
-      user_id: translatorId,
+      user_id: user.id,
       word_id: phrases[0].word.id,
       timestamp: expect.toBeNow(),
       prev_gloss: gloss1.gloss ?? "",
@@ -323,7 +355,7 @@ test("creates a new glosses and updates existing glosses for each phrase", async
       id: expect.toBeUlid(),
       phrase_id: phrases[1].phrase.id,
       language_id: language.id,
-      user_id: translatorId,
+      user_id: user.id,
       word_id: phrases[1].word.id,
       timestamp: expect.toBeNow(),
       prev_gloss: gloss2.gloss ?? "",
@@ -340,7 +372,7 @@ test("creates a new glosses and updates existing glosses for each phrase", async
       id: expect.toBeUlid(),
       phrase_id: phrases[2].phrase.id,
       language_id: language.id,
-      user_id: translatorId,
+      user_id: user.id,
       word_id: phrases[2].word.id,
       timestamp: expect.toBeNow(),
       prev_gloss: "",
@@ -350,6 +382,4 @@ test("creates a new glosses and updates existing glosses for each phrase", async
       approval_method: GlossApprovalMethodRaw.MachineSuggestion,
     },
   ]);
-
-  // TODO: verify cache validation
 });
