@@ -1,30 +1,46 @@
-import { useLayoutEffect, useState } from "react";
+import { useMemo } from "react";
+import { readCookie, setClientCookie } from "@/shared/cookies";
 
 export type Feature = "ff-interlinear-pdf-export"; // string union of available flags
 
-export const features: Feature[] = [];
+const FEATURE_FLAGS_COOKIE = "features";
+const COOKIE_AGE = 365 * 24 * 60 * 60;
+
+function readFeatureFlags(): string[] {
+  const featureCookie = readCookie(FEATURE_FLAGS_COOKIE);
+  if (!featureCookie) {
+    return [];
+  }
+
+  return featureCookie
+    .split(",")
+    .map((feature) => feature.trim())
+    .filter((feature) => feature.length > 0);
+}
 
 export function isFeatureEnabled(feature: Feature) {
-  const featureList = window.localStorage.getItem("features")?.split(",") ?? [];
+  const featureList = readFeatureFlags();
   return featureList.includes(feature);
 }
 
 export function useFeatureFlag(feature: Feature) {
-  // Can't use useMemo because window isn't available in SSR.
-  const [isEnabled, setIsEnabled] = useState(false);
-  useLayoutEffect(() => setIsEnabled(isFeatureEnabled(feature)), [feature]);
-
-  return isEnabled;
+  return useMemo(() => isFeatureEnabled(feature), [feature]);
 }
 
 export function setFeatureFlag(feature: Feature, enabled: boolean) {
-  let featureList = window.localStorage.getItem("features")?.split(",") ?? [];
+  const currentFeatureList = new Set(readFeatureFlags());
 
   if (enabled) {
-    featureList.push(feature);
+    currentFeatureList.add(feature);
   } else {
-    featureList = featureList.filter((f) => f !== feature);
+    currentFeatureList.delete(feature);
   }
 
-  window.localStorage.setItem("features", featureList.join(","));
+  setClientCookie(
+    FEATURE_FLAGS_COOKIE,
+    Array.from(currentFeatureList).join(","),
+    {
+      maxAge: COOKIE_AGE,
+    },
+  );
 }

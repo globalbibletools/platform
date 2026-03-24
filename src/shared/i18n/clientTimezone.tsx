@@ -1,6 +1,10 @@
 import { useEffect } from "react";
+import { readCookie, setClientCookie } from "@/shared/cookies";
 
 let previousTimezone: string;
+
+const TZ_COOKIE = "client_tz";
+const COOKIE_AGE = 365 * 24 * 60 * 60;
 
 function captureTimezone() {
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -8,7 +12,7 @@ function captureTimezone() {
   if (previousTimezone === tz) return;
 
   previousTimezone = tz;
-  document.cookie = `CLIENT_TZ=${tz}; path=/`;
+  setClientCookie(TZ_COOKIE, tz, { maxAge: COOKIE_AGE });
 }
 
 function initTimezoneCapture() {
@@ -21,10 +25,15 @@ function initTimezoneCapture() {
   });
 }
 
-export default function TimezoneTracker() {
+export function TimezoneTracker() {
   useEffect(() => {
     initTimezoneCapture();
   }, []);
 
   return null;
+}
+
+/** Get the timezone of the client using the CLIENT_TZ header with a fallback to UTC. */
+export function getClientTimezone(): string {
+  return readCookie(TZ_COOKIE) ?? "UTC";
 }

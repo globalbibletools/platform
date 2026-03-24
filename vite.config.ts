@@ -41,8 +41,9 @@ export default defineConfig({
         test: {
           name: "unit (client)",
           environment: "jsdom",
-          include: ["**/*.client.unit.ts"],
+          include: ["**/*.client.unit.{ts,tsx}"],
           setupFiles: ["./tests/vitest/testSetup.ts"],
+          globalSetup: ["./tests/vitest/tzSetup.ts"],
           mockReset: true,
         },
       },

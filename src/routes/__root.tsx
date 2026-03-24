@@ -5,7 +5,7 @@ import {
   createRootRouteWithContext,
 } from "@tanstack/react-router";
 import appCss from "@/styles.css?url";
-import TimezoneTracker from "@/shared/i18n/TimezoneTracker";
+import { TimezoneTracker } from "@/shared/i18n/clientTimezone";
 import { AnalyticsProvider } from "@/analytics";
 import { getCurrentLocale } from "@/shared/i18n/shared";
 import { IntlProvider } from "next-intl";
