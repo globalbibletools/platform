@@ -4,7 +4,6 @@ import { Icon } from "@/components/Icon";
 import RichText from "@/components/RichText";
 import RichTextInput, { RichTextInputRef } from "@/components/RichTextInput";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import throttle from "lodash/throttle";
 import { useTranslations } from "next-intl";
 import { type RefObject, useEffect, useMemo, useState } from "react";
@@ -33,10 +32,6 @@ export default function PhraseNoteEditor({
 }: PhraseNoteEditorProps) {
   const t = useTranslations("TranslationSidebar");
 
-  const updateFootnoteFn = useServerFn(updateFootnoteAction);
-  const updateTranslatorNoteFn = useServerFn(updateTranslatorNoteAction);
-  const getPhraseNoteFn = useServerFn(getPhraseNote);
-
   const [draftNote, setDraftNote] = useState("");
 
   const [isDirty, setDirty] = useState(false);
@@ -44,7 +39,7 @@ export default function PhraseNoteEditor({
   const { data: note, refetch } = useQuery({
     queryKey: ["phrase-note", phraseId, languageCode, noteType],
     queryFn: () =>
-      getPhraseNoteFn({
+      getPhraseNote({
         data: {
           phraseId,
           languageCode,
@@ -55,7 +50,9 @@ export default function PhraseNoteEditor({
 
   const { mutate, isPending: isSaving } = useMutation({
     mutationFn:
-      noteType === "footnote" ? updateFootnoteFn : updateTranslatorNoteFn,
+      noteType === "footnote" ? updateFootnoteAction : (
+        updateTranslatorNoteAction
+      ),
     async onSuccess() {
       await refetch();
     },

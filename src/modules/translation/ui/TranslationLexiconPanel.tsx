@@ -4,7 +4,6 @@ import DOMPurify from "isomorphic-dompurify";
 import { memo, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
-import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { VersesPreview } from "@/components/VersesPreview";
 import { parseReferenceRange } from "@/verse-utils";
@@ -26,11 +25,10 @@ export default function TranslationLexiconPanel({
   language,
 }: TranslationLexiconPanelProps) {
   const t = useTranslations("TranslationSidebar");
-  const getWordResourceFn = useServerFn(getWordResource);
 
   const { data: resource, isLoading } = useQuery({
     queryKey: ["translation-resource", wordId],
-    queryFn: () => getWordResourceFn({ data: { wordId } }),
+    queryFn: () => getWordResource({ data: { wordId } }),
   });
 
   const [previewElement, setPreviewElement] = useState<HTMLDivElement | null>(

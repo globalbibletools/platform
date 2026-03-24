@@ -7,7 +7,7 @@ import { getAIGlossImportLanguagesReadModel } from "../read-models/getAIGlossImp
 import JobStatusPoller from "@/shared/jobs/ui/JobStatusPoller";
 import { JobStatus } from "@/shared/jobs/model";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createServerFn, useServerFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
 
 const requestSchema = z.object({
@@ -41,10 +41,9 @@ export const getAIGlossesImportFormData = createServerFn()
   });
 
 export default function AIGlossesImportForm({ code }: { code: string }) {
-  const getData = useServerFn(getAIGlossesImportFormData);
   const { data } = useSuspenseQuery({
     queryKey: ["ai-glosses-import-form", code],
-    queryFn: () => getData({ data: { code } }),
+    queryFn: () => getAIGlossesImportFormData({ data: { code } }),
   });
 
   const { job, languageAvailable } = data;

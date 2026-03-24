@@ -9,7 +9,6 @@ import { useTranslations } from "next-intl";
 import {
   MouseEvent,
   useEffect,
-  useEffectEvent,
   useLayoutEffect,
   useRef,
   useState,

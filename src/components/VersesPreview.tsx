@@ -4,7 +4,6 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { useTranslations } from "next-intl";
 import { fontMap } from "@/fonts";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { getVersesPreview } from "@/modules/study/actions/getVersesPreview";
 
 type VersesPreviewProps = {
@@ -38,12 +37,10 @@ export const VersesPreview = ({
     isValid = false;
   }
 
-  const getVersesPreviewFn = useServerFn(getVersesPreview);
-
   const { isLoading, data } = useQuery({
     queryKey: ["verses-preview", language.code, verseIds],
     queryFn: () =>
-      getVersesPreviewFn({
+      getVersesPreview({
         data: {
           code: language.code,
           verseIds,

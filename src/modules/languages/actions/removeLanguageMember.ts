@@ -1,11 +1,10 @@
 import * as z from "zod";
-import { parseForm } from "@/form-parser";
 import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";
-import { serverActionLogger } from "@/server-action";
 import { removeLanguageMember as removeLanguageMemberUseCase } from "../use-cases/removeLanguageMember";
 import { NotFoundError } from "@/shared/errors";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
+import { serverActionLogger } from "@/server-action";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -20,7 +19,7 @@ export const removeLanguageMember = createServerFn({ method: "POST" })
   .inputValidator(requestSchema)
   .middleware([createPolicyMiddleware({ policy })])
   .handler(async ({ data }) => {
-    const logger = serverActionLogger("removeLanguageUser");
+    const _logger = serverActionLogger("removeLanguageUser");
 
     try {
       await removeLanguageMemberUseCase(data);

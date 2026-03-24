@@ -51,7 +51,7 @@ export const updateLanguageSettings = createServerFn({ method: "POST" })
     }),
   ])
   .handler(async ({ data }) => {
-    const logger = serverActionLogger("updateLanguageSettings");
+    const _logger = serverActionLogger("updateLanguageSettings");
 
     try {
       await updateLanguageSettingsUseCase(data);

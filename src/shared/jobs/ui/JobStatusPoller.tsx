@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useRouter } from "@tanstack/react-router";
 import { getJobStatus } from "../actions/getJobStatus";
 import { JobStatus } from "../model";
@@ -16,13 +15,12 @@ export default function JobStatusPoller({
   jobId,
   refreshInterval = 15000,
 }: JobStatusPollerProps) {
-  const getStatus = useServerFn(getJobStatus);
   const router = useRouter();
   const hasInvalidatedRef = useRef(false);
 
   const { data } = useQuery({
     queryKey: ["job-status", jobId],
-    queryFn: () => getStatus({ data: { jobId } }),
+    queryFn: () => getJobStatus({ data: { jobId } }),
     refetchInterval: refreshInterval,
   });
 

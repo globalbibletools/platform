@@ -31,12 +31,13 @@ export default function VerseDetails({
 
   const bookId = parseInt(chapterId.slice(0, 2));
   const chapterNumber = parseInt(chapterId.slice(2, 5));
+  const verseId = chapterId + verse.number.toString().padStart(3, "0");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["verse-content", chapterId, verse.number],
+    queryKey: ["verse-content", verseId],
     queryFn: () =>
       getVerseContent({
-        data: { verseId: chapterId + verse.number.toString().padStart(3, "0") },
+        data: { verseId },
       }),
   });
 

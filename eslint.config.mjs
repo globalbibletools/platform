@@ -1,5 +1,5 @@
 import eslint from "@eslint/js";
-import { defineConfig } from "eslint/config";
+import { defineConfig, globalIgnores } from "eslint/config";
 import tseslint from "typescript-eslint";
 import { FlatCompat } from "@eslint/eslintrc";
 import pluginQuery from "@tanstack/eslint-plugin-query";
@@ -11,6 +11,10 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig(
+  globalIgnores([
+    "src/shared/jobs/bin/workerDevServer.js",
+    "src/shared/jobs/bin/localWorker.js",
+  ]),
   eslint.configs.recommended,
   tseslint.configs.recommended,
   pluginQuery.configs["flat/recommended"],
@@ -22,6 +26,18 @@ export default defineConfig(
       "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/no-explicit-any": "off",
       "react/no-children-prop": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          args: "all",
+          argsIgnorePattern: "^_",
+          caughtErrors: "all",
+          caughtErrorsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+        },
+      ],
     },
   },
 );

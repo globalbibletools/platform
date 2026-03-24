@@ -183,7 +183,9 @@ export async function close() {
 export async function reconnect() {
   try {
     await _pool?.end();
-  } catch {}
+  } catch (error) {
+    void error;
+  }
 
   _db = undefined;
   _pool = undefined;

@@ -11,7 +11,6 @@ import { VersesPreview } from "@/components/VersesPreview";
 import { isRichTextEmpty } from "@/components/RichTextInput";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { getLemmaResource } from "../actions/getLemmaResource";
 
 export interface Word {
@@ -41,10 +40,9 @@ export default function WordDetails({
 
   const hasNotes = !isRichTextEmpty(word.footnote ?? "");
 
-  const getLemmaResourceFn = useServerFn(getLemmaResource);
   const { data, isLoading } = useQuery({
     queryKey: ["lemma-resource", word.lemma],
-    queryFn: () => getLemmaResourceFn({ data: { lemmaId: word.lemma } }),
+    queryFn: () => getLemmaResource({ data: { lemmaId: word.lemma } }),
   });
 
   const lexiconEntryRef = useRef<HTMLDivElement>(null);

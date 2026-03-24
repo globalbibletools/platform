@@ -1,5 +1,4 @@
 import Button, { ActionProps } from "./Button";
-import { FormState } from "./Form";
 import { useRef } from "react";
 import { useFlash } from "../flash";
 import ConfirmModal, { ConfirmModalRef } from "./ConfirmModal";

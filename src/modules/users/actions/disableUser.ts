@@ -16,7 +16,7 @@ export const disableUser = createServerFn({ method: "POST" })
   .inputValidator(requestSchema)
   .middleware([createPolicyMiddleware({ policy })])
   .handler(async ({ data }) => {
-    const logger = serverActionLogger("disableUser");
+    const _logger = serverActionLogger("disableUser");
 
     try {
       await disableUserUseCase({

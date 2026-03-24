@@ -1,7 +1,6 @@
 import { Icon } from "@/components/Icon";
 import { SidebarLink } from "@/components/NavLink";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
-import { routerGuard } from "@/modules/access/routerGuard";
 import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
 import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
 import {

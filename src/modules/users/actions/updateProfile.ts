@@ -30,7 +30,7 @@ export const updateProfile = createServerFn({ method: "POST" })
   })
   .middleware([createPolicyMiddleware({ policy })])
   .handler(async ({ data, context }) => {
-    const logger = serverActionLogger("updateProfile");
+    const _logger = serverActionLogger("updateProfile");
 
     try {
       await updateProfileUseCase({
