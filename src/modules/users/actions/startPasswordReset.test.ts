@@ -1,6 +1,6 @@
-import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
 import { test, expect, vitest } from "vitest";
 import { startPasswordReset } from "./startPasswordReset";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
@@ -12,34 +12,34 @@ vitest.mock("@/shared/jobs/enqueueJob");
 initializeDatabase();
 
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  {
-    const formData = new FormData();
-    const response = await startPasswordReset({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        email: ["Please enter your email."],
-      },
-    });
-  }
-  {
-    const formData = new FormData();
-    formData.set("email", "");
-    const response = await startPasswordReset({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        email: ["Please enter your email."],
-      },
-    });
-  }
+  const formData = new FormData();
+
+  await expect(
+    runServerFn(startPasswordReset, {
+      data: formData,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`
+    [ZodError: [
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "email"
+        ],
+        "message": "Required"
+      }
+    ]]
+  `);
 });
 
 test("returns successfully if user could not be found", async () => {
   const formData = new FormData();
   formData.set("email", "test@example.com");
-  const response = startPasswordReset({ state: "idle" }, formData);
-  await expect(response).toBeNextjsRedirect("/en/login");
+  const { response } = await runServerFn(startPasswordReset, {
+    data: formData,
+  });
+  expect(response.status).toEqual(204);
   expect(sendEmailMock).not.toHaveBeenCalled();
 });
 
@@ -48,8 +48,10 @@ test("returns successfully after sending the password reset email", async () => 
 
   const formData = new FormData();
   formData.set("email", user.email);
-  const response = startPasswordReset({ state: "idle" }, formData);
-  await expect(response).toBeNextjsRedirect("/en/login");
+  const { response } = await runServerFn(startPasswordReset, {
+    data: formData,
+  });
+  expect(response.status).toEqual(204);
   const dbResets = await findPasswordResetsForUser(user.id);
   expect(dbResets).toEqual([
     {

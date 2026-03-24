@@ -1,9 +1,8 @@
-import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
 import { inviteUser } from "./inviteUser";
-import logIn from "@/tests/vitest/login";
 import { userFactory } from "../test-utils/userFactory";
 import { findInvitationsForUser, findUserByEmail } from "../test-utils/dbUtils";
 import { EmailStatusRaw } from "../model/EmailStatus";
@@ -11,77 +10,78 @@ import { EmailStatusRaw } from "../model/EmailStatus";
 initializeDatabase();
 
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
-  {
-    const formData = new FormData();
-    const response = await inviteUser({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        email: ["Please enter your email."],
-      },
-    });
-  }
-  {
-    const formData = new FormData();
-    formData.set("email", "");
-    const response = await inviteUser({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        email: ["Please enter a valid email.", "Please enter your email."],
-      },
-    });
-  }
-  {
-    const formData = new FormData();
-    formData.set("email", "garbage");
-    const response = await inviteUser({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        email: ["Please enter a valid email."],
-      },
-    });
-  }
+  const formData = new FormData();
+  await expect(
+    runServerFn(inviteUser, {
+      data: formData,
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`
+    [ZodError: [
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "email"
+        ],
+        "message": "Required"
+      }
+    ]]
+  `);
 });
 
 test("returns not found if user is not a platform admin", async () => {
-  const { user } = await userFactory.build();
-  await logIn(user.id);
+  const { session } = await userFactory.build({ session: true });
 
   const formData = new FormData();
   formData.set("email", "invite@example.com");
-  const response = inviteUser({ state: "idle" }, formData);
-  await expect(response).toBeNextjsNotFound();
+  const response = runServerFn(inviteUser, {
+    data: formData,
+    sessionId: session!.id,
+  });
+  await expect(response).rejects.toThrowErrorMatchingInlineSnapshot(
+    `[Error: UnauthorizedError]`,
+  );
 });
 
 test("returns error if user is already active", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
   const { user } = await userFactory.build();
 
   const formData = new FormData();
   formData.set("email", user.email);
-  const response = await inviteUser({ state: "idle" }, formData);
-  expect(response).toEqual({
-    state: "error",
-    error: "This user already exists.",
-  });
+  await expect(
+    runServerFn(inviteUser, {
+      data: formData,
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: errors.user_exists]`);
 });
 
-test("invites user and redirects back to users list", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+test("invites user", async () => {
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
   const email = "invite@example.com";
   const formData = new FormData();
   formData.set("email", email);
-  const response = inviteUser({ state: "idle" }, formData);
-  await expect(response).toBeNextjsRedirect("/en/admin/users");
+  const { response } = await runServerFn(inviteUser, {
+    data: formData,
+    sessionId: session!.id,
+  });
+  expect(response.status).toEqual(204);
 
   const createdUser = await findUserByEmail(email);
   expect(createdUser).toEqual({

@@ -1,5 +1,6 @@
 import userRepository from "../data-access/userRepository";
 import { languageClient } from "@/modules/languages/public/LanguageClient";
+import { clearSessionsForUser } from "@/session";
 import { NotFoundError } from "@/shared/errors";
 
 export interface DisableUserRequest {
@@ -11,6 +12,7 @@ export async function disableUser(request: DisableUserRequest): Promise<void> {
   if (!user) throw new NotFoundError("User");
 
   await languageClient.removeUserFromLanguages(request.userId);
+  clearSessionsForUser(request.userId);
 
   user.disable();
   await userRepository.commit(user);

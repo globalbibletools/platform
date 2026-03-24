@@ -8,9 +8,10 @@ import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { updateProfile } from "@/modules/users/actions/updateProfile";
 import { query } from "@/db";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useTranslations } from "next-intl";
+import { useAuthRefresh } from "@/modules/access/authState";
 
 const policy = new Policy({ authenticated: true });
 
@@ -36,6 +37,8 @@ const profileLoader = createServerFn()
 function ProfileRoute() {
   const t = useTranslations("ProfileView");
   const user = Route.useLoaderData();
+  const refreshAuth = useAuthRefresh();
+  const router = useRouter();
 
   return (
     <div className="grow flex items-start justify-center">
@@ -48,7 +51,10 @@ function ProfileRoute() {
         <Form
           action={updateProfile}
           successMessage={t("profile_updated")}
-          invalidate
+          onSuccess={async () => {
+            await refreshAuth();
+            await router.invalidate();
+          }}
         >
           <div className="mb-2">
             <FormLabel htmlFor="email">{t("form.email")}</FormLabel>
