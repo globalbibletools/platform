@@ -13,6 +13,7 @@ import { Link, useRouteContext, useRouter } from "@tanstack/react-router";
 import { SystemRoleRaw } from "@/modules/users/types";
 import { logout } from "@/modules/users/actions/logout";
 import { useServerFn } from "@tanstack/react-start";
+import { useAuthRefresh } from "@/modules/access/authState";
 
 export default function PrimaryNavigation() {
   const t = useTranslations("PrimaryNavigation");
@@ -25,8 +26,10 @@ export default function PrimaryNavigation() {
   const isAdmin =
     context.auth?.systemRoles.includes(SystemRoleRaw.Admin) ?? false;
   const canTranslate = (context.auth?.languages.length ?? 0) > 0;
-  const isLoggedIn = Boolean(context.auth);
   const user = context.auth?.user;
+  const isLoggedIn = Boolean(user);
+
+  const refreshAuth = useAuthRefresh();
 
   return (
     <nav
@@ -91,7 +94,7 @@ export default function PrimaryNavigation() {
                 <HeaderDropdownItem
                   onClick={async () => {
                     await logoutFn();
-                    await router.invalidate();
+                    await refreshAuth();
                     await router.navigate({ to: "/login" });
                   }}
                 >

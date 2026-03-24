@@ -1,20 +1,24 @@
 import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
 import { logout } from "./logout";
 import { userFactory } from "../test-utils/userFactory";
 import { findSessionsForUser } from "../test-utils/dbUtils";
-import logIn from "@/tests/vitest/login";
 
 initializeDatabase();
 
 test("clears the current session", async () => {
-  const { user } = await userFactory.build();
-  await logIn(user.id);
+  const { user, session } = await userFactory.build({ session: true });
 
-  expect(await findSessionsForUser(user.id)).toHaveLength(1);
+  const { response } = await runServerFn(logout, {
+    sessionId: session!.id,
+  });
 
-  await logout();
+  expect(response.status).toEqual(204);
+  expect(response.headers.get("set-cookie")).toBe(
+    "session=; Max-Age=0; Path=/",
+  );
 
   expect(await findSessionsForUser(user.id)).toEqual([]);
 });

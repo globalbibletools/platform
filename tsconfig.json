@@ -31,10 +31,9 @@
   },
   "include": [
     "next-env.d.ts",
-    "test/vitest/vitest.d.ts",
+    "tests/vitest/vitest.d.ts",
     "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
+    "**/*.tsx"
   ],
   "exclude": ["node_modules", "docs"]
 }

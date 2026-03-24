@@ -84,7 +84,7 @@ expect.extend({
         `${received instanceof Error ? received.stack : JSON.stringify(received)} is${this.isNot ? "" : " not"} a Next.js redirect to ${path}`,
     };
   },
-  async toBeNextjsNotFound(receivedPromise: any) {
+  async toBeTanstackNotFound(receivedPromise: any) {
     let received;
     try {
       received = await receivedPromise;
@@ -92,17 +92,10 @@ expect.extend({
       received = error;
     }
 
-    let expected: any;
-    try {
-      notFound();
-    } catch (error) {
-      expected = error;
-    }
-
     return {
-      pass: received?.message === expected.message,
+      pass: received.isNotFound,
       message: () =>
-        `${received instanceof Error ? received.stack : JSON.stringify(received)} is${this.isNot ? "" : " not"} a Next.js not found redirect`,
+        `${received instanceof Error ? received.stack : JSON.stringify(received)} is${this.isNot ? "" : " not"} a not found error`,
     };
   },
 });
