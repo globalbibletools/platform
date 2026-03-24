@@ -84,7 +84,7 @@ export default function AIGlossesImportForm({ code }: { code: string }) {
                 size="lg"
               />
             : <Icon
-                icon="exclamation-triangle"
+                icon="triangle-exclamation"
                 className="text-red-700 mt-[2px]"
                 size="lg"
               />

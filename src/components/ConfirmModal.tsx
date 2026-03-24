@@ -32,7 +32,7 @@ const ConfirmModal = forwardRef<ConfirmModalRef, ConfirmModalProps>(
             e.currentTarget.closest("dialog")?.close();
           }}
         >
-          <Icon icon="close" />
+          <Icon icon="xmark" />
           <span className="sr-only">{t("close")}</span>
         </button>
         <h1 className="font-bold text-lg mb-2">

@@ -280,7 +280,7 @@ export default function AudioDialog({
         className="absolute text-red-700 -end-1 -top-1 w-8 h-8 rounded-lg focus:outline-green-400"
         onClick={onClose}
       >
-        <Icon icon="close" />
+        <Icon icon="xmark" />
         <span className="sr-only">{t("close")}</span>
       </button>
       <audio

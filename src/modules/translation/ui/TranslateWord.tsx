@@ -359,7 +359,7 @@ export default function TranslateWord({
                               language.machineGlossStrategy ===
                               MachineGlossStrategy.Google
                             ) ?
-                              ["fab", "google"]
+                              "google"
                             : "robot"
                           }
                         />
@@ -445,7 +445,7 @@ export default function TranslateWord({
                         language.machineGlossStrategy ===
                         MachineGlossStrategy.Google
                       ) ?
-                        ["fab", "google"]
+                        "google"
                       : "robot"
                     }
                   />

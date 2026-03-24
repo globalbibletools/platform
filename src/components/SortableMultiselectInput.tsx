@@ -103,7 +103,7 @@ const SortableMultiselectInput = forwardRef<
                     type="button"
                     onClick={() => removeItem(i)}
                   >
-                    <Icon icon="close" />
+                    <Icon icon="xmark" />
                     {/* <span className="sr-only">{t('common:close')}</span> */}
                   </button>
                 </div>
@@ -122,7 +122,7 @@ const SortableMultiselectInput = forwardRef<
             autoComplete="off"
           />
           <Button onClick={addItem}>
-            <Icon icon="add" />
+            <Icon icon="plus" />
             {/* <span className="sr-only">{t('common:add')}</span> */}
           </Button>
         </div>

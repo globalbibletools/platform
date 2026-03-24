@@ -155,7 +155,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
                     icon={
                       message.level === "success" ?
                         "check"
-                      : "exclamation-triangle"
+                      : "triangle-exclamation"
                     }
                     size="lg"
                     className=" text-white"
@@ -173,7 +173,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
                 className="w-10 h-10 rounded-sm focus:outline-2 focus:outline-blue-600"
                 onClick={() => remove(message.id)}
               >
-                <Icon icon="close" />
+                <Icon icon="xmark" />
                 <span className="sr-only">{t("close")}</span>
               </button>
             </Transition>

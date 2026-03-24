@@ -63,7 +63,7 @@ export default async function LegacyGlossImportForm({
       <>
         <p className="mb-4">
           <Icon
-            icon="exclamation-triangle"
+            icon="triangle-exclamation"
             className="text-red-700 me-2"
             size="lg"
           />

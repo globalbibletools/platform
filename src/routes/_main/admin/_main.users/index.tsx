@@ -94,7 +94,7 @@ function AdminUsersPage() {
                   {user.email}
                   {user.emailStatus !== "VERIFIED" && (
                     <div className="block w-fit text-sm px-2 rounded-sm bg-red-700 text-white">
-                      <Icon icon="exclamation-triangle" className="me-1" />
+                      <Icon icon="triangle-exclamation" className="me-1" />
                       {t("email_status", {
                         status: user.emailStatus,
                       })}
