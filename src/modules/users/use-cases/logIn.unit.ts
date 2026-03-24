@@ -39,7 +39,7 @@ test("returns error if password does not match", async () => {
 
   const request = {
     email: user.email.address,
-    password: "pa$$word",
+    password: "wrong password",
   };
   await expect(logIn(request)).rejects.toThrow(new IncorrectPasswordError());
 });

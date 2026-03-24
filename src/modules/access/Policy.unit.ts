@@ -34,8 +34,6 @@ describe("unauthenticated policy", () => {
   });
 
   test("grants access when logged in", () => {
-    const policy = new Policy({ authenticated: false });
-
     const result = policy.authorize({ actor: { id: "asdf", systemRoles: [] } });
     expect(result).toEqual(true);
   });
@@ -46,12 +44,10 @@ describe("unauthenticated policy", () => {
 
   test("grants access when not logged in", () => {
     const result = policy.authorize({});
-    expect(result).toEqual(false);
+    expect(result).toEqual(true);
   });
 
   test("forbids access when logged in", () => {
-    const policy = new Policy({ authenticated: false });
-
     const result = policy.authorize({ actor: { id: "asdf", systemRoles: [] } });
     expect(result).toEqual(false);
   });
