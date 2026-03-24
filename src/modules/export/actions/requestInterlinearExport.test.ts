@@ -1,6 +1,11 @@
-import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
 import { expect, test, vi } from "vitest";
+import { requestInterlinearExport } from "./requestInterlinearExport";
+import { enqueueJob } from "@/shared/jobs/enqueueJob";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
+import { sessionFactory } from "@/modules/users/test-utils/sessionFactory";
+import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 
 const { enqueueJobMock } = vi.hoisted(() => ({
   enqueueJobMock: vi.fn(),
@@ -10,62 +15,68 @@ vi.mock("@/shared/jobs/enqueueJob", () => ({
   enqueueJob: enqueueJobMock,
 }));
 
-import { requestInterlinearExport } from "./requestInterlinearExport";
-import logIn from "@/tests/vitest/login";
-import { enqueueJob } from "@/shared/jobs/enqueueJob";
-import { userFactory } from "@/modules/users/test-utils/userFactory";
-import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
-
 initializeDatabase();
 
 test("rejects unauthenticated requests", async () => {
-  const formData = new FormData();
-  await expect(requestInterlinearExport(formData)).toBeNextjsNotFound();
+  const data = { languageCode: "spa" };
+  await expect(
+    runServerFn(requestInterlinearExport, { data }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
   expect(enqueueJob).not.toHaveBeenCalled();
 });
 
 test("returns validation error for unknown language before enqueue", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
-
-  const formData = new FormData();
-  formData.set("languageCode", "missing");
-
-  const response = await requestInterlinearExport(formData);
-  expect(response).toEqual({
-    state: "error",
-    error: "Export failed.",
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
   });
+
+  const data = { languageCode: "missing" };
+
+  await expect(
+    runServerFn(requestInterlinearExport, {
+      data,
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: export_failed]`);
   expect(enqueueJob).not.toHaveBeenCalled();
 });
 
 test("denies non-members", async () => {
   const { user: outsider } = await userFactory.build();
   const { language } = await languageFactory.build();
-  await logIn(outsider.id);
+  const session = await sessionFactory.build(outsider.id);
 
-  const formData = new FormData();
-  formData.set("languageCode", language.code);
+  const data = { languageCode: language.code };
 
-  await expect(requestInterlinearExport(formData)).toBeNextjsNotFound();
+  await expect(
+    runServerFn(requestInterlinearExport, {
+      data,
+      sessionId: session.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
   expect(enqueueJob).not.toHaveBeenCalled();
 });
 
 test("creates export request for language", async () => {
-  const { user: translator } = await userFactory.build();
+  const { user: translator, session } = await userFactory.build({
+    session: true,
+  });
   const { language } = await languageFactory.build({
     members: [translator.id],
   });
-  await logIn(translator.id);
-
-  const formData = new FormData();
-  formData.set("languageCode", language.code);
 
   (enqueueJob as any).mockResolvedValueOnce({ id: "job-123" });
-  const response = await requestInterlinearExport(formData);
-  expect(response.state).toBe("success");
-  expect(enqueueJob).toHaveBeenCalledTimes(1);
-  expect(enqueueJob).toHaveBeenCalledWith("export_interlinear_pdf", {
+
+  const data = { languageCode: language.code };
+
+  const { response } = await runServerFn(requestInterlinearExport, {
+    data,
+    sessionId: session!.id,
+  });
+
+  expect(response.status).toBe(204);
+  expect(enqueueJob).toHaveBeenCalledExactlyOnceWith("export_interlinear_pdf", {
     languageId: language.id,
     languageCode: language.code,
     requestedBy: translator.id,

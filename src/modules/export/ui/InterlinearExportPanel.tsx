@@ -1,7 +1,6 @@
 import { requestInterlinearExport } from "@/modules/export/actions/requestInterlinearExport";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { JobStatus } from "@/shared/jobs/model";
-import Form from "@/components/Form";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import exportJobQueryService from "../data-access/ExportJobQueryService";
@@ -43,7 +42,7 @@ export default function InterlinearExportPanel({
 }) {
   const t = useTranslations("InterlinearExport");
 
-  const { data } = useSuspenseQuery({
+  const { data, refetch } = useSuspenseQuery({
     queryKey: ["interlinear-export-panel", languageCode],
     queryFn: () => getInterlinearExportPanelData({ data: { languageCode } }),
   });
@@ -68,14 +67,15 @@ export default function InterlinearExportPanel({
       </div>
 
       <div className="shrink-0 w-full lg:w-80">
-        <Form action={requestInterlinearExport} className="grid gap-4">
-          <input type="hidden" name="languageCode" value={languageCode} />
-          <div>
-            <Button type="submit" disabled={!!pendingJob}>
-              {pendingJob ? t("form.queued") : t("form.submit")}
-            </Button>
-          </div>
-        </Form>
+        <Button
+          disabled={!!pendingJob}
+          onClick={async () => {
+            await requestInterlinearExport({ data: { languageCode } });
+            await refetch();
+          }}
+        >
+          {pendingJob ? t("form.queued") : t("form.submit")}
+        </Button>
 
         {jobs.length > 0 && (
           <div className="mt-4 text-sm border-t border-green-300 dark:border-blue-800 pt-3">
