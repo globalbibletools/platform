@@ -24,6 +24,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useTranslations } from "next-intl";
 import * as z from "zod";
+import Button from "@/components/Button";
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
@@ -33,7 +34,9 @@ const searchSchema = z.object({
   range: z.enum(["30d", "6m"]).default("30d"),
 });
 
-export const Route = createFileRoute("/_main/admin/languages/$code/users")({
+export const Route = createFileRoute("/_main/admin/languages/$code/users/")({
+  validateSearch: searchSchema,
+  loaderDeps: ({ search }) => ({ range: search.range }),
   beforeLoad: ({ context, params }) => {
     routerGuard({
       context: context.auth,
@@ -41,8 +44,6 @@ export const Route = createFileRoute("/_main/admin/languages/$code/users")({
       languageCode: params.code,
     });
   },
-  validateSearch: searchSchema,
-  loaderDeps: ({ search }) => ({ range: search.range }),
   loader: ({ params, deps }) =>
     loaderFn({ data: { code: params.code, range: deps.range } }),
   component: LanguageUsersRoute,
@@ -123,13 +124,13 @@ function LanguageUsersRoute() {
         <div className="flex items-baseline mb-4">
           <ViewTitle>{t("title")}</ViewTitle>
           <div className="grow" />
-          <a
-            href={`/admin/languages/${code}/users/invite`}
+          <Button
+            to={`/admin/languages/${code}/users/invite`}
             className="inline-flex justify-center items-center rounded-lg font-bold h-9 px-3 bg-blue-800 dark:bg-green-400 dark:text-gray-900 text-white shadow-md ms-4"
           >
             <Icon icon="plus" className="me-1" />
             {t("links.invite_user")}
-          </a>
+          </Button>
         </div>
         <List>
           <ListHeader>

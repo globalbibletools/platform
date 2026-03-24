@@ -1,62 +1,80 @@
-import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
+import { userFactory } from "@/modules/users/test-utils/userFactory";
 import { createLanguage } from "./createLanguage";
 import { MachineGlossStrategy, TextDirectionRaw } from "../model";
-import logIn from "@/tests/vitest/login";
 import { languageFactory } from "../test-utils/languageFactory";
 import { findLanguageByCode } from "../test-utils/dbUtils";
-import { userFactory } from "@/modules/users/test-utils/userFactory";
 
 initializeDatabase();
 
-test("returns validation error if the request shape doesn't match the schema", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+test("returns validation errors if the request shape doesn't match the schema", async () => {
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
+  const formData = new FormData();
 
-  {
-    const formData = new FormData();
-    const response = await createLanguage({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        code: ["The language code must be 3 characters."],
-        englishName: ["Please enter the language's English name."],
-        localName: ["Please enter the language's local name."],
+  await expect(
+    runServerFn(createLanguage, {
+      data: formData,
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`
+    [ZodError: [
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "code"
+        ],
+        "message": "Required"
       },
-    });
-  }
-  {
-    const formData = new FormData();
-    formData.set("code", "");
-    formData.set("englishName", "");
-    const response = await createLanguage({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        code: ["The language code must be 3 characters."],
-        englishName: ["Please enter the language's English name."],
-        localName: ["Please enter the language's local name."],
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "englishName"
+        ],
+        "message": "Required"
       },
-    });
-  }
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "localName"
+        ],
+        "message": "Required"
+      }
+    ]]
+  `);
 });
 
-test("returns not found if the user is not a platform admin", async () => {
-  const { user } = await userFactory.build();
-  await logIn(user.id);
+test("returns error if the user is not a platform admin", async () => {
+  const { session } = await userFactory.build({ session: true });
 
   const formData = new FormData();
   formData.set("code", "spa");
   formData.set("englishName", "Spanish");
   formData.set("localName", "Espanol");
-  const response = createLanguage({ state: "idle" }, formData);
-  await expect(response).toBeNextjsNotFound();
+
+  await expect(
+    runServerFn(createLanguage, {
+      data: formData,
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
 });
 
 test("returns error if language with the same code already exists", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
   const { language: existingLanguage } = await languageFactory.build();
 
@@ -64,16 +82,20 @@ test("returns error if language with the same code already exists", async () => 
   formData.set("code", existingLanguage.code);
   formData.set("englishName", "Spanish");
   formData.set("localName", "Espanol");
-  const response = await createLanguage({ state: "idle" }, formData);
-  expect(response).toEqual({
-    state: "error",
-    error: "This language already exists.",
-  });
+
+  await expect(
+    runServerFn(createLanguage, {
+      data: formData,
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: language_exists]`);
 });
 
-test("creates language and redirects to its settings", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+test("creates language for platform admins", async () => {
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
   const request = {
     code: "spa",
@@ -84,10 +106,13 @@ test("creates language and redirects to its settings", async () => {
   formData.set("code", request.code);
   formData.set("englishName", request.englishName);
   formData.set("localName", request.localName);
-  const response = createLanguage({ state: "idle" }, formData);
-  await expect(response).toBeNextjsRedirect(
-    `/en/admin/languages/${request.code}/settings`,
-  );
+
+  const { response } = await runServerFn(createLanguage, {
+    data: formData,
+    sessionId: session!.id,
+  });
+
+  expect(response.status).toEqual(204);
 
   const language = await findLanguageByCode(request.code);
   expect(language).toEqual({

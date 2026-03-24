@@ -33,13 +33,14 @@ import { Route as MainAdminMainJobsRouteImport } from "./routes/_main/admin/_mai
 import { Route as MainAdminLanguagesCodeRouteRouteImport } from "./routes/_main/admin/languages.$code/route";
 import { Route as MainAdminMainUsersIndexRouteImport } from "./routes/_main/admin/_main.users/index";
 import { Route as MainAdminMainLanguagesIndexRouteImport } from "./routes/_main/admin/_main.languages/index";
-import { Route as MainAdminLanguagesCodeUsersRouteImport } from "./routes/_main/admin/languages.$code/users";
 import { Route as MainAdminLanguagesCodeSettingsRouteImport } from "./routes/_main/admin/languages.$code/settings";
 import { Route as MainAdminLanguagesCodeImportRouteImport } from "./routes/_main/admin/languages.$code/import";
 import { Route as MainAdminLanguagesCodeExportsRouteImport } from "./routes/_main/admin/languages.$code/exports";
 import { Route as MainAdminLanguagesCodeDashboardRouteImport } from "./routes/_main/admin/languages.$code/dashboard";
 import { Route as MainAdminMainUsersInviteRouteImport } from "./routes/_main/admin/_main.users/invite";
 import { Route as MainAdminMainLanguagesNewRouteImport } from "./routes/_main/admin/_main.languages/new";
+import { Route as MainAdminLanguagesCodeUsersIndexRouteImport } from "./routes/_main/admin/languages.$code/users.index";
+import { Route as MainAdminLanguagesCodeUsersInviteRouteImport } from "./routes/_main/admin/languages.$code/users.invite";
 
 const MinimalRouteRoute = MinimalRouteRouteImport.update({
   id: "/_minimal",
@@ -162,12 +163,6 @@ const MainAdminMainLanguagesIndexRoute =
     path: "/languages/",
     getParentRoute: () => MainAdminMainRoute,
   } as any);
-const MainAdminLanguagesCodeUsersRoute =
-  MainAdminLanguagesCodeUsersRouteImport.update({
-    id: "/users",
-    path: "/users",
-    getParentRoute: () => MainAdminLanguagesCodeRouteRoute,
-  } as any);
 const MainAdminLanguagesCodeSettingsRoute =
   MainAdminLanguagesCodeSettingsRouteImport.update({
     id: "/settings",
@@ -204,6 +199,18 @@ const MainAdminMainLanguagesNewRoute =
     path: "/languages/new",
     getParentRoute: () => MainAdminMainRoute,
   } as any);
+const MainAdminLanguagesCodeUsersIndexRoute =
+  MainAdminLanguagesCodeUsersIndexRouteImport.update({
+    id: "/users/",
+    path: "/users/",
+    getParentRoute: () => MainAdminLanguagesCodeRouteRoute,
+  } as any);
+const MainAdminLanguagesCodeUsersInviteRoute =
+  MainAdminLanguagesCodeUsersInviteRouteImport.update({
+    id: "/users/invite",
+    path: "/users/invite",
+    getParentRoute: () => MainAdminLanguagesCodeRouteRoute,
+  } as any);
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
@@ -232,9 +239,10 @@ export interface FileRoutesByFullPath {
   "/admin/languages/$code/exports": typeof MainAdminLanguagesCodeExportsRoute;
   "/admin/languages/$code/import": typeof MainAdminLanguagesCodeImportRoute;
   "/admin/languages/$code/settings": typeof MainAdminLanguagesCodeSettingsRoute;
-  "/admin/languages/$code/users": typeof MainAdminLanguagesCodeUsersRoute;
   "/admin/languages/": typeof MainAdminMainLanguagesIndexRoute;
   "/admin/users/": typeof MainAdminMainUsersIndexRoute;
+  "/admin/languages/$code/users/invite": typeof MainAdminLanguagesCodeUsersInviteRoute;
+  "/admin/languages/$code/users/": typeof MainAdminLanguagesCodeUsersIndexRoute;
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
@@ -263,9 +271,10 @@ export interface FileRoutesByTo {
   "/admin/languages/$code/exports": typeof MainAdminLanguagesCodeExportsRoute;
   "/admin/languages/$code/import": typeof MainAdminLanguagesCodeImportRoute;
   "/admin/languages/$code/settings": typeof MainAdminLanguagesCodeSettingsRoute;
-  "/admin/languages/$code/users": typeof MainAdminLanguagesCodeUsersRoute;
   "/admin/languages": typeof MainAdminMainLanguagesIndexRoute;
   "/admin/users": typeof MainAdminMainUsersIndexRoute;
+  "/admin/languages/$code/users/invite": typeof MainAdminLanguagesCodeUsersInviteRoute;
+  "/admin/languages/$code/users": typeof MainAdminLanguagesCodeUsersIndexRoute;
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
@@ -297,9 +306,10 @@ export interface FileRoutesById {
   "/_main/admin/languages/$code/exports": typeof MainAdminLanguagesCodeExportsRoute;
   "/_main/admin/languages/$code/import": typeof MainAdminLanguagesCodeImportRoute;
   "/_main/admin/languages/$code/settings": typeof MainAdminLanguagesCodeSettingsRoute;
-  "/_main/admin/languages/$code/users": typeof MainAdminLanguagesCodeUsersRoute;
   "/_main/admin/_main/languages/": typeof MainAdminMainLanguagesIndexRoute;
   "/_main/admin/_main/users/": typeof MainAdminMainUsersIndexRoute;
+  "/_main/admin/languages/$code/users/invite": typeof MainAdminLanguagesCodeUsersInviteRoute;
+  "/_main/admin/languages/$code/users/": typeof MainAdminLanguagesCodeUsersIndexRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
@@ -330,9 +340,10 @@ export interface FileRouteTypes {
     | "/admin/languages/$code/exports"
     | "/admin/languages/$code/import"
     | "/admin/languages/$code/settings"
-    | "/admin/languages/$code/users"
     | "/admin/languages/"
-    | "/admin/users/";
+    | "/admin/users/"
+    | "/admin/languages/$code/users/invite"
+    | "/admin/languages/$code/users/";
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/"
@@ -361,9 +372,10 @@ export interface FileRouteTypes {
     | "/admin/languages/$code/exports"
     | "/admin/languages/$code/import"
     | "/admin/languages/$code/settings"
-    | "/admin/languages/$code/users"
     | "/admin/languages"
-    | "/admin/users";
+    | "/admin/users"
+    | "/admin/languages/$code/users/invite"
+    | "/admin/languages/$code/users";
   id:
     | "__root__"
     | "/"
@@ -394,9 +406,10 @@ export interface FileRouteTypes {
     | "/_main/admin/languages/$code/exports"
     | "/_main/admin/languages/$code/import"
     | "/_main/admin/languages/$code/settings"
-    | "/_main/admin/languages/$code/users"
     | "/_main/admin/_main/languages/"
-    | "/_main/admin/_main/users/";
+    | "/_main/admin/_main/users/"
+    | "/_main/admin/languages/$code/users/invite"
+    | "/_main/admin/languages/$code/users/";
   fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
@@ -576,13 +589,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof MainAdminMainLanguagesIndexRouteImport;
       parentRoute: typeof MainAdminMainRoute;
     };
-    "/_main/admin/languages/$code/users": {
-      id: "/_main/admin/languages/$code/users";
-      path: "/users";
-      fullPath: "/admin/languages/$code/users";
-      preLoaderRoute: typeof MainAdminLanguagesCodeUsersRouteImport;
-      parentRoute: typeof MainAdminLanguagesCodeRouteRoute;
-    };
     "/_main/admin/languages/$code/settings": {
       id: "/_main/admin/languages/$code/settings";
       path: "/settings";
@@ -624,6 +630,20 @@ declare module "@tanstack/react-router" {
       fullPath: "/admin/languages/new";
       preLoaderRoute: typeof MainAdminMainLanguagesNewRouteImport;
       parentRoute: typeof MainAdminMainRoute;
+    };
+    "/_main/admin/languages/$code/users/": {
+      id: "/_main/admin/languages/$code/users/";
+      path: "/users";
+      fullPath: "/admin/languages/$code/users/";
+      preLoaderRoute: typeof MainAdminLanguagesCodeUsersIndexRouteImport;
+      parentRoute: typeof MainAdminLanguagesCodeRouteRoute;
+    };
+    "/_main/admin/languages/$code/users/invite": {
+      id: "/_main/admin/languages/$code/users/invite";
+      path: "/users/invite";
+      fullPath: "/admin/languages/$code/users/invite";
+      preLoaderRoute: typeof MainAdminLanguagesCodeUsersInviteRouteImport;
+      parentRoute: typeof MainAdminLanguagesCodeRouteRoute;
     };
   }
 }
@@ -699,7 +719,8 @@ interface MainAdminLanguagesCodeRouteRouteChildren {
   MainAdminLanguagesCodeExportsRoute: typeof MainAdminLanguagesCodeExportsRoute;
   MainAdminLanguagesCodeImportRoute: typeof MainAdminLanguagesCodeImportRoute;
   MainAdminLanguagesCodeSettingsRoute: typeof MainAdminLanguagesCodeSettingsRoute;
-  MainAdminLanguagesCodeUsersRoute: typeof MainAdminLanguagesCodeUsersRoute;
+  MainAdminLanguagesCodeUsersInviteRoute: typeof MainAdminLanguagesCodeUsersInviteRoute;
+  MainAdminLanguagesCodeUsersIndexRoute: typeof MainAdminLanguagesCodeUsersIndexRoute;
 }
 
 const MainAdminLanguagesCodeRouteRouteChildren: MainAdminLanguagesCodeRouteRouteChildren =
@@ -708,7 +729,10 @@ const MainAdminLanguagesCodeRouteRouteChildren: MainAdminLanguagesCodeRouteRoute
     MainAdminLanguagesCodeExportsRoute: MainAdminLanguagesCodeExportsRoute,
     MainAdminLanguagesCodeImportRoute: MainAdminLanguagesCodeImportRoute,
     MainAdminLanguagesCodeSettingsRoute: MainAdminLanguagesCodeSettingsRoute,
-    MainAdminLanguagesCodeUsersRoute: MainAdminLanguagesCodeUsersRoute,
+    MainAdminLanguagesCodeUsersInviteRoute:
+      MainAdminLanguagesCodeUsersInviteRoute,
+    MainAdminLanguagesCodeUsersIndexRoute:
+      MainAdminLanguagesCodeUsersIndexRoute,
   };
 
 const MainAdminLanguagesCodeRouteRouteWithChildren =

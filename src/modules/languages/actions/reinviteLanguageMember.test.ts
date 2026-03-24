@@ -1,9 +1,8 @@
-import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
 import { reinviteLanguageMemberAction } from "./reinviteLanguageMember";
-import logIn from "@/tests/vitest/login";
 import {
   findInvitationsForUser,
   findUserById,
@@ -16,125 +15,150 @@ import { ulid } from "@/shared/ulid";
 initializeDatabase();
 
 test("returns validation error if the request shape doesn't match the schema", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
-  {
-    const formData = new FormData();
-    const response = await reinviteLanguageMemberAction(
-      { state: "idle" },
-      formData,
-    );
-    expect(response).toEqual({
-      state: "error",
-    });
-  }
-  {
-    const formData = new FormData();
-    formData.set("code", "spa");
-    const response = await reinviteLanguageMemberAction(
-      { state: "idle" },
-      formData,
-    );
-    expect(response).toEqual({
-      state: "error",
-    });
-  }
-  {
-    const formData = new FormData();
-    formData.set("userId", "user123");
-    const response = await reinviteLanguageMemberAction(
-      { state: "idle" },
-      formData,
-    );
-    expect(response).toEqual({
-      state: "error",
-    });
-  }
+  await expect(
+    runServerFn(reinviteLanguageMemberAction, {
+      data: {},
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`
+    [ZodError: [
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "code"
+        ],
+        "message": "Required"
+      },
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "userId"
+        ],
+        "message": "Required"
+      }
+    ]]
+  `);
 });
 
 test("returns not found if not a platform admin", async () => {
-  const { user } = await userFactory.build();
+  const { session } = await userFactory.build({ session: true });
   const { user: member } = await userFactory.build();
   const { language } = await languageFactory.build({ members: [member.id] });
-  await logIn(user.id);
 
-  const formData = new FormData();
-  formData.set("code", language.code);
-  formData.set("userId", member.id);
-  const response = reinviteLanguageMemberAction({ state: "idle" }, formData);
-  await expect(response).toBeNextjsNotFound();
+  const data = {
+    code: language.code,
+    userId: member.id,
+  };
+
+  const response = runServerFn(reinviteLanguageMemberAction, {
+    data,
+    sessionId: session!.id,
+  });
+  await expect(response).rejects.toThrowErrorMatchingInlineSnapshot(
+    `[Error: UnauthorizedError]`,
+  );
 
   expect(sendEmailMock).not.toHaveBeenCalled();
 });
 
 test("returns not found if language does not exist", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
   const { user } = await userFactory.build();
-  await logIn(admin.id);
 
-  const formData = new FormData();
-  formData.set("code", "garbage");
-  formData.set("userId", user.id);
-  const response = reinviteLanguageMemberAction({ state: "idle" }, formData);
-  await expect(response).toBeNextjsNotFound();
+  const data = {
+    code: "garbage",
+    userId: user.id,
+  };
+
+  const response = runServerFn(reinviteLanguageMemberAction, {
+    data,
+    sessionId: session!.id,
+  });
+  await expect(response).toBeTanstackNotFound();
 
   expect(sendEmailMock).not.toHaveBeenCalled();
 });
 
 test("throws error if user is not a member of the language", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
   const { language } = await languageFactory.build();
   const { user } = await userFactory.build();
-  await logIn(admin.id);
 
-  const formData = new FormData();
-  formData.set("code", language.code);
-  formData.set("userId", user.id);
-  const response = reinviteLanguageMemberAction({ state: "idle" }, formData);
+  const data = {
+    code: language.code,
+    userId: user.id,
+  };
 
-  await expect(response).rejects.toThrow(
-    new Error("User is not a member of this language"),
+  await expect(
+    runServerFn(reinviteLanguageMemberAction, {
+      data,
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(
+    `[Error: User is not a member of this language]`,
   );
 
   expect(sendEmailMock).not.toHaveBeenCalled();
 });
 
 test("throws error if user does not exist", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
   const { language } = await languageFactory.build();
-  await logIn(admin.id);
 
-  const formData = new FormData();
-  formData.set("code", language.code);
-  formData.set("userId", ulid());
-  const response = reinviteLanguageMemberAction({ state: "idle" }, formData);
+  const data = {
+    code: language.code,
+    userId: ulid(),
+  };
 
-  await expect(response).rejects.toThrow(
-    new Error("User is not a member of this language"),
+  await expect(
+    runServerFn(reinviteLanguageMemberAction, {
+      data,
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(
+    `[Error: User is not a member of this language]`,
   );
 
   expect(sendEmailMock).not.toHaveBeenCalled();
 });
 
 test("successfully reinvites a language member and sends email", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
   const { user, invitation } = await userFactory.build({ state: "invited" });
   const { language } = await languageFactory.build({ members: [user.id] });
-  await logIn(admin.id);
 
-  const formData = new FormData();
-  formData.set("code", language.code);
-  formData.set("userId", user.id);
-  const response = await reinviteLanguageMemberAction(
-    { state: "idle" },
-    formData,
-  );
+  const data = {
+    code: language.code,
+    userId: user.id,
+  };
 
-  expect(response).toEqual({
-    state: "success",
-    message: "User invitation resent",
+  const { response } = await runServerFn(reinviteLanguageMemberAction, {
+    data,
+    sessionId: session!.id,
   });
+
+  expect(response.status).toEqual(204);
 
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual(user);

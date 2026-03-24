@@ -60,7 +60,7 @@ export function ActivityChartRangeToggle({
   range?: ActivityChartRange;
 }) {
   const navigate = useNavigate();
-  const search = useSearch({ from: "/_main/admin/languages/$code/users" });
+  const search = useSearch({ from: "/_main/admin/languages/$code/users/" });
 
   function onClick() {
     const nextRange = range === "30d" ? "6m" : "30d";

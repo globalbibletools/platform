@@ -29,7 +29,6 @@ const policy = new Policy({
   languageMember: true,
 });
 
-const paramsSchema = z.object({ code: z.string() });
 const loaderRequestSchema = z.object({ code: z.string() });
 
 export const Route = createFileRoute("/_main/admin/languages/$code/settings")({
@@ -72,7 +71,11 @@ function LanguageSettingsRoute() {
 
   return (
     <div className="px-8 py-6 w-fit">
-      <Form action={updateLanguageSettings} className="max-w-[1000px]">
+      <Form
+        action={updateLanguageSettings}
+        className="max-w-[1000px]"
+        invalidate
+      >
         <div className="flex items-baseline mb-4">
           <ViewTitle>{t("title")}</ViewTitle>
           <SavingIndicator
