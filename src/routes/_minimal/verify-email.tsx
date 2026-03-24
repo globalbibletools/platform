@@ -11,10 +11,10 @@ const policy = new Policy({ authenticated: false });
 
 export const Route = createFileRoute("/_minimal/verify-email")({
   validateSearch: schema,
+  loaderDeps: ({ search }) => ({ token: search.token }),
   beforeLoad: ({ context }) => {
     routerGuard({ context: context.auth, policy });
   },
-  loaderDeps: ({ search }) => ({ token: search.token }),
   loader: ({ deps }) => verifyEmail({ data: { token: deps.token } }),
   component: VerifyEmailRoute,
   notFoundComponent: VerifyEmailNotFoundRoute,

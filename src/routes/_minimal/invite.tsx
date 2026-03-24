@@ -42,11 +42,11 @@ const validateInviteToken = createServerFn()
   });
 
 export const Route = createFileRoute("/_minimal/invite")({
+  validateSearch: schema,
+  loaderDeps: ({ search }) => ({ token: search.token }),
   beforeLoad: ({ context }) => {
     routerGuard({ context: context.auth, policy });
   },
-  validateSearch: schema,
-  loaderDeps: ({ search }) => ({ token: search.token }),
   loader: ({ deps }) => validateInviteToken({ data: { token: deps.token } }),
   component: AcceptInviteRoute,
   notFoundComponent: AcceptInviteNotFoundRoute,

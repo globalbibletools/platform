@@ -41,11 +41,11 @@ const validateResetPasswordToken = createServerFn()
   });
 
 export const Route = createFileRoute("/_minimal/reset-password")({
+  validateSearch: schema,
+  loaderDeps: ({ search }) => ({ token: search.token }),
   beforeLoad: ({ context }) => {
     routerGuard({ context: context.auth, policy });
   },
-  validateSearch: schema,
-  loaderDeps: ({ search }) => ({ token: search.token }),
   loader: ({ deps }) =>
     validateResetPasswordToken({ data: { token: deps.token } }),
   component: ResetPasswordRoute,

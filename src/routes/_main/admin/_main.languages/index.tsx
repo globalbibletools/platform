@@ -26,11 +26,11 @@ const schema = z.object({
 });
 
 export const Route = createFileRoute("/_main/admin/_main/languages/")({
+  validateSearch: schema,
+  loaderDeps: ({ search }) => search,
   beforeLoad: ({ context }) => {
     routerGuard({ context: context.auth, policy });
   },
-  validateSearch: schema,
-  loaderDeps: ({ search }) => search,
   loader: ({ deps }) => loaderFn({ data: deps }),
   component: AdminLanguagesRoute,
 });
