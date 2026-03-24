@@ -28,10 +28,10 @@ export default function ServerAction({
   const serverFn = useServerFn(action);
   const flash = useFlash();
   const router = useRouter();
-  const confirmModal = useRef<ConfirmModalRef>(null);
+  const confirmModalRef = useRef<ConfirmModalRef>(null);
 
   function onModalClose() {
-    const result = confirmModal.current?.returnValue;
+    const result = confirmModalRef.current?.returnValue;
 
     if (result === "yes") {
       submit();
@@ -60,7 +60,7 @@ export default function ServerAction({
         {...props}
         onClick={() => {
           if (confirm) {
-            confirmModal.current?.showModal();
+            confirmModalRef.current?.showModal();
             return;
           }
 
@@ -69,7 +69,7 @@ export default function ServerAction({
       />
       {confirm && (
         <ConfirmModal
-          ref={confirmModal}
+          ref={confirmModalRef}
           prompt={typeof confirm === "string" ? confirm : ""}
           onClose={onModalClose}
         />

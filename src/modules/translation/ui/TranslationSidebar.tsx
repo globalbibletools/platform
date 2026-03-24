@@ -4,13 +4,7 @@ import { Icon } from "@/components/Icon";
 import { RichTextInputRef } from "@/components/RichTextInput";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useTranslations } from "next-intl";
-import {
-  forwardRef,
-  Fragment,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
+import { Fragment, Ref, useImperativeHandle, useRef, useState } from "react";
 import TranslationLexiconPanel from "./TranslationLexiconPanel";
 import PhraseNoteEditor from "./PhraseNoteEditor";
 
@@ -19,6 +13,10 @@ export interface Word {
   text: string;
   lemma: string;
   grammar: string;
+}
+
+export interface TranslationSidebarRef {
+  openNotes(): void;
 }
 
 export interface TranslationSidebarProps {
@@ -32,15 +30,17 @@ export interface TranslationSidebarProps {
     isMember: boolean;
   };
   onClose?(): void;
-}
-export interface TranslationSidebarRef {
-  openNotes(): void;
+  ref?: Ref<TranslationSidebarRef>;
 }
 
-const TranslationSidebar = forwardRef<
-  TranslationSidebarRef,
-  TranslationSidebarProps
->(({ className = "", language, word, phraseId, onClose }, ref) => {
+export default function TranslationSidebar({
+  className = "",
+  language,
+  word,
+  phraseId,
+  onClose,
+  ref,
+}: TranslationSidebarProps) {
   const t = useTranslations("TranslationSidebar");
 
   const canReadTranslatorNotes = language.isMember;
@@ -64,9 +64,9 @@ const TranslationSidebar = forwardRef<
   return (
     <div
       className={`
-          relative flex flex-col gap-4 shrink-0 shadow rounded-2xl bg-brown-100
-          dark:bg-gray-800 dark:shadow-none
-          ${className}
+        relative flex flex-col gap-4 shrink-0 shadow rounded-2xl bg-brown-100
+        dark:bg-gray-800 dark:shadow-none
+        ${className}
       `}
     >
       <button
@@ -95,9 +95,9 @@ const TranslationSidebar = forwardRef<
               <Fragment key={title}>
                 <Tab
                   className="
-                      px-4 py-1 text-blue-800 font-bold rounded-t-lg border border-blue-800 data-selected:border-b-transparent outline-green-300 focus-visible:outline-2
-                      dark:text-green-400 dark:border-green-400
-                    "
+                    px-4 py-1 text-blue-800 font-bold rounded-t-lg border border-blue-800 data-selected:border-b-transparent outline-green-300 focus-visible:outline-2
+                    dark:text-green-400 dark:border-green-400
+                  "
                 >
                   {title}
                 </Tab>
@@ -139,6 +139,4 @@ const TranslationSidebar = forwardRef<
       </div>
     </div>
   );
-});
-TranslationSidebar.displayName = "TranslationSidebar";
-export default TranslationSidebar;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { ComponentProps, forwardRef, ReactNode } from "react";
+import { ComponentProps, ReactNode, Ref } from "react";
 import { useFormStatus } from "react-dom";
 import LoadingSpinner from "./LoadingSpinner";
 import { Link, LinkProps as BaseLinkProps } from "@tanstack/react-router";
@@ -13,6 +13,7 @@ export interface LinkProps extends BaseLinkProps {
   variant?: ButtonVariant;
   destructive?: boolean;
   small?: boolean;
+  ref?: Ref<HTMLAnchorElement>;
 }
 export interface ActionProps extends ComponentProps<"button"> {
   className?: string;
@@ -20,6 +21,7 @@ export interface ActionProps extends ComponentProps<"button"> {
   destructive?: boolean;
   small?: boolean;
   submitting?: ReactNode;
+  ref?: Ref<HTMLButtonElement>;
 }
 
 export type ButtonProps = LinkProps | ActionProps;
@@ -72,66 +74,49 @@ function isButtonProps(props: ButtonProps): props is ActionProps {
   return !("to" in props);
 }
 
-const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
-  (
-    {
-      className = "",
-      variant = "primary",
-      destructive = false,
-      small = false,
-      ...props
-    },
-    ref,
-  ) => {
-    const formStatus = useFormStatus();
+export default function Button({
+  className = "",
+  variant = "primary",
+  destructive = false,
+  small = false,
+  ...props
+}: ButtonProps) {
+  const formStatus = useFormStatus();
 
-    if (isLinkProps(props)) {
-      return (
-        <Link
-          ref={ref as any}
-          className={`${buttonClasses(
-            variant,
-            destructive,
-            small,
-          )} ${className}`}
-          {...props}
-        />
-      );
-    } else if (isButtonProps(props)) {
-      return (
-        <button
-          ref={ref as any}
-          className={`${buttonClasses(
-            variant,
-            destructive,
-            small,
-          )} ${className}`}
-          type="button"
-          {...props}
-          disabled={
-            props.disabled || (props.type === "submit" && formStatus.pending)
+  if (isLinkProps(props)) {
+    return (
+      <Link
+        className={`${buttonClasses(variant, destructive, small)} ${className}`}
+        {...props}
+      />
+    );
+  } else if (isButtonProps(props)) {
+    return (
+      <button
+        className={`${buttonClasses(variant, destructive, small)} ${className}`}
+        type="button"
+        {...props}
+        disabled={
+          props.disabled || (props.type === "submit" && formStatus.pending)
+        }
+      >
+        {(() => {
+          if (!formStatus.pending || props.type !== "submit") {
+            return props.children;
+          } else if (props.submitting) {
+            return (
+              <>
+                <LoadingSpinner className="me-3" />
+                {props.submitting}
+              </>
+            );
+          } else {
+            return <LoadingSpinner />;
           }
-        >
-          {(() => {
-            if (!formStatus.pending || props.type !== "submit") {
-              return props.children;
-            } else if (props.submitting) {
-              return (
-                <>
-                  <LoadingSpinner className="me-3" />
-                  {props.submitting}
-                </>
-              );
-            } else {
-              return <LoadingSpinner />;
-            }
-          })()}
-        </button>
-      );
-    } else {
-      return null;
-    }
-  },
-);
-Button.displayName = "Button";
-export default Button;
+        })()}
+      </button>
+    );
+  } else {
+    return null;
+  }
+}

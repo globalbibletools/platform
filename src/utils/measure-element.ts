@@ -6,7 +6,7 @@ export function useElementDimensions(): [
 ] {
   const [size, setSize] = useState({ blockSize: 0, inlineSize: 0 });
 
-  const observer = useRef(
+  const observerRef = useRef(
     typeof window !== "undefined" ?
       new ResizeObserver((records) => {
         if (!records[0]) return;
@@ -16,24 +16,24 @@ export function useElementDimensions(): [
     : null,
   );
 
-  const el = useRef<HTMLElement | null>(null);
+  const elementRef = useRef<HTMLElement | null>(null);
   const ref = useCallback(
     (element: HTMLElement | null) => {
-      if (el.current === element) {
+      if (elementRef.current === element) {
         return;
       }
 
-      if (el.current) {
-        observer.current?.unobserve(el.current);
+      if (elementRef.current) {
+        observerRef.current?.unobserve(elementRef.current);
       }
 
       if (element) {
-        observer.current?.observe(element);
+        observerRef.current?.observe(element);
       } else {
         setSize({ blockSize: 0, inlineSize: 0 });
       }
 
-      el.current = element;
+      elementRef.current = element;
     },
     [setSize],
   );

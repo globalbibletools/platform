@@ -19,14 +19,15 @@ export default function DropdownMenu({
   text,
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const cssId = useCssId("dropdown-menu");
 
   // We want to close the menu if the focus moves outside of the component.
   function onBlur(e: FocusEvent) {
     const focusedElement = e.relatedTarget;
     const isInComponent =
-      focusedElement instanceof Node && root.current?.contains(focusedElement);
+      focusedElement instanceof Node &&
+      rootRef.current?.contains(focusedElement);
     if (!isInComponent) {
       setIsOpen(false);
     }
@@ -34,7 +35,7 @@ export default function DropdownMenu({
 
   return (
     <div
-      ref={root}
+      ref={rootRef}
       className={`relative inline-block ${className}`}
       onBlur={onBlur}
     >
@@ -122,21 +123,22 @@ export function DropdownMenuSubmenu({
   text,
 }: DropdownMenuSubmenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const root = useRef<HTMLLIElement>(null);
+  const rootRef = useRef<HTMLLIElement>(null);
   const cssId = useCssId("dropdown-menu");
 
   // We want to close the menu if the focus moves outside of the component.
   function onBlur(e: FocusEvent) {
     const focusedElement = e.relatedTarget;
     const isInComponent =
-      focusedElement instanceof Node && root.current?.contains(focusedElement);
+      focusedElement instanceof Node &&
+      rootRef.current?.contains(focusedElement);
     if (!isInComponent) {
       setIsOpen(false);
     }
   }
 
   return (
-    <li ref={root} className="relative" onBlur={onBlur}>
+    <li ref={rootRef} className="relative" onBlur={onBlur}>
       <button
         className="outline-none focus:underline hover:underline whitespace-nowrap px-4 py-1 text-start w-full"
         type="button"

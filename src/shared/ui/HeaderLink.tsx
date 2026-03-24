@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, createContext, useContext, useState } from "react";
+import { ReactNode, createContext, use, useState } from "react";
 import NavLink, { NavLinkProps } from "@/components/NavLink";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { Icon } from "@/components/Icon";
@@ -98,22 +98,22 @@ export function HeaderDropdownItem({
 
 interface HeaderMenuContextValue {
   isOpen: boolean;
-  setOpenState(isOpen: boolean): void;
+  setIsOpen(isOpen: boolean): void;
 }
 const HeaderMenuContext = createContext<HeaderMenuContextValue | null>(null);
 
 export function HeaderMenu({ children }: { children: ReactNode }) {
-  const [isOpen, setOpenState] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <HeaderMenuContext.Provider value={{ isOpen, setOpenState }}>
+    <HeaderMenuContext value={{ isOpen, setIsOpen }}>
       {children}
-    </HeaderMenuContext.Provider>
+    </HeaderMenuContext>
   );
 }
 
 export function HeaderMenuButton({ className = "" }: { className: string }) {
-  const context = useContext(HeaderMenuContext);
+  const context = use(HeaderMenuContext);
   if (!context) throw new Error("HeaderMenuButton must be inside HeaderMenu");
 
   return (
@@ -123,7 +123,7 @@ export function HeaderMenuButton({ className = "" }: { className: string }) {
             w-10 h-10 outline-green-300 rounded text-blue-800 dark:text-green-400
             ${className}
         `}
-      onClick={() => setTimeout(() => context.setOpenState(!context.isOpen))}
+      onClick={() => setTimeout(() => context.setIsOpen(!context.isOpen))}
     >
       <Icon icon={context.isOpen ? "close" : "bars"} size="lg" />
       <span className="sr-only">Menu</span>
@@ -138,7 +138,7 @@ export function HeaderMenuItems({
   children: ReactNode;
   className?: string;
 }) {
-  const context = useContext(HeaderMenuContext);
+  const context = use(HeaderMenuContext);
   if (!context) throw new Error("HeaderMenuItems must be inside HeaderMenu");
   if (!context.isOpen) return null;
 
@@ -148,7 +148,7 @@ export function HeaderMenuItems({
             fixed left-0 top-16 w-full h-[calc(100%-64px)] z-10
             ${className}
         `}
-      onClick={() => context.setOpenState(false)}
+      onClick={() => context.setIsOpen(false)}
     >
       <div
         className="
@@ -171,7 +171,7 @@ export function HeaderMenuItem({
   newTab = false,
   ...props
 }: HeaderLinkProps) {
-  const context = useContext(HeaderMenuContext);
+  const context = use(HeaderMenuContext);
   if (!context) throw new Error("HeaderMenuItem must be inside HeaderMenu");
 
   return (
@@ -183,7 +183,7 @@ export function HeaderMenuItem({
             `}
       target={newTab ? "_blank" : props.target}
       rel={newTab ? "noopener" : props.rel}
-      onClick={() => context.setOpenState(false)}
+      onClick={() => context.setIsOpen(false)}
     >
       {children}
     </Link>

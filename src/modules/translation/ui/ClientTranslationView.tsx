@@ -58,11 +58,11 @@ export default function TranslateView({
   const sidebarPhrase = phrases.find((ph) =>
     ph.wordIds.includes(sidebarWord.id),
   );
-  const lastVerse = useRef(verseId);
+  const lastVerseRef = useRef(verseId);
   useEffect(() => {
-    if (lastVerse.current !== verseId) {
+    if (lastVerseRef.current !== verseId) {
       setSidebarWord(words[0]);
-      lastVerse.current = verseId;
+      lastVerseRef.current = verseId;
     }
   }, [words, verseId]);
 
@@ -87,7 +87,7 @@ export default function TranslateView({
     }
   }, [phrases, focusPhrase]);
 
-  const root = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const keydownCallback = async (e: globalThis.KeyboardEvent) => {
       if (hasShortcutModifier(e) && !e.shiftKey && !e.altKey) {
@@ -96,7 +96,7 @@ export default function TranslateView({
             return setShowSidebar((show) => !show);
           case "Home": {
             const words = Array.from(
-              root.current?.querySelectorAll("input[data-phrase]") ?? [],
+              rootRef.current?.querySelectorAll("input[data-phrase]") ?? [],
             );
             const firstWord = words[0] as HTMLElement;
             firstWord?.focus();
@@ -104,7 +104,7 @@ export default function TranslateView({
           }
           case "End": {
             const words = Array.from(
-              root.current?.querySelectorAll("input[data-phrase]") ?? [],
+              rootRef.current?.querySelectorAll("input[data-phrase]") ?? [],
             );
             const lastWord = words.at(-1) as HTMLElement;
             lastWord?.focus();
@@ -119,7 +119,10 @@ export default function TranslateView({
   }, []);
 
   return (
-    <div ref={root} className="flex flex-col grow w-full min-h-0 lg:flex-row">
+    <div
+      ref={rootRef}
+      className="flex flex-col grow w-full min-h-0 lg:flex-row"
+    >
       <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-24 px-6">
         <TranslationReference verseId={verseId} language={language} />
         <ol

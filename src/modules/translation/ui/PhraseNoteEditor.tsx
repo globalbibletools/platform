@@ -34,7 +34,7 @@ export default function PhraseNoteEditor({
 
   const [draftNote, setDraftNote] = useState("");
 
-  const [isDirty, setDirty] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   const { data: note, refetch } = useQuery({
     queryKey: ["phrase-note", phraseId, languageCode, noteType],
@@ -59,7 +59,7 @@ export default function PhraseNoteEditor({
   });
 
   useEffect(() => {
-    setDirty(false);
+    setIsDirty(false);
   }, [phraseId, languageCode, noteType]);
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function PhraseNoteEditor({
     }
 
     if (isDirty && note?.content === draftNote) {
-      setDirty(false);
+      setIsDirty(false);
     }
   }, [isDirty, note, draftNote]);
 
@@ -119,7 +119,7 @@ export default function PhraseNoteEditor({
           value={draftNote}
           onBlur={() => saveNote.flush()}
           onChange={(nextContent) => {
-            setDirty(true);
+            setIsDirty(true);
             setDraftNote(nextContent);
             saveNote(nextContent);
           }}

@@ -12,16 +12,16 @@ export default function LanguageDialog() {
   const navigate = useNavigate();
   const pathname = useLocation({ select: ({ pathname }) => pathname });
 
-  const dialog = useRef<HTMLDialogElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   return (
     <>
-      <Button variant="tertiary" onClick={() => dialog.current?.show()}>
+      <Button variant="tertiary" onClick={() => dialogRef.current?.show()}>
         <Icon icon="language" className="me-2" />
         {locale.name}
       </Button>
       <dialog
-        ref={dialog}
+        ref={dialogRef}
         className="
             rounded-lg shadow-md border border-gray-200 bg-white mx-auto p-8 focus-visible:outline-2 outline-green-300 start-3 bottom-2 end-auto
             dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300
@@ -50,7 +50,7 @@ export default function LanguageDialog() {
           className="absolute right-2 top-2 w-9"
           variant="tertiary"
           destructive
-          onClick={() => dialog.current?.close()}
+          onClick={() => dialogRef.current?.close()}
         >
           <Icon icon="xmark" />
           <span className="sr-only">Close</span>

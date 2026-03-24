@@ -16,19 +16,19 @@ interface ProgressChartProps {
 }
 
 export default function ProgressChart({ languageStats }: ProgressChartProps) {
-  const [isDarkMode, setDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   useEffect(() => {
     const mediaMatch = window.matchMedia("(prefers-color-scheme: dark)");
     mediaMatch.addEventListener("change", (event) => {
-      setDarkMode(event.matches);
+      setIsDarkMode(event.matches);
     });
-    setDarkMode(mediaMatch.matches);
+    setIsDarkMode(mediaMatch.matches);
   }, []);
 
-  const chartRoot = useRef<HTMLCanvasElement>(null);
+  const chartRootRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    if (chartRoot.current) {
-      const chart = new Chart(chartRoot.current, {
+    if (chartRootRef.current) {
+      const chart = new Chart(chartRootRef.current, {
         type: "bar",
         data: {
           labels: languageStats.map((lang) => lang.englishName),
@@ -74,7 +74,7 @@ export default function ProgressChart({ languageStats }: ProgressChartProps) {
 
   return (
     <div className="w-full" style={{ height: 80 + 24 * languageStats.length }}>
-      <canvas ref={chartRoot} />
+      <canvas ref={chartRootRef} />
     </div>
   );
 }

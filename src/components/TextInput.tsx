@@ -3,7 +3,7 @@
 import {
   ChangeEvent,
   ComponentProps,
-  forwardRef,
+  Ref,
   useEffect,
   useMemo,
   useRef,
@@ -14,62 +14,65 @@ import { mergeRefs } from "../utils/merge-refs";
 
 export interface TextInputProps extends ComponentProps<"input"> {
   autosubmit?: boolean;
+  ref?: Ref<HTMLInputElement>;
 }
 
-const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
-  ({ className = "", autosubmit = false, onChange, ...props }, ref) => {
-    const formContext = useFormContext();
-    const hasErrors =
-      formContext?.state === "error" &&
-      (formContext.validation?.[props.name ?? ""]?.length ?? 0) > 0;
+export default function TextInput({
+  className = "",
+  autosubmit = false,
+  onChange,
+  ref,
+  ...props
+}: TextInputProps) {
+  const formContext = useFormContext();
+  const hasErrors =
+    formContext?.state === "error" &&
+    (formContext.validation?.[props.name ?? ""]?.length ?? 0) > 0;
 
-    // Reset password inputs on form submit
-    const root = useRef<HTMLInputElement>(null);
-    const prevState = useRef(formContext);
-    useEffect(() => {
-      if (props.type !== "password" || prevState.current === formContext)
-        return;
-      if (formContext?.state === "success" || formContext?.state === "error") {
-        const input = root.current;
-        if (input) {
-          input.value = "";
-        }
+  // Reset password inputs on form submit
+  const inputRef = useRef<HTMLInputElement>(null);
+  const previousStateRef = useRef(formContext);
+  useEffect(() => {
+    if (props.type !== "password" || previousStateRef.current === formContext)
+      return;
+    if (formContext?.state === "success" || formContext?.state === "error") {
+      const input = inputRef.current;
+      if (input) {
+        input.value = "";
       }
-      prevState.current = formContext;
-    }, [formContext, props.type]);
+    }
+    previousStateRef.current = formContext;
+  }, [formContext, props.type]);
 
-    const autosubmitForm = useMemo(
-      () =>
-        autosubmit ?
-          debounce((e: ChangeEvent<HTMLInputElement>) => {
-            e.target.form?.requestSubmit();
-          }, 1000)
-        : undefined,
-      [autosubmit],
-    );
+  const autosubmitForm = useMemo(
+    () =>
+      autosubmit ?
+        debounce((e: ChangeEvent<HTMLInputElement>) => {
+          e.target.form?.requestSubmit();
+        }, 1000)
+      : undefined,
+    [autosubmit],
+  );
 
-    return (
-      <input
-        ref={mergeRefs(root, ref)}
-        className={`
-          border rounded shadow-inner px-3 h-9 bg-white
-          focus-visible:outline-2
-          dark:bg-gray-900 dark:shadow-none
-          ${
-            hasErrors ?
-              "border-red-700 shadow-red-100 outline-red-700"
-            : "border-gray-400 outline-green-300 dark:border-gray-700"
-          }
-          ${className}
-        `}
-        onChange={(e) => {
-          autosubmitForm?.(e);
-          onChange?.(e);
-        }}
-        {...props}
-      />
-    );
-  },
-);
-TextInput.displayName = "TextInput";
-export default TextInput;
+  return (
+    <input
+      ref={mergeRefs(inputRef, ref ?? null)}
+      className={`
+        border rounded shadow-inner px-3 h-9 bg-white
+        focus-visible:outline-2
+        dark:bg-gray-900 dark:shadow-none
+        ${
+          hasErrors ?
+            "border-red-700 shadow-red-100 outline-red-700"
+          : "border-gray-400 outline-green-300 dark:border-gray-700"
+        }
+        ${className}
+      `}
+      onChange={(e) => {
+        autosubmitForm?.(e);
+        onChange?.(e);
+      }}
+      {...props}
+    />
+  );
+}

@@ -53,7 +53,7 @@ export default function AudioDialog({
   const bookId = parseInt(chapterId.slice(0, 2)) || 1;
   const chapter = parseInt(chapterId.slice(2, 5)) || 1;
 
-  const [isPlaying, setPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [speaker, setSpeaker] = useState("HEB");
   const [speed, setSpeed] = useState(2);
 
@@ -70,10 +70,10 @@ export default function AudioDialog({
   const canPlay = !!data;
   const timeRange = useTimeRange({ timings: data ?? [], verseId, length });
 
-  const audio = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const reset = useCallback(() => {
-    const el = audio.current;
+    const el = audioRef.current;
     if (!el) return;
 
     const newTime = timeRange.start;
@@ -85,7 +85,7 @@ export default function AudioDialog({
     (count = 1) => {
       if (isVersePlayer) return;
 
-      const el = audio.current;
+      const el = audioRef.current;
       if (!el || !data) return;
 
       const currentIndex = data.reduce(
@@ -110,7 +110,7 @@ export default function AudioDialog({
     (count = 1) => {
       if (isVersePlayer) return;
 
-      const el = audio.current;
+      const el = audioRef.current;
       if (!el || !data) return;
 
       const currentIndex = data.reduce(
@@ -127,7 +127,7 @@ export default function AudioDialog({
 
   const seek = useCallback(
     (progress: number) => {
-      const el = audio.current;
+      const el = audioRef.current;
       if (!el) return;
 
       el.currentTime = timeRange.start + progress;
@@ -139,14 +139,14 @@ export default function AudioDialog({
     const newIndex = (speed + 1) % SPEEDS.length;
     setSpeed(newIndex);
 
-    const el = audio.current;
+    const el = audioRef.current;
     if (!el) return;
 
     el.playbackRate = SPEEDS[newIndex];
   }, [speed]);
 
   const togglePlay = useCallback(() => {
-    const el = audio.current;
+    const el = audioRef.current;
     if (!el) return;
 
     if (el.currentTime >= timeRange.end) {
@@ -165,10 +165,10 @@ export default function AudioDialog({
   }, [timeRange, reset]);
 
   const src = `https://assets.globalbibletools.com/audio/${speaker}/${bookKeys[bookId - 1]}/${chapter.toString().padStart(3, "0")}.mp3`;
-  const lastVerseId = useRef<string | undefined>(undefined);
+  const lastVerseIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    const el = audio.current;
+    const el = audioRef.current;
     if (!el) return;
 
     el.currentTime = timeRange.start;
@@ -181,7 +181,7 @@ export default function AudioDialog({
       const verseNumber = e.target.dataset.verseNumber;
       if (!verseNumber) return;
 
-      const el = audio.current;
+      const el = audioRef.current;
       if (!el) return;
 
       const index = parseInt(verseNumber) - 1;
@@ -195,10 +195,10 @@ export default function AudioDialog({
   }, [data]);
 
   function onTimeUpdate() {
-    const el = audio.current;
+    const el = audioRef.current;
     if (!el || !data) return;
 
-    const currentTime = audio.current?.currentTime ?? 0;
+    const currentTime = audioRef.current?.currentTime ?? 0;
     setProgress(currentTime);
 
     if (currentTime >= timeRange.end) {
@@ -210,15 +210,15 @@ export default function AudioDialog({
       undefined,
     );
 
-    if (lastVerseId.current !== verse?.verseId) {
+    if (lastVerseIdRef.current !== verse?.verseId) {
       onVerseChange?.(verse?.verseId);
-      lastVerseId.current = verse?.verseId;
+      lastVerseIdRef.current = verse?.verseId;
     }
   }
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      const el = audio.current;
+      const el = audioRef.current;
       if (!el) return;
       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
 
@@ -284,20 +284,20 @@ export default function AudioDialog({
         <span className="sr-only">{t("close")}</span>
       </button>
       <audio
-        ref={audio}
+        ref={audioRef}
         src={src}
         onPlay={() => {
-          setPlaying(true);
+          setIsPlaying(true);
         }}
         onPause={() => {
-          setPlaying(false);
-          if (lastVerseId.current !== undefined) {
+          setIsPlaying(false);
+          if (lastVerseIdRef.current !== undefined) {
             onVerseChange?.(undefined);
-            lastVerseId.current = undefined;
+            lastVerseIdRef.current = undefined;
           }
         }}
         onLoadedMetadata={() => {
-          setLength(audio.current?.duration ?? 0);
+          setLength(audioRef.current?.duration ?? 0);
         }}
         onTimeUpdate={onTimeUpdate}
       />
@@ -408,41 +408,41 @@ function ScrubBar({
 }: ScrubBarProps) {
   const percent = Math.min(1, progress / length);
 
-  const root = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const [thumbKey, setThumbKey] = useState("left");
   useEffect(() => {
-    const ancestor = root.current?.closest("[dir]") as HTMLElement;
+    const ancestor = rootRef.current?.closest("[dir]") as HTMLElement;
     setThumbKey(ancestor?.dir === "ltr" ? "left" : "right");
   }, []);
 
-  const dragState = useRef({ pointerId: -1 });
+  const dragStateRef = useRef({ pointerId: -1 });
   function onPointerDown(e: PointerEvent) {
     e.preventDefault();
     e.stopPropagation();
     e.currentTarget.setPointerCapture(e.pointerId);
-    dragState.current = { pointerId: e.pointerId };
+    dragStateRef.current = { pointerId: e.pointerId };
   }
   const onPointerMove = throttle((e: PointerEvent) => {
     e.preventDefault();
-    if (e.pointerId !== dragState.current.pointerId) return;
-    if (!root.current) return;
+    if (e.pointerId !== dragStateRef.current.pointerId) return;
+    if (!rootRef.current) return;
 
-    const rect = root.current.getBoundingClientRect();
+    const rect = rootRef.current.getBoundingClientRect();
     const pos = Math.max(rect.left, Math.min(rect.right, e.clientX));
     const progressPercent = (pos - rect.left) / rect.width;
     onChange?.(progressPercent * length);
   }, 100);
   function onPointerUp(e: PointerEvent) {
     e.preventDefault();
-    if (e.pointerId !== dragState.current.pointerId) return;
-    if (!root.current) return;
+    if (e.pointerId !== dragStateRef.current.pointerId) return;
+    if (!rootRef.current) return;
 
-    dragState.current = { pointerId: -1 };
+    dragStateRef.current = { pointerId: -1 };
   }
 
   function onTouch(e: PointerEvent) {
-    if (!root.current) return;
-    const rect = root.current.getBoundingClientRect();
+    if (!rootRef.current) return;
+    const rect = rootRef.current.getBoundingClientRect();
     const pos = Math.max(rect.left, Math.min(rect.right, e.clientX));
     const progressPercent = (pos - rect.left) / rect.width;
     onChange?.(progressPercent * length);
@@ -450,7 +450,7 @@ function ScrubBar({
 
   return (
     <div
-      ref={root}
+      ref={rootRef}
       tabIndex={0}
       className={`${className} group relative bg-gray-400 rounded-full h-2 pointer-cursor outlinehidden dark:bg-gray-500`}
       onPointerDown={onTouch}

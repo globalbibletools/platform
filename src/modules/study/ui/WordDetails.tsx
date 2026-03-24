@@ -159,8 +159,6 @@ const LexiconText = memo(function LexiconText({
 }: {
   content: string;
 }) {
-  const prev = useRef("");
-  prev.current = content;
   const html = useMemo(() => DOMPurify.sanitize(content), [content]);
   return (
     <div

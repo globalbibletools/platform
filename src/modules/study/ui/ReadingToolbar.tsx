@@ -4,13 +4,7 @@ import Button from "@/components/Button";
 import ComboboxInput from "@/components/ComboboxInput";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "next-intl";
-import {
-  createContext,
-  ReactNode,
-  useCallback,
-  useContext,
-  useState,
-} from "react";
+import { createContext, ReactNode, useCallback, use, useState } from "react";
 import AudioDialog from "./AudioDialog";
 import SettingsMenu from "./SettingsMenu";
 import CommandInput from "./CommandInput";
@@ -95,9 +89,9 @@ export default function ReadingToolbar({
           />
         </div>
       </div>
-      <ReadingContext.Provider value={{ textSize, audioVerse, mode }}>
+      <ReadingContext value={{ textSize, audioVerse, mode }}>
         {children}
-      </ReadingContext.Provider>
+      </ReadingContext>
       {showAudioPlayer && (
         <AudioDialog
           className="bottom-12 w-[calc(100%-1rem)] mx-2 sm:w-80 sm:mx-auto"
@@ -119,7 +113,7 @@ interface ReadingContextValue {
 const ReadingContext = createContext<ReadingContextValue | null>(null);
 
 export function useReadingContext() {
-  const context = useContext(ReadingContext);
+  const context = use(ReadingContext);
   if (!context) {
     throw new Error("useReadingContext must be used inside of ReadingToolbar");
   }

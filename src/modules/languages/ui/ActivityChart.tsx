@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from "react";
+import { createContext, use, useEffect, useId, useRef, useState } from "react";
 import * as d3 from "d3";
 import {
   addDays,
@@ -91,7 +84,7 @@ export default function ActivityChart({
   yMax: number;
   range: ActivityChartRange;
 }) {
-  const ctx = useContext(ActivityChartContext);
+  const ctx = use(ActivityChartContext);
   const [localCursor, setLocalCursor] = useState<UTCDate | null>(null);
   const cursor = ctx ? ctx.cursor : localCursor;
   const setCursor = ctx ? ctx.setCursor : setLocalCursor;

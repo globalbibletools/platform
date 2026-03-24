@@ -69,8 +69,8 @@ export default function ReadingView({
   const linkedWords = popover.selectedWord?.word.linkedWords ?? [];
 
   const [showSidebar, setShowSidebar] = useState(false);
-  const [selectedVerseId, setSelectedVerse] = useState<string | null>(null);
-  const [selectedWordId, setSelectedWord] = useState<string | null>(null);
+  const [selectedVerseId, setSelectedVerseId] = useState<string | null>(null);
+  const [selectedWordId, setSelectedWordId] = useState<string | null>(null);
 
   const selectedVerse = verses.find((v) => v.id === selectedVerseId);
   const selectedWord = selectedVerse?.words.find(
@@ -108,13 +108,13 @@ export default function ReadingView({
                   `}
                   onDoubleClick={() => {
                     setShowSidebar(true);
-                    setSelectedWord(word.id);
-                    setSelectedVerse(verse.id);
+                    setSelectedWordId(word.id);
+                    setSelectedVerseId(verse.id);
                   }}
                   onClick={(e) => {
                     if (showSidebar) {
-                      setSelectedWord(word.id);
-                      setSelectedVerse(verse.id);
+                      setSelectedWordId(word.id);
+                      setSelectedVerseId(verse.id);
                     }
 
                     popover.onWordClick(e, word);
@@ -135,14 +135,14 @@ export default function ReadingView({
                 data-verse-number={verse.number}
                 onClick={() => {
                   if (showSidebar) {
-                    setSelectedWord(null);
-                    setSelectedVerse(verse.id);
+                    setSelectedWordId(null);
+                    setSelectedVerseId(verse.id);
                   }
                 }}
                 onDoubleClick={() => {
                   setShowSidebar(true);
-                  setSelectedWord(null);
-                  setSelectedVerse(verse.id);
+                  setSelectedWordId(null);
+                  setSelectedVerseId(verse.id);
                 }}
               >
                 {verse.number}&nbsp;
@@ -192,15 +192,15 @@ export default function ReadingView({
                 chapterId={chapterId}
                 verseCount={verses.length}
                 onSelectedVerseChange={(verseId) => {
-                  setSelectedVerse(verseId);
+                  setSelectedVerseId(verseId);
                 }}
               />
             : null}
             <button
               onClick={() => {
                 setShowSidebar(false);
-                setSelectedVerse(null);
-                setSelectedWord(null);
+                setSelectedVerseId(null);
+                setSelectedWordId(null);
               }}
               type="button"
               className="absolute w-9 h-9 end-1 top-1 text-red-700 dark:text-red-600 rounded-md focus-visible:outline-2 outline-green-300"
@@ -231,7 +231,7 @@ export default function ReadingView({
 }
 
 function usePopover(enabled: boolean) {
-  const [selectedWord, selectWord] = useState<{
+  const [selectedWord, setSelectedWord] = useState<{
     word: VerseWord;
     mode: "hover" | "click";
   }>();
@@ -259,7 +259,7 @@ function usePopover(enabled: boolean) {
         target !== reference &&
         !popover?.contains(reference)
       ) {
-        selectWord(undefined);
+        setSelectedWord(undefined);
         refs.setReference(null);
       }
     }
@@ -277,18 +277,18 @@ function usePopover(enabled: boolean) {
     if (!enabled) return;
 
     refs.setReference(e.currentTarget);
-    selectWord({ word, mode: "click" });
+    setSelectedWord({ word, mode: "click" });
   }
   function onWordMouseEnter(e: MouseEvent<HTMLSpanElement>, word: VerseWord) {
     if (!enabled) return;
 
     refs.setReference(e.currentTarget);
-    selectWord({ word, mode: "hover" });
+    setSelectedWord({ word, mode: "hover" });
   }
   function onWordMouseLeave(e: MouseEvent<HTMLSpanElement>) {
     refs.setReference(e.currentTarget);
     if (selectedWord?.mode === "hover") {
-      selectWord(undefined);
+      setSelectedWord(undefined);
     }
   }
 

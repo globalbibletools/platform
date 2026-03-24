@@ -44,7 +44,7 @@ export default function TranslationProgressBar({
     fontFamily: "inherit",
   });
 
-  const [{ textOffset, fitsInside }, setTextStyle] = useState({
+  const [textStyle, setTextStyle] = useState({
     textOffset: 0,
     fitsInside: false,
   });
@@ -83,8 +83,8 @@ export default function TranslationProgressBar({
         />
         <div className="absolute hidden group-hover:block text-xs select-none top-0 start-0 w-full h-full px-6 md:px-8">
           <div
-            className={`h-6 w-fit leading-6 dark:text-gray-900 ${fitsInside ? "text-white" : ""}`}
-            style={{ translate: `${textOffset}px 0px` }}
+            className={`h-6 w-fit leading-6 dark:text-gray-900 ${textStyle.fitsInside ? "text-white" : ""}`}
+            style={{ translate: `${textStyle.textOffset}px 0px` }}
           >
             {description}
           </div>

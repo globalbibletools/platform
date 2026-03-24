@@ -1,5 +1,5 @@
 "use client";
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, use, useState } from "react";
 import { useFlash } from "../flash";
 import { OptionalFetcher, useServerFn } from "@tanstack/react-start";
 import { ToOptions, useRouter } from "@tanstack/react-router";
@@ -80,7 +80,7 @@ export default function Form({
         }
       }}
     >
-      <FormContext.Provider value={state}>{children}</FormContext.Provider>
+      <FormContext value={state}>{children}</FormContext>
     </form>
   );
 }
@@ -120,5 +120,5 @@ function processValidationError(error: unknown) {
 const FormContext = createContext<FormState | null>(null);
 
 export function useFormContext() {
-  return useContext(FormContext);
+  return use(FormContext);
 }

@@ -11,8 +11,8 @@ export function isFeatureEnabled(feature: Feature) {
 
 export function useFeatureFlag(feature: Feature) {
   // Can't use useMemo because window isn't available in SSR.
-  const [isEnabled, setEnabled] = useState(false);
-  useLayoutEffect(() => setEnabled(isFeatureEnabled(feature)), [feature]);
+  const [isEnabled, setIsEnabled] = useState(false);
+  useLayoutEffect(() => setIsEnabled(isFeatureEnabled(feature)), [feature]);
 
   return isEnabled;
 }
