@@ -1,5 +1,6 @@
 import { createMiddleware, createStart } from "@tanstack/react-start";
 import { localeMiddleware } from "./shared/i18n/middleware";
+import { legacyRedirectMiddleware } from "./legacyRedirectMiddleware";
 
 export const startInstance = createStart(() => ({
   requestMiddleware: [
@@ -27,6 +28,7 @@ export const startInstance = createStart(() => ({
         throw error;
       }
     }),
+    legacyRedirectMiddleware,
     localeMiddleware,
   ],
 }));
