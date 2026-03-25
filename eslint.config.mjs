@@ -11,10 +11,7 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig(
-  globalIgnores([
-    "src/shared/jobs/bin/workerDevServer.js",
-    "src/shared/jobs/bin/localWorker.js",
-  ]),
+  globalIgnores(["src/shared/jobs/bin/"]),
   eslint.configs.recommended,
   tseslint.configs.recommended,
   pluginQuery.configs["flat/recommended"],

@@ -2,7 +2,10 @@
 
 import { Link, LinkProps } from "@tanstack/react-router";
 
-export function SidebarLink({ children, to }: Omit<LinkProps, "className">) {
+export default function SidebarLink({
+  children,
+  to,
+}: Omit<LinkProps, "className">) {
   return (
     <Link
       to={to}

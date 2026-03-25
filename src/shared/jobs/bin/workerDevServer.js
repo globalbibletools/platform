@@ -10,7 +10,7 @@ const ctx = await esbuild.context({
   platform: "node",
   format: "cjs",
   target: "node20",
-  outfile: "dist/job-worker-dev.js",
+  outfile: "dist/job-worker-dev.cjs",
   sourcemap: "inline",
 });
 
@@ -21,7 +21,7 @@ console.log("esbuild watching...");
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const HANDLER_PATH = url.pathToFileURL(
-  path.resolve(__dirname, "./localWorker.js"),
+  path.resolve(__dirname, "./localWorker.cjs"),
 );
 
 const TIMEOUT = 1000 * 60 * 15;

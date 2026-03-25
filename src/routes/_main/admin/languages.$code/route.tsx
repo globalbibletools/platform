@@ -1,5 +1,5 @@
 import { Icon } from "@/components/Icon";
-import { SidebarLink } from "@/components/SidebarLink";
+import SidebarLink from "@/components/SidebarLink";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
 import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";

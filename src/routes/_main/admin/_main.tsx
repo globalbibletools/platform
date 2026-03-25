@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { SidebarLink } from "@/components/SidebarLink";
+import SidebarLink from "@/components/SidebarLink";
 import { Icon } from "@/components/Icon";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useTranslations } from "use-intl";
