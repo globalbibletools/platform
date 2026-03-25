@@ -122,7 +122,13 @@ function LanguageSettingsRoute() {
                 aria-describedby="english-name-error"
                 autosubmit
               />
-              <FieldError id="english-name-error" name="englishName" />
+              <FieldError
+                id="english-name-error"
+                name="englishName"
+                messages={{
+                  too_small: t("errors.english_name_required"),
+                }}
+              />
             </div>
             <div className="mb-4">
               <FormLabel htmlFor="local_name">{t("form.local_name")}</FormLabel>
@@ -135,7 +141,13 @@ function LanguageSettingsRoute() {
                 aria-describedby="local-name-error"
                 autosubmit
               />
-              <FieldError id="local-name-error" name="localName" />
+              <FieldError
+                id="local-name-error"
+                name="localName"
+                messages={{
+                  too_small: t("errors.local_name_required"),
+                }}
+              />
             </div>
             <div>
               <FormLabel htmlFor="code">
