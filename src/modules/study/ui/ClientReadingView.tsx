@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 import WordDetails from "./WordDetails";
 import { useReadingContext } from "./ReadingToolbar";
 import { Icon } from "@/components/Icon";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import VerseDetails from "./VerseDetails";
 
 interface VerseWord {

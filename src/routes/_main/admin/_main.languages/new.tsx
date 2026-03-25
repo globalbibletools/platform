@@ -8,7 +8,7 @@ import { Policy } from "@/modules/access";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { createLanguage } from "@/modules/languages/actions/createLanguage";
 import { createFileRoute } from "@tanstack/react-router";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 

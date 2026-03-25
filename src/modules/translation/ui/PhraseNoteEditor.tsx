@@ -5,7 +5,7 @@ import RichText from "@/components/RichText";
 import RichTextInput, { RichTextInputRef } from "@/components/RichTextInput";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import throttle from "lodash/throttle";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { type RefObject, useEffect, useMemo, useState } from "react";
 import { getPhraseNote } from "../actions/getPhraseNote";
 import { updateFootnoteAction } from "../actions/updateFootnote";

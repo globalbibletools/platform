@@ -10,7 +10,7 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import * as z from "zod";
 
 const policy = new Policy({

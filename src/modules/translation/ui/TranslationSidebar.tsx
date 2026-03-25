@@ -3,7 +3,7 @@
 import { Icon } from "@/components/Icon";
 import { RichTextInputRef } from "@/components/RichTextInput";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { Fragment, Ref, useImperativeHandle, useRef, useState } from "react";
 import TranslationLexiconPanel from "./TranslationLexiconPanel";
 import PhraseNoteEditor from "./PhraseNoteEditor";

@@ -6,7 +6,7 @@ import FieldError from "@/components/FieldError";
 import Form from "@/components/Form";
 import { startPasswordReset } from "@/modules/users/actions/startPasswordReset";
 import { createFileRoute } from "@tanstack/react-router";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { Policy } from "@/modules/access";
 import { routerGuard } from "@/modules/access/routerGuard";
 

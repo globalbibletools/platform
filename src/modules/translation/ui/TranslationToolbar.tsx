@@ -4,7 +4,7 @@ import Button from "@/components/Button";
 import ComboboxInput from "@/components/ComboboxInput";
 import { Icon } from "@/components/Icon";
 import TextInput from "@/components/TextInput";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { useNavigate, useParams, useRouter } from "@tanstack/react-router";
 import {
   useCallback,

@@ -5,7 +5,7 @@ import Button from "@/components/Button";
 import Checkbox from "@/components/Checkbox";
 import { Icon } from "@/components/Icon";
 import { useTextWidth } from "@/utils/text-width";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import {
   MouseEvent,
   useEffect,

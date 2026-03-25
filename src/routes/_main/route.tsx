@@ -2,7 +2,7 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import Button from "@/components/Button";
 import PrimaryNavigation from "@/shared/ui/PrimaryNavigation";
 import Footer from "@/shared/ui/Footer";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { ReactNode, useEffect } from "react";
 
 export const Route = createFileRoute("/_main")({

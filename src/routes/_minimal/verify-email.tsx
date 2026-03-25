@@ -3,7 +3,7 @@ import { Policy } from "@/modules/access";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { verifyEmail } from "@/modules/users/actions/verifyEmail";
 import { createFileRoute } from "@tanstack/react-router";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import * as z from "zod";
 
 const schema = z.object({ token: z.string().optional() });

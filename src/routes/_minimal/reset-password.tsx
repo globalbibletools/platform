@@ -11,7 +11,7 @@ import { routerGuard } from "@/modules/access/routerGuard";
 import { resetPassword } from "@/modules/users/actions/resetPassword";
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import * as z from "zod";
 
 const schema = z.object({ token: z.string().default("") });

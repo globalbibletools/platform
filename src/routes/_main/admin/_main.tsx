@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { SidebarLink } from "@/components/NavLink";
 import { Icon } from "@/components/Icon";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { Policy } from "@/modules/access";
 

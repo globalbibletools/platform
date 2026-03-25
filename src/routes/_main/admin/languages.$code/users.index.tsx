@@ -22,7 +22,7 @@ import ActivityChart, {
 } from "@/modules/languages/ui/ActivityChart";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import * as z from "zod";
 import Button from "@/components/Button";
 

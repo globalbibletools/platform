@@ -4,7 +4,7 @@ import ViewTitle from "@/components/ViewTitle";
 import { Icon } from "@/components/Icon";
 import AIGlossesImportForm from "@/modules/translation/ui/AIGlossesImportForm";
 import { createFileRoute } from "@tanstack/react-router";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { Suspense } from "react";
 
 export const Route = createFileRoute(

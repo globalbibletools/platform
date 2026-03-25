@@ -3,7 +3,7 @@
 import DOMPurify from "isomorphic-dompurify";
 import { memo, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { useQuery } from "@tanstack/react-query";
 import { VersesPreview } from "@/components/VersesPreview";
 import { parseReferenceRange } from "@/verse-utils";

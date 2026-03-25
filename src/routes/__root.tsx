@@ -8,7 +8,7 @@ import appCss from "@/styles.css?url";
 import { TimezoneTracker } from "@/shared/i18n/clientTimezone";
 import { AnalyticsProvider } from "@/analytics";
 import { getCurrentLocale } from "@/shared/i18n/shared";
-import { IntlProvider } from "next-intl";
+import { IntlProvider } from "use-intl";
 import { fetchLocaleMessages } from "@/shared/i18n/fetchLocaleMessages";
 import { FlashProvider } from "@/flash";
 import { fetchAuthState } from "@/modules/access/fetchAuthState";

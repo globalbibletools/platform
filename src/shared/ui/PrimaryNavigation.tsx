@@ -8,7 +8,7 @@ import {
   HeaderMenuItem,
   HeaderMenuItems,
 } from "./HeaderLink";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { Link, useRouteContext, useRouter } from "@tanstack/react-router";
 import { SystemRoleRaw } from "@/modules/users/types";
 import { logout } from "@/modules/users/actions/logout";

@@ -8,7 +8,7 @@ import Form from "@/components/Form";
 import { Policy } from "@/modules/access";
 import { inviteLanguageMember } from "@/modules/languages/actions/inviteLanguageMember";
 import { routerGuard } from "@/modules/access/routerGuard";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],

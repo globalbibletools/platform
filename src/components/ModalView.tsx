@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import LanguageDialog from "@/shared/ui/LanguageDialog";
 import { Link } from "@tanstack/react-router";
 

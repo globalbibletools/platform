@@ -1,6 +1,5 @@
 import { expect } from "vitest";
 import { differenceInSeconds } from "date-fns";
-import { notFound, redirect } from "next/navigation";
 
 expect.extend({
   toBeUlid(received: any) {
@@ -59,29 +58,6 @@ expect.extend({
         typeof received === "string" && (!length || received.length === length),
       message: () =>
         `${received} is${this.isNot ? "" : " not"} a token${length && `of length ${length}`}`,
-    };
-  },
-  async toBeNextjsRedirect(receivedPromise: any, path: string) {
-    let received;
-    try {
-      received = await receivedPromise;
-    } catch (error) {
-      received = error;
-    }
-
-    let expected: any;
-    try {
-      redirect(path);
-    } catch (error) {
-      expected = error;
-    }
-
-    return {
-      pass:
-        received?.message === expected.message &&
-        received?.digest === expected.digest,
-      message: () =>
-        `${received instanceof Error ? received.stack : JSON.stringify(received)} is${this.isNot ? "" : " not"} a Next.js redirect to ${path}`,
     };
   },
   async toBeTanstackNotFound(receivedPromise: any) {

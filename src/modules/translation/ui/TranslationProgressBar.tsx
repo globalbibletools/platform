@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { getBookProgress } from "../actions/getBookProgress";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export default function TranslationProgressBar({
   className = "",

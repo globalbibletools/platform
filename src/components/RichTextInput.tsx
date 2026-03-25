@@ -2,7 +2,7 @@ import { useEditor, Tiptap } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Icon } from "@/components/Icon";
 import { ComponentProps, Ref, useEffect, useImperativeHandle } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export interface RichTextInputProps {
   name: string;

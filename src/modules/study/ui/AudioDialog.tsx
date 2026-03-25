@@ -5,7 +5,7 @@ import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import ListboxInput from "@/components/ListboxInput";
 import bookKeys from "@/data/book-keys.json";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import {
   PointerEvent,
   useCallback,

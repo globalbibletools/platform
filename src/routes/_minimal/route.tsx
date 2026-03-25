@@ -6,7 +6,7 @@ import {
 import { useEffect } from "react";
 import Button from "@/components/Button";
 import ModalView, { ModalViewTitle } from "@/components/ModalView";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export const Route = createFileRoute("/_minimal")({
   component: Layout,

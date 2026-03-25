@@ -1,9 +1,7 @@
 import * as z from "zod";
-import { getLocale } from "next-intl/server";
 import { parseForm } from "@/form-parser";
 import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";
-import { revalidatePath } from "next/cache";
 import { serverActionLogger } from "@/server-action";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { NotFoundError } from "@/shared/errors";
@@ -39,9 +37,4 @@ export const importAIGlosses = createServerFn({ method: "POST" })
 
       throw error;
     }
-
-    const locale = await getLocale();
-    revalidatePath(`/${locale}/admin/languages/${data.code}/import`);
-
-    return { state: "success" };
   });

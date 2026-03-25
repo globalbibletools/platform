@@ -10,7 +10,7 @@ import { updateProfile } from "@/modules/users/actions/updateProfile";
 import { query } from "@/db";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { useAuthRefresh } from "@/modules/access/authState";
 
 const policy = new Policy({ authenticated: true });

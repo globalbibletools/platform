@@ -2,7 +2,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import ViewTitle from "@/components/ViewTitle";
 import InterlinearExportPanel from "@/modules/export/ui/InterlinearExportPanel";
 import { createFileRoute } from "@tanstack/react-router";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { Suspense } from "react";
 
 export const Route = createFileRoute(

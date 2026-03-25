@@ -5,7 +5,7 @@ import ModalView, { ModalViewTitle } from "@/components/ModalView";
 import TextInput from "@/components/TextInput";
 import Button from "@/components/Button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { logIn } from "@/modules/users/actions/login";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { Policy } from "@/modules/access";

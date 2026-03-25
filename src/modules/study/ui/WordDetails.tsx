@@ -3,7 +3,7 @@
 import RichText from "@/components/RichText";
 import { Tab, TabPanels, TabPanel, TabList, TabGroup } from "@headlessui/react";
 import DOMPurify from "isomorphic-dompurify";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { Fragment, memo, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { parseReferenceRange } from "@/verse-utils";

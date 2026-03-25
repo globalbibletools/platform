@@ -10,7 +10,7 @@ import {
 } from "react";
 import { Transition } from "@headlessui/react";
 import { Icon } from "@/components/Icon";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 // Flash messages have several states that help make their lifecycle easier to manage:
 // unshown - This message has been added, but not yet displayed.

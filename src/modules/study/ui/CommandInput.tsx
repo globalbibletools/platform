@@ -4,7 +4,7 @@ import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import TextInput from "@/components/TextInput";
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import {
   bookFirstChapterId,

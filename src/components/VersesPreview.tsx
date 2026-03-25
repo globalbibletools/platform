@@ -1,7 +1,7 @@
 import { Icon } from "@/components/Icon";
 import { isOldTestament, parseVerseId } from "@/verse-utils";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { fontMap } from "@/fonts";
 import { useQuery } from "@tanstack/react-query";
 import { getVersesPreview } from "@/modules/study/actions/getVersesPreview";

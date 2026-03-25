@@ -16,7 +16,7 @@ import { routerGuard } from "@/modules/access/routerGuard";
 import { searchLanguagesReadModel } from "@/modules/languages/read-models/searchLanguagesReadModel";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 const LIMIT = 20;
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });

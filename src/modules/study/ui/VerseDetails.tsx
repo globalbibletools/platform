@@ -3,7 +3,7 @@
 import * as z from "zod";
 import { useState, Fragment } from "react";
 import { Tab, TabPanels, TabPanel, TabList, TabGroup } from "@headlessui/react";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { getVerseImmseriveContentReadModel } from "@/modules/bible-core/read-models/getVerseImmersiveContentReadModel";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Button from "@/components/Button";

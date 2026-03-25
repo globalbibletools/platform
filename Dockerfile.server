@@ -15,13 +15,13 @@ RUN ["npm", "run", "build"]
 FROM base AS runner
 WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-USER nextjs
+RUN adduser --system --uid 1001 app
+USER app
 EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-COPY --from=build --chown=nextjs:nodejs /app/.output .
+COPY --from=build --chown=app:nodejs /app/.output .
 CMD ["node", "server/index.mjs"]
 
 FROM node:20 AS dev

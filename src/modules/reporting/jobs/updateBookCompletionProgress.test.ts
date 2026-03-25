@@ -1,4 +1,3 @@
-import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
 import { getDb } from "@/db";

@@ -5,7 +5,7 @@ import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import exportJobQueryService from "../data-access/ExportJobQueryService";
 import JobStatusPoller from "@/shared/jobs/ui/JobStatusPoller";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";

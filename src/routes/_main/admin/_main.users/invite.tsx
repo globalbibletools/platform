@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import Button from "@/components/Button";
 import FormLabel from "@/components/FormLabel";
 import TextInput from "@/components/TextInput";

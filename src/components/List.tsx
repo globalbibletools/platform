@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import Button from "./Button";
-import { LinkProps } from "next/link";
+import { LinkProps } from "@tanstack/react-router";
 
 export interface ListProps {
   children?: ReactNode;
@@ -47,7 +47,7 @@ export function ListHeaderCell({
 export interface ListRowActionProps {
   children?: ReactNode;
   colSpan: number;
-  href?: LinkProps["href"];
+  to?: LinkProps["to"];
   onClick?(): void;
 }
 

@@ -1,4 +1,4 @@
-import createMiddleware from "next-intl/middleware";
+import createMiddleware from "use-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import { routing } from "@/shared/i18n/routing";
 

@@ -15,7 +15,7 @@ import { disableUser } from "@/modules/users/actions/disableUser";
 import MultiselectInput from "@/components/MultiselectInput";
 import Form from "@/components/Form";
 import ServerAction from "@/components/ServerAction";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 import Pagination from "@/components/Pagination";
 import { searchUsersReadModel } from "@/modules/users/read-models/searchUsersReadModel";
 import { reinviteUserAction } from "@/modules/users/actions/reinviteUser";

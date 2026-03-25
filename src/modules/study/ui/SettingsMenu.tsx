@@ -8,7 +8,7 @@ import { Icon } from "@/components/Icon";
 import SliderInput from "@/components/SliderInput";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 export interface SettingsMenuProps {
   textSize: number;

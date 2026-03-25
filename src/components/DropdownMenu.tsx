@@ -1,9 +1,9 @@
 "use client";
 
 import { FocusEvent, ReactNode, useRef, useState } from "react";
-import Link, { LinkProps } from "next/link";
 import useCssId from "./cssid";
 import { Icon } from "./Icon";
+import { Link, LinkProps } from "@tanstack/react-router";
 
 export interface DropdownProps {
   className?: string;
@@ -66,7 +66,7 @@ export default function DropdownMenu({
 
 export interface DropdownMenuItemProps {
   children: ReactNode;
-  href?: LinkProps["href"];
+  to?: LinkProps["to"];
   prefetch?: boolean;
   onClick?(): void;
 }
@@ -76,28 +76,22 @@ const className =
 
 export function DropdownMenuItem({
   children,
-  href,
+  to,
   onClick,
-  prefetch,
 }: DropdownMenuItemProps) {
   return (
     <li className="w-full">
       {/* If we want to link to external URLs, we have use a standard anchor element. */}
       {(() => {
-        if (typeof href === "string" && href.startsWith("http")) {
+        if (typeof to === "string" && to.startsWith("http")) {
           return (
-            <a className={className} href={href} onClick={onClick}>
+            <a className={className} href={to} onClick={onClick}>
               {children}
             </a>
           );
-        } else if (href) {
+        } else if (to) {
           return (
-            <Link
-              className={className}
-              href={href}
-              onClick={onClick}
-              prefetch={prefetch}
-            >
+            <Link className={className} to={to} onClick={onClick}>
               {children}
             </Link>
           );

@@ -1,5 +1,4 @@
 import * as z from "zod";
-import { getTranslations } from "next-intl/server";
 import { serverActionLogger } from "@/server-action";
 import { createServerFn } from "@tanstack/react-start";
 import glossRepository from "../data-access/GlossRepository";
@@ -21,8 +20,7 @@ export const redirectToUnapproved = createServerFn({ method: "POST" })
 
     if (typeof nextVerseId !== "string") {
       logger.error("all verses are approved");
-      const t = await getTranslations("TranslationToolbar");
-      throw new Error(t("errors.all_approved"));
+      throw new Error("errors.all_approved");
     }
 
     return { nextVerseId };
