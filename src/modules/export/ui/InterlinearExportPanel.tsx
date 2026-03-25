@@ -134,7 +134,9 @@ export default function InterlinearExportPanel({
           </div>
         )}
 
-        {pendingJob && <JobStatusPoller jobId={pendingJob.id} />}
+        {pendingJob && (
+          <JobStatusPoller jobId={pendingJob.id} onComplete={() => refetch()} />
+        )}
       </div>
     </section>
   );

@@ -30,6 +30,11 @@ export default function PrimaryNavigation() {
   const isLoggedIn = Boolean(user);
 
   const refreshAuth = useAuthRefresh();
+  const handleLogout = async () => {
+    await logoutFn();
+    await refreshAuth();
+    await router.navigate({ to: "/login" });
+  };
 
   return (
     <nav
@@ -40,8 +45,7 @@ export default function PrimaryNavigation() {
       "
     >
       <Link
-        // to={'/dashboard' : "/"}
-        to="/"
+        to={isLoggedIn ? "/dashboard" : "/"}
         className="flex items-center me-8"
       >
         <img
@@ -62,7 +66,7 @@ export default function PrimaryNavigation() {
         )}
         <HeaderLink
           className={`hidden ${isLoggedIn ? "lg:block" : "sm:block"}`}
-          to="https://globalbibletools.tawk.help"
+          href="https://globalbibletools.tawk.help"
           newTab
         >
           {t("links.help")}
@@ -85,26 +89,20 @@ export default function PrimaryNavigation() {
                 </HeaderDropdownItem>
                 <HeaderDropdownItem
                   className="lg:hidden"
-                  to="https://globalbibletools.tawk.help"
+                  href="https://globalbibletools.tawk.help"
                   newTab
                 >
                   <Icon icon="question-circle" className="me-2" fixedWidth />
                   <span className="font-bold">{t("links.help")}</span>
                 </HeaderDropdownItem>
-                <HeaderDropdownItem
-                  onClick={async () => {
-                    await logoutFn();
-                    await refreshAuth();
-                    await router.navigate({ to: "/login" });
-                  }}
-                >
+                <HeaderDropdownItem onClick={handleLogout}>
                   <Icon icon="right-from-bracket" className="me-2" fixedWidth />
                   <span className="font-bold">{t("links.log_out")}</span>
                 </HeaderDropdownItem>
               </>
             }
           />
-        : <HeaderLink className="hidden sm:block" to={`/login`}>
+        : <HeaderLink className="hidden sm:block" to="/login">
             {t("links.log_in")}
           </HeaderLink>
         }
@@ -139,7 +137,7 @@ export default function PrimaryNavigation() {
           </HeaderMenuItem>
           <HeaderMenuItem
             className="lg:hidden"
-            to="https://globalbibletools.tawk.help"
+            href="https://globalbibletools.tawk.help"
             newTab
           >
             <Icon icon="question-circle" className="me-2" fixedWidth />
@@ -149,7 +147,7 @@ export default function PrimaryNavigation() {
             <>
               <div className="grow" />
               <div className="border-b border-gray-200 dark:border-gray-700 mb-2" />
-              <HeaderMenuItem to="/logout">
+              <HeaderMenuItem onClick={handleLogout}>
                 <Icon icon="right-from-bracket" className="me-2" fixedWidth />
                 <span className="font-bold">{t("links.log_out")}</span>
               </HeaderMenuItem>

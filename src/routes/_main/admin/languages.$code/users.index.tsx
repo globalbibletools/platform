@@ -125,7 +125,8 @@ function LanguageUsersRoute() {
           <ViewTitle>{t("title")}</ViewTitle>
           <div className="grow" />
           <Button
-            to={`/admin/languages/${code}/users/invite`}
+            to="/admin/languages/$code/users/invite"
+            params={{ code }}
             className="inline-flex justify-center items-center rounded-lg font-bold h-9 px-3 bg-blue-800 dark:bg-green-400 dark:text-gray-900 text-white shadow-md ms-4"
           >
             <Icon icon="plus" className="me-1" />

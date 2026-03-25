@@ -2,21 +2,21 @@
 
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "@tanstack/react-router";
 import { getJobStatus } from "../actions/getJobStatus";
 import { JobStatus } from "../model";
 
 export interface JobStatusPollerProps {
   jobId: string;
   refreshInterval?: number;
+  onComplete?(): void;
 }
 
 export default function JobStatusPoller({
   jobId,
   refreshInterval = 15000,
+  onComplete,
 }: JobStatusPollerProps) {
-  const router = useRouter();
-  const hasInvalidatedRef = useRef(false);
+  const hasCompletedRef = useRef(false);
 
   const { data } = useQuery({
     queryKey: ["job-status", jobId],
@@ -25,7 +25,7 @@ export default function JobStatusPoller({
   });
 
   useEffect(() => {
-    hasInvalidatedRef.current = false;
+    hasCompletedRef.current = false;
   }, [jobId]);
 
   useEffect(() => {
@@ -40,13 +40,13 @@ export default function JobStatusPoller({
       return;
     }
 
-    if (hasInvalidatedRef.current) {
+    if (hasCompletedRef.current) {
       return;
     }
 
-    hasInvalidatedRef.current = true;
-    void router.invalidate();
-  }, [data, router]);
+    hasCompletedRef.current = true;
+    onComplete?.();
+  }, [data, onComplete]);
 
   return <></>;
 }

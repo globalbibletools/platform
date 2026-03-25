@@ -166,7 +166,10 @@ export default function TranslationToolbar({
 
   const navigateToVerse = useCallback(
     (nextVerseId: string) => {
-      return navigate({ to: `/translate/${code}/${nextVerseId}` });
+      return navigate({
+        to: "/translate/$code/$verseId",
+        params: { code, verseId: nextVerseId },
+      });
     },
     [code, navigate],
   );
@@ -358,10 +361,11 @@ export default function TranslationToolbar({
               <Button
                 className="absolute end-8 top-1 w-7 h-7!"
                 variant="tertiary"
-                to={
+                to={verseId ? "/translate/$code/$verseId" : "."}
+                params={
                   verseId ?
-                    `/translate/${code}/${decrementVerseId(verseId)}`
-                  : "."
+                    { code, verseId: decrementVerseId(verseId) }
+                  : undefined
                 }
               >
                 <Icon icon="arrow-up" />
@@ -370,10 +374,11 @@ export default function TranslationToolbar({
               <Button
                 className="absolute end-1 top-1 w-7 h-7!"
                 variant="tertiary"
-                to={
+                to={verseId ? "/translate/$code/$verseId" : "."}
+                params={
                   verseId ?
-                    `/translate/${code}/${incrementVerseId(verseId)}`
-                  : "."
+                    { code, verseId: incrementVerseId(verseId) }
+                  : undefined
                 }
               >
                 <Icon icon="arrow-down" />
@@ -405,7 +410,8 @@ export default function TranslationToolbar({
             value={code}
             onChange={(nextCode) =>
               navigate({
-                to: `/translate/${nextCode}/${verseId || "01001001"}`,
+                to: "/translate/$code/$verseId",
+                params: { code: nextCode, verseId: verseId || "01001001" },
               })
             }
             className="w-40"
@@ -415,7 +421,8 @@ export default function TranslationToolbar({
             <Button
               className="ms-2"
               variant="tertiary"
-              to={`/admin/languages/${code}/settings`}
+              to="/admin/languages/$code/settings"
+              params={{ code }}
             >
               <Icon icon="sliders" className="me-1" />
               {t("manage_language")}

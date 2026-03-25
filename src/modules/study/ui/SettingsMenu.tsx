@@ -48,8 +48,11 @@ export default function SettingsMenu({
                 value: l.code,
               }))}
               value={languageCode}
-              onChange={(code) =>
-                navigate({ to: `/read/${code}/${params.chapterId}` })
+              onChange={(nextCode) =>
+                navigate({
+                  to: "/read/$code/$chapterId",
+                  params: { code: nextCode, chapterId: params.chapterId },
+                })
               }
               className="w-full"
               autoComplete="off"

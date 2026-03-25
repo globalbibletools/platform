@@ -1,5 +1,4 @@
 import { Icon } from "@/components/Icon";
-import ServerAction from "@/components/ServerAction";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { importAIGlosses } from "../actions/importAIGlosses";
 import { getAIGlossImportJobReadModel } from "../read-models/getAIGlossImportJobReadModel";
@@ -9,6 +8,7 @@ import { JobStatus } from "@/shared/jobs/model";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
+import Button from "@/components/Button";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -41,7 +41,7 @@ export const getAIGlossesImportFormData = createServerFn()
   });
 
 export default function AIGlossesImportForm({ code }: { code: string }) {
-  const { data } = useSuspenseQuery({
+  const { data, refetch } = useSuspenseQuery({
     queryKey: ["ai-glosses-import-form", code],
     queryFn: () => getAIGlossesImportFormData({ data: { code } }),
   });
@@ -55,7 +55,7 @@ export default function AIGlossesImportForm({ code }: { code: string }) {
     return (
       <>
         <p className="mb-2">AI gloss import running</p>
-        <JobStatusPoller jobId={job.id} />
+        <JobStatusPoller jobId={job.id} onComplete={() => refetch()} />
       </>
     );
   } else {
@@ -100,14 +100,16 @@ export default function AIGlossesImportForm({ code }: { code: string }) {
             </div>
           </div>
         )}
-        <ServerAction
+        <Button
           destructive
           className="mb-2"
-          actionData={{ code }}
-          action={importAIGlosses}
+          onClick={async () => {
+            await importAIGlosses();
+            refetch();
+          }}
         >
           {job ? "Import Again" : "Import"}
-        </ServerAction>
+        </Button>
       </>
     );
   }

@@ -163,7 +163,11 @@ export default function TranslateView({
               <Button
                 variant="tertiary"
                 className="mt-[72px]"
-                to={`/translate/${language.code}/${incrementVerseId(verseId)}`}
+                to="/translate/$code/$verseId"
+                params={{
+                  code: language.code,
+                  verseId: incrementVerseId(verseId),
+                }}
               >
                 Next
                 <Icon

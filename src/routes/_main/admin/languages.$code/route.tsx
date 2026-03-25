@@ -1,5 +1,5 @@
 import { Icon } from "@/components/Icon";
-import { SidebarLink } from "@/components/NavLink";
+import { SidebarLink } from "@/components/SidebarLink";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
 import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
@@ -72,25 +72,28 @@ function AdminLanguageLayoutRoute() {
         </div>
         <ul>
           <li>
-            <SidebarLink to={`/admin/languages/${code}/dashboard`}>
+            <SidebarLink
+              to="/admin/languages/$code/dashboard"
+              params={{ code }}
+            >
               <Icon icon="chart-line" className="w-4 me-2" />
               Dashboard
             </SidebarLink>
           </li>
           <li>
-            <SidebarLink to={`/admin/languages/${code}/settings`}>
+            <SidebarLink to="/admin/languages/$code/settings" params={{ code }}>
               <Icon icon="sliders" className="w-4 me-2" />
               {t("links.settings")}
             </SidebarLink>
           </li>
           <li>
-            <SidebarLink to={`/admin/languages/${code}/users`}>
+            <SidebarLink to="/admin/languages/$code/users" params={{ code }}>
               <Icon icon="user" className="w-4 me-2" />
               {t("links.users")}
             </SidebarLink>
           </li>
           <li>
-            <SidebarLink to={`/admin/languages/${code}/import`}>
+            <SidebarLink to="/admin/languages/$code/import" params={{ code }}>
               <Icon icon="file-import" className="w-4 me-2" />
               {t("links.import")}
             </SidebarLink>
@@ -99,7 +102,10 @@ function AdminLanguageLayoutRoute() {
             feature="ff-interlinear-pdf-export"
             enabledChildren={
               <li>
-                <SidebarLink to={`/admin/languages/${code}/exports`}>
+                <SidebarLink
+                  to="/admin/languages/$code/exports"
+                  params={{ code }}
+                >
                   <Icon icon="file-arrow-down" className="w-4 me-2" />
                   {t("links.exports")}
                 </SidebarLink>

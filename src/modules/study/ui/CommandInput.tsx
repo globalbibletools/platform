@@ -39,22 +39,38 @@ export default function CommandInput() {
         switch (e.key) {
           case "ArrowUp":
             return navigate({
-              to: `read/${languageCode}/${decrementChapterId(chapterId)}`,
+              to: "/read/$code/$chapterId",
+              params: {
+                code: languageCode,
+                chapterId: decrementChapterId(chapterId),
+              },
             });
           case "ArrowDown":
             return navigate({
-              to: `read/${languageCode}/${incrementChapterId(chapterId)}`,
+              to: "/read/$code/$chapterId",
+              params: {
+                code: languageCode,
+                chapterId: incrementChapterId(chapterId),
+              },
             });
         }
       } else if (hasShortcutModifier(e) && e.shiftKey && !e.altKey) {
         switch (e.key) {
           case "Home":
             return navigate({
-              to: `read/${languageCode}/${bookFirstChapterId(parseInt(chapterId.slice(0, 2)))}`,
+              to: "/read/$code/$chapterId",
+              params: {
+                code: languageCode,
+                chapterId: bookFirstChapterId(parseInt(chapterId.slice(0, 2))),
+              },
             });
           case "End":
             return navigate({
-              to: `read/${languageCode}/${bookLastChapterId(parseInt(chapterId.slice(0, 2)))}`,
+              to: "/read/$code/$chapterId",
+              params: {
+                code: languageCode,
+                chapterId: bookLastChapterId(parseInt(chapterId.slice(0, 2))),
+              },
             });
         }
       }
@@ -78,7 +94,10 @@ export default function CommandInput() {
           t.raw("book_names"),
         );
         if (verseId) {
-          navigate({ to: `/read/${languageCode}/${verseId.slice(0, -3)}` });
+          navigate({
+            to: "/read/$code/$chapterId",
+            params: { code: languageCode, chapterId: verseId.slice(0, -3) },
+          });
         }
       }}
     >
@@ -96,10 +115,11 @@ export default function CommandInput() {
       <Button
         className="absolute end-8 top-1 w-7 h-7!"
         variant="tertiary"
-        to={
+        to={chapterId ? "/read/$code/$chapterId" : "."}
+        params={
           chapterId ?
-            `/read/${languageCode}/${decrementChapterId(chapterId)}`
-          : "."
+            { code: languageCode, chapterId: decrementChapterId(chapterId) }
+          : undefined
         }
       >
         <Icon icon="arrow-up" />
@@ -108,12 +128,12 @@ export default function CommandInput() {
       <Button
         className="absolute end-1 top-1 w-7 h-7!"
         variant="tertiary"
-        to={
+        to={chapterId ? "/read/$code/$chapterId" : "."}
+        params={
           chapterId ?
-            `/read/${languageCode}/${incrementChapterId(chapterId)}`
-          : "."
+            { code: languageCode, chapterId: incrementChapterId(chapterId) }
+          : undefined
         }
-        prefetch
       >
         <Icon icon="arrow-down" />
         <span className="sr-only">{t("next_chapter")}</span>

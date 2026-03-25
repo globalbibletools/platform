@@ -53,7 +53,12 @@ export default function ReadingToolbar({
             value: l.code,
           }))}
           value={code}
-          onChange={(code) => navigate({ to: `/read/${code}/${chapterId}` })}
+          onChange={(nextCode) =>
+            navigate({
+              to: "/read/$code/$chapterId",
+              params: { code: nextCode, chapterId },
+            })
+          }
           className="w-40 hidden sm:block"
           autoComplete="off"
           aria-label={t("language")}

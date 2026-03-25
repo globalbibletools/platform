@@ -1,12 +1,11 @@
 "use client";
 
-import { ReactNode, createContext, use, useState } from "react";
-import NavLink, { NavLinkProps } from "@/components/NavLink";
+import { ComponentProps, ReactNode, createContext, use, useState } from "react";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { Icon } from "@/components/Icon";
-import { Link } from "@tanstack/react-router";
+import { Link, LinkProps } from "@tanstack/react-router";
 
-export interface HeaderLinkProps extends NavLinkProps {
+export interface HeaderLinkProps extends LinkProps {
   children: ReactNode;
   className?: string;
   newTab?: boolean;
@@ -19,24 +18,25 @@ export function HeaderLink({
   ...props
 }: HeaderLinkProps) {
   return (
-    <NavLink
+    <Link
       {...props}
-      className={(isActive) => `
-            h-full px-2 text-center block pt-5 font-bold border-b-4
-            text-blue-800 dark:text-green-400
-            hover:underline focus:underline outline-none
-            ${
-              isActive ?
-                "border-green-300 dark:border-blue-800"
-              : "border-transparent"
-            }
-            ${className}
-          `}
+      className={`
+        h-full px-2 text-center block pt-5 font-bold border-b-4
+        text-blue-800 dark:text-green-400
+        hover:underline focus:underline outline-none
+        ${className}
+      `}
+      activeProps={() => ({
+        className: "border-green-300 dark:border-blue-800",
+      })}
+      inactiveProps={() => ({
+        className: "border-transparent",
+      })}
       target={newTab ? "_blank" : props.target}
-      rel={newTab ? "noopener" : props.rel}
+      rel={newTab ? "noopener" : undefined}
     >
       {children}
-    </NavLink>
+    </Link>
   );
 }
 
@@ -73,27 +73,62 @@ export function HeaderDropdown({ button, items }: HeaderDropdownProps) {
   );
 }
 
+export type HeaderDropdownItemProps =
+  | HeaderLinkProps
+  | ComponentProps<"button">
+  | (ComponentProps<"a"> & { newTab?: boolean });
+
 export function HeaderDropdownItem({
   children,
   className,
-  newTab = false,
   ...props
-}: HeaderLinkProps) {
-  return (
-    <MenuItem>
-      <Link
+}: HeaderDropdownItemProps) {
+  if ("to" in props) {
+    const newTab = props.newTab ?? false;
+    return (
+      <MenuItem>
+        <Link
+          {...props}
+          className={`
+              h-8 px-4 py-1 whitespace-nowrap data-focus:underline hover:underline text-blue-800 dark:text-green-400
+              ${className}
+          `}
+          target={newTab ? "_blank" : props.target}
+          rel={newTab ? "noopener" : undefined}
+        >
+          {children}
+        </Link>
+      </MenuItem>
+    );
+  } else if ("href" in props) {
+    const newTab = props.newTab ?? false;
+    return (
+      <a
         {...props}
         className={`
-                h-8 px-4 py-1 whitespace-nowrap data-focus:underline hover:underline text-blue-800 dark:text-green-400
-                ${className}
-            `}
+            h-8 px-4 py-1 whitespace-nowrap data-focus:underline hover:underline text-blue-800 dark:text-green-400
+            ${className}
+        `}
         target={newTab ? "_blank" : props.target}
-        rel={newTab ? "noopener" : props.rel}
+        rel={newTab ? "noopener" : undefined}
       >
         {children}
-      </Link>
-    </MenuItem>
-  );
+      </a>
+    );
+  } else {
+    const buttonProps = props as ComponentProps<"button">;
+    return (
+      <button
+        {...buttonProps}
+        className={`
+            text-left h-8 px-4 py-1 whitespace-nowrap data-focus:underline hover:underline text-blue-800 dark:text-green-400
+            ${className}
+        `}
+      >
+        {children}
+      </button>
+    );
+  }
 }
 
 interface HeaderMenuContextValue {
@@ -165,27 +200,67 @@ export function HeaderMenuItems({
   );
 }
 
+export type HeaderMenuItemProps =
+  | HeaderLinkProps
+  | ComponentProps<"button">
+  | (ComponentProps<"a"> & { newTab?: boolean });
+
 export function HeaderMenuItem({
   children,
   className,
-  newTab = false,
   ...props
-}: HeaderLinkProps) {
+}: HeaderMenuItemProps) {
   const context = use(HeaderMenuContext);
   if (!context) throw new Error("HeaderMenuItem must be inside HeaderMenu");
 
-  return (
-    <Link
-      {...props}
-      className={`
-                h-8 px-4 py-1 whitespace-nowrap focus:underline hover:underline outline-hidden text-blue-800 dark:text-green-400
-                ${className}
-            `}
-      target={newTab ? "_blank" : props.target}
-      rel={newTab ? "noopener" : props.rel}
-      onClick={() => context.setIsOpen(false)}
-    >
-      {children}
-    </Link>
-  );
+  if ("to" in props) {
+    const newTab = props.newTab ?? false;
+    return (
+      <Link
+        {...props}
+        className={`
+            h-8 px-4 py-1 whitespace-nowrap focus:underline hover:underline outline-hidden text-blue-800 dark:text-green-400
+            ${className}
+        `}
+        target={newTab ? "_blank" : props.target}
+        rel={newTab ? "noopener" : undefined}
+        onClick={() => context.setIsOpen(false)}
+      >
+        {children}
+      </Link>
+    );
+  } else if ("href" in props) {
+    const newTab = props.newTab ?? false;
+    return (
+      <a
+        {...props}
+        className={`
+            h-8 px-4 py-1 whitespace-nowrap focus:underline hover:underline outline-hidden text-blue-800 dark:text-green-400
+            ${className}
+        `}
+        target={newTab ? "_blank" : props.target}
+        rel={newTab ? "noopener" : undefined}
+        onClick={() => context.setIsOpen(false)}
+      >
+        {children}
+      </a>
+    );
+  } else {
+    const { onClick, ...buttonProps } = props as ComponentProps<"button">;
+    return (
+      <button
+        {...buttonProps}
+        className={`
+            text-left h-8 px-4 py-1 whitespace-nowrap focus:underline hover:underline outline-hidden text-blue-800 dark:text-green-400
+            ${className}
+        `}
+        onClick={(e) => {
+          onClick?.(e);
+          context.setIsOpen(false);
+        }}
+      >
+        {children}
+      </button>
+    );
+  }
 }

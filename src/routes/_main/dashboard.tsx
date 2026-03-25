@@ -128,7 +128,11 @@ function DashboardRoute() {
                             <Button
                               variant="link"
                               className="sm:hidden"
-                              to={`/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
+                              to="/translate/$code/$verseId"
+                              params={{
+                                code: currentLanguage.code,
+                                verseId: book.nextVerse ?? "01001001",
+                              }}
                             >
                               {book.name}
                             </Button>
@@ -147,7 +151,11 @@ function DashboardRoute() {
                             <Button
                               variant="link"
                               className="ml-4 lg:ml-8 whitespace-nowrap"
-                              to={`/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
+                              to="/translate/$code/$verseId"
+                              params={{
+                                code: currentLanguage.code,
+                                verseId: book.nextVerse ?? "01001001",
+                              }}
                             >
                               Continue{" "}
                               <Icon icon="arrow-right" className="ml-2" />

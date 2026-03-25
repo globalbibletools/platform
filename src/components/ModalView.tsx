@@ -23,7 +23,7 @@ export default function ModalView({
       <div className="flex items-center mb-12">
         <Link
           className="flex items-center rounded-sm focus-visible:outline-2 outline-green-300"
-          to="/" // "/read"
+          to="/read"
         >
           <img
             src="https://assets.globalbibletools.com/landing/logo.png"
