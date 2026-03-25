@@ -3,11 +3,12 @@ import {
   HeadContent,
   Scripts,
   createRootRouteWithContext,
+  useLocation,
 } from "@tanstack/react-router";
 import appCss from "@/styles.css?url";
 import { TimezoneTracker } from "@/shared/i18n/clientTimezone";
 import { AnalyticsProvider } from "@/analytics";
-import { getCurrentLocale } from "@/shared/i18n/shared";
+import { getCurrentLocale, localeMap } from "@/shared/i18n/shared";
 import { IntlProvider } from "use-intl";
 import { fetchLocaleMessages } from "@/shared/i18n/fetchLocaleMessages";
 import { FlashProvider } from "@/flash";
@@ -59,10 +60,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 );
 
 function RootLayout() {
-  const locale = getCurrentLocale();
+  const localeCode = useLocation({
+    select: (location) => location.publicHref.split("/")[1],
+  });
+  const locale = localeMap[localeCode];
 
   const { data: messages } = useSuspenseQuery({
-    ...localizationMessagesQuery(locale.code),
+    ...localizationMessagesQuery(localeCode),
     staleTime: Infinity,
   });
 
