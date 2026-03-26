@@ -22,6 +22,7 @@ export const Route = createFileRoute("/_main/translate/$code/$verseId")({
   },
   pendingComponent: TranslationRoutePending,
   component: TranslationRoute,
+  onError: console.log,
 });
 
 function TranslationRoutePending() {
