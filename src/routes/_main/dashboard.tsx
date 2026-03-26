@@ -7,7 +7,6 @@ import { getLanguageProgressReadModel } from "@/modules/languages/read-models/ge
 import { getUserLanguagesReadModel } from "@/modules/languages/read-models/getUserLanguagesReadModel";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
 import reportingQueryService from "@/modules/reporting/ReportingQueryService";
-import { getCurrentLocale, useCurrentLocale } from "@/shared/i18n/shared";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie } from "@tanstack/react-start/server";

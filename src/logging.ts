@@ -1,10 +1,5 @@
-import {
-  createMiddleware,
-  FunctionMiddlewareServerNextFn,
-  RequestServerNextFn,
-} from "@tanstack/react-start";
+import { createMiddleware } from "@tanstack/react-start";
 import pino from "pino";
-import { server } from "typescript";
 
 // If this changes, update the pino configuration in the next patch so it matches
 export const logger = pino({
