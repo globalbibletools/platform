@@ -14,6 +14,10 @@ RUN ["npm", "run", "build"]
  
 FROM base AS runner
 WORKDIR /app
+
+COPY package*.json .
+RUN ["npm", "install", "@google-cloud/translate"]
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 app
 USER app
@@ -21,6 +25,7 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+
 COPY --from=build --chown=app:nodejs /app/.output .
 CMD ["node", "server/index.mjs"]
 
