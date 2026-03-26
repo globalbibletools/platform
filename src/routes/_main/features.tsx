@@ -1,8 +1,10 @@
 import ViewTitle from "@/components/ViewTitle";
 import { createFileRoute } from "@tanstack/react-router";
 import FeatureSwitch from "./-components/FeatureSwitch";
+import { withDocumentTitle } from "@/documentTitle";
 
 export const Route = createFileRoute("/_main/features")({
+  head: () => withDocumentTitle("Features"),
   component: FeaturesRoute,
 });
 

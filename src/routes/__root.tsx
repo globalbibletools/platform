@@ -3,25 +3,17 @@ import {
   HeadContent,
   Scripts,
   createRootRouteWithContext,
+  useLocation,
 } from "@tanstack/react-router";
 import appCss from "@/styles.css?url";
 import { TimezoneTracker } from "@/shared/i18n/clientTimezone";
 import { AnalyticsProvider } from "@/analytics";
-import { getCurrentLocale } from "@/shared/i18n/shared";
+import { localeMap, useCurrentLocale } from "@/shared/i18n/shared";
 import { IntlProvider } from "use-intl";
-import { fetchLocaleMessages } from "@/shared/i18n/fetchLocaleMessages";
+import { getMessages } from "@/shared/i18n/messages";
 import { FlashProvider } from "@/flash";
 import { fetchAuthState } from "@/modules/access/fetchAuthState";
-import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
-
-function localizationMessagesQuery(localeCode: string) {
-  return {
-    queryKey: ["messages", localeCode],
-    queryFn: () => {
-      return fetchLocaleMessages({ data: { localeCode } });
-    },
-  };
-}
+import { QueryClient } from "@tanstack/react-query";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   {
@@ -34,9 +26,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
       return { auth };
     },
-    loader: async ({ context: { queryClient } }) => {
-      const locale = getCurrentLocale();
-      await queryClient.ensureQueryData(localizationMessagesQuery(locale.code));
+    loader: async () => {
+      const messages = await getMessages();
+
+      return { messages };
     },
     head: () => ({
       meta: [
@@ -59,12 +52,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 );
 
 function RootLayout() {
-  const locale = getCurrentLocale();
-
-  const { data: messages } = useSuspenseQuery({
-    ...localizationMessagesQuery(locale.code),
-    staleTime: Infinity,
-  });
+  const { messages } = Route.useLoaderData();
+  const locale = useCurrentLocale();
 
   return (
     <html lang={locale.code} dir={locale.dir} className={locale.class}>

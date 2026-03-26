@@ -5,9 +5,21 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { withDocumentTitle } from "@/documentTitle";
+import { getTranslator } from "@/shared/i18n/messages";
 
 export const Route = createFileRoute("/_main/read/$code/$chapterId")({
   loader: ({ params }) => loaderFn({ data: params }),
+  head: async ({ params }) => {
+    const t = await getTranslator("ReadingView");
+
+    const bookId = parseInt(params.chapterId.slice(0, 2)) || 1;
+    const chapterNumber = parseInt(params.chapterId.slice(2, 5)) || 1;
+
+    return withDocumentTitle(
+      t("headTitle", { bookId, chapter: chapterNumber }),
+    );
+  },
   component: ReadingRoute,
   pendingComponent: ReadingRoutePending,
 });
@@ -22,6 +34,7 @@ const loaderFn = createServerFn()
   .handler(async ({ data }) => {
     const bookId = parseInt(data.chapterId.slice(0, 2)) || 1;
     const chapterNumber = parseInt(data.chapterId.slice(2, 5)) || 1;
+
     const [chapterVerses, currentLanguage] = await Promise.all([
       readingQueryService.fetchChapterVerses(bookId, chapterNumber, data.code),
       fetchCurrentLanguage(data.code),

@@ -22,7 +22,8 @@
     "not_found": "We couldn't find your invitation to Global Bible Tools.",
     "actions": {
       "log_in": "Log In"
-    }
+    },
+    "headTitle": "Accept Invite"
   },
   "AdminLanguagesPage": {
     "title": "Languages",
@@ -82,7 +83,8 @@
   "EmailVerification": {
     "title": "Verify Email",
     "email_verification_error": "Could not verify email. The verification may have expired.",
-    "email_verified": "Email address verified."
+    "email_verified": "Email address verified.",
+    "headTitle": "Verify Email"
   },
   "Error": {
     "tab": "Error",
@@ -109,7 +111,8 @@
     },
     "actions": {
       "log_in": "Log In"
-    }
+    },
+    "headTitle": "Forgot Password"
   },
   "InviteLanguageUserPage": {
     "title": "Invite User",
@@ -132,24 +135,6 @@
       "user_exists": "This user already exists."
     }
   },
-  "LanguageImportPage": {
-    "title": "Import",
-    "form": {
-      "language": "Language",
-      "submit": "Import"
-    },
-    "errors": {
-      "language_required": "Please select a language to import."
-    },
-    "status": {
-      "fail": "Error importing glosses",
-      "running": "Gloss import running",
-      "success": "Imported glosses successfully!"
-    },
-    "actions": {
-      "reset": "Import Again"
-    }
-  },
   "LanguageLayout": {
     "links": {
       "settings": "Settings",
@@ -159,9 +144,6 @@
       "import": "Import",
       "exports": "Exports"
     }
-  },
-  "LanguageExportsPage": {
-    "title": "Exports"
   },
   "LanguageSettingsPage": {
     "title": "Settings",
@@ -221,7 +203,8 @@
       "email_required": "Please enter your email.",
       "password_required": "Please enter your password."
     },
-    "forgot_password": "Forgot Password?"
+    "forgot_password": "Forgot Password?",
+    "headTitle": "Log In"
   },
   "ModalView": {
     "app_name": "Global Bible Tools"
@@ -278,7 +261,8 @@
     "update_profile": "Update Profile"
   },
   "ReadingView": {
-    "close_sidebar": "Close"
+    "close_sidebar": "Close",
+    "headTitle": "{bookId, select, 1 {Genesis} 2 {Exodus} 3 {Leviticus} 4 {Numbers} 5 {Deuteronomy} 6 {Joshua} 7 {Judges} 8 {Ruth} 9 {1 Samuel} 10 {2 Samuel} 11 {1 Kings} 12 {2 Kings} 13 {1 Chronicles} 14 {2 Chronicles} 15 {Ezra} 16 {Nehemiah} 17 {Esther} 18 {Job} 19 {Psalm} 20 {Proverbs} 21 {Ecclesiastes} 22 {Song of Songs} 23 {Isaiah} 24 {Jeremiah} 25 {Lamentations} 26 {Ezekiel} 27 {Daniel} 28 {Hosea} 29 {Joel} 30 {Amos} 31 {Obadiah} 32 {Jonah} 33 {Micah} 34 {Nahum} 35 {Habakkuk} 36 {Zephaniah} 37 {Haggai} 38 {Zechariah} 39 {Malachi} 40 {Matthew} 41 {Mark} 42 {Luke} 43 {John} 44 {Acts} 45 {Romans} 46 {1 Corinthians} 47 {2 Corinthians} 48 {Galatians} 49 {Ephesians} 50 {Philippians} 51 {Colossians} 52 {1 Thessalonians} 53 {2 Thessalonians} 54 {1 Timothy} 55 {2 Timothy} 56 {Titus} 57 {Philemon} 58 {Hebrews} 59 {James} 60 {1 Peter} 61 {2 Peter} 62 {1 John} 63 {2 John} 64 {3 John} 65 {Jude} 66 {Revelation} other {}} {chapter}"
   },
   "WordDetails": {
     "tabs": {
@@ -455,7 +439,8 @@
     "not_found": "We couldn't find your password reset.",
     "actions": {
       "log_in": "Log In"
-    }
+    },
+    "headTitle": "Reset Password"
   },
   "RichTextInput": {
     "bold_tooltip": "Bold",
@@ -571,6 +556,7 @@
     ]
   },
   "TranslationToolbar": {
+    "headTitle": "{bookId, select, 1 {Genesis} 2 {Exodus} 3 {Leviticus} 4 {Numbers} 5 {Deuteronomy} 6 {Joshua} 7 {Judges} 8 {Ruth} 9 {1 Samuel} 10 {2 Samuel} 11 {1 Kings} 12 {2 Kings} 13 {1 Chronicles} 14 {2 Chronicles} 15 {Ezra} 16 {Nehemiah} 17 {Esther} 18 {Job} 19 {Psalm} 20 {Proverbs} 21 {Ecclesiastes} 22 {Song of Songs} 23 {Isaiah} 24 {Jeremiah} 25 {Lamentations} 26 {Ezekiel} 27 {Daniel} 28 {Hosea} 29 {Joel} 30 {Amos} 31 {Obadiah} 32 {Jonah} 33 {Micah} 34 {Nahum} 35 {Habakkuk} 36 {Zephaniah} 37 {Haggai} 38 {Zechariah} 39 {Malachi} 40 {Matthew} 41 {Mark} 42 {Luke} 43 {John} 44 {Acts} 45 {Romans} 46 {1 Corinthians} 47 {2 Corinthians} 48 {Galatians} 49 {Ephesians} 50 {Philippians} 51 {Colossians} 52 {1 Thessalonians} 53 {2 Thessalonians} 54 {1 Timothy} 55 {2 Timothy} 56 {Titus} 57 {Philemon} 58 {Hebrews} 59 {James} 60 {1 Peter} 61 {2 Peter} 62 {1 John} 63 {2 John} 64 {3 John} 65 {Jude} 66 {Revelation} other {}} {chapter}:{verse}",
     "errors": {
       "all_approved": "All glosses have been approved"
     },

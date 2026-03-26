@@ -10,6 +10,8 @@ import { logIn } from "@/modules/users/actions/login";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { Policy } from "@/modules/access";
 import { useAuthRefresh } from "@/modules/access/authState";
+import { withDocumentTitle } from "@/documentTitle";
+import { getTranslator } from "@/shared/i18n/messages";
 
 export const Route = createFileRoute("/_minimal/login")({
   beforeLoad: ({ context }) => {
@@ -17,6 +19,10 @@ export const Route = createFileRoute("/_minimal/login")({
       context: context.auth,
       policy: new Policy({ authenticated: false }),
     });
+  },
+  head: async () => {
+    const t = await getTranslator("LoginPage");
+    return withDocumentTitle(t("headTitle"));
   },
   component: LoginRoute,
 });

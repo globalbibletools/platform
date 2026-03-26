@@ -4,10 +4,16 @@ import InterlinearExportPanel from "@/modules/export/ui/InterlinearExportPanel";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslations } from "use-intl";
 import { Suspense } from "react";
+import { withDocumentTitle } from "@/documentTitle";
 
-export const Route = createFileRoute(
-  "/_main/admin/languages/$code/exports" as any,
-)({
+export const Route = createFileRoute("/_main/admin/languages/$code/exports")({
+  loader: async ({ parentMatchPromise }) => {
+    const parent = await parentMatchPromise;
+
+    return { language: parent.loaderData?.language };
+  },
+  head: ({ loaderData }) =>
+    withDocumentTitle(`${loaderData?.language?.englishName} Exports `),
   component: LanguageExportsRoute,
 });
 

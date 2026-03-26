@@ -25,6 +25,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { useTranslations } from "use-intl";
 import * as z from "zod";
 import Button from "@/components/Button";
+import { withDocumentTitle } from "@/documentTitle";
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
@@ -44,8 +45,19 @@ export const Route = createFileRoute("/_main/admin/languages/$code/users/")({
       languageCode: params.code,
     });
   },
-  loader: ({ params, deps }) =>
-    loaderFn({ data: { code: params.code, range: deps.range } }),
+  loader: async ({ params, deps, parentMatchPromise }) => {
+    const [data, parent] = await Promise.all([
+      loaderFn({ data: { code: params.code, range: deps.range } }),
+      parentMatchPromise,
+    ]);
+
+    return {
+      ...data,
+      language: parent.loaderData?.language,
+    };
+  },
+  head: ({ loaderData }) =>
+    withDocumentTitle(`${loaderData?.language?.englishName} Users`),
   component: LanguageUsersRoute,
 });
 

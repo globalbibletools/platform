@@ -9,6 +9,7 @@ import { Policy } from "@/modules/access";
 import { inviteLanguageMember } from "@/modules/languages/actions/inviteLanguageMember";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { useTranslations } from "use-intl";
+import { withDocumentTitle } from "@/documentTitle";
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
@@ -20,6 +21,12 @@ export const Route = createFileRoute(
   beforeLoad({ context }) {
     routerGuard({ context: context.auth, policy });
   },
+  loader: async ({ parentMatchPromise }) => {
+    const parent = await parentMatchPromise;
+    return { language: parent.loaderData?.language };
+  },
+  head: ({ loaderData }) =>
+    withDocumentTitle(`${loaderData?.language?.englishName} User Invite`),
   component: InviteLanguageUserPage,
 });
 

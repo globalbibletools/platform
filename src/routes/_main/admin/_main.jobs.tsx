@@ -3,8 +3,10 @@ import ServerAction from "@/components/ServerAction";
 import { queueJobAction } from "@/shared/jobs/queueJobAction";
 import { REPORTING_JOB_TYPES } from "@/modules/reporting/jobs/jobTypes";
 import { createFileRoute } from "@tanstack/react-router";
+import { withDocumentTitle } from "@/documentTitle";
 
-export const Route = createFileRoute("/_main/admin/_main/jobs" as any)({
+export const Route = createFileRoute("/_main/admin/_main/jobs")({
+  head: () => withDocumentTitle("Jobs | Admin"),
   component: AdminJobsView,
 });
 

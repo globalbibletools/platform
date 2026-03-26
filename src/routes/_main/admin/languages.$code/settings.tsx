@@ -23,6 +23,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useTranslations } from "use-intl";
 import * as z from "zod";
+import { withDocumentTitle } from "@/documentTitle";
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
@@ -40,6 +41,8 @@ export const Route = createFileRoute("/_main/admin/languages/$code/settings")({
     });
   },
   loader: ({ params }) => loaderFn({ data: params }),
+  head: ({ loaderData }) =>
+    withDocumentTitle(`Settings | ${loaderData?.languageSettings.englishName}`),
   component: LanguageSettingsRoute,
 });
 

@@ -7,11 +7,12 @@ import { getLanguageProgressReadModel } from "@/modules/languages/read-models/ge
 import { getUserLanguagesReadModel } from "@/modules/languages/read-models/getUserLanguagesReadModel";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
 import reportingQueryService from "@/modules/reporting/ReportingQueryService";
-import { getCurrentLocale } from "@/shared/i18n/shared";
-import { createFileRoute } from "@tanstack/react-router";
+import { getCurrentLocale, useCurrentLocale } from "@/shared/i18n/shared";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie } from "@tanstack/react-start/server";
 import { routerGuard } from "@/modules/access/routerGuard";
+import { withDocumentTitle } from "@/documentTitle";
 
 const policy = new Policy({ authenticated: true });
 
@@ -19,8 +20,9 @@ export const Route = createFileRoute("/_main/dashboard")({
   beforeLoad: ({ context }) => {
     routerGuard({ context: context.auth, policy });
   },
-  component: DashboardRoute,
   loader: () => loaderFn(),
+  head: () => withDocumentTitle("Dashboard"),
+  component: DashboardRoute,
 });
 
 const loaderFn = createServerFn()
@@ -56,11 +58,9 @@ const loaderFn = createServerFn()
 function DashboardRoute() {
   const data = Route.useLoaderData();
 
-  if (!data) {
+  if (!data || !("user" in data)) {
     return <div />;
   }
-
-  const locale = getCurrentLocale();
 
   const {
     user,
@@ -239,7 +239,6 @@ function DashboardRoute() {
                   <BookProgressLink
                     key={book.name}
                     book={book}
-                    locale={locale.code}
                     currentLanguage={currentLanguage}
                   />
                 ))}
@@ -252,7 +251,6 @@ function DashboardRoute() {
                   <BookProgressLink
                     key={book.name}
                     book={book}
-                    locale={locale.code}
                     currentLanguage={currentLanguage}
                   />
                 ))}
@@ -267,18 +265,16 @@ function DashboardRoute() {
 
 function BookProgressLink({
   book,
-  locale,
   currentLanguage,
 }: {
   book: any;
-  locale: string;
   currentLanguage: any;
 }) {
   const completeProgress = book.approvedCount / book.wordCount;
   const isComplete = book.approvedCount === book.wordCount;
   const isUnstarted = book.approvedCount === 0;
   return (
-    <a
+    <Link
       className={`
         relative block aspect-square rounded flex flex-col items-center justify-center overflow-hidden
         ${
@@ -287,7 +283,11 @@ function BookProgressLink({
           : "bg-gray-300 dark:bg-gray-700"
         }
     `}
-      href={`/${locale}/translate/${currentLanguage.code}/${book.nextVerse ?? ""}`}
+      to="/translate/$code/$verseId"
+      params={{
+        code: currentLanguage.code,
+        verseId: book.nextVerse ?? "",
+      }}
     >
       {isComplete ?
         <Icon icon="check" />
@@ -295,7 +295,7 @@ function BookProgressLink({
         <Icon icon="xmark" />
       : <DonutChart percentage={completeProgress} />}
       <span className="text-xs font-bold">{book.name}</span>
-    </a>
+    </Link>
   );
 }
 
