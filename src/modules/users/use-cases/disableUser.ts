@@ -12,7 +12,7 @@ export async function disableUser(request: DisableUserRequest): Promise<void> {
   if (!user) throw new NotFoundError("User");
 
   await languageClient.removeUserFromLanguages(request.userId);
-  clearSessionsForUser(request.userId);
+  await clearSessionsForUser(request.userId);
 
   user.disable();
   await userRepository.commit(user);
