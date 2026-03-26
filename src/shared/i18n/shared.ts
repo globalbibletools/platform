@@ -1,6 +1,7 @@
 import languages from "./languages.json";
 import { getRequest } from "@tanstack/react-start/server";
 import { createIsomorphicFn } from "@tanstack/react-start";
+import { useLocation } from "@tanstack/react-router";
 
 export type Locale = (typeof languages)[number];
 
@@ -75,4 +76,11 @@ export function stripLocalePrefix(url: URL, locale: string): URL {
   const newUrl = new URL(url);
   newUrl.pathname = url.pathname.replace(`/${locale}`, "") || "/";
   return newUrl;
+}
+
+export function useCurrentLocale() {
+  const localeCode = useLocation({
+    select: (location) => location.publicHref.split("/")[1],
+  });
+  return localeMap[localeCode];
 }

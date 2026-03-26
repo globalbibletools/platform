@@ -8,7 +8,7 @@ import {
 import appCss from "@/styles.css?url";
 import { TimezoneTracker } from "@/shared/i18n/clientTimezone";
 import { AnalyticsProvider } from "@/analytics";
-import { localeMap } from "@/shared/i18n/shared";
+import { localeMap, useCurrentLocale } from "@/shared/i18n/shared";
 import { IntlProvider } from "use-intl";
 import { getMessages } from "@/shared/i18n/messages";
 import { FlashProvider } from "@/flash";
@@ -53,10 +53,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootLayout() {
   const { messages } = Route.useLoaderData();
-  const localeCode = useLocation({
-    select: (location) => location.publicHref.split("/")[1],
-  });
-  const locale = localeMap[localeCode];
+  const locale = useCurrentLocale();
 
   return (
     <html lang={locale.code} dir={locale.dir} className={locale.class}>
