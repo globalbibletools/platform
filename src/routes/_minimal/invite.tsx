@@ -13,6 +13,8 @@ import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useTranslations } from "use-intl";
 import * as z from "zod";
+import { withDocumentTitle } from "@/documentTitle";
+import { getTranslator } from "@/shared/i18n/messages";
 
 const schema = z.object({ token: z.string().default("") });
 const policy = new Policy({ authenticated: false });
@@ -48,6 +50,10 @@ export const Route = createFileRoute("/_minimal/invite")({
     routerGuard({ context: context.auth, policy });
   },
   loader: ({ deps }) => validateInviteToken({ data: { token: deps.token } }),
+  head: async () => {
+    const t = await getTranslator("AcceptInvitePage");
+    return withDocumentTitle(t("headTitle"));
+  },
   component: AcceptInviteRoute,
   notFoundComponent: AcceptInviteNotFoundRoute,
 });

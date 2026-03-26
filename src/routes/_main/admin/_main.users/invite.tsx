@@ -7,8 +7,10 @@ import ViewTitle from "@/components/ViewTitle";
 import Form from "@/components/Form";
 import { inviteUser } from "@/modules/users/actions/inviteUser";
 import { createFileRoute } from "@tanstack/react-router";
+import { withDocumentTitle } from "@/documentTitle";
 
 export const Route = createFileRoute("/_main/admin/_main/users/invite")({
+  head: () => withDocumentTitle("Invite User | Admin"),
   component: InviteUserRoute,
 });
 

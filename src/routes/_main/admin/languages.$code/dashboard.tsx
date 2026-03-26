@@ -6,6 +6,7 @@ import { getLanguageBookProgressReadModel } from "@/modules/reporting";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
+import { withDocumentTitle } from "@/documentTitle";
 
 const requestSchema = z.object({ code: z.string() });
 
@@ -13,10 +14,10 @@ const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
 
-export const Route = createFileRoute(
-  "/_main/admin/languages/$code/dashboard" as any,
-)({
+export const Route = createFileRoute("/_main/admin/languages/$code/dashboard")({
   loader: ({ params }) => loaderFn({ data: params }),
+  head: ({ loaderData }) =>
+    withDocumentTitle(`Dashboard | ${loaderData?.language.englishName}`),
   component: LanguageDashboardRoute,
 });
 
@@ -35,7 +36,7 @@ const loaderFn = createServerFn()
     }
 
     const books = await getLanguageBookProgressReadModel(language.id);
-    return { books };
+    return { books, language };
   });
 
 function LanguageDashboardRoute() {

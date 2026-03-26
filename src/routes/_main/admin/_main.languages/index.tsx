@@ -17,6 +17,7 @@ import { searchLanguagesReadModel } from "@/modules/languages/read-models/search
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useTranslations } from "use-intl";
+import { withDocumentTitle } from "@/documentTitle";
 
 const LIMIT = 20;
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/_main/admin/_main/languages/")({
     routerGuard({ context: context.auth, policy });
   },
   loader: ({ deps }) => loaderFn({ data: deps }),
+  head: () => withDocumentTitle("Languages | Admin"),
   component: AdminLanguagesRoute,
 });
 

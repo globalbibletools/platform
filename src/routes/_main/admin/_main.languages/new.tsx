@@ -9,6 +9,7 @@ import { routerGuard } from "@/modules/access/routerGuard";
 import { createLanguage } from "@/modules/languages/actions/createLanguage";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslations } from "use-intl";
+import { withDocumentTitle } from "@/documentTitle";
 
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/_main/admin/_main/languages/new")({
   beforeLoad: ({ context }) => {
     routerGuard({ context: context.auth, policy });
   },
+  head: () => withDocumentTitle("Add Language | Admin"),
   component: NewLanguageRoute,
 });
 

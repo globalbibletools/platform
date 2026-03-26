@@ -21,6 +21,7 @@ import { searchUsersReadModel } from "@/modules/users/read-models/searchUsersRea
 import { reinviteUserAction } from "@/modules/users/actions/reinviteUser";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { withDocumentTitle } from "@/documentTitle";
 
 const LIMIT = 20;
 
@@ -31,9 +32,8 @@ const schema = z.object({
 export const Route = createFileRoute("/_main/admin/_main/users/")({
   validateSearch: schema,
   loaderDeps: ({ search }) => search,
-  loader: ({ deps }) => {
-    return loaderFn({ data: deps });
-  },
+  loader: ({ deps }) => loaderFn({ data: deps }),
+  head: () => withDocumentTitle("Users | Admin"),
   component: AdminUsersPage,
 });
 

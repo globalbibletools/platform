@@ -9,6 +9,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useTranslations } from "use-intl";
 import { Policy } from "@/modules/access";
 import { routerGuard } from "@/modules/access/routerGuard";
+import { withDocumentTitle } from "@/documentTitle";
+import { getTranslator } from "@/shared/i18n/messages";
 
 export const Route = createFileRoute("/_minimal/forgot-password")({
   beforeLoad: ({ context }) => {
@@ -16,6 +18,10 @@ export const Route = createFileRoute("/_minimal/forgot-password")({
       context: context.auth,
       policy: new Policy({ authenticated: false }),
     });
+  },
+  head: async () => {
+    const t = await getTranslator("ForgotPasswordPage");
+    return withDocumentTitle(t("headTitle"));
   },
   component: ForgotPasswordRoute,
 });

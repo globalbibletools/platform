@@ -5,12 +5,12 @@ import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import ComboboxInput from "@/components/ComboboxInput";
 import { getCurrentLocale, locales } from "@/shared/i18n/shared";
-import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useLocation, useNavigate, useRouter } from "@tanstack/react-router";
 
 export default function LanguageDialog() {
   const locale = getCurrentLocale();
-  const navigate = useNavigate();
   const pathname = useLocation({ select: ({ pathname }) => pathname });
+  const router = useRouter();
 
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -34,10 +34,11 @@ export default function LanguageDialog() {
         <ComboboxInput
           className="block min-w-[150px]"
           value={locale.code}
-          onChange={(language) => {
-            navigate({
+          onChange={async (language) => {
+            await router.navigate({
               to: `/${language}${pathname}`,
             });
+            await router.invalidate();
           }}
           aria-label="Interface Language"
           up

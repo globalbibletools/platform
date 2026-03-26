@@ -12,6 +12,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useTranslations } from "use-intl";
 import { useAuthRefresh } from "@/modules/access/authState";
+import { withDocumentTitle } from "@/documentTitle";
 
 const policy = new Policy({ authenticated: true });
 
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/_main/profile")({
     routerGuard({ context: context.auth, policy });
   },
   loader: () => profileLoader(),
+  head: () => withDocumentTitle("Profile"),
   component: ProfileRoute,
 });
 

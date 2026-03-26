@@ -1,4 +1,6 @@
 import languages from "./languages.json";
+import { getRequest } from "@tanstack/react-start/server";
+import { createIsomorphicFn } from "@tanstack/react-start";
 
 export type Locale = (typeof languages)[number];
 
@@ -28,9 +30,6 @@ export function extractLocaleFromPath(pathname: string): Locale | null {
 
   return localeMap[localeCode] ?? null;
 }
-
-import { getRequest } from "@tanstack/react-start/server";
-import { createIsomorphicFn } from "@tanstack/react-start";
 
 export const getCurrentLocale = createIsomorphicFn()
   .server(() => {

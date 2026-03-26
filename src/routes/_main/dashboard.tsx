@@ -12,6 +12,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie } from "@tanstack/react-start/server";
 import { routerGuard } from "@/modules/access/routerGuard";
+import { withDocumentTitle } from "@/documentTitle";
 
 const policy = new Policy({ authenticated: true });
 
@@ -19,8 +20,9 @@ export const Route = createFileRoute("/_main/dashboard")({
   beforeLoad: ({ context }) => {
     routerGuard({ context: context.auth, policy });
   },
-  component: DashboardRoute,
   loader: () => loaderFn(),
+  head: () => withDocumentTitle("Dashboard"),
+  component: DashboardRoute,
 });
 
 const loaderFn = createServerFn()
@@ -56,7 +58,7 @@ const loaderFn = createServerFn()
 function DashboardRoute() {
   const data = Route.useLoaderData();
 
-  if (!data) {
+  if (!data || !("user" in data)) {
     return <div />;
   }
 
