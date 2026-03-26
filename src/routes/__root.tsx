@@ -3,12 +3,11 @@ import {
   HeadContent,
   Scripts,
   createRootRouteWithContext,
-  useLocation,
 } from "@tanstack/react-router";
 import appCss from "@/styles.css?url";
 import { TimezoneTracker } from "@/shared/i18n/clientTimezone";
 import { AnalyticsProvider } from "@/analytics";
-import { localeMap, useCurrentLocale } from "@/shared/i18n/shared";
+import { useCurrentLocale } from "@/shared/i18n/shared";
 import { IntlProvider } from "use-intl";
 import { getMessages } from "@/shared/i18n/messages";
 import { FlashProvider } from "@/flash";
@@ -59,6 +58,7 @@ function RootLayout() {
     <html lang={locale.code} dir={locale.dir} className={locale.class}>
       <head>
         <HeadContent />
+        <link rel="icon" href="/favicon.ico" />
       </head>
       <body>
         <TimezoneTracker />
