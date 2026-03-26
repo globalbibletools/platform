@@ -5,7 +5,10 @@ import {
   createRootRouteWithContext,
 } from "@tanstack/react-router";
 import appCss from "@/styles.css?url";
-import { TimezoneTracker } from "@/shared/i18n/clientTimezone";
+import {
+  getClientTimezone,
+  TimezoneTracker,
+} from "@/shared/i18n/clientTimezone";
 import { AnalyticsProvider } from "@/analytics";
 import { useCurrentLocale } from "@/shared/i18n/shared";
 import { IntlProvider } from "use-intl";
@@ -54,6 +57,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootLayout() {
   const { messages } = Route.useLoaderData();
   const locale = useCurrentLocale();
+  const tz = getClientTimezone();
 
   return (
     <html lang={locale?.code} dir={locale?.dir} className={locale?.class}>
@@ -64,7 +68,7 @@ function RootLayout() {
       <body>
         <TimezoneTracker />
         <AnalyticsProvider id={process.env.VITE_FATHOM_ID} />
-        <IntlProvider locale={locale?.code} messages={messages}>
+        <IntlProvider locale={locale?.code} messages={messages} timeZone={tz}>
           <FlashProvider>
             <Outlet />
           </FlashProvider>
