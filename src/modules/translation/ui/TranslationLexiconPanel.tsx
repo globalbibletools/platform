@@ -9,6 +9,7 @@ import { VersesPreview } from "@/components/VersesPreview";
 import { parseReferenceRange } from "@/verse-utils";
 import { getWordResource } from "../actions/getWordResource";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { ClientOnly } from "@tanstack/react-router";
 
 interface TranslationLexiconPanelProps {
   wordId: string;
@@ -70,7 +71,9 @@ export default function TranslationLexiconPanel({
           }
         }}
       >
-        <LexiconText content={resource.entry} />
+        <ClientOnly>
+          <LexiconText content={resource.entry} />
+        </ClientOnly>
       </div>
       {previewElement !== null &&
         createPortal(

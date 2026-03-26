@@ -12,6 +12,7 @@ import { isRichTextEmpty } from "@/components/RichTextInput";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useQuery } from "@tanstack/react-query";
 import { getLemmaResource } from "../actions/getLemmaResource";
+import { ClientOnly } from "@tanstack/react-router";
 
 export interface Word {
   id: string;
@@ -124,7 +125,9 @@ export default function WordDetails({
                           }
                         }}
                       >
-                        <LexiconText content={data.entry} />
+                        <ClientOnly>
+                          <LexiconText content={data.entry} />
+                        </ClientOnly>
                       </div>
                       {previewElement !== null &&
                         createPortal(
