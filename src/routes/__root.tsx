@@ -55,7 +55,7 @@ function RootLayout() {
   const locale = useCurrentLocale();
 
   return (
-    <html lang={locale.code} dir={locale.dir} className={locale.class}>
+    <html lang={locale?.code} dir={locale?.dir} className={locale?.class}>
       <head>
         <HeadContent />
         <link rel="icon" href="/favicon.ico" />
@@ -63,7 +63,7 @@ function RootLayout() {
       <body>
         <TimezoneTracker />
         <AnalyticsProvider id={process.env.VITE_FATHOM_ID} />
-        <IntlProvider locale={locale.code} messages={messages}>
+        <IntlProvider locale={locale?.code} messages={messages}>
           <FlashProvider>
             <Outlet />
           </FlashProvider>

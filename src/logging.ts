@@ -1,5 +1,10 @@
-import { trace } from "@opentelemetry/api";
+import {
+  createMiddleware,
+  FunctionMiddlewareServerNextFn,
+  RequestServerNextFn,
+} from "@tanstack/react-start";
 import pino from "pino";
+import { server } from "typescript";
 
 // If this changes, update the pino configuration in the next patch so it matches
 export const logger = pino({
@@ -15,19 +20,79 @@ export const logger = pino({
       }
     : undefined,
   timestamp: pino.stdTimeFunctions.isoTime,
-  mixin:
-    process.env.NODE_ENV === "production" ?
-      () => {
-        const span = trace.getActiveSpan();
-        if (!span) return {};
-
-        const context = span.spanContext();
-        return {
-          spanId: context.spanId,
-          traceId: context.traceId,
-        };
-      }
-    : undefined,
 });
 
 export const createLogger = logger.child.bind(logger);
+
+export const loggingMiddleware = createMiddleware().server(
+  async ({ request, next }) => {
+    const url = new URL(request.url);
+    if (url.pathname.startsWith("/_serverFn")) {
+      return next();
+    }
+
+    const start = performance.now();
+
+    try {
+      const result = await next();
+
+      logger.info({
+        request: {
+          url: request.url,
+          method: request.method,
+        },
+        response: {
+          status: result.response?.status,
+          latency: performance.now() - start,
+        },
+      });
+
+      return result;
+    } catch (err) {
+      logger.error({
+        request: {
+          url: request.url,
+          method: request.method,
+        },
+        response: {
+          error: err instanceof Error ? err.message : `${err}`,
+          latency: performance.now() - start,
+        },
+      });
+
+      throw err;
+    }
+  },
+);
+export const functionLoggingMiddleware = createMiddleware({
+  type: "function",
+}).server(async ({ serverFnMeta, next }) => {
+  const start = performance.now();
+
+  try {
+    const result = await next();
+
+    logger.info({
+      request: {
+        serverFn: serverFnMeta.name,
+      },
+      response: {
+        latency: performance.now() - start,
+      },
+    });
+
+    return result;
+  } catch (err) {
+    logger.error({
+      request: {
+        serverFn: serverFnMeta.name,
+      },
+      response: {
+        error: err instanceof Error ? err.message : `${err}`,
+        latency: Math.ceil(performance.now() - start),
+      },
+    });
+
+    throw err;
+  }
+});
