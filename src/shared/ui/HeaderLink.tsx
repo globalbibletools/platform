@@ -17,27 +17,45 @@ export function HeaderLink({
   children,
   ...props
 }: HeaderLinkProps) {
-  return (
-    <Link
-      {...props}
-      className={`
+  if (props.href) {
+    return (
+      <a
+        {...props}
+        className={`
+        h-full px-2 text-center block pt-5 font-bold
+        text-blue-800 dark:text-green-400
+        hover:underline focus:underline outline-none
+        ${className}
+      `}
+        target={newTab ? "_blank" : props.target}
+        rel={newTab ? "noopener" : undefined}
+      >
+        {children}
+      </a>
+    );
+  } else {
+    return (
+      <Link
+        {...props}
+        className={`
         h-full px-2 text-center block pt-5 font-bold border-b-4
         text-blue-800 dark:text-green-400
         hover:underline focus:underline outline-none
         ${className}
       `}
-      activeProps={() => ({
-        className: "border-green-300 dark:border-blue-800",
-      })}
-      inactiveProps={() => ({
-        className: "border-transparent",
-      })}
-      target={newTab ? "_blank" : props.target}
-      rel={newTab ? "noopener" : undefined}
-    >
-      {children}
-    </Link>
-  );
+        activeProps={() => ({
+          className: "border-green-300 dark:border-blue-800",
+        })}
+        inactiveProps={() => ({
+          className: "border-transparent",
+        })}
+        target={newTab ? "_blank" : props.target}
+        rel={newTab ? "noopener" : undefined}
+      >
+        {children}
+      </Link>
+    );
+  }
 }
 
 export interface HeaderDropdownProps {
