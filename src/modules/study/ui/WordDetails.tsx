@@ -1,10 +1,16 @@
 "use client";
 
-import RichText from "@/components/RichText";
 import { Tab, TabPanels, TabPanel, TabList, TabGroup } from "@headlessui/react";
 import DOMPurify from "dompurify";
 import { useTranslations } from "use-intl";
-import { Fragment, memo, useMemo, useRef, useState } from "react";
+import React, {
+  Fragment,
+  memo,
+  Suspense,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { parseReferenceRange } from "@/verse-utils";
 import { VersesPreview } from "@/components/VersesPreview";
@@ -13,6 +19,8 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { useQuery } from "@tanstack/react-query";
 import { getLemmaResource } from "../actions/getLemmaResource";
 import { ClientOnly } from "@tanstack/react-router";
+
+const RichText = React.lazy(() => import("@/components/RichText"));
 
 export interface Word {
   id: string;
@@ -147,7 +155,9 @@ export default function WordDetails({
                 </div>
               </TabPanel>
               <TabPanel unmount={false}>
-                <RichText className="pb-2" content={word.footnote ?? ""} />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <RichText className="pb-2" content={word.footnote ?? ""} />
+                </Suspense>
               </TabPanel>
             </TabPanels>
           </TabGroup>

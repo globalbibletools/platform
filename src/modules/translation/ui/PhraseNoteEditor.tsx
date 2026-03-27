@@ -1,15 +1,24 @@
 "use client";
 
 import { Icon } from "@/components/Icon";
-import RichText from "@/components/RichText";
-import RichTextInput, { RichTextInputRef } from "@/components/RichTextInput";
+import type { RichTextInputRef } from "@/components/RichTextInput";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import throttle from "lodash/throttle";
 import { useTranslations } from "use-intl";
-import { type RefObject, useEffect, useMemo, useState } from "react";
+import React, {
+  type RefObject,
+  useEffect,
+  useMemo,
+  useState,
+  Suspense,
+} from "react";
 import { getPhraseNote } from "../actions/getPhraseNote";
 import { updateFootnoteAction } from "../actions/updateFootnote";
 import { updateTranslatorNoteAction } from "../actions/updateTranslatorNote";
+import LoadingSpinner from "@/components/LoadingSpinner";
+
+const RichText = React.lazy(() => import("@/components/RichText"));
+const RichTextInput = React.lazy(() => import("@/components/RichTextInput"));
 
 interface PhraseNoteEditorProps {
   phraseId: number;
@@ -112,19 +121,21 @@ export default function PhraseNoteEditor({
           })}
         </span>
       )}
-      {canEdit ?
-        <RichTextInput
-          ref={editorRef}
-          name={`${noteType}Content`}
-          value={draftNote}
-          onBlur={() => saveNote.flush()}
-          onChange={(nextContent) => {
-            setIsDirty(true);
-            setDraftNote(nextContent);
-            saveNote(nextContent);
-          }}
-        />
-      : <RichText content={draftNote} />}
+      <Suspense fallback={<LoadingSpinner />}>
+        {canEdit ?
+          <RichTextInput
+            ref={editorRef}
+            name={`${noteType}Content`}
+            value={draftNote}
+            onBlur={() => saveNote.flush()}
+            onChange={(nextContent) => {
+              setIsDirty(true);
+              setDraftNote(nextContent);
+              saveNote(nextContent);
+            }}
+          />
+        : <RichText content={draftNote} />}
+      </Suspense>
     </div>
   );
 }
