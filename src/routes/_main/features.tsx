@@ -4,6 +4,7 @@ import FeatureSwitch from "./-components/FeatureSwitch";
 import { withDocumentTitle } from "@/documentTitle";
 
 export const Route = createFileRoute("/_main/features")({
+  ssr: "data-only",
   head: () => withDocumentTitle("Features"),
   component: FeaturesRoute,
 });

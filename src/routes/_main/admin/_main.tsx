@@ -7,6 +7,7 @@ import { routerGuard } from "@/modules/access/routerGuard";
 import { Policy } from "@/modules/access";
 
 export const Route = createFileRoute("/_main/admin/_main")({
+  ssr: "data-only",
   beforeLoad: ({ context, location }) => {
     routerGuard({
       context: context.auth,

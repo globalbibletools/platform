@@ -17,6 +17,7 @@ import { withDocumentTitle } from "@/documentTitle";
 const policy = new Policy({ authenticated: true });
 
 export const Route = createFileRoute("/_main/profile")({
+  ssr: "data-only",
   beforeLoad: ({ context }) => {
     routerGuard({ context: context.auth, policy });
   },

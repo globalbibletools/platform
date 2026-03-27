@@ -5,6 +5,7 @@ import { routerGuard } from "@/modules/access/routerGuard";
 const policy = new Policy({ authenticated: true });
 
 export const Route = createFileRoute("/_main/translate")({
+  ssr: "data-only",
   beforeLoad: async ({ context, location }) => {
     routerGuard({ context: context.auth, policy });
 

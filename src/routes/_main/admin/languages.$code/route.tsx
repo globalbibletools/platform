@@ -21,6 +21,7 @@ const policy = new Policy({
 const requestSchema = z.object({ code: z.string() });
 
 export const Route = createFileRoute("/_main/admin/languages/$code")({
+  ssr: "data-only",
   beforeLoad: ({ location }) => {
     const pathParts = location.pathname.split("/");
     if (pathParts.length >= 5) return;
