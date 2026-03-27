@@ -17,20 +17,16 @@ const localeMessagesSchema = z.object({
 type Messages = typeof enMessages;
 type Namespace = NamespaceKeys<Messages, NestedKeyOf<Messages>>;
 
-export const localeMessagesMap: Record<string, Messages> = {
+const localeMessagesMap: Record<string, Messages> = {
   ar: arMessages,
   en: enMessages,
 } as const;
 const fallbackMessages = localeMessagesMap[defaultLocale.code];
 
-export function getLocaleMessagesByCode(localeCode: string) {
-  return localeMessagesMap[localeCode] ?? fallbackMessages;
-}
-
 export const fetchLocaleMessages = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => localeMessagesSchema.parse(input))
   .handler(({ data }) => {
-    return getLocaleMessagesByCode(data.localeCode);
+    return localeMessagesMap[data.localeCode] ?? fallbackMessages;
   });
 
 const localeCache: Record<string, Messages> = {};
