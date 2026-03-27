@@ -7,7 +7,7 @@
 
 @font-face {
   font-family: "SBL Hebrew";
-  src: url("./fonts/SBL_Hbrw.ttf") format("truetype");
+  src: url("./fonts/SBL_Hbrw.woff2") format("woff2");
   font-style: normal;
   font-weight: 400;
   font-display: swap;
@@ -17,7 +17,7 @@
 
 @font-face {
   font-family: "SBL Greek";
-  src: url("./fonts/SBL_grk.ttf") format("truetype");
+  src: url("./fonts/SBL_grk.woff2") format("woff2");
   font-style: normal;
   font-weight: 400;
   font-display: swap;
