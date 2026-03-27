@@ -1,8 +1,11 @@
 import { query } from "@/db";
 import { Icon } from "@/components/Icon";
 import { createServerFn } from "@tanstack/react-start";
-import ProgressChart from "./-components/ProgressChart";
 import { createFileRoute } from "@tanstack/react-router";
+import React, { Suspense } from "react";
+import LoadingSpinner from "@/components/LoadingSpinner";
+
+const ProgressChart = React.lazy(() => import("./-components/ProgressChart"));
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
@@ -318,7 +321,9 @@ export function LandingPage() {
               <h3 className="text-lg text-center font-bold mb-4">
                 Reader&apos;s Bible Translation
               </h3>
-              <ProgressChart languageStats={stats} />
+              <Suspense fallback={<LoadingSpinner />}>
+                <ProgressChart languageStats={stats} />
+              </Suspense>
             </div>
           </div>
         </section>
