@@ -44,3 +44,4 @@ diagram.txt
 localstack/data/
 
 .tanstack/
+.output/

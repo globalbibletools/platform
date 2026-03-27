@@ -5,6 +5,7 @@ import viteReact from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
+import { visualizer } from "rollup-plugin-visualizer";
 
 export default defineConfig({
   server: {
@@ -16,6 +17,44 @@ export default defineConfig({
       external: ["@google-cloud/translate"],
     },
   },
+  environments: {
+    client: {
+      build: {
+        rollupOptions: {
+          plugins: [
+            visualizer({
+              filename: ".output/stats/client.html",
+              gzipSize: true,
+            }),
+          ],
+        },
+      },
+    },
+    ssr: {
+      build: {
+        rollupOptions: {
+          plugins: [
+            visualizer({
+              filename: ".output/stats/ssr.html",
+              gzipSize: true,
+            }),
+          ],
+        },
+      },
+    },
+    nitro: {
+      build: {
+        rollupOptions: {
+          plugins: [
+            visualizer({
+              filename: ".output/stats/server.html",
+              gzipSize: true,
+            }),
+          ],
+        },
+      },
+    },
+  },
   plugins: [
     tailwindcss(),
     tsconfigPaths({ projectDiscovery: "lazy" }),
@@ -25,8 +64,18 @@ export default defineConfig({
         quoteStyle: "double",
       },
     }),
-    nitro(),
+    nitro({
+      compressPublicAssets: true,
+    }),
     viteReact(),
+    {
+      name: "show-config",
+      configResolved(config) {
+        console.log("Resolved Vite Config:", config);
+        // You might want to stringify for better readability
+        // console.log("Resolved Vite Config:", JSON.stringify(config, null, 2));
+      },
+    },
   ],
   test: {
     projects: [
