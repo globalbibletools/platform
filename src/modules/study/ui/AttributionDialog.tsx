@@ -3,17 +3,13 @@ import { Icon } from "@/components/Icon";
 import { useRef } from "react";
 import { useTranslations } from "use-intl";
 
+type LicenseCode = "cc_by_4_0" | "cc0_1_0";
 type AttributedResourceUse =
   | {
       type: "licensed" | "self";
-      licenseCode: string;
+      licenseCode: LicenseCode;
     }
   | "permission";
-
-interface AttributionLicense {
-  name: string;
-  link: string;
-}
 
 interface AttributedResource {
   name: string;
@@ -23,14 +19,59 @@ interface AttributedResource {
   plural?: true;
 }
 
+interface AttributionLicense {
+  name: string;
+  link: string;
+}
+
 export default function AttributionDialog({
-  resources,
+  isOT,
+  language,
 }: {
-  resources: AttributedResource[];
+  isOT: boolean;
+  language: {
+    code: string;
+    englishName: string;
+  };
 }) {
   const t = useTranslations("AttributionDialog");
 
   const dialogRef = useRef<HTMLDialogElement>(null);
+
+  const resources: Array<AttributedResource> = [];
+
+  if (!isOT) {
+    resources.push({
+      name: "Statistical Restoration Greek New Testament",
+      author: "Allan Bunning and the Center for New Testament Restoration",
+      link: "https://github.com/Center-for-New-Testament-Restoration/SR",
+      use: {
+        type: "licensed",
+        licenseCode: "cc_by_4_0",
+      },
+    });
+  }
+
+  if (language.code === "eng" && !isOT) {
+    resources.push({
+      name: "English Glosses",
+      author: "Allan Bunning and the Center for New Testament Restoration",
+      link: "https://github.com/Center-for-New-Testament-Restoration/SR",
+      plural: true,
+      use: "permission",
+    });
+  } else {
+    resources.push({
+      name: `${language.englishName} Glosses`,
+      author: "Global Bible Tools",
+      link: `https://github.com/globalbibletools/data/tree/main/${language.code}`,
+      plural: true,
+      use: {
+        type: "self",
+        licenseCode: "cc0_1_0",
+      },
+    });
+  }
 
   return (
     <>

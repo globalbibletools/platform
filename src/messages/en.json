@@ -85,6 +85,10 @@
       "cc_by_4_0": {
         "name": "Creative Commons Attribution 4.0 International License (CC BY 4.0)",
         "link": "https://creativecommons.org/licenses/by/4.0/"
+      },
+      "cc0_1_0": {
+        "name": "Creative Commons CC0 1.0 Universal (CC0 1.0)",
+        "link": "https://creativecommons.org/publicdomain/zero/1.0/"
       }
     }
   },

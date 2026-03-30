@@ -9,8 +9,7 @@ import { useReadingContext } from "./ReadingToolbar";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "use-intl";
 import VerseDetails from "./VerseDetails";
-import Button from "@/components/Button";
-import AttributionDialog from "./AttributionDialog";
+import AttributionDialog, { AttributedResource } from "./AttributionDialog";
 
 interface VerseWord {
   id: string;
@@ -33,6 +32,7 @@ interface Language {
   font: string;
   textDirection: string;
   code: string;
+  englishName: string;
 }
 
 export interface ReadingViewProps {
@@ -172,28 +172,7 @@ export default function ReadingView({
           </div>
           <hr className="mt-3 mb-1 text-gray-500" />
           <div>
-            <AttributionDialog
-              resources={[
-                {
-                  name: "Statistical Restoration Greek New Testament",
-                  author:
-                    "Allan Bunning and the Center for New Testament Restoration",
-                  link: "https://github.com/Center-for-New-Testament-Restoration/SR",
-                  use: {
-                    type: "licensed",
-                    licenseCode: "cc_by_4_0",
-                  },
-                },
-                {
-                  name: "English Glosses",
-                  author:
-                    "Allan Bunning and the Center for New Testament Restoration",
-                  link: "https://github.com/Center-for-New-Testament-Restoration/SR",
-                  plural: true,
-                  use: "permission",
-                },
-              ]}
-            />
+            <AttributionDialog isOT={isOT} language={language} />
           </div>
         </div>
         {showSidebar && (selectedVerseId || selectedWordId) && (
