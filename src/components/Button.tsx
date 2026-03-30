@@ -14,6 +14,7 @@ export interface LinkProps extends BaseLinkProps {
   destructive?: boolean;
   small?: boolean;
   ref?: Ref<HTMLAnchorElement>;
+  newTab?: boolean;
 }
 export interface ActionProps extends ComponentProps<"button"> {
   className?: string;
@@ -84,11 +85,32 @@ export default function Button({
   const formStatus = useFormStatus();
 
   if (isLinkProps(props)) {
+    const { newTab, ...restProps } = props;
     return (
       <Link
         className={`${buttonClasses(variant, destructive, small)} ${className}`}
-        {...props}
+        target={newTab ? "_blank" : props.target}
+        rel={newTab ? "noopener" : undefined}
+        {...restProps}
       />
+    );
+  } else if ("href" in props) {
+    const { newTab, children, ...restProps } = props;
+    if (typeof children === "function") {
+      throw new Error(
+        "Button component with href prop does not support function children",
+      );
+    }
+
+    return (
+      <a
+        className={`${buttonClasses(variant, destructive, small)} ${className}`}
+        target={newTab ? "_blank" : props.target}
+        rel={newTab ? "noopener" : undefined}
+        {...restProps}
+      >
+        {children}
+      </a>
     );
   } else if (isButtonProps(props)) {
     return (

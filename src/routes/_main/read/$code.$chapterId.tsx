@@ -71,6 +71,7 @@ function ReadingRoute() {
 interface CurrentLanguage {
   code: string;
   localName: string;
+  englishName: string;
   font: string;
   textDirection: string;
 }
@@ -82,7 +83,7 @@ async function fetchCurrentLanguage(
   const result = await query<CurrentLanguage>(
     `
         SELECT
-            code, local_name as "localName", font, text_direction AS "textDirection"
+            code, local_name as "localName", english_name as "englishName", font, text_direction AS "textDirection"
         FROM language AS l
         WHERE code = $1
         `,

@@ -74,6 +74,24 @@
     "speaker": "Speaker",
     "close": "Close"
   },
+  "AttributionDialog": {
+    "open": "Data Attributions",
+    "title": "Data Attributions",
+    "close": "Close",
+    "resource_permission": "<resourceLink></resourceLink> by {author} {resourceSize, plural, one {is} other {are}} used with permission.",
+    "resource_licensed": "<resourceLink></resourceLink> by {author} {resourceSize, plural, one {is} other {are}} used under <licenseLink></licenseLink>.",
+    "resource_self": "<resourceLink></resourceLink> by {author} {resourceSize, plural, one {is} other {are}} available under <licenseLink></licenseLink>.",
+    "licenses": {
+      "cc_by_4_0": {
+        "name": "Creative Commons Attribution 4.0 International License (CC BY 4.0)",
+        "link": "https://creativecommons.org/licenses/by/4.0/"
+      },
+      "cc0_1_0": {
+        "name": "Creative Commons CC0 1.0 Universal (CC0 1.0)",
+        "link": "https://creativecommons.org/publicdomain/zero/1.0/"
+      }
+    }
+  },
   "ConfirmModal": {
     "title": "Are you sure?",
     "no": "No",

@@ -9,6 +9,7 @@ import { useReadingContext } from "./ReadingToolbar";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "use-intl";
 import VerseDetails from "./VerseDetails";
+import AttributionDialog from "./AttributionDialog";
 
 interface VerseWord {
   id: string;
@@ -31,6 +32,7 @@ interface Language {
   font: string;
   textDirection: string;
   code: string;
+  englishName: string;
 }
 
 export interface ReadingViewProps {
@@ -80,20 +82,20 @@ export default function ReadingView({
   return (
     <>
       <div className="flex flex-col grow lg:justify-center w-full min-h-0 lg:flex-row">
-        <div
-          className={`
-              max-h-full min-h-0 overflow-auto pt-3 pb-24 px-4 lg:px-8
-              font-mixed max-w-[960px] leading-loose
+        <div className="max-h-full min-h-0 pt-3 pb-24 px-4 lg:px-8 max-w-[960px]">
+          <div
+            className={`
+              font-mixed leading-loose
               ${textSizeMap[textSize]}
               ${isOT ? "text-right" : "text-left"}
           `}
-          dir={isOT ? "rtl" : "ltr"}
-        >
-          {verses.flatMap((verse) => {
-            const words = verse.words.map((word, i) => (
-              <Fragment key={word.id}>
-                <span
-                  className={`
+            dir={isOT ? "rtl" : "ltr"}
+          >
+            {verses.flatMap((verse) => {
+              const words = verse.words.map((word, i) => (
+                <Fragment key={word.id}>
+                  <span
+                    className={`
                     cursor-pointer
                     ${i === verse.words.length - 1 ? "me-1" : ""}
                     ${
@@ -106,55 +108,55 @@ export default function ReadingView({
                       : ""
                     }
                   `}
-                  onDoubleClick={() => {
-                    setShowSidebar(true);
-                    setSelectedWordId(word.id);
-                    setSelectedVerseId(verse.id);
-                  }}
-                  onClick={(e) => {
-                    if (showSidebar) {
+                    onDoubleClick={() => {
+                      setShowSidebar(true);
                       setSelectedWordId(word.id);
                       setSelectedVerseId(verse.id);
-                    }
+                    }}
+                    onClick={(e) => {
+                      if (showSidebar) {
+                        setSelectedWordId(word.id);
+                        setSelectedVerseId(verse.id);
+                      }
 
-                    popover.onWordClick(e, word);
+                      popover.onWordClick(e, word);
+                    }}
+                  >
+                    {word.text}
+                  </span>
+                  {!word.text.endsWith("־") && " "}
+                </Fragment>
+              ));
+              words.unshift(
+                <span
+                  key={`verse-${verse.number}`}
+                  className={
+                    "font-sans font-bold text-xs cursor-pointer text-blue-800 dark:text-green-400"
+                  }
+                  // Allows audio player to start playing at this verse when clicked
+                  data-verse-number={verse.number}
+                  onClick={() => {
+                    if (showSidebar) {
+                      setSelectedWordId(null);
+                      setSelectedVerseId(verse.id);
+                    }
                   }}
-                >
-                  {word.text}
-                </span>
-                {!word.text.endsWith("־") && " "}
-              </Fragment>
-            ));
-            words.unshift(
-              <span
-                key={`verse-${verse.number}`}
-                className={
-                  "font-sans font-bold text-xs cursor-pointer text-blue-800 dark:text-green-400"
-                }
-                // Allows audio player to start playing at this verse when clicked
-                data-verse-number={verse.number}
-                onClick={() => {
-                  if (showSidebar) {
+                  onDoubleClick={() => {
+                    setShowSidebar(true);
                     setSelectedWordId(null);
                     setSelectedVerseId(verse.id);
-                  }
-                }}
-                onDoubleClick={() => {
-                  setShowSidebar(true);
-                  setSelectedWordId(null);
-                  setSelectedVerseId(verse.id);
-                }}
-              >
-                {verse.number}&nbsp;
-              </span>,
-            );
+                  }}
+                >
+                  {verse.number}&nbsp;
+                </span>,
+              );
 
-            const isVerseSelected = selectedVerseId === verse.id;
+              const isVerseSelected = selectedVerseId === verse.id;
 
-            return (
-              <span
-                key={verse.id}
-                className={`
+              return (
+                <span
+                  key={verse.id}
+                  className={`
                   rounded
                   ${
                     audioVerse === verse.id || isVerseSelected ?
@@ -162,11 +164,16 @@ export default function ReadingView({
                     : ""
                   }
                 `}
-              >
-                {words}
-              </span>
-            );
-          })}
+                >
+                  {words}
+                </span>
+              );
+            })}
+          </div>
+          <hr className="mt-3 mb-1 text-gray-500 dark:text-gray-700" />
+          <div>
+            <AttributionDialog isOT={isOT} language={language} />
+          </div>
         </div>
         {showSidebar && (selectedVerseId || selectedWordId) && (
           <div

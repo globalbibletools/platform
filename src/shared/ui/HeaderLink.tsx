@@ -232,7 +232,7 @@ export function HeaderMenuItem({
   if (!context) throw new Error("HeaderMenuItem must be inside HeaderMenu");
 
   if ("to" in props) {
-    const newTab = props.newTab ?? false;
+    const { newTab, ...restProps } = props;
     return (
       <Link
         {...props}
@@ -243,6 +243,7 @@ export function HeaderMenuItem({
         target={newTab ? "_blank" : props.target}
         rel={newTab ? "noopener" : undefined}
         onClick={() => context.setIsOpen(false)}
+        {...restProps}
       >
         {children}
       </Link>
