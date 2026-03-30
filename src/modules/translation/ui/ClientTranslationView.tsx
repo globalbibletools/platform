@@ -136,6 +136,7 @@ export default function TranslateView({
             return (
               <TranslateWord
                 key={word.id}
+                verseId={verseId}
                 word={word}
                 wordSelected={selectedWords.includes(word.id)}
                 phrase={phrase}

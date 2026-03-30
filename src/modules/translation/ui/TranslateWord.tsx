@@ -15,7 +15,7 @@ import {
 } from "react";
 import { updateGlossAction } from "../actions/updateGloss";
 import { fontMap } from "@/fonts";
-import { useParams, useRouter } from "@tanstack/react-router";
+import { useParams } from "@tanstack/react-router";
 import { GlossApprovalMethodRaw } from "../types";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import { MachineGlossStrategy } from "@/modules/languages/model";
@@ -23,6 +23,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 
 export interface TranslateWordProps {
+  verseId: string;
   word: {
     id: string;
     text: string;
@@ -55,6 +56,7 @@ export interface TranslateWordProps {
 }
 
 export default function TranslateWord({
+  verseId,
   word,
   phrase,
   isHebrew,
@@ -122,7 +124,6 @@ export default function TranslateWord({
     setSaving(false);
   }, [phrase.id]);
   const autosaveQueuedRef = useRef(false);
-  const router = useRouter();
   async function saveGloss(state: "APPROVED" | "UNAPPROVED") {
     setSaving(true);
     autosaveQueuedRef.current = false;
@@ -154,12 +155,13 @@ export default function TranslateWord({
     // TODO: handle errors in the result
     await updateGlossFn({ data });
 
-    // TODO: move state into useQuery so it can be refreshed independently
-    router.invalidate();
-
     await queryClient.invalidateQueries({
       queryKey: ["book-progress", parseInt(word.id.slice(0, 2)), code],
     });
+    await queryClient.invalidateQueries({
+      queryKey: ["verse-translation-data", code, verseId],
+    });
+
     setSaving(false);
   }
 

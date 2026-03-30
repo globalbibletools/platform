@@ -6,12 +6,21 @@ import { incrementVerseId, parseVerseId } from "@/verse-utils";
 import { withDocumentTitle } from "@/documentTitle";
 import { getTranslator } from "@/shared/i18n/messages";
 import { useEffect } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
+
+function verseTranslationQuery(code: string, verseId: string) {
+  return {
+    queryKey: ["verse-translation-data", code, verseId],
+    queryFn: () => getTranslationVerseData({ data: { code, verseId } }),
+  };
+}
 
 export const Route = createFileRoute("/_main/translate/$code/$verseId")({
-  loader: ({ params }) =>
-    getTranslationVerseData({
-      data: { code: params.code, verseId: params.verseId },
-    }),
+  loader: async ({ context, params }) => {
+    await context.queryClient.ensureQueryData(
+      verseTranslationQuery(params.code, params.verseId),
+    );
+  },
   head: async ({ params }) => {
     const t = await getTranslator("TranslationToolbar");
 
@@ -36,7 +45,8 @@ function TranslationRoutePending() {
 
 function TranslationRoute() {
   const { code, verseId } = Route.useParams();
-  const data = Route.useLoaderData();
+
+  const { data } = useSuspenseQuery(verseTranslationQuery(code, verseId));
 
   if (!data.language) {
     throw notFound();
