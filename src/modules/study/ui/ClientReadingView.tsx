@@ -170,7 +170,7 @@ export default function ReadingView({
               );
             })}
           </div>
-          <hr className="mt-3 mb-1 text-gray-500" />
+          <hr className="mt-3 mb-1 text-gray-500 dark:text-gray-700" />
           <div>
             <AttributionDialog isOT={isOT} language={language} />
           </div>
