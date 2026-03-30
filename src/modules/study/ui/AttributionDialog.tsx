@@ -114,8 +114,8 @@ export default function AttributionDialog({
                     resourceSize,
                     author: resource.author,
                     resourceLink: () => (
-                      <Button variant="link" href={resource.link}>
-                        {resource.name}
+                      <Button variant="link" href={resource.link} newTab>
+                        {resource.name} <Icon icon="external-link" size="xs" />
                       </Button>
                     ),
                   });
@@ -128,13 +128,13 @@ export default function AttributionDialog({
                     resourceSize,
                     author: resource.author,
                     resourceLink: () => (
-                      <Button variant="link" href={resource.link}>
-                        {resource.name}
+                      <Button variant="link" href={resource.link} newTab>
+                        {resource.name} <Icon icon="external-link" size="xs" />
                       </Button>
                     ),
                     licenseLink: () => (
-                      <Button variant="link" href={license.link}>
-                        {license.name}
+                      <Button variant="link" href={license.link} newTab>
+                        {license.name} <Icon icon="external-link" size="xs" />
                       </Button>
                     ),
                   });
@@ -147,13 +147,13 @@ export default function AttributionDialog({
                     resourceSize,
                     author: resource.author,
                     resourceLink: () => (
-                      <Button variant="link" href={resource.link}>
-                        {resource.name}
+                      <Button variant="link" href={resource.link} newTab>
+                        {resource.name} <Icon icon="external-link" size="xs" />
                       </Button>
                     ),
                     licenseLink: () => (
-                      <Button variant="link" href={license.link}>
-                        {license.name}
+                      <Button variant="link" href={license.link} newTab>
+                        {license.name} <Icon icon="external-link" size="xs" />
                       </Button>
                     ),
                   });
