@@ -81,7 +81,7 @@ describe("AttributionDialog", () => {
               "text": "Creative Commons Attribution 4.0 International License (CC BY 4.0)",
             },
           ],
-          "text": "Statistical Restoration Greek New Testament by Allan Bunning and the Center for New Testament Restoration is used under Creative Commons Attribution 4.0 International License (CC BY 4.0).",
+          "text": "Statistical Restoration Greek New Testament by Allan Bunning and the Center for New Testament Restoration is used under Creative Commons Attribution 4.0 International License (CC BY 4.0) .",
         },
         {
           "links": [
@@ -116,7 +116,7 @@ describe("AttributionDialog", () => {
               "text": "Creative Commons Attribution 4.0 International License (CC BY 4.0)",
             },
           ],
-          "text": "Statistical Restoration Greek New Testament by Allan Bunning and the Center for New Testament Restoration is used under Creative Commons Attribution 4.0 International License (CC BY 4.0).",
+          "text": "Statistical Restoration Greek New Testament by Allan Bunning and the Center for New Testament Restoration is used under Creative Commons Attribution 4.0 International License (CC BY 4.0) .",
         },
         {
           "links": [
@@ -129,7 +129,7 @@ describe("AttributionDialog", () => {
               "text": "Creative Commons CC0 1.0 Universal (CC0 1.0)",
             },
           ],
-          "text": "French Glosses by Global Bible Tools are available under Creative Commons CC0 1.0 Universal (CC0 1.0).",
+          "text": "French Glosses by Global Bible Tools are available under Creative Commons CC0 1.0 Universal (CC0 1.0) .",
         },
       ]
     `);
@@ -155,7 +155,7 @@ describe("AttributionDialog", () => {
               "text": "Creative Commons CC0 1.0 Universal (CC0 1.0)",
             },
           ],
-          "text": "English Glosses by Global Bible Tools are available under Creative Commons CC0 1.0 Universal (CC0 1.0).",
+          "text": "English Glosses by Global Bible Tools are available under Creative Commons CC0 1.0 Universal (CC0 1.0) .",
         },
       ]
     `);
