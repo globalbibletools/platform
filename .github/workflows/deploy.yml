@@ -51,8 +51,6 @@ jobs:
           provenance: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          secrets: |
-            "database-url=${{ secrets.DATABASE_URL }}"
   deploy-job-worker:
     needs: test
     runs-on: ubuntu-latest
