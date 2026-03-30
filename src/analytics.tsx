@@ -1,32 +1,21 @@
 import { load, trackPageview } from "fathom-client";
 import { useEffect } from "react";
-import { useLocation } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 
 export interface AnalyticsProps {
   id?: string;
 }
 
 export function AnalyticsProvider({ id }: AnalyticsProps) {
-  if (!id) return;
-
-  return <PageviewTracking id={id ?? ""} />;
-}
-
-function PageviewTracking({ id }: { id: string }) {
-  const { pathname, searchStr } = useLocation({
-    select: ({ pathname, searchStr }) => ({ pathname, searchStr }),
-  });
-
-  useEffect(() => load(id, { auto: false }), [id]);
+  const router = useRouter();
 
   useEffect(() => {
-    if (!pathname) return;
+    if (!id) return;
 
-    trackPageview({
-      url: pathname + searchStr,
-      referrer: document.referrer,
-    });
-  }, [pathname, searchStr]);
+    load(id, { auto: false });
+    trackPageview();
+    router.subscribe("onResolved", () => trackPageview());
+  }, [id, router]);
 
   return null;
 }
