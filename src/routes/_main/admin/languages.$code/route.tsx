@@ -2,6 +2,7 @@ import { Icon } from "@/components/Icon";
 import SidebarLink from "@/components/SidebarLink";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
+import { SystemRoleRaw } from "@/modules/users/types";
 import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
 import {
   createFileRoute,
@@ -59,6 +60,9 @@ function AdminLanguageLayoutRoute() {
   const t = useTranslations("LanguageLayout");
   const { code } = Route.useParams();
   const { language } = Route.useLoaderData();
+  const { auth } = Route.useRouteContext();
+
+  const isAdmin = auth.systemRoles.includes(SystemRoleRaw.Admin);
 
   return (
     <div className="grow flex items-stretch">
@@ -72,47 +76,59 @@ function AdminLanguageLayoutRoute() {
           <h2 className="font-bold text-lg">{language.englishName}</h2>
         </div>
         <ul>
-          <li>
-            <SidebarLink
-              to="/admin/languages/$code/dashboard"
-              params={{ code }}
-            >
-              <Icon icon="chart-line" className="w-4 me-2" />
-              Dashboard
-            </SidebarLink>
-          </li>
+          {isAdmin && (
+            <li>
+              <SidebarLink
+                to="/admin/languages/$code/dashboard"
+                params={{ code }}
+              >
+                <Icon icon="chart-line" className="w-4 me-2" />
+                Dashboard
+              </SidebarLink>
+            </li>
+          )}
           <li>
             <SidebarLink to="/admin/languages/$code/settings" params={{ code }}>
               <Icon icon="sliders" className="w-4 me-2" />
               {t("links.settings")}
             </SidebarLink>
           </li>
-          <li>
-            <SidebarLink to="/admin/languages/$code/users" params={{ code }}>
-              <Icon icon="user" className="w-4 me-2" />
-              {t("links.users")}
-            </SidebarLink>
-          </li>
-          <li>
-            <SidebarLink to="/admin/languages/$code/import" params={{ code }}>
-              <Icon icon="file-import" className="w-4 me-2" />
-              {t("links.import")}
-            </SidebarLink>
-          </li>
-          <FeatureFlagged
-            feature="ff-interlinear-pdf-export"
-            enabledChildren={
+          {isAdmin && (
+            <>
               <li>
                 <SidebarLink
-                  to="/admin/languages/$code/exports"
+                  to="/admin/languages/$code/users"
                   params={{ code }}
                 >
-                  <Icon icon="file-arrow-down" className="w-4 me-2" />
-                  {t("links.exports")}
+                  <Icon icon="user" className="w-4 me-2" />
+                  {t("links.users")}
                 </SidebarLink>
               </li>
-            }
-          />
+              <li>
+                <SidebarLink
+                  to="/admin/languages/$code/import"
+                  params={{ code }}
+                >
+                  <Icon icon="file-import" className="w-4 me-2" />
+                  {t("links.import")}
+                </SidebarLink>
+              </li>
+              <FeatureFlagged
+                feature="ff-interlinear-pdf-export"
+                enabledChildren={
+                  <li>
+                    <SidebarLink
+                      to="/admin/languages/$code/exports"
+                      params={{ code }}
+                    >
+                      <Icon icon="file-arrow-down" className="w-4 me-2" />
+                      {t("links.exports")}
+                    </SidebarLink>
+                  </li>
+                }
+              />
+            </>
+          )}
         </ul>
       </div>
       <div className="grow relative">
