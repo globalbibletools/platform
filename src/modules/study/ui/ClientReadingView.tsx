@@ -9,7 +9,7 @@ import { useReadingContext } from "./ReadingToolbar";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "use-intl";
 import VerseDetails from "./VerseDetails";
-import AttributionDialog, { AttributedResource } from "./AttributionDialog";
+import AttributionDialog from "./AttributionDialog";
 
 interface VerseWord {
   id: string;
