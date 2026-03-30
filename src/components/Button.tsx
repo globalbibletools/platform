@@ -90,6 +90,13 @@ export default function Button({
         {...props}
       />
     );
+  } else if ("href" in props) {
+    return (
+      <a
+        className={`${buttonClasses(variant, destructive, small)} ${className}`}
+        {...props}
+      />
+    );
   } else if (isButtonProps(props)) {
     return (
       <button

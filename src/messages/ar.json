@@ -74,6 +74,20 @@
     "speaker": "المتحدث",
     "close": "إغلاق"
   },
+  "AttributionDialog": {
+    "open": "نِسَب البيانات",
+    "title": "نِسَب البيانات",
+    "close": "إغلاق",
+    "resource_permission": "<resourceLink></resourceLink> من إعداد {author} {resourceSize, plural, one {يُستخدَم} other {تُستخدَم}} بإذن.",
+    "resource_licensed": "<resourceLink></resourceLink> من إعداد {author} {resourceSize, plural, one {يُستخدَم} other {تُستخدَم}} بموجب <licenseLink></licenseLink>.",
+    "resource_self": "<resourceLink></resourceLink> من إعداد {author} {resourceSize, plural, one {متاح} other {متاحة}} بموجب <licenseLink></licenseLink>.",
+    "licenses": {
+      "cc_by_4_0": {
+        "name": "نَسْبُ الـمُصنَّف 4.0 دولي (CC BY 4.0)",
+        "link": "https://creativecommons.org/licenses/by/4.0/deed.ar"
+      }
+    }
+  },
   "ConfirmModal": {
     "title": "هل أنت متأكد؟",
     "no": "لا",
