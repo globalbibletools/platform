@@ -1,17 +1,13 @@
 # AGENTS.md — Global Bible Tools Platform
 
-Developer and agentic-coding reference for the Next.js 15 monolith at this repository root.
-
----
-
 ## Project Overview
 
-**Global Bible Tools** is a Next.js 15 (App Router) full-stack application for collaborative Bible translation. It uses:
+**Global Bible Tools** is a Tanstack Start full-stack application for collaborative Bible translation. It uses:
 
 - **React 19**, **TypeScript 5** (strict mode)
 - **PostgreSQL** via **Kysely** (type-safe query builder) and `pg`
 - **Tailwind CSS 4**, **Headless UI**, **Font Awesome** icons
-- **next-intl** for i18n (English + Arabic)
+- **use-intl** for i18n (English + Arabic)
 - **Zod** for schema validation
 - **Vitest** for testing
 - **Pino** for structured logging
@@ -23,7 +19,7 @@ Developer and agentic-coding reference for the Next.js 15 monolith at this repos
 ### Lint, Format, and Type-Check
 
 ```bash
-docker compose exec server npm run lint              # ESLint via next lint
+docker compose exec server npm run lint              # ESLint
 docker compose exec server npm run format            # Prettier --write on all files
 docker compose exec server npm run check-types       # tsc --noEmit (type-check only, no emit)
 ```
@@ -71,12 +67,12 @@ src/modules/<module>/
   types.ts        # Shared enums and types within the module
 ```
 
-**Data flow:** `UI / Server Component` → `Action` → `Use Case` → `Repository / Domain Model`
+**Data flow:** `UI Component` → `Server Fn` → `Use Case` → `Repository / Domain Model`
 
 - Business logic lives in **use cases**.
 - DB mapping lives in **repositories**.
 - Domain events are emitted by **model classes**.
-- Server actions catch errors and call Next.js primitives (`notFound()`, `redirect()`).
+- Server functions catch errors and call tanstack start primitives (`notFound()`, `redirect()`).
 
 Shared cross-cutting code lives in `src/shared/` (errors, feature-flags, i18n, jobs, ulid).
 
@@ -116,7 +112,7 @@ Path aliases: `@/*` → `src/*`, `@/tests/*` → `tests/*`.
 | Interfaces                  | `PascalCase`                                               | `UpdateGlossUseCaseRequest`             |
 | React components            | `PascalCase` (default export)                              | `TranslateWord`                         |
 | Use-case functions          | `camelCase` + `UseCase` suffix                             | `updateGlossUseCase`                    |
-| Server action functions     | `camelCase` + `Action` suffix                              | `updateGlossAction`                     |
+| Server functions            | `camelCase`                                                | `updateGloss`                           |
 | DB table interfaces         | `PascalCase` + `Table` suffix                              | `GlossTable`                            |
 | Test factory helpers        | `camelCase` + `Factory` suffix                             | `phraseFactory`                         |
 | General variables/functions | `camelCase`                                                | `phraseRepository`                      |
@@ -144,16 +140,7 @@ Path aliases: `@/*` → `src/*`, `@/tests/*` → `tests/*`.
   }
   ```
 - **In server actions:** catch `NotFoundError` → call `notFound()`; re-throw unknown errors.
-- **Form validation:** use Zod's `.safeParse()`. On failure, log and return early — do not throw.
-  ```ts
-  const parsed = requestSchema.safeParse(parseForm(formData));
-  if (!parsed.success) {
-    logger.error("request parse error");
-    return;
-  }
-  ```
-- **Authorization:** use the `Policy` class; call `notFound()` when unauthorized (security by obscurity — never reveal resource existence to unauthorized users).
-- Use cases throw typed errors; actions are responsible for mapping them to Next.js responses.
+- **Authorization:** use the `createPolicyMiddleware` to authorize a server function and `routerGuard` for frontend routes
 
 ---
 
@@ -169,15 +156,15 @@ Path aliases: `@/*` → `src/*`, `@/tests/*` → `tests/*`.
 
 ### Test Types
 
-| File suffix    | Type        | Description                                                    |
-| -------------- | ----------- | -------------------------------------------------------------- |
-| `*.unit.ts(x)` | Unit        | Pure functions and domain models — no DB, no external services |
-| `*.test.ts(x)` | Integration | Server actions, repositories, use cases — real PostgreSQL      |
+| File suffix           | Type        | Description                                                         |
+| --------------------- | ----------- | ------------------------------------------------------------------- |
+| `*.unit.ts(x)`        | Unit        | Pure functions and domain models — no DB, no external services      |
+| `*.client.unit.ts(x)` | Unit        | Frontend react tests — no DB, no server calls, no external services |
+| `*.test.ts(x)`        | Integration | Server actions, repositories, use cases — real PostgreSQL           |
 
 ### Integration Test Structure
 
 ```ts
-import "@/tests/vitest/mocks/nextjs";           // Mock Next.js APIs
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
@@ -214,8 +201,7 @@ describe("feature", () => {
 
 - `tests/vitest/dbSetup.ts` — global setup; runs once to create the PostgreSQL template DB.
 - `tests/vitest/dbUtils.ts` — `initializeDatabase()` — provides per-test DB isolation using a fresh copy of the template.
-- `tests/vitest/mocks/nextjs.ts` — mocks `next-intl/server`, `next/cache`, and `next/headers`.
-- `tests/vitest/matchers.ts` — custom matchers: `toBeUlid()`, `toBeNow()`, `toBeNextjsNotFound()`, `toBeNextjsRedirect(path)`, `toBeDaysIntoFuture(n)`, `toBeToken()`.
+- `tests/vitest/matchers.ts` — custom matchers: `toBeUlid()`, `toBeNow()`, `toBeTanstackNotFound()`, `toBeDaysIntoFuture(n)`, `toBeToken()`.
 - `tests/vitest/login.ts` — `logIn(userId)` helper to set a session cookie.
 - `mockReset: true` is set globally — all `vi.fn()` mocks reset automatically between tests.
 
@@ -229,11 +215,7 @@ describe("feature", () => {
 
 ## Additional Notes
 
-- **Next.js directives:** place `"use client"` or `"use server"` at the very top of the file (before imports).
-- **`React.cache`** is used for server-side request deduplication (e.g., `fetchSession`).
-- **SWR** is used for client-side cache invalidation via `useSWRConfig().mutate`, not for primary data fetching.
-- **`forwardRef`** is used on reusable UI components; always set `displayName` on the resulting component.
-- **i18n:** use `useTranslations(namespace)` in client components and `getTranslations(namespace)` in server components and actions.
+- **i18n:** use `useTranslations(namespace)` in client components
 - **Logging:** import from `@/logging` (Pino-based); this import is auto-mocked in all test files.
 - **ULIDs** are used as primary keys — generate with the `ulid()` helper from `@/shared/ulid`.
 - **Background jobs** live in `src/shared/jobs/` and module `jobs/` directories; the worker entrypoint is `src/shared/jobs/bin/worker.ts`.
