@@ -5,23 +5,29 @@ import Button from "@/components/Button";
 import Checkbox from "@/components/Checkbox";
 import { Icon } from "@/components/Icon";
 import { useTextWidth } from "@/utils/text-width";
-import { useTranslations } from "next-intl";
-import { MouseEvent, useLayoutEffect, useRef, useState } from "react";
+import { useTranslations } from "use-intl";
+import {
+  MouseEvent,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { updateGlossAction } from "../actions/updateGloss";
 import { fontMap } from "@/fonts";
-import { isRichTextEmpty } from "@/components/RichTextInput";
-import { useSWRConfig } from "swr";
-import { useParams } from "next/navigation";
+import { useParams } from "@tanstack/react-router";
 import { GlossApprovalMethodRaw } from "../types";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import { MachineGlossStrategy } from "@/modules/languages/model";
+import { useServerFn } from "@tanstack/react-start";
+import { useQueryClient } from "@tanstack/react-query";
 
 export interface TranslateWordProps {
   verseId: string;
   word: {
     id: string;
     text: string;
-    referenceGloss?: string;
+    referenceGloss: string | null;
     suggestions: string[];
     machineSuggestion?: string;
   };
@@ -29,12 +35,8 @@ export interface TranslateWordProps {
     id: number;
     wordIds: string[];
     gloss?: { text: string; state: string };
-    translatorNote?: {
-      authorName: string;
-      timestamp: string;
-      content: string;
-    };
-    footnote?: { authorName: string; timestamp: string; content: string };
+    hasTranslatorNote: boolean;
+    hasFootnote: boolean;
   };
   backtranslation?: string;
   language: {
@@ -54,9 +56,9 @@ export interface TranslateWordProps {
 }
 
 export default function TranslateWord({
+  verseId,
   word,
   phrase,
-  verseId,
   isHebrew,
   language,
   phraseFocused,
@@ -68,23 +70,22 @@ export default function TranslateWord({
   onOpenNotes,
 }: TranslateWordProps) {
   const t = useTranslations("TranslateWord");
-  const { mutate } = useSWRConfig();
+  const queryClient = useQueryClient();
+  const updateGlossFn = useServerFn(updateGlossAction);
 
-  const root = useRef<HTMLLIElement>(null);
-  const ancientWord = useRef<HTMLSpanElement>(null);
-  const refGloss = useRef<HTMLSpanElement>(null);
-  const targetGloss = useRef<HTMLSpanElement>(null);
-  const backtranslatedGloss = useRef<HTMLSpanElement>(null);
-  const llmGloss = useRef<HTMLSpanElement>(null);
-  const input = useRef<HTMLInputElement>(null);
+  const rootRef = useRef<HTMLLIElement>(null);
+  const ancientWordRef = useRef<HTMLSpanElement>(null);
+  const refGlossRef = useRef<HTMLSpanElement>(null);
+  const targetGlossRef = useRef<HTMLSpanElement>(null);
+  const backtranslatedGlossRef = useRef<HTMLSpanElement>(null);
+  const llmGlossRef = useRef<HTMLSpanElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const editable = language.isMember;
   const canViewTranslatorNotes = language.isMember;
 
   const hasNote =
-    !isRichTextEmpty(phrase.footnote?.content ?? "") ||
-    (!isRichTextEmpty(phrase.translatorNote?.content ?? "") &&
-      canViewTranslatorNotes);
+    phrase.hasFootnote || (phrase.hasTranslatorNote && canViewTranslatorNotes);
   const dir = "ltr";
 
   const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
@@ -117,47 +118,50 @@ export default function TranslateWord({
     }
   }
 
-  const { locale, code } = useParams<{ locale: string; code: string }>();
+  const { code } = useParams({ from: "/_main/translate/$code/$verseId" });
   const [saving, setSaving] = useState(false);
-  const autosaveQueued = useRef(false);
+  useEffect(() => {
+    setSaving(false);
+  }, [phrase.id]);
+  const autosaveQueuedRef = useRef(false);
   async function saveGloss(state: "APPROVED" | "UNAPPROVED") {
     setSaving(true);
-    autosaveQueued.current = false;
+    autosaveQueuedRef.current = false;
 
-    const formData = new FormData();
-    formData.set("verseId", verseId);
-    formData.set("languageCode", language.code);
-    formData.set("phraseId", phrase.id.toString());
-    formData.set("state", state);
+    const updatedGloss = inputRef.current?.value ?? "";
 
-    const updatedGloss = input.current?.value ?? "";
+    const data = {
+      languageCode: language.code,
+      phraseId: phrase.id,
+      state: state,
+      gloss: updatedGloss,
+      method: GlossApprovalMethodRaw.UserInput as GlossApprovalMethodRaw,
+    };
 
-    formData.set("gloss", updatedGloss);
-
-    formData.set("method", GlossApprovalMethodRaw.UserInput);
     if (language.machineGlossStrategy === MachineGlossStrategy.Google) {
       if (word.suggestions[0] && updatedGloss === word.suggestions[0]) {
-        formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
+        data.method = GlossApprovalMethodRaw.MachineSuggestion;
       } else if (machineSuggestion && updatedGloss === machineSuggestion) {
-        formData.set("method", GlossApprovalMethodRaw.GoogleSuggestion);
+        data.method = GlossApprovalMethodRaw.GoogleSuggestion;
       }
     } else if (language.machineGlossStrategy === MachineGlossStrategy.LLM) {
       if (machineSuggestion && updatedGloss === machineSuggestion) {
-        formData.set("method", GlossApprovalMethodRaw.LLMSuggestion);
+        data.method = GlossApprovalMethodRaw.LLMSuggestion;
       } else if (word.suggestions[0] && updatedGloss === word.suggestions[0]) {
-        formData.set("method", GlossApprovalMethodRaw.MachineSuggestion);
+        data.method = GlossApprovalMethodRaw.MachineSuggestion;
       }
     }
 
     // TODO: handle errors in the result
-    await updateGlossAction(formData);
+    await updateGlossFn({ data });
 
-    mutate({
-      type: "book-progress",
-      bookId: parseInt(word.id.slice(0, 2)),
-      locale,
-      code,
+    await queryClient.invalidateQueries({
+      queryKey: ["book-progress", parseInt(word.id.slice(0, 2)), code],
     });
+    await queryClient.invalidateQueries({
+      queryKey: ["verse-translation-data", code, verseId],
+    });
+
     setSaving(false);
   }
 
@@ -179,15 +183,15 @@ export default function TranslateWord({
       Math.max(
         // The first 24 pixels accommodates the checkbox and link icon for phrases.
         // The extra 36 pixels accommodates the sticky note icon
-        24 + (hasNote ? 36 : 0) + (ancientWord.current?.clientWidth ?? 0),
+        24 + (hasNote ? 36 : 0) + (ancientWordRef.current?.clientWidth ?? 0),
         // The extra 24 pixels accommodates the google icon
         // The extra 48 pixels accommodates the approval button
         glossWidth + (editable ? (hasMachineSuggestion ? 24 : 0) + 44 : 0),
 
-        refGloss.current?.clientWidth ?? 0,
-        targetGloss.current?.clientWidth ?? 0,
-        backtranslatedGloss.current?.clientWidth ?? 0,
-        llmGloss.current?.clientWidth ?? 0,
+        refGlossRef.current?.clientWidth ?? 0,
+        targetGlossRef.current?.clientWidth ?? 0,
+        backtranslatedGlossRef.current?.clientWidth ?? 0,
+        llmGlossRef.current?.clientWidth ?? 0,
       ),
     );
   }, [hasNote, glossWidth, hasMachineSuggestion, isMultiWord, editable]);
@@ -195,7 +199,7 @@ export default function TranslateWord({
   return (
     <li
       key={word.id}
-      ref={root}
+      ref={rootRef}
       dir={isHebrew ? "rtl" : "ltr"}
       className={`
           group/word relative p-2 rounded
@@ -222,7 +226,7 @@ export default function TranslateWord({
       >
         <span
           className="inline-block"
-          ref={ancientWord}
+          ref={ancientWordRef}
           tabIndex={-1}
           onClick={() => {
             onFocus?.();
@@ -271,7 +275,7 @@ export default function TranslateWord({
         className={`h-8 ${isHebrew ? "text-right pr-3" : "text-left pl-3"}`}
         dir="ltr"
       >
-        <span className="inline-block" ref={refGloss}>
+        <span className="inline-block" ref={refGlossRef}>
           {word.referenceGloss}
         </span>
       </div>
@@ -280,7 +284,7 @@ export default function TranslateWord({
           className={`h-8 ${isHebrew ? "text-right pr-3" : "text-left pl-3"}`}
           dir={language.textDirection}
         >
-          <span className="inline-block" ref={targetGloss}>
+          <span className="inline-block" ref={targetGlossRef}>
             {phrase.gloss?.text}
           </span>
         </div>
@@ -307,7 +311,7 @@ export default function TranslateWord({
                     onClick={(e: MouseEvent) => {
                       e.stopPropagation();
                       saveGloss("APPROVED");
-                      input.current?.focus();
+                      inputRef.current?.focus();
                     }}
                   >
                     <Icon icon="check" />
@@ -322,7 +326,7 @@ export default function TranslateWord({
                     onClick={(e: MouseEvent) => {
                       e.stopPropagation();
                       saveGloss("UNAPPROVED");
-                      input.current?.focus();
+                      inputRef.current?.focus();
                     }}
                   >
                     <Icon icon="arrow-rotate-left" />
@@ -356,7 +360,7 @@ export default function TranslateWord({
                               language.machineGlossStrategy ===
                               MachineGlossStrategy.Google
                             ) ?
-                              ["fab", "google"]
+                              "google"
                             : "robot"
                           }
                         />
@@ -369,10 +373,10 @@ export default function TranslateWord({
                   aria-describedby={`word-help-${word.id}`}
                   aria-labelledby={`word-${word.id}`}
                   onChange={(value) => {
-                    autosaveQueued.current = true;
+                    autosaveQueuedRef.current = true;
                     setTimeout(() => {
                       if (
-                        autosaveQueued.current &&
+                        autosaveQueuedRef.current &&
                         value !== phrase.gloss?.text
                       ) {
                         saveGloss("UNAPPROVED");
@@ -382,7 +386,7 @@ export default function TranslateWord({
                   onSelect={() => {
                     saveGloss("APPROVED");
 
-                    const nextRoot = root.current?.nextElementSibling;
+                    const nextRoot = rootRef.current?.nextElementSibling;
                     const next =
                       nextRoot?.querySelector("input:not([type])") ??
                       nextRoot?.querySelector("button");
@@ -396,7 +400,7 @@ export default function TranslateWord({
                       case "Enter": {
                         e.preventDefault();
                         if (e.shiftKey) {
-                          const prev = root.current?.previousElementSibling;
+                          const prev = rootRef.current?.previousElementSibling;
                           prev?.querySelector("input")?.focus();
                         } else if (hasShortcutModifier(e)) {
                           if (!isMultiWord) {
@@ -407,7 +411,7 @@ export default function TranslateWord({
                             saveGloss("APPROVED");
                           });
 
-                          const nextRoot = root.current?.nextElementSibling;
+                          const nextRoot = rootRef.current?.nextElementSibling;
                           const next =
                             nextRoot?.querySelector("input:not([type])") ??
                             nextRoot?.querySelector("button");
@@ -432,7 +436,7 @@ export default function TranslateWord({
                       [...word.suggestions, machineSuggestion]
                     : word.suggestions
                   }
-                  ref={input}
+                  ref={inputRef}
                 />
                 {hasMachineSuggestion && (
                   <Icon
@@ -442,7 +446,7 @@ export default function TranslateWord({
                         language.machineGlossStrategy ===
                         MachineGlossStrategy.Google
                       ) ?
-                        ["fab", "google"]
+                        "google"
                       : "robot"
                     }
                   />
@@ -487,7 +491,7 @@ export default function TranslateWord({
           }`}
           dir="ltr"
         >
-          <span className="inline-block" ref={backtranslatedGloss}>
+          <span className="inline-block" ref={backtranslatedGlossRef}>
             {backtranslation}
           </span>
         </div>

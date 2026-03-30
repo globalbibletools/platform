@@ -4,8 +4,8 @@ import Button from "@/components/Button";
 import ComboboxInput from "@/components/ComboboxInput";
 import { Icon } from "@/components/Icon";
 import TextInput from "@/components/TextInput";
-import { useTranslations } from "next-intl";
-import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "use-intl";
+import { useNavigate, useParams, useRouter } from "@tanstack/react-router";
 import {
   useCallback,
   useEffect,
@@ -14,7 +14,6 @@ import {
   type JSX,
 } from "react";
 import { approveAll } from "../actions/approveAll";
-import { changeInterlinearLocation } from "../actions/changeInterlinearLocation";
 import { linkWords } from "../actions/linkWords";
 import { redirectToUnapproved } from "../actions/redirectToUnapproved";
 import { sanityCheck } from "../actions/sanityCheck";
@@ -24,14 +23,16 @@ import {
   bookLastVerseId,
   decrementVerseId,
   incrementVerseId,
+  parseReference,
 } from "@/verse-utils";
 import { useTranslationClientState } from "./TranslationClientState";
 import TranslationProgressBar from "./TranslationProgressBar";
-import { useSWRConfig } from "swr";
 import { useFlash } from "@/flash";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import AudioDialog from "@/modules/study/ui/AudioDialog";
 import { useElementDimensions } from "@/utils/measure-element";
+import { useServerFn } from "@tanstack/react-start";
+import { useQueryClient } from "@tanstack/react-query";
 
 export interface TranslationToolbarProps {
   languages: { englishName: string; localName: string; code: string }[];
@@ -45,14 +46,16 @@ export default function TranslationToolbar({
   userRoles,
 }: TranslationToolbarProps) {
   const t = useTranslations("TranslationToolbar");
-  const { verseId, code, locale } = useParams<{
-    locale: string;
-    code: string;
-    verseId: string;
-  }>();
-  const router = useRouter();
-  const { mutate } = useSWRConfig();
+  const { verseId = "", code = "" } = useParams({ strict: false });
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const flash = useFlash();
+
+  const redirectToUnapprovedFn = useServerFn(redirectToUnapproved);
+  const approveAllFn = useServerFn(approveAll);
+  const linkWordsFn = useServerFn(linkWords);
+  const unlinkPhraseFn = useServerFn(unlinkPhrase);
+  const sanityCheckFn = useServerFn(sanityCheck);
 
   const isTranslator = currentLanguage?.isMember;
   const isPlatformAdmin = userRoles.includes("ADMIN");
@@ -77,92 +80,115 @@ export default function TranslationToolbar({
   }, [verseId, t]);
 
   const navigateToNextUnapprovedVerse = useCallback(async () => {
-    const form = new FormData();
-    form.set("verseId", verseId);
-    form.set("code", code);
-    const error = await redirectToUnapproved(form);
-    if (error) {
-      flash.success(error);
+    try {
+      const { nextVerseId } = await redirectToUnapprovedFn({
+        data: { verseId, code },
+      });
+      await navigate({
+        to: "/translate/$code/$verseId",
+        params: { code, verseId: nextVerseId },
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        flash.success(error.message);
+      }
     }
-  }, [verseId, code, flash]);
+  }, [verseId, code, flash, navigate, redirectToUnapprovedFn]);
+
+  const router = useRouter();
 
   const approveAllGlosses = useCallback(async () => {
+    const phrases: Array<{ id: number; gloss: string; method?: string }> = [];
     const inputs = document.querySelectorAll("[data-phrase]");
-    const form = new FormData();
-    form.set("code", code);
-    form.set("verseId", verseId);
-    let idx = 0;
     inputs.forEach((input) => {
-      const phraseId = (input as HTMLInputElement).dataset.phrase;
+      const phraseId = parseInt(
+        (input as HTMLInputElement).dataset.phrase ?? "",
+      );
       const gloss = (input as HTMLInputElement).value;
       const method = (input as HTMLInputElement).dataset.method;
 
       if (phraseId && gloss) {
-        form.set(`phrases[${idx}][id]`, phraseId);
-        form.set(`phrases[${idx}][gloss]`, gloss);
-        if (method) {
-          form.set(`phrases[${idx}][method]`, method);
-        }
-        idx++;
+        const phrase = {
+          id: phraseId,
+          gloss,
+          method,
+        };
+        phrases.push(phrase);
       }
     });
 
-    await approveAll(form);
-    await mutate({
-      type: "book-progress",
-      bookId: parseInt(verseId.slice(0, 2)),
-      locale,
+    const data = {
       code,
-    });
-  }, [code, mutate, locale, verseId]);
+      phrases,
+    };
+
+    await approveAllFn({ data });
+    await router.invalidate();
+  }, [approveAllFn, code, router]);
 
   const onLinkWords = useCallback(async () => {
-    const form = new FormData();
-    form.set("code", code);
-    form.set("verseId", verseId);
-    selectedWords.forEach((wordId, i) => {
-      form.set(`wordIds[${i}]`, wordId);
-    });
-    clearSelectedWords();
-    await linkWords(form);
-    await mutate({
-      type: "book-progress",
-      bookId: parseInt(verseId.slice(0, 2)),
-      locale,
+    const data = {
       code,
+      wordIds: selectedWords,
+    };
+    clearSelectedWords();
+
+    await linkWordsFn({ data });
+
+    await queryClient.invalidateQueries({
+      queryKey: ["book-progress", parseInt(verseId.slice(0, 2)), code],
     });
-  }, [code, selectedWords, clearSelectedWords, locale, mutate, verseId]);
+    router.invalidate();
+  }, [
+    code,
+    selectedWords,
+    clearSelectedWords,
+    linkWordsFn,
+    queryClient,
+    verseId,
+    router,
+  ]);
 
   const onUnlinkWords = useCallback(async () => {
-    if (focusedPhrase) {
-      const form = new FormData();
-      form.set("code", code);
-      form.set("phraseId", focusedPhrase.id.toString());
-      form.set("verseId", verseId);
-      unlinkPhrase(form);
-      await mutate({
-        type: "book-progress",
-        bookId: parseInt(verseId.slice(0, 2)),
-        locale,
-        code,
+    if (!focusedPhrase) return;
+
+    const data = {
+      code,
+      phraseId: focusedPhrase.id,
+    };
+    await unlinkPhraseFn({ data });
+
+    await queryClient.invalidateQueries({
+      queryKey: ["book-progress", parseInt(verseId.slice(0, 2)), code],
+    });
+    router.invalidate();
+  }, [code, focusedPhrase, unlinkPhraseFn, verseId, queryClient, router]);
+
+  const navigateToVerse = useCallback(
+    (nextVerseId: string) => {
+      return navigate({
+        to: "/translate/$code/$verseId",
+        params: { code, verseId: nextVerseId },
       });
-    }
-  }, [code, focusedPhrase, verseId, locale, mutate]);
+    },
+    [code, navigate],
+  );
 
   const [runningSanityCheck, setRunningSanityCheck] = useState(false);
   const onSanityCheck = useCallback(async () => {
-    const form = new FormData();
-    form.set("code", code);
-    form.set("verseId", verseId);
+    const data = {
+      code,
+      verseId,
+    };
     setRunningSanityCheck(true);
-    const result = await sanityCheck({ state: "idle" }, form);
+    const result = await sanityCheckFn({ data });
     if (result.state === "error" && result.error) {
       flash.error(result.error);
     } else if (result.state === "success" && result.data) {
       setBacktranslations(result.data);
     }
     setRunningSanityCheck(false);
-  }, [code, verseId, flash, setBacktranslations]);
+  }, [code, verseId, flash, sanityCheckFn, setBacktranslations]);
 
   useEffect(() => {
     if (!verseId) return;
@@ -182,19 +208,19 @@ export default function TranslationToolbar({
           case "u":
             return isTranslator && onUnlinkWords();
           case "ArrowUp":
-            return router.push(`./${decrementVerseId(verseId)}`);
+            return navigateToVerse(decrementVerseId(verseId));
           case "ArrowDown":
-            return router.push(`./${incrementVerseId(verseId)}`);
+            return navigateToVerse(incrementVerseId(verseId));
         }
       } else if (hasShortcutModifier(e) && e.shiftKey && !e.altKey) {
         switch (e.key) {
           case "Home":
-            return router.push(
-              `./${bookFirstVerseId(parseInt(verseId.slice(0, 2)))}`,
+            return navigateToVerse(
+              bookFirstVerseId(parseInt(verseId.slice(0, 2))),
             );
           case "End":
-            return router.push(
-              `./${bookLastVerseId(parseInt(verseId.slice(0, 2)))}`,
+            return navigateToVerse(
+              bookLastVerseId(parseInt(verseId.slice(0, 2))),
             );
         }
       }
@@ -208,7 +234,7 @@ export default function TranslationToolbar({
     approveAllGlosses,
     onLinkWords,
     onUnlinkWords,
-    router,
+    navigateToVerse,
     verseId,
   ]);
 
@@ -295,7 +321,7 @@ export default function TranslationToolbar({
         ref={toolbarRef}
         className="
           sticky top-(--heading-height) z-10
-          flex items-center flex-wrap gap-y-2 gap-x-10 items-center justify-center
+          flex flex-wrap gap-y-2 gap-x-10 items-center justify-center
           bg-white dark:bg-gray-900
           shadow-md dark:shadow-none dark:border-b dark:border-gray-700
           px-6 md:px-8 pt-4 pb-5
@@ -303,8 +329,23 @@ export default function TranslationToolbar({
       >
         <div className="shrink-0 flex items-center">
           <form
-            action={changeInterlinearLocation}
             className={isTranslator ? "me-2" : ""}
+            onSubmit={async (e) => {
+              e.preventDefault();
+
+              const referenceElement =
+                e.currentTarget.elements.namedItem("reference");
+              if (!(referenceElement instanceof HTMLInputElement)) return;
+              const reference = referenceElement.value;
+
+              const verseId = parseReference(reference, t.raw("book_names"));
+              if (!verseId) return;
+
+              await navigate({
+                to: "/translate/$code/$verseId",
+                params: { code, verseId },
+              });
+            }}
           >
             <input type="hidden" value={code} name="language" />
             <div className="relative">
@@ -320,7 +361,12 @@ export default function TranslationToolbar({
               <Button
                 className="absolute end-8 top-1 w-7 h-7!"
                 variant="tertiary"
-                href={verseId ? `./${decrementVerseId(verseId)}` : "#"}
+                to={verseId ? "/translate/$code/$verseId" : "."}
+                params={
+                  verseId ?
+                    { code, verseId: decrementVerseId(verseId) }
+                  : undefined
+                }
               >
                 <Icon icon="arrow-up" />
                 <span className="sr-only">{t("previous_verse")}</span>
@@ -328,8 +374,12 @@ export default function TranslationToolbar({
               <Button
                 className="absolute end-1 top-1 w-7 h-7!"
                 variant="tertiary"
-                href={verseId ? `./${incrementVerseId(verseId)}` : "#"}
-                prefetch
+                to={verseId ? "/translate/$code/$verseId" : "."}
+                params={
+                  verseId ?
+                    { code, verseId: incrementVerseId(verseId) }
+                  : undefined
+                }
               >
                 <Icon icon="arrow-down" />
                 <span className="sr-only">{t("next_verse")}</span>
@@ -358,7 +408,12 @@ export default function TranslationToolbar({
               value: l.code,
             }))}
             value={code}
-            onChange={(code) => router.push(`../${code}/${verseId}`)}
+            onChange={(nextCode) =>
+              navigate({
+                to: "/translate/$code/$verseId",
+                params: { code: nextCode, verseId: verseId || "01001001" },
+              })
+            }
             className="w-40"
             autoComplete="off"
           />
@@ -366,7 +421,8 @@ export default function TranslationToolbar({
             <Button
               className="ms-2"
               variant="tertiary"
-              href={`/admin/languages/${code}/settings`}
+              to="/admin/languages/$code/settings"
+              params={{ code }}
             >
               <Icon icon="sliders" className="me-1" />
               {t("manage_language")}

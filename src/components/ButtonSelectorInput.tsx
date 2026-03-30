@@ -1,6 +1,6 @@
 "use client";
 
-import { ComponentProps, ReactNode, createContext, useContext } from "react";
+import { ComponentProps, ReactNode, createContext, use } from "react";
 import { useFormContext } from "./Form";
 
 interface ButtonSelectorContextValue {
@@ -43,7 +43,7 @@ export function ButtonSelectorInput({
     (formContext.validation?.[name ?? ""]?.length ?? 0) > 0;
 
   return (
-    <ButtonSelectorContext.Provider
+    <ButtonSelectorContext
       value={{
         name,
         defaultValue,
@@ -68,7 +68,7 @@ export function ButtonSelectorInput({
       >
         {children}
       </fieldset>
-    </ButtonSelectorContext.Provider>
+    </ButtonSelectorContext>
   );
 }
 
@@ -81,7 +81,7 @@ export function ButtonSelectorOption({
   value,
   children,
 }: ButtonSelectorOptionProps) {
-  const selectorContext = useContext(ButtonSelectorContext);
+  const selectorContext = use(ButtonSelectorContext);
   if (!selectorContext)
     throw new Error("ButtonSelectorOption must be within a ButtonSelector");
 

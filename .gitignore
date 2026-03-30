@@ -43,3 +43,5 @@ diagram.txt
 # localstack
 localstack/data/
 
+.tanstack/
+.output/

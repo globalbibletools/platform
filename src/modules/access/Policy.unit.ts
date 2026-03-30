@@ -1,93 +1,112 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import Policy from "./Policy";
-import fakeClaimsRepository from "./fakeClaimsRepository";
+import { SystemRoleRaw } from "../users";
 
-vi.mock("./claimsRepository", () => import("./fakeClaimsRepository"));
-
-test("forbids access when policy has no roles", async () => {
+describe("empty policy policy", () => {
   const policy = new Policy({});
 
-  const adminActor = {
-    id: "admin-actor",
-    systemRoles: [Policy.SystemRole.Admin],
-  };
-  beforeEach(() => {
-    fakeClaimsRepository.initActor({
-      actor: adminActor,
-    });
+  test("forbids access when unauthenticated", () => {
+    const result = policy.authorize({});
+    expect(result).toEqual(false);
   });
 
-  const result = policy.authorize({ actorId: adminActor.id });
-  await expect(result).resolves.toEqual(false);
+  test("forbids access when authenticated", () => {
+    const result = policy.authorize({
+      actor: { id: "actor", systemRoles: [] },
+    });
+    expect(result).toEqual(false);
+  });
+
+  test("forbids access to admins", () => {
+    const result = policy.authorize({
+      actor: { id: "actor", systemRoles: [Policy.SystemRole.Admin] },
+    });
+    expect(result).toEqual(false);
+  });
 });
 
-test("forbids access when actor is not found", async () => {
-  const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
+describe("unauthenticated policy", () => {
+  const policy = new Policy({ authenticated: true });
 
-  const result = policy.authorize({ actorId: "random" });
-  await expect(result).resolves.toEqual(false);
+  test("forbids access when not logged in", () => {
+    const result = policy.authorize({});
+    expect(result).toEqual(false);
+  });
+
+  test("grants access when logged in", () => {
+    const result = policy.authorize({ actor: { id: "asdf", systemRoles: [] } });
+    expect(result).toEqual(true);
+  });
+});
+
+describe("unauthenticated policy", () => {
+  const policy = new Policy({ authenticated: false });
+
+  test("grants access when not logged in", () => {
+    const result = policy.authorize({});
+    expect(result).toEqual(true);
+  });
+
+  test("forbids access when logged in", () => {
+    const result = policy.authorize({ actor: { id: "asdf", systemRoles: [] } });
+    expect(result).toEqual(false);
+  });
 });
 
 describe("system role policy", () => {
   const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
-  test("grants access when actor has the system roles on policy", async () => {
-    const actor = {
-      id: "actor",
-      systemRoles: [Policy.SystemRole.Admin],
-    };
-    fakeClaimsRepository.initActor({
-      actor: actor,
+  test("grants access when actor has the system roles on policy", () => {
+    const result = policy.authorize({
+      actor: { id: "actor", systemRoles: [Policy.SystemRole.Admin] },
     });
-
-    await expect(policy.authorize({ actorId: actor.id })).resolves.toEqual(
-      true,
-    );
+    expect(result).toEqual(true);
   });
 
-  test("denies access when actor does not have the system roles on policy", async () => {
-    const actor = {
-      id: "actor",
-      systemRoles: [],
-    };
-    fakeClaimsRepository.initActor({
-      actor: actor,
+  test("denies access when actor does not have the system roles on policy", () => {
+    const result = policy.authorize({
+      actor: { id: "actor", systemRoles: [] },
     });
+    expect(result).toEqual(false);
+  });
 
-    await expect(policy.authorize({ actorId: actor.id })).resolves.toEqual(
-      false,
-    );
+  test("denies access when not authenticated", () => {
+    const result = policy.authorize({});
+    expect(result).toEqual(false);
   });
 });
 
 describe("language member policy", () => {
   const policy = new Policy({ languageMember: true });
 
-  const actor = {
-    id: "actor",
-    systemRoles: [],
-  };
-  beforeEach(() => {
-    fakeClaimsRepository.initActor({
-      actor: actor,
-      languages: [
-        {
-          code: "spa",
-          isMember: true,
-        },
-      ],
+  test("grants access when actor is a member of the language", () => {
+    const result = policy.authorize({
+      actor: { id: "actor", systemRoles: [] },
+      language: { code: "spa", isMember: true },
     });
+    expect(result).toEqual(true);
   });
 
-  test("grants access when actor is a member of the language", async () => {
-    await expect(
-      policy.authorize({ actorId: actor.id, languageCode: "spa" }),
-    ).resolves.toEqual(true);
+  test("denies access when actor is not a member of the language", () => {
+    const result = policy.authorize({
+      actor: { id: "actor", systemRoles: [] },
+      language: { code: "eng", isMember: false },
+    });
+    expect(result).toEqual(false);
   });
 
-  test("denies access when actor is not a member of the language", async () => {
-    await expect(
-      policy.authorize({ actorId: actor.id, languageCode: "eng" }),
-    ).resolves.toEqual(false);
+  test("denies access for admins", () => {
+    const result = policy.authorize({
+      actor: { id: "actor", systemRoles: [SystemRoleRaw.Admin] },
+      language: { code: "eng", isMember: false },
+    });
+    expect(result).toEqual(false);
+  });
+
+  test("denies access if not logged in", () => {
+    const result = policy.authorize({
+      language: { code: "eng", isMember: false },
+    });
+    expect(result).toEqual(false);
   });
 });

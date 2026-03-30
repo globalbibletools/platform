@@ -4,13 +4,13 @@ import {
   createContext,
   ReactNode,
   useCallback,
-  useContext,
+  use,
   useMemo,
   useState,
 } from "react";
 import { Transition } from "@headlessui/react";
 import { Icon } from "@/components/Icon";
-import { useTranslations } from "next-intl";
+import { useTranslations } from "use-intl";
 
 // Flash messages have several states that help make their lifecycle easier to manage:
 // unshown - This message has been added, but not yet displayed.
@@ -104,7 +104,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
   const t = useTranslations("Flash");
 
   return (
-    <FlashContext.Provider value={contextValue}>
+    <FlashContext value={contextValue}>
       {children}
       <div className="fixed top-0 w-full flex justify-center items-start z-50 pointer-events-none">
         {messages.slice(0, 1).map((message) => {
@@ -155,7 +155,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
                     icon={
                       message.level === "success" ?
                         "check"
-                      : "exclamation-triangle"
+                      : "triangle-exclamation"
                     }
                     size="lg"
                     className=" text-white"
@@ -173,14 +173,14 @@ export function FlashProvider({ children }: FlashProviderProps) {
                 className="w-10 h-10 rounded-sm focus:outline-2 focus:outline-blue-600"
                 onClick={() => remove(message.id)}
               >
-                <Icon icon="close" />
+                <Icon icon="xmark" />
                 <span className="sr-only">{t("close")}</span>
               </button>
             </Transition>
           );
         })}
       </div>
-    </FlashContext.Provider>
+    </FlashContext>
   );
 }
 
@@ -192,7 +192,7 @@ export function FlashProvider({ children }: FlashProviderProps) {
  * while error messages must be dismissed by the user.
  */
 export function useFlash() {
-  const context = useContext(FlashContext);
+  const context = use(FlashContext);
   if (!context) {
     throw new Error("useFlash should be used within FlashContext component.");
   }

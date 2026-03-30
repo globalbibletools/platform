@@ -46,16 +46,16 @@ export default function ProgressChart({
   books,
   contributors,
 }: ProgressChartProps) {
-  const [isDarkMode, setDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   useEffect(() => {
     const mediaMatch = window.matchMedia("(prefers-color-scheme: dark)");
     mediaMatch.addEventListener("change", (event) => {
-      setDarkMode(event.matches);
+      setIsDarkMode(event.matches);
     });
-    setDarkMode(mediaMatch.matches);
+    setIsDarkMode(mediaMatch.matches);
   }, []);
 
-  const [stackByContributor, setStacked] = useState(false);
+  const [stackByContributor, setStackByContributor] = useState(false);
   const [filterType, setFilterType] = useState<string>("none");
   const [filter, setFilter] = useState<string[] | null>(null);
   useEffect(() => {
@@ -68,10 +68,10 @@ export default function ProgressChart({
     }
   }, [filterType]);
 
-  const chartRoot = useRef<HTMLCanvasElement>(null);
+  const chartRootRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    if (chartRoot.current && data) {
-      const chart = new Chart(chartRoot.current, {
+    if (chartRootRef.current && data) {
+      const chart = new Chart(chartRootRef.current, {
         type: "line",
         data: {
           labels: data.map((week) =>
@@ -273,12 +273,12 @@ export default function ProgressChart({
         <Checkbox
           className="mt-[30px]"
           checked={stackByContributor}
-          onChange={(e) => setStacked(e.target.checked)}
+          onChange={(e) => setStackByContributor(e.target.checked)}
         >
           Stack by Contributor
         </Checkbox>
       </div>
-      <canvas ref={chartRoot} />
+      <canvas ref={chartRootRef} />
     </div>
   );
 }

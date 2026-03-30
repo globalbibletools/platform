@@ -1,8 +1,7 @@
-import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
 import { linkWords } from "./linkWords";
-import logIn from "@/tests/vitest/login";
 import { phraseFactory } from "../test-utils/phraseFactory";
 import {
   findPhraseById,
@@ -17,27 +16,30 @@ import { GlossStateRaw } from "../types";
 
 initializeDatabase();
 
-function buildFormData(data: {
-  verseId: string;
-  code: string;
-  wordIds: string[];
-}): FormData {
-  const formData = new FormData();
-  formData.set("verseId", data.verseId);
-  formData.set("code", data.code);
-  for (let i = 0; i < data.wordIds.length; i++) {
-    formData.append(`wordIds[${i}]`, data.wordIds[i]);
-  }
-  return formData;
-}
-
 test("returns and does nothing if the request shape doesn't match the schema", async () => {
-  const { members } = await languageFactory.build();
-  await logIn(members[0].user_id);
+  const { session } = await userFactory.build({ session: true });
 
-  const formData = new FormData();
-  const response = await linkWords(formData);
-  expect(response).toBeUndefined();
+  await expect(
+    runServerFn(linkWords, {
+      data: {},
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
+});
+
+test("returns unauthorized error if user is not a language member", async () => {
+  const { session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build();
+
+  await expect(
+    runServerFn(linkWords, {
+      data: {
+        code: language.code,
+        wordIds: ["word-1", "word-2"],
+      },
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
 });
 
 test("returns not found if user is not logged in", async () => {
@@ -45,66 +47,45 @@ test("returns not found if user is not logged in", async () => {
   const words = await bibleFactory.words({ count: 2 });
 
   await expect(
-    linkWords(
-      buildFormData({
-        verseId: "1",
+    runServerFn(linkWords, {
+      data: {
         code: language.code,
         wordIds: words.map((w) => w.id),
-      }),
-    ),
-  ).toBeNextjsNotFound();
-});
-
-test("returns not found if user is not a language member", async () => {
-  const { language } = await languageFactory.build();
-  const { user: nonMember } = await userFactory.build();
-  await logIn(nonMember.id);
-
-  const words = await bibleFactory.words({ count: 2 });
-
-  await expect(
-    linkWords(
-      buildFormData({
-        verseId: "1",
-        code: language.code,
-        wordIds: words.map((w) => w.id),
-      }),
-    ),
-  ).toBeNextjsNotFound();
+      },
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
 });
 
 test("returns not found if the language code does not exist", async () => {
-  const { user } = await userFactory.build();
-  await logIn(user.id);
+  const { session } = await userFactory.build({ session: true });
 
   const words = await bibleFactory.words({ count: 2 });
 
   await expect(
-    linkWords(
-      buildFormData({
-        verseId: "1",
+    runServerFn(linkWords, {
+      data: {
         code: "zzz",
         wordIds: words.map((w) => w.id),
-      }),
-    ),
-  ).toBeNextjsNotFound();
+      },
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
 });
 
 test("creates a new phrase linking words that had no existing phrase", async () => {
-  const { language, members } = await languageFactory.build();
-  const userId = members[0].user_id;
-  await logIn(userId);
+  const { user, session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build({ members: [user.id] });
 
   const words = await bibleFactory.words({ count: 2 });
 
-  const result = await linkWords(
-    buildFormData({
-      verseId: "1",
+  const { response } = await runServerFn(linkWords, {
+    data: {
       code: language.code,
       wordIds: words.map((w) => w.id),
-    }),
-  );
-  expect(result).toBeUndefined();
+    },
+    sessionId: session!.id,
+  });
+  expect(response.status).toEqual(204);
 
   const phrases = await findPhrasesForLanguage(language.id);
   expect(phrases).toEqual([
@@ -112,7 +93,7 @@ test("creates a new phrase linking words that had no existing phrase", async () 
       id: phrases[0].id,
       language_id: language.id,
       created_at: expect.toBeNow(),
-      created_by: userId,
+      created_by: user.id,
       deleted_at: null,
       deleted_by: null,
     },
@@ -126,9 +107,8 @@ test("creates a new phrase linking words that had no existing phrase", async () 
 });
 
 test("soft-deletes existing single-word phrases and creates one linked phrase", async () => {
-  const { language, members } = await languageFactory.build();
-  const userId = members[0].user_id;
-  await logIn(userId);
+  const { user, session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build({ members: [user.id] });
 
   const { phrases: existingPhrases, words } = await phraseFactory.buildMany({
     scope: 2,
@@ -137,23 +117,24 @@ test("soft-deletes existing single-word phrases and creates one linked phrase", 
 
   const wordIds = words.map((w) => w.id);
 
-  const result = await linkWords(
-    buildFormData({ verseId: "1", code: language.code, wordIds }),
-  );
-  expect(result).toBeUndefined();
+  const { response } = await runServerFn(linkWords, {
+    data: { code: language.code, wordIds },
+    sessionId: session!.id,
+  });
+  expect(response.status).toEqual(204);
 
   const phrases = await findPhrasesForLanguage(language.id);
   expect(phrases).toEqual([
     ...existingPhrases.map(({ phrase }) => ({
       ...phrase,
       deleted_at: expect.toBeNow(),
-      deleted_by: userId,
+      deleted_by: user.id,
     })),
     {
       id: expect.any(Number),
       language_id: language.id,
       created_at: expect.toBeNow(),
-      created_by: userId,
+      created_by: user.id,
       deleted_at: null,
       deleted_by: null,
     },
@@ -178,9 +159,8 @@ test("soft-deletes existing single-word phrases and creates one linked phrase", 
 });
 
 test("soft-deletes an existing multi-word phrase when one of its words is re-linked", async () => {
-  const { language, members } = await languageFactory.build();
-  const userId = members[0].user_id;
-  await logIn(userId);
+  const { user, session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build({ members: [user.id] });
 
   const words = await bibleFactory.words({ count: 3 });
   const [wordA, wordB, wordC] = words;
@@ -190,27 +170,27 @@ test("soft-deletes an existing multi-word phrase when one of its words is re-lin
     wordIds: [wordA.id, wordB.id],
   });
 
-  const result = await linkWords(
-    buildFormData({
-      verseId: "1",
+  const { response } = await runServerFn(linkWords, {
+    data: {
       code: language.code,
       wordIds: [wordA.id, wordC.id],
-    }),
-  );
-  expect(result).toBeUndefined();
+    },
+    sessionId: session!.id,
+  });
+  expect(response.status).toEqual(204);
 
   const phrases = await findPhrasesForLanguage(language.id);
   expect(phrases).toEqual([
     {
       ...existingPhrase,
       deleted_at: expect.toBeNow(),
-      deleted_by: userId,
+      deleted_by: user.id,
     },
     {
       id: expect.any(Number),
       language_id: language.id,
       created_at: expect.toBeNow(),
-      created_by: userId,
+      created_by: user.id,
       deleted_at: null,
       deleted_by: null,
     },
@@ -229,9 +209,8 @@ test("soft-deletes an existing multi-word phrase when one of its words is re-lin
 });
 
 test("does not affect phrases from other languages", async () => {
-  const { language, members } = await languageFactory.build();
-  const userId = members[0].user_id;
-  await logIn(userId);
+  const { user, session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build({ members: [user.id] });
 
   const { language: otherLanguage } = await languageFactory.build();
   const words = await bibleFactory.words({ count: 2 });
@@ -241,23 +220,22 @@ test("does not affect phrases from other languages", async () => {
     wordIds: [words[0].id],
   });
 
-  const result = await linkWords(
-    buildFormData({
-      verseId: "1",
+  const { response } = await runServerFn(linkWords, {
+    data: {
       code: language.code,
       wordIds: words.map((w) => w.id),
-    }),
-  );
-  expect(result).toBeUndefined();
+    },
+    sessionId: session!.id,
+  });
+  expect(response.status).toEqual(204);
 
   const untouched = await findPhraseById(otherLanguagePhrase.id);
   expect(untouched!.deleted_at).toBeNull();
 });
 
 test("emits a gloss event when soft-deleting a phrase with an approved gloss", async () => {
-  const { language, members } = await languageFactory.build();
-  const userId = members[0].user_id;
-  await logIn(userId);
+  const { user, session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build({ members: [user.id] });
 
   const twoWords = await bibleFactory.words({ count: 2 });
   const existingWord = twoWords[0];
@@ -269,14 +247,14 @@ test("emits a gloss event when soft-deleting a phrase with an approved gloss", a
     gloss: "approved",
   });
 
-  const result = await linkWords(
-    buildFormData({
-      verseId: "1",
+  const { response } = await runServerFn(linkWords, {
+    data: {
       code: language.code,
       wordIds: [existingWord.id, newWord.id],
-    }),
-  );
-  expect(result).toBeUndefined();
+    },
+    sessionId: session!.id,
+  });
+  expect(response.status).toEqual(204);
 
   const phraseRow = await findPhraseById(existingPhrase.id);
   expect(phraseRow!.deleted_at).toEqual(expect.toBeNow());
@@ -287,7 +265,7 @@ test("emits a gloss event when soft-deleting a phrase with an approved gloss", a
       id: expect.toBeUlid(),
       phrase_id: existingPhrase.id,
       language_id: language.id,
-      user_id: userId,
+      user_id: user.id,
       word_id: existingWord.id,
       timestamp: expect.toBeNow(),
       prev_gloss: gloss!.gloss ?? "",

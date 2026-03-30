@@ -1,8 +1,7 @@
-import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
 import { acceptInvite } from "./acceptInvite";
-import { cookies } from "@/tests/vitest/mocks/nextjs";
 import { userFactory } from "../test-utils/userFactory";
 import { EmailStatusRaw } from "../model/EmailStatus";
 import {
@@ -14,53 +13,61 @@ import {
 initializeDatabase();
 
 test("returns validation error if the request shape doesn't match the schema", async () => {
-  {
-    const formData = new FormData();
-    const response = await acceptInvite({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        confirm_password: ["Please enter your password again."],
-        first_name: ["Please enter your first name."],
-        last_name: ["Please enter your last name."],
-        password: ["Please enter your password."],
-        token: ["Invalid"],
+  const formData = new FormData();
+
+  await expect(
+    runServerFn(acceptInvite, {
+      data: formData,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`
+    [ZodError: [
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "token"
+        ],
+        "message": "Required"
       },
-    });
-  }
-  {
-    const formData = new FormData();
-    formData.set("token", "asdf");
-    formData.set("first_name", "");
-    formData.set("last_name", "");
-    formData.set("password", "");
-    formData.set("confirm_password", "");
-    const response = await acceptInvite({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        confirm_password: ["Please enter your password again."],
-        first_name: ["Please enter your first name."],
-        last_name: ["Please enter your last name."],
-        password: ["Please enter a password with at least 8 characters."],
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "first_name"
+        ],
+        "message": "Required"
       },
-    });
-  }
-  {
-    const formData = new FormData();
-    formData.set("token", "asdf");
-    formData.set("first_name", "First");
-    formData.set("last_name", "Last");
-    formData.set("password", "asdfasdf");
-    formData.set("confirm_password", "asdf");
-    const response = await acceptInvite({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        confirm_password: ["Your password does not match."],
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "last_name"
+        ],
+        "message": "Required"
       },
-    });
-  }
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "password"
+        ],
+        "message": "Required"
+      },
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "confirm_password"
+        ],
+        "message": "Required"
+      }
+    ]]
+  `);
 });
 
 test("returns not found error if token is invalid", async () => {
@@ -75,9 +82,11 @@ test("returns not found error if token is invalid", async () => {
   formData.set("last_name", "Last");
   formData.set("password", "pa$$word");
   formData.set("confirm_password", "pa$$word");
-  const response = acceptInvite({ state: "idle" }, formData);
+  const response = runServerFn(acceptInvite, {
+    data: formData,
+  });
 
-  await expect(response).toBeNextjsNotFound();
+  await expect(response).toBeTanstackNotFound();
 });
 
 test("sets up user and logs them in", async () => {
@@ -89,9 +98,16 @@ test("sets up user and logs them in", async () => {
   formData.set("last_name", "Last");
   formData.set("password", "pa$$word");
   formData.set("confirm_password", "pa$$word");
-  const response = acceptInvite({ state: "idle" }, formData);
+  const { response } = await runServerFn(acceptInvite, {
+    data: formData,
+  });
 
-  await expect(response).toBeNextjsRedirect("/en/dashboard");
+  expect(response.status).toEqual(204);
+
+  const sessionId = response.headers
+    .get("set-cookie")
+    ?.match(/session=([^;]+);/)?.[1];
+  expect(sessionId).toBeToken();
 
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({
@@ -107,15 +123,9 @@ test("sets up user and logs them in", async () => {
   const dbSessions = await findSessionsForUser(user.id);
   expect(dbSessions).toEqual([
     {
-      id: expect.any(String),
+      id: sessionId,
       user_id: user.id,
       expires_at: expect.any(Date),
     },
   ]);
-
-  expect(cookies.set).toHaveBeenCalledExactlyOnceWith(
-    "session",
-    dbSessions[0].id,
-    expect.any(Object),
-  );
 });

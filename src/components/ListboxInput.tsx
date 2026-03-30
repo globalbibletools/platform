@@ -43,11 +43,11 @@ export default function ListboxInput({
   autosubmit = false,
   disabled = false,
 }: ListboxInputProps) {
-  const root = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   return (
     <div
-      ref={root}
+      ref={rootRef}
       className={`${className} relative ${disabled ? "opacity-25" : ""}`}
     >
       <Listbox
@@ -59,7 +59,7 @@ export default function ListboxInput({
           if (autosubmit) {
             // We have to wait a tick so that the internal input element is updated when we submit the form
             setTimeout(() => {
-              const form = root.current?.closest("form");
+              const form = rootRef.current?.closest("form");
               form?.requestSubmit();
             });
           }

@@ -8,19 +8,19 @@ export interface ChapterChartProps {
 }
 
 export default function ChapterChart({ data }: ChapterChartProps) {
-  const [isDarkMode, setDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   useEffect(() => {
     const mediaMatch = window.matchMedia("(prefers-color-scheme: dark)");
     mediaMatch.addEventListener("change", (event) => {
-      setDarkMode(event.matches);
+      setIsDarkMode(event.matches);
     });
-    setDarkMode(mediaMatch.matches);
+    setIsDarkMode(mediaMatch.matches);
   }, []);
 
-  const chartRoot = useRef<HTMLCanvasElement>(null);
+  const chartRootRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    if (chartRoot.current && data) {
-      const chart = new Chart(chartRoot.current, {
+    if (chartRootRef.current && data) {
+      const chart = new Chart(chartRootRef.current, {
         type: "bar",
         data: {
           labels: data.map((book) => book.name),
@@ -61,5 +61,5 @@ export default function ChapterChart({ data }: ChapterChartProps) {
     }
   }, [data, isDarkMode]);
 
-  return <canvas ref={chartRoot} />;
+  return <canvas ref={chartRootRef} />;
 }

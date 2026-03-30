@@ -1,0 +1,28 @@
+diff --git a/node_modules/@tanstack/react-start/dist/esm/plugin/vite.js b/node_modules/@tanstack/react-start/dist/esm/plugin/vite.js
+index a4cb89b..cf52a6c 100644
+--- a/node_modules/@tanstack/react-start/dist/esm/plugin/vite.js
++++ b/node_modules/@tanstack/react-start/dist/esm/plugin/vite.js
+@@ -30,8 +30,9 @@ function tanstackStart(options) {
+             ],
+             external: options2.resolve?.noExternal === true || !isInsideRouterMonoRepo ? void 0 : ["@tanstack/react-router", "@tanstack/react-router-devtools"]
+           },
+-          optimizeDeps: environmentName === VITE_ENVIRONMENT_NAMES.client || environmentName === VITE_ENVIRONMENT_NAMES.server && // This indicates that the server environment has opted in to dependency optimization
+-          options2.optimizeDeps?.noDiscovery === false ? {
++          // Prevent optimiziation of react in tests to prevent duplicate instances of react
++          optimizeDeps: process.env.VITEST !== 'true' && (environmentName === VITE_ENVIRONMENT_NAMES.client || environmentName === VITE_ENVIRONMENT_NAMES.server && // This indicates that the server environment has opted in to dependency optimization
++          options2.optimizeDeps?.noDiscovery === false) ? {
+             // As `@tanstack/react-start` depends on `@tanstack/react-router`, we should exclude both.
+             exclude: [
+               "@tanstack/react-start",
+diff --git a/node_modules/@tanstack/react-start/src/plugin/vite.ts b/node_modules/@tanstack/react-start/src/plugin/vite.ts
+index 3d47aad..22d216b 100644
+--- a/node_modules/@tanstack/react-start/src/plugin/vite.ts
++++ b/node_modules/@tanstack/react-start/src/plugin/vite.ts
+@@ -45,6 +45,7 @@ export function tanstackStart(
+                 : ['@tanstack/react-router', '@tanstack/react-router-devtools'],
+           },
+           optimizeDeps:
++            process.env.VITEST !== 'true' &&
+             environmentName === VITE_ENVIRONMENT_NAMES.client ||
+             (environmentName === VITE_ENVIRONMENT_NAMES.server &&
+               // This indicates that the server environment has opted in to dependency optimization

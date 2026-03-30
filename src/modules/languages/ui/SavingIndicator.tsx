@@ -10,6 +10,7 @@ export interface SavingIndicatorProps {
   };
 }
 
+// TODO: fix this, it no longer works
 export default function SavingIndicator({ labels }: SavingIndicatorProps) {
   const formStatus = useFormStatus();
 

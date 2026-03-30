@@ -1,5 +1,4 @@
 import { faker } from "@faker-js/faker/locale/en";
-import { Scrypt } from "oslo/password";
 import { getDb } from "@/db";
 import { ulid } from "@/shared/ulid";
 import { EmailStatusRaw } from "../model/EmailStatus";
@@ -8,13 +7,15 @@ import { UserStatusRaw } from "../model/UserStatus";
 import type { Selectable } from "kysely";
 import type {
   ResetPasswordTokenTable,
+  SessionTable,
   UserEmailVerificationTable,
   UserInvitationTable,
   UserSystemRoleTable,
   UserTable,
 } from "../data-access/types";
+import Password from "../model/Password";
 
-const HASHED_PASSWORD = await new Scrypt().hash("pa$$word");
+const HASHED_PASSWORD = await Password.hash("pa$$word");
 
 export interface UserFactoryOptions {
   roles?: "admin"[];
@@ -22,6 +23,7 @@ export interface UserFactoryOptions {
   passwordReset?: "active" | "expired";
   emailVerification?: "active" | "expired";
   invitation?: "active" | "expired";
+  session?: boolean;
 }
 
 export interface UserFactoryResult {
@@ -30,6 +32,7 @@ export interface UserFactoryResult {
   invitation: Selectable<UserInvitationTable> | undefined;
   passwordReset: Selectable<ResetPasswordTokenTable> | undefined;
   emailVerification: Selectable<UserEmailVerificationTable> | undefined;
+  session: Selectable<SessionTable> | undefined;
 }
 
 export const userFactory = {
@@ -109,12 +112,26 @@ export const userFactory = {
         .executeTakeFirstOrThrow();
     }
 
+    let session: Selectable<SessionTable> | undefined;
+    if (options.session) {
+      session = await db
+        .insertInto("session")
+        .values({
+          id: ulid(),
+          user_id: user.id,
+          expires_at: faker.date.soon(),
+        })
+        .returningAll()
+        .executeTakeFirstOrThrow();
+    }
+
     return {
       user,
       systemRoles,
       invitation,
       passwordReset,
       emailVerification,
+      session,
     };
   },
 };

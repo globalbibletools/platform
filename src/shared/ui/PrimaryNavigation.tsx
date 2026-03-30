@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { getLocale, getTranslations } from "next-intl/server";
 import { Icon } from "@/components/Icon";
 import {
   HeaderDropdown,
@@ -10,72 +8,82 @@ import {
   HeaderMenuItem,
   HeaderMenuItems,
 } from "./HeaderLink";
-import { verifySession } from "@/session";
-import Image from "next/image";
+import { useTranslations } from "use-intl";
+import { Link, useRouteContext, useRouter } from "@tanstack/react-router";
+import { SystemRoleRaw } from "@/modules/users/types";
+import { logout } from "@/modules/users/actions/logout";
+import { useServerFn } from "@tanstack/react-start";
+import { useAuthRefresh } from "@/modules/access/authState";
 
-export default async function PrimaryNavigation() {
-  const t = await getTranslations("PrimaryNavigation");
+export default function PrimaryNavigation() {
+  const t = useTranslations("PrimaryNavigation");
 
-  const session = await verifySession();
-  const isAdmin = session?.user.roles.includes("ADMIN");
-  const canTranslate = Boolean(session);
+  const router = useRouter();
+  const logoutFn = useServerFn(logout);
 
-  const locale = await getLocale();
+  const context = useRouteContext({ strict: false });
+
+  const isAdmin =
+    context.auth?.systemRoles.includes(SystemRoleRaw.Admin) ?? false;
+  const canTranslate = (context.auth?.languages.length ?? 0) > 0;
+  const user = context.auth?.user;
+  const isLoggedIn = Boolean(user);
+
+  const refreshAuth = useAuthRefresh();
+  const handleLogout = async () => {
+    await logoutFn();
+    await refreshAuth();
+    await router.navigate({ to: "/login" });
+  };
 
   return (
     <nav
       className="
         sticky top-0 z-30
-        bg-white flex items-center h-(--heading-height) border-b border-gray-200 relative px-4 lg:px-8
+        bg-white flex items-center h-(--heading-height) border-b border-gray-200 px-4 lg:px-8
         dark:bg-gray-900 dark:border-gray-700
       "
     >
       <Link
-        href={session ? `/${locale}/dashboard` : "/"}
+        to={isLoggedIn ? "/dashboard" : "/"}
         className="flex items-center me-8"
       >
-        <Image
+        <img
           src="https://assets.globalbibletools.com/landing/logo.png"
           className="w-10 h-10"
           alt=""
-          width={440}
-          height={440}
         />
         <h1 className="font-bold ms-2 text-lg">{t("app_name")}</h1>
       </Link>
       <div className="grow" />
       <div className="shrink-0 gap-2 md:gap-4 h-full hidden sm:flex">
-        <HeaderLink href={`/${locale}/read`}>{t("links.read")}</HeaderLink>
+        <HeaderLink to="/read">{t("links.read")}</HeaderLink>
         {(isAdmin || canTranslate) && (
-          <HeaderLink href={`/${locale}/translate`}>
-            {t("links.translate")}
-          </HeaderLink>
+          <HeaderLink to="/translate">{t("links.translate")}</HeaderLink>
         )}
         {isAdmin && (
-          <HeaderLink href={`/${locale}/admin/languages`}>
-            {t("links.admin")}
-          </HeaderLink>
+          <HeaderLink to="/admin/languages">{t("links.admin")}</HeaderLink>
         )}
         <HeaderLink
-          className={`hidden ${session ? "lg:block" : "sm:block"}`}
+          className={`hidden ${isLoggedIn ? "lg:block" : "sm:block"}`}
           href="https://globalbibletools.tawk.help"
           newTab
         >
           {t("links.help")}
         </HeaderLink>
-        {session ?
+        {isLoggedIn ?
           <HeaderDropdown
             button={
               <>
                 <Icon icon="user" className="md:hidden" />
                 <span className="sr-only md:not-sr-only md:inline">
-                  {session?.user.name ?? ""}
+                  {user?.name ?? ""}
                 </span>
               </>
             }
             items={
               <>
-                <HeaderDropdownItem href={`/${locale}/profile`}>
+                <HeaderDropdownItem to="/profile">
                   <Icon icon="user" className="me-2" fixedWidth />
                   <span className="font-bold">{t("links.profile")}</span>
                 </HeaderDropdownItem>
@@ -87,14 +95,14 @@ export default async function PrimaryNavigation() {
                   <Icon icon="question-circle" className="me-2" fixedWidth />
                   <span className="font-bold">{t("links.help")}</span>
                 </HeaderDropdownItem>
-                <HeaderDropdownItem href={`/${locale}/logout`} prefetch={false}>
+                <HeaderDropdownItem onClick={handleLogout}>
                   <Icon icon="right-from-bracket" className="me-2" fixedWidth />
                   <span className="font-bold">{t("links.log_out")}</span>
                 </HeaderDropdownItem>
               </>
             }
           />
-        : <HeaderLink className="hidden sm:block" href={`/${locale}/login`}>
+        : <HeaderLink className="hidden sm:block" to="/login">
             {t("links.log_in")}
           </HeaderLink>
         }
@@ -102,28 +110,28 @@ export default async function PrimaryNavigation() {
       <HeaderMenu>
         <HeaderMenuButton className="sm:hidden -me-3" />
         <HeaderMenuItems className="sm:hidden">
-          {session ?
-            <HeaderMenuItem href={`/${locale}/profile`}>
+          {isLoggedIn ?
+            <HeaderMenuItem to="/profile">
               <Icon icon="user" className="me-2" fixedWidth />
               <span className="font-bold">
-                {session?.user.name ?? t("links.profile")}
+                {user?.name ?? t("links.profile")}
               </span>
             </HeaderMenuItem>
-          : <HeaderMenuItem href={`/${locale}/login`}>
+          : <HeaderMenuItem to="/login">
               <Icon icon="user" className="me-2" fixedWidth />
               <span className="font-bold">{t("links.log_in")}</span>
             </HeaderMenuItem>
           }
           <div className="border-b border-gray-200 dark:border-gray-700 my-2" />
-          <HeaderMenuItem href={`/${locale}/read`}>
+          <HeaderMenuItem to="/read">
             <Icon icon="book-open" className="me-2" fixedWidth />
             <span className="font-bold">{t("links.read")}</span>
           </HeaderMenuItem>
-          <HeaderMenuItem href={`/${locale}/translate`}>
+          <HeaderMenuItem to="/translate">
             <Icon icon="feather" className="me-2" fixedWidth />
             <span className="font-bold">{t("links.translate")}</span>
           </HeaderMenuItem>
-          <HeaderMenuItem href={`/${locale}/admin/languages`}>
+          <HeaderMenuItem to="/admin/languages">
             <Icon icon="sliders" className="me-2" fixedWidth />
             <span className="font-bold">{t("links.admin")}</span>
           </HeaderMenuItem>
@@ -135,11 +143,11 @@ export default async function PrimaryNavigation() {
             <Icon icon="question-circle" className="me-2" fixedWidth />
             <span className="font-bold">{t("links.help")}</span>
           </HeaderMenuItem>
-          {session && (
+          {isLoggedIn && (
             <>
               <div className="grow" />
               <div className="border-b border-gray-200 dark:border-gray-700 mb-2" />
-              <HeaderMenuItem href={`/${locale}/logout`} prefetch={false}>
+              <HeaderMenuItem onClick={handleLogout}>
                 <Icon icon="right-from-bracket" className="me-2" fixedWidth />
                 <span className="font-bold">{t("links.log_out")}</span>
               </HeaderMenuItem>

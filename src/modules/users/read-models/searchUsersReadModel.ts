@@ -34,17 +34,26 @@ export async function searchUsersReadModel(
         .selectAll()
         .where("users.status", "<>", UserStatusRaw.Disabled),
     )
+    .with("paged_users", (db) =>
+      db
+        .selectFrom("filtered_users")
+        .selectAll()
+        .orderBy("name")
+        .orderBy("id")
+        .offset(options.page * options.limit)
+        .limit(options.limit),
+    )
     .selectNoFrom(({ selectFrom }) => [
       selectFrom("filtered_users")
         .select((eb) => eb.fn.countAll().as("total"))
         .$narrowType<{ total: number }>()
         .as("total"),
-      selectFrom("filtered_users")
+      selectFrom("paged_users")
         .innerJoinLateral(
           (eb) =>
             eb
               .selectFrom("user_system_role")
-              .whereRef("user_id", "=", "filtered_users.id")
+              .whereRef("user_id", "=", "paged_users.id")
               .select((eb) => eb.fn.jsonAgg("user_system_role.role").as("list"))
               .as("roles"),
           (jb) => jb.onTrue(),
@@ -53,7 +62,7 @@ export async function searchUsersReadModel(
           (eb) =>
             eb
               .selectFrom("user_invitation")
-              .whereRef("user_id", "=", "filtered_users.id")
+              .whereRef("user_id", "=", "paged_users.id")
               .orderBy("expires_at", "desc")
               .limit(1)
               .select((eb) =>
@@ -64,8 +73,6 @@ export async function searchUsersReadModel(
               .as("invite"),
           (jb) => jb.onTrue(),
         )
-        .offset(options.page * options.limit)
-        .limit(options.limit)
         .select((eb) =>
           eb.fn
             .jsonAgg(
@@ -81,7 +88,6 @@ export async function searchUsersReadModel(
                 invite: eb.ref("invite.obj"),
               }),
             )
-            .orderBy("name")
             .as("page"),
         )
         .as("page"),

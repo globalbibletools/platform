@@ -1,44 +1,36 @@
 "use server";
 
 import * as z from "zod";
-import { getTranslations, getLocale } from "next-intl/server";
-import { redirect } from "next/navigation";
+import { createServerFn } from "@tanstack/react-start";
 import { parseForm } from "@/form-parser";
-import { FormState } from "@/components/Form";
 import { serverActionLogger } from "@/server-action";
 import { startPasswordReset as startPasswordResetUseCase } from "../use-cases/startPasswordReset";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   email: z.string().min(1),
 });
 
-export async function startPasswordReset(
-  _prevState: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const logger = serverActionLogger("forgotPassword");
+export const startPasswordReset = createServerFn({ method: "POST" })
+  .inputValidator((data) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
+    }
 
-  const t = await getTranslations("ForgotPasswordPage");
+    return requestSchema.parse(parseForm(data));
+  })
+  .middleware([
+    createPolicyMiddleware({
+      policy: new Policy({ authenticated: false }),
+    }),
+  ])
+  .handler(async ({ data }) => {
+    const logger = serverActionLogger("forgotPassword");
 
-  const request = requestSchema.safeParse(parseForm(formData), {
-    errorMap: (error) => {
-      if (error.path.toString() === "email") {
-        return { message: t("errors.email_required") };
-      } else {
-        return { message: "Invalid" };
-      }
-    },
+    try {
+      await startPasswordResetUseCase(data);
+    } catch (error) {
+      logger.error("password reset request failed", error);
+      throw error;
+    }
   });
-  if (!request.success) {
-    logger.error("request parse error");
-    return {
-      state: "error",
-      validation: request.error.flatten().fieldErrors,
-    };
-  }
-
-  await startPasswordResetUseCase(request.data);
-
-  const locale = await getLocale();
-  redirect(`/${locale}/login`);
-}

@@ -3,24 +3,25 @@
 import { useRef } from "react";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
-import languages from "@/shared/i18n/languages.json" assert { type: "json" };
-import { useParams, usePathname } from "next/navigation";
 import ComboboxInput from "@/components/ComboboxInput";
+import { locales, useCurrentLocale } from "@/shared/i18n/shared";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 
 export default function LanguageDialog() {
-  const { locale } = useParams<{ locale: string }>();
-  const pathName = usePathname();
+  const locale = useCurrentLocale();
+  const pathname = useLocation({ select: ({ pathname }) => pathname });
+  const navigate = useNavigate();
 
-  const dialog = useRef<HTMLDialogElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   return (
     <>
-      <Button variant="tertiary" onClick={() => dialog.current?.show()}>
+      <Button variant="tertiary" onClick={() => dialogRef.current?.show()}>
         <Icon icon="language" className="me-2" />
-        {languages[locale as keyof typeof languages]?.name}
+        {locale.name}
       </Button>
       <dialog
-        ref={dialog}
+        ref={dialogRef}
         className="
             rounded-lg shadow-md border border-gray-200 bg-white mx-auto p-8 focus-visible:outline-2 outline-green-300 start-3 bottom-2 end-auto
             dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300
@@ -32,26 +33,24 @@ export default function LanguageDialog() {
         </h2>
         <ComboboxInput
           className="block min-w-[150px]"
-          value={locale}
-          onChange={(language) => {
-            // We need to do a hard refresh so that the tawk.to chat widget will reload with settings for the new language.
-            window.location.href = new URL(
-              pathName.replace(new RegExp(`/${locale}(?=/|$)`), `/${language}`),
-              window.location.origin,
-            ).toString();
+          value={locale.code}
+          onChange={async (language) => {
+            await navigate({
+              to: `/${language}${pathname}`,
+            });
           }}
           aria-label="Interface Language"
           up
-          items={Object.entries(languages).map(([value, config]) => ({
-            label: config.name,
-            value,
+          items={locales.map((locale) => ({
+            label: locale.name,
+            value: locale.code,
           }))}
         />
         <Button
           className="absolute right-2 top-2 w-9"
           variant="tertiary"
           destructive
-          onClick={() => dialog.current?.close()}
+          onClick={() => dialogRef.current?.close()}
         >
           <Icon icon="xmark" />
           <span className="sr-only">Close</span>

@@ -1,13 +1,8 @@
 "use client";
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useActionState,
-  startTransition,
-} from "react";
+import { createContext, ReactNode, use, useState } from "react";
 import { useFlash } from "../flash";
+import { OptionalFetcher, useServerFn } from "@tanstack/react-start";
+import { ToOptions, useRouter } from "@tanstack/react-router";
 
 export type FormState =
   | { state: "idle" }
@@ -17,41 +12,113 @@ export type FormState =
 export interface FormProps {
   className?: string;
   children?: ReactNode;
-  action: (
-    state: Awaited<FormState>,
-    formData: FormData,
-  ) => FormState | Promise<FormState>;
+  action: OptionalFetcher<any, any, any>;
+  redirect?: ToOptions;
+  successMessage?: string;
+  onSuccess?(): void;
+  invalidate?: boolean;
 }
 
-export default function Form({ className = "", children, action }: FormProps) {
-  const [state, formAction] = useActionState(action, { state: "idle" });
+export default function Form({
+  className = "",
+  children,
+  action,
+  redirect,
+  successMessage,
+  invalidate,
+  onSuccess,
+}: FormProps) {
+  const serverFn = useServerFn(action);
+  const [state, setState] = useState<FormState>({ state: "idle" });
 
+  const router = useRouter();
   const flash = useFlash();
-
-  useEffect(() => {
-    if (state.state === "error" && state.error) {
-      flash.error(state.error);
-    } else if (state.state === "success" && state.message) {
-      flash.success(state.message);
-    }
-  }, [state, flash]);
 
   return (
     <form
       className={className}
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
-        startTransition(() => formAction(formData));
+        try {
+          await serverFn({ data: formData });
+          setState({
+            state: "success",
+          });
+
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            if (invalidate) {
+              router.invalidate();
+            }
+
+            if (successMessage) {
+              flash.success(successMessage);
+            }
+
+            if (redirect) {
+              await router.navigate(redirect);
+            }
+          }
+        } catch (error) {
+          console.log(error);
+          const validation = processValidationError(error);
+          flash.error("Failed request"); // TODO: translate this
+          if (validation) {
+            setState({
+              state: "error",
+              error: "Invalid request",
+              validation,
+            });
+          } else {
+            setState({
+              state: "error",
+              error: error instanceof Error ? error.message : undefined,
+            });
+          }
+        }
       }}
     >
-      <FormContext.Provider value={state}>{children}</FormContext.Provider>
+      <FormContext value={state}>{children}</FormContext>
     </form>
   );
+}
+
+function processValidationError(error: unknown) {
+  if (!(error instanceof Error)) return;
+
+  try {
+    const naybeValidationErrors = JSON.parse(error.message);
+    if (!Array.isArray(naybeValidationErrors)) return;
+
+    const validationErrors: Record<string, string[]> = {};
+    let hasErrors = false;
+    for (const entry of naybeValidationErrors) {
+      if (!Array.isArray(entry.path)) continue;
+      if (typeof entry.path[0] !== "string") continue;
+
+      if (typeof entry.code !== "string") continue;
+
+      const key = entry.path[0];
+      const code = entry.code;
+
+      validationErrors[key] ??= [];
+      validationErrors[key].push(code);
+
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      return validationErrors;
+    }
+  } catch {
+    return;
+  }
 }
 
 const FormContext = createContext<FormState | null>(null);
 
 export function useFormContext() {
-  return useContext(FormContext);
+  return use(FormContext);
 }

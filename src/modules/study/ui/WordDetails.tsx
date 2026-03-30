@@ -1,16 +1,26 @@
 "use client";
 
-import RichText from "@/components/RichText";
 import { Tab, TabPanels, TabPanel, TabList, TabGroup } from "@headlessui/react";
-import DOMPurify from "isomorphic-dompurify";
-import { useTranslations } from "next-intl";
-import { Fragment, memo, useMemo, useRef, useState } from "react";
+import DOMPurify from "dompurify";
+import { useTranslations } from "use-intl";
+import React, {
+  Fragment,
+  memo,
+  Suspense,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { parseReferenceRange } from "@/verse-utils";
 import { VersesPreview } from "@/components/VersesPreview";
 import { isRichTextEmpty } from "@/components/RichTextInput";
-import useSWR from "swr";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { useQuery } from "@tanstack/react-query";
+import { getLemmaResource } from "../actions/getLemmaResource";
+import { ClientOnly } from "@tanstack/react-router";
+
+const RichText = React.lazy(() => import("@/components/RichText"));
 
 export interface Word {
   id: string;
@@ -28,12 +38,6 @@ export interface WordDetailsProps {
   mode: "immersive" | "standard";
 }
 
-export interface LemmaResource {
-  lemmaId: string;
-  name: string;
-  entry: string;
-}
-
 export default function WordDetails({
   language,
   word,
@@ -45,13 +49,10 @@ export default function WordDetails({
 
   const hasNotes = !isRichTextEmpty(word.footnote ?? "");
 
-  const { data, isLoading } = useSWR(
-    ["lemma-resource", word.lemma],
-    async ([, lemmaId]) => {
-      const response = await fetch(`/api/lemma-resources/${lemmaId}`);
-      return (await response.json()) as Promise<LemmaResource | undefined>;
-    },
-  );
+  const { data, isLoading } = useQuery({
+    queryKey: ["lemma-resource", word.lemma],
+    queryFn: () => getLemmaResource({ data: { lemmaId: word.lemma } }),
+  });
 
   const lexiconEntryRef = useRef<HTMLDivElement>(null);
   const [previewElement, setPreviewElement] = useState<HTMLDivElement | null>(
@@ -132,7 +133,9 @@ export default function WordDetails({
                           }
                         }}
                       >
-                        <LexiconText content={data.entry} />
+                        <ClientOnly>
+                          <LexiconText content={data.entry} />
+                        </ClientOnly>
                       </div>
                       {previewElement !== null &&
                         createPortal(
@@ -152,7 +155,9 @@ export default function WordDetails({
                 </div>
               </TabPanel>
               <TabPanel unmount={false}>
-                <RichText className="pb-2" content={word.footnote ?? ""} />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <RichText className="pb-2" content={word.footnote ?? ""} />
+                </Suspense>
               </TabPanel>
             </TabPanels>
           </TabGroup>
@@ -167,8 +172,6 @@ const LexiconText = memo(function LexiconText({
 }: {
   content: string;
 }) {
-  const prev = useRef("");
-  prev.current = content;
   const html = useMemo(() => DOMPurify.sanitize(content), [content]);
   return (
     <div

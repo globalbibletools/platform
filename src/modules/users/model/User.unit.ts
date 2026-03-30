@@ -4,7 +4,6 @@ import UserEmail from "./UserEmail";
 import EmailStatus from "./EmailStatus";
 import User from "./User";
 import PasswordReset from "./PasswordReset";
-import { Scrypt } from "oslo/password";
 import {
   InvalidInvitationTokenError,
   InvalidPasswordResetToken,
@@ -16,8 +15,6 @@ import { addDays } from "date-fns";
 import Invitation from "./Invitation";
 import UserStatus from "./UserStatus";
 import SystemRole from "./SystemRole";
-
-const scrypt = new Scrypt();
 
 describe("invite", () => {
   test("creates new user with an invite", () => {
@@ -321,7 +318,7 @@ describe("completePasswordReset", () => {
       }),
     );
     await expect(
-      scrypt.verify(user.password!.hash, newPassword),
+      Password.verify(user.password!.hash, newPassword),
     ).resolves.toEqual(true);
   });
 });

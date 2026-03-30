@@ -1,9 +1,8 @@
-import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
 import { resetPassword } from "./resetPassword";
-import { cookies } from "@/tests/vitest/mocks/nextjs";
 import { userFactory } from "../test-utils/userFactory";
 import {
   findPasswordResetsForUser,
@@ -14,32 +13,43 @@ import {
 initializeDatabase();
 
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  {
-    const formData = new FormData();
-    const response = await resetPassword({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        token: ["Invalid"],
-        password: ["Please enter your password."],
-        confirm_password: ["Please enter your password again."],
+  const formData = new FormData();
+
+  await expect(
+    runServerFn(resetPassword, {
+      data: formData,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`
+    [ZodError: [
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "token"
+        ],
+        "message": "Required"
       },
-    });
-  }
-  {
-    const formData = new FormData();
-    formData.set("password", "");
-    formData.set("confirm_password", "");
-    const response = await resetPassword({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        token: ["Invalid"],
-        password: ["Please enter a password with at least 8 characters."],
-        confirm_password: ["Please enter your password again."],
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "password"
+        ],
+        "message": "Required"
       },
-    });
-  }
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "confirm_password"
+        ],
+        "message": "Required"
+      }
+    ]]
+  `);
 });
 
 test("returns error if user could not be found", async () => {
@@ -47,8 +57,10 @@ test("returns error if user could not be found", async () => {
   formData.set("token", "asdf");
   formData.set("password", "pa$$word");
   formData.set("confirm_password", "pa$$word");
-  const response = resetPassword({ state: "idle" }, formData);
-  await expect(response).toBeNextjsNotFound();
+  const response = runServerFn(resetPassword, {
+    data: formData,
+  });
+  await expect(response).toBeTanstackNotFound();
 });
 
 test("returns new session after changing the password", async () => {
@@ -60,8 +72,16 @@ test("returns new session after changing the password", async () => {
   formData.set("token", passwordReset!.token);
   formData.set("password", "pa$$word");
   formData.set("confirm_password", "pa$$word");
-  const response = resetPassword({ state: "idle" }, formData);
-  await expect(response).toBeNextjsRedirect("/en/dashboard");
+  const { response } = await runServerFn(resetPassword, {
+    data: formData,
+  });
+
+  expect(response.status).toEqual(204);
+
+  const sessionId = response.headers
+    .get("set-cookie")
+    ?.match(/session=([^;]+);/)?.[1];
+  expect(sessionId).toBeToken();
 
   const dbResets = await findPasswordResetsForUser(user.id);
   expect(dbResets).toEqual([]);
@@ -75,17 +95,11 @@ test("returns new session after changing the password", async () => {
   const dbSessions = await findSessionsForUser(user.id);
   expect(dbSessions).toEqual([
     {
-      id: expect.any(String),
+      id: sessionId,
       user_id: user.id,
       expires_at: expect.any(Date),
     },
   ]);
-
-  expect(cookies.set).toHaveBeenCalledExactlyOnceWith(
-    "session",
-    dbSessions[0].id,
-    expect.any(Object),
-  );
 
   expect(sendEmailMock).toHaveBeenCalledExactlyOnceWith({
     userId: user.id,

@@ -1,7 +1,7 @@
 "use client";
 
 import ComboboxInput from "@/components/ComboboxInput";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@tanstack/react-router";
 
 interface Language {
   code: string;
@@ -28,7 +28,7 @@ export default function DashboardLanguageSelector({
       }))}
       onChange={(newCode) => {
         document.cookie = `lang=${newCode}; path=/`;
-        router.refresh();
+        router.invalidate();
       }}
     />
   );

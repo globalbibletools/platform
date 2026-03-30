@@ -1,9 +1,9 @@
 "use client";
 
 import { FocusEvent, ReactNode, useRef, useState } from "react";
-import Link, { LinkProps } from "next/link";
 import useCssId from "./cssid";
 import { Icon } from "./Icon";
+import { Link, LinkProps } from "@tanstack/react-router";
 
 export interface DropdownProps {
   className?: string;
@@ -19,14 +19,15 @@ export default function DropdownMenu({
   text,
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const cssId = useCssId("dropdown-menu");
 
   // We want to close the menu if the focus moves outside of the component.
   function onBlur(e: FocusEvent) {
     const focusedElement = e.relatedTarget;
     const isInComponent =
-      focusedElement instanceof Node && root.current?.contains(focusedElement);
+      focusedElement instanceof Node &&
+      rootRef.current?.contains(focusedElement);
     if (!isInComponent) {
       setIsOpen(false);
     }
@@ -34,7 +35,7 @@ export default function DropdownMenu({
 
   return (
     <div
-      ref={root}
+      ref={rootRef}
       className={`relative inline-block ${className}`}
       onBlur={onBlur}
     >
@@ -65,7 +66,7 @@ export default function DropdownMenu({
 
 export interface DropdownMenuItemProps {
   children: ReactNode;
-  href?: LinkProps["href"];
+  to?: LinkProps["to"];
   prefetch?: boolean;
   onClick?(): void;
 }
@@ -75,28 +76,22 @@ const className =
 
 export function DropdownMenuItem({
   children,
-  href,
+  to,
   onClick,
-  prefetch,
 }: DropdownMenuItemProps) {
   return (
     <li className="w-full">
       {/* If we want to link to external URLs, we have use a standard anchor element. */}
       {(() => {
-        if (typeof href === "string" && href.startsWith("http")) {
+        if (typeof to === "string" && to.startsWith("http")) {
           return (
-            <a className={className} href={href} onClick={onClick}>
+            <a className={className} href={to} onClick={onClick}>
               {children}
             </a>
           );
-        } else if (href) {
+        } else if (to) {
           return (
-            <Link
-              className={className}
-              href={href}
-              onClick={onClick}
-              prefetch={prefetch}
-            >
+            <Link className={className} to={to} onClick={onClick}>
               {children}
             </Link>
           );
@@ -122,21 +117,22 @@ export function DropdownMenuSubmenu({
   text,
 }: DropdownMenuSubmenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const root = useRef<HTMLLIElement>(null);
+  const rootRef = useRef<HTMLLIElement>(null);
   const cssId = useCssId("dropdown-menu");
 
   // We want to close the menu if the focus moves outside of the component.
   function onBlur(e: FocusEvent) {
     const focusedElement = e.relatedTarget;
     const isInComponent =
-      focusedElement instanceof Node && root.current?.contains(focusedElement);
+      focusedElement instanceof Node &&
+      rootRef.current?.contains(focusedElement);
     if (!isInComponent) {
       setIsOpen(false);
     }
   }
 
   return (
-    <li ref={root} className="relative" onBlur={onBlur}>
+    <li ref={rootRef} className="relative" onBlur={onBlur}>
       <button
         className="outline-none focus:underline hover:underline whitespace-nowrap px-4 py-1 text-start w-full"
         type="button"

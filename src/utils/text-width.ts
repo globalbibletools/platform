@@ -14,7 +14,7 @@ export interface UseTextWidthOptions {
  * @returns The width of the text, in pixels.
  */
 export function useTextWidth(options: UseTextWidthOptions): number {
-  const el = useRef<HTMLDivElement | undefined>(undefined);
+  const measureElementRef = useRef<HTMLDivElement | undefined>(undefined);
 
   useLayoutEffect(() => {
     const div = document.createElement("div");
@@ -28,18 +28,18 @@ export function useTextWidth(options: UseTextWidthOptions): number {
     div.style.top = "-9999px";
     div.style.left = "-9999px";
     document.body.appendChild(div);
-    el.current = div;
+    measureElementRef.current = div;
     return () => div.remove();
   }, []);
 
   const [width, setWidth] = useState(0);
 
   useLayoutEffect(() => {
-    if (el.current) {
-      el.current.style.fontFamily = options.fontFamily;
-      el.current.style.fontSize = options.fontSize;
-      el.current.innerText = options.text;
-      setWidth(el.current.clientWidth);
+    if (measureElementRef.current) {
+      measureElementRef.current.style.fontFamily = options.fontFamily;
+      measureElementRef.current.style.fontSize = options.fontSize;
+      measureElementRef.current.innerText = options.text;
+      setWidth(measureElementRef.current.clientWidth);
     }
   }, [options]);
 

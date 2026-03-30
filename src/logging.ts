@@ -1,4 +1,3 @@
-import { trace } from "@opentelemetry/api";
 import pino from "pino";
 
 // If this changes, update the pino configuration in the next patch so it matches
@@ -15,19 +14,6 @@ export const logger = pino({
       }
     : undefined,
   timestamp: pino.stdTimeFunctions.isoTime,
-  mixin:
-    process.env.NODE_ENV === "production" ?
-      () => {
-        const span = trace.getActiveSpan();
-        if (!span) return {};
-
-        const context = span.spanContext();
-        return {
-          spanId: context.spanId,
-          traceId: context.traceId,
-        };
-      }
-    : undefined,
 });
 
 export const createLogger = logger.child.bind(logger);

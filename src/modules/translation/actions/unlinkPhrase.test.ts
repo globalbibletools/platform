@@ -1,8 +1,7 @@
-import "@/tests/vitest/mocks/nextjs";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { test, expect } from "vitest";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
 import { unlinkPhrase } from "./unlinkPhrase";
-import logIn from "@/tests/vitest/login";
 import { phraseFactory } from "../test-utils/phraseFactory";
 import {
   findPhraseById,
@@ -15,135 +14,146 @@ import { GlossStateRaw } from "../types";
 
 initializeDatabase();
 
-function buildFormData(data: {
-  verseId: string;
-  code: string;
-  phraseId: number;
-}): FormData {
-  const formData = new FormData();
-  formData.set("verseId", data.verseId);
-  formData.set("code", data.code);
-  formData.set("phraseId", String(data.phraseId));
-  return formData;
-}
-
 test("returns and does nothing if the request shape doesn't match the schema", async () => {
-  const { members } = await languageFactory.build();
-  await logIn(members[0].user_id);
+  const { user, session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build({ members: [user.id] });
 
-  const formData = new FormData();
-  const response = await unlinkPhrase(formData);
-  expect(response).toBeUndefined();
+  await expect(
+    runServerFn(unlinkPhrase, {
+      data: {
+        code: language.code,
+      },
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`
+    [ZodError: [
+      {
+        "code": "invalid_type",
+        "expected": "number",
+        "received": "nan",
+        "path": [
+          "phraseId"
+        ],
+        "message": "Expected number, received nan"
+      }
+    ]]
+  `);
+});
+
+test("returns unauthorized error if user is not a language member", async () => {
+  const { session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build();
+
+  await expect(
+    runServerFn(unlinkPhrase, {
+      data: {
+        code: language.code,
+        phraseId: 1,
+      },
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
 });
 
 test("returns not found if user is not logged in", async () => {
   const { phrase, language } = await phraseFactory.build({});
 
   await expect(
-    unlinkPhrase(
-      buildFormData({
-        verseId: "1",
+    runServerFn(unlinkPhrase, {
+      data: {
         code: language.code,
         phraseId: phrase.id,
-      }),
-    ),
-  ).toBeNextjsNotFound();
-});
-
-test("returns not found if user is not a language member", async () => {
-  const { phrase, language } = await phraseFactory.build({});
-  const { user: nonMember } = await userFactory.build();
-  await logIn(nonMember.id);
-
-  await expect(
-    unlinkPhrase(
-      buildFormData({
-        verseId: "1",
-        code: language.code,
-        phraseId: phrase.id,
-      }),
-    ),
-  ).toBeNextjsNotFound();
+      },
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
 });
 
 test("returns not found if the language code does not exist", async () => {
-  const { user } = await userFactory.build();
-  await logIn(user.id);
+  const { session } = await userFactory.build({ session: true });
 
   await expect(
-    unlinkPhrase(
-      buildFormData({
-        verseId: "1",
+    runServerFn(unlinkPhrase, {
+      data: {
         code: "zzz",
         phraseId: 1,
-      }),
-    ),
-  ).toBeNextjsNotFound();
+      },
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
 });
 
 test("returns not found if the phrase does not exist", async () => {
-  const { language, members } = await languageFactory.build();
-  await logIn(members[0].user_id);
+  const { user, session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build({ members: [user.id] });
 
   await expect(
-    unlinkPhrase(
-      buildFormData({
-        verseId: "1",
+    runServerFn(unlinkPhrase, {
+      data: {
         code: language.code,
         phraseId: 999999999,
-      }),
-    ),
-  ).toBeNextjsNotFound();
+      },
+      sessionId: session!.id,
+    }),
+  ).toBeTanstackNotFound();
 });
 
 test("returns not found if the phrase belongs to a different language", async () => {
-  const { language, members } = await languageFactory.build();
-  await logIn(members[0].user_id);
+  const { user, session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build({ members: [user.id] });
+  const { language: otherLanguage } = await languageFactory.build({
+    members: [user.id],
+  });
 
-  const { phrase } = await phraseFactory.build({});
+  const { phrase } = await phraseFactory.build({
+    languageId: otherLanguage.id,
+  });
 
   await expect(
-    unlinkPhrase(
-      buildFormData({
-        verseId: "1",
+    runServerFn(unlinkPhrase, {
+      data: {
         code: language.code,
         phraseId: phrase.id,
-      }),
-    ),
-  ).toBeNextjsNotFound();
+      },
+      sessionId: session!.id,
+    }),
+  ).toBeTanstackNotFound();
 });
 
 test("returns not found if the phrase is already soft-deleted", async () => {
-  const { phrase, language, languageMember } = await phraseFactory.build({
+  const { user, session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build({ members: [user.id] });
+  const { phrase } = await phraseFactory.build({
+    languageId: language.id,
     deleted: true,
   });
-  await logIn(languageMember.user_id);
 
   await expect(
-    unlinkPhrase(
-      buildFormData({
-        verseId: "1",
+    runServerFn(unlinkPhrase, {
+      data: {
         code: language.code,
         phraseId: phrase.id,
-      }),
-    ),
-  ).toBeNextjsNotFound();
+      },
+      sessionId: session!.id,
+    }),
+  ).toBeTanstackNotFound();
 });
 
 test("soft-deletes the phrase", async () => {
-  const { phrase, language, languageMember, words } =
-    await phraseFactory.build();
-  const userId = languageMember.user_id;
-  await logIn(userId);
+  const { user, session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build({ members: [user.id] });
+  const { phrase, words } = await phraseFactory.build({
+    languageId: language.id,
+  });
+  const userId = user.id;
 
-  const result = await unlinkPhrase(
-    buildFormData({
-      verseId: "1",
+  const { response } = await runServerFn(unlinkPhrase, {
+    data: {
       code: language.code,
       phraseId: phrase.id,
-    }),
-  );
-  expect(result).toBeUndefined();
+    },
+    sessionId: session!.id,
+  });
+  expect(response.status).toEqual(204);
 
   const phraseRow = await findPhraseById(phrase.id);
   expect(phraseRow).toEqual({
@@ -160,19 +170,22 @@ test("soft-deletes the phrase", async () => {
 });
 
 test("soft-deletes a phrase with an approved gloss and emits a gloss event", async () => {
-  const { phrase, language, languageMember, words, gloss } =
-    await phraseFactory.build({ gloss: "approved" });
-  const userId = languageMember.user_id;
-  await logIn(userId);
+  const { user, session } = await userFactory.build({ session: true });
+  const { language } = await languageFactory.build({ members: [user.id] });
+  const { phrase, words, gloss } = await phraseFactory.build({
+    languageId: language.id,
+    gloss: "approved",
+  });
+  const userId = user.id;
 
-  const result = await unlinkPhrase(
-    buildFormData({
-      verseId: "1",
+  const { response } = await runServerFn(unlinkPhrase, {
+    data: {
       code: language.code,
       phraseId: phrase.id,
-    }),
-  );
-  expect(result).toBeUndefined();
+    },
+    sessionId: session!.id,
+  });
+  expect(response.status).toEqual(204);
 
   const phraseRow = await findPhraseById(phrase.id);
   expect(phraseRow).toEqual({

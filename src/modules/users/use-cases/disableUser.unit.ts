@@ -20,6 +20,9 @@ vi.mock("@/modules/languages/public/LanguageClient", async () => ({
     await import("@/modules/languages/public/FakeLanguageClient")
   ).default,
 }));
+vi.mock("@/session", async () => ({
+  clearSessionsForUser: vi.fn().mockResolvedValue(undefined),
+}));
 
 test("throws error if user does not exist", async () => {
   const result = disableUser({ userId: ulid() });

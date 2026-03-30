@@ -22,7 +22,8 @@
     "not_found": "لم نتمكن من العثور على دعوتك إلى أدوات الكتاب المقدس العالمية.",
     "actions": {
       "log_in": "تسجيل الدخول"
-    }
+    },
+    "headTitle": "قبول الدعوة"
   },
   "AdminLanguagesPage": {
     "title": "اللغات",
@@ -82,7 +83,8 @@
   "EmailVerification": {
     "title": "تحقق من البريد الإلكتروني",
     "email_verification_error": "تعذر التحقق من البريد الإلكتروني. قد تكون عملية التحقق منتهية.",
-    "email_verified": "تم التحقق من عنوان البريد الإلكتروني."
+    "email_verified": "تم التحقق من عنوان البريد الإلكتروني.",
+    "headTitle": "تحقق من البريد الإلكتروني"
   },
   "Error": {
     "tab": "خطأ",
@@ -109,7 +111,8 @@
     },
     "actions": {
       "log_in": "تسجيل الدخول"
-    }
+    },
+    "headTitle": "نسيت كلمة المرور"
   },
   "InviteLanguageUserPage": {
     "title": "دعوة مستخدم",
@@ -160,9 +163,6 @@
       "exports": "التصدير"
     }
   },
-  "LanguageExportsPage": {
-    "title": "التصدير"
-  },
   "LanguageSettingsPage": {
     "title": "الإعدادات",
     "form": {
@@ -186,7 +186,8 @@
     "headings": {
       "identification": "التعريف",
       "text": "النص",
-      "bible_translation": "ترجمات الكتاب المقدس"
+      "bible_translation": "ترجمات الكتاب المقدس",
+      "gloss_prediction": "التنبؤ بالتفسيرات"
     },
     "english_name_description": "يُستخدم الاسم الإنجليزي للتعريف باللغة من قِبل المسؤولين والمترجمين.",
     "local_name_description": "يُستخدم الاسم المحلي للتعريف باللغة للمستخدمين النهائيين الذين قد لا يتحدثون الإنجليزية. ويجب كتابته كما يظهر للناطقين بهذه اللغة.",
@@ -220,7 +221,8 @@
       "email_required": "يرجى إدخال بريدك الإلكتروني.",
       "password_required": "يرجى إدخال كلمة المرور."
     },
-    "forgot_password": "نسيت كلمة المرور؟"
+    "forgot_password": "نسيت كلمة المرور؟",
+    "headTitle": "تسجيل الدخول"
   },
   "ModalView": {
     "app_name": "أدوات الكتاب المقدس العالمية"
@@ -277,7 +279,8 @@
     "update_profile": "تحديث الملف الشخصي"
   },
   "ReadingView": {
-    "close_sidebar": "إغلاق"
+    "close_sidebar": "إغلاق",
+    "headTitle": "{bookId, select, 1 {Genesis} 2 {Exodus} 3 {Leviticus} 4 {Numbers} 5 {Deuteronomy} 6 {Joshua} 7 {Judges} 8 {Ruth} 9 {1 Samuel} 10 {2 Samuel} 11 {1 Kings} 12 {2 Kings} 13 {1 Chronicles} 14 {2 Chronicles} 15 {Ezra} 16 {Nehemiah} 17 {Esther} 18 {Job} 19 {Psalm} 20 {Proverbs} 21 {Ecclesiastes} 22 {Song of Songs} 23 {Isaiah} 24 {Jeremiah} 25 {Lamentations} 26 {Ezekiel} 27 {Daniel} 28 {Hosea} 29 {Joel} 30 {Amos} 31 {Obadiah} 32 {Jonah} 33 {Micah} 34 {Nahum} 35 {Habakkuk} 36 {Zephaniah} 37 {Haggai} 38 {Zechariah} 39 {Malachi} 40 {Matthew} 41 {Mark} 42 {Luke} 43 {John} 44 {Acts} 45 {Romans} 46 {1 Corinthians} 47 {2 Corinthians} 48 {Galatians} 49 {Ephesians} 50 {Philippians} 51 {Colossians} 52 {1 Thessalonians} 53 {2 Thessalonians} 54 {1 Timothy} 55 {2 Timothy} 56 {Titus} 57 {Philemon} 58 {Hebrews} 59 {James} 60 {1 Peter} 61 {2 Peter} 62 {1 John} 63 {2 John} 64 {3 John} 65 {Jude} 66 {Revelation} other {}} {chapter}"
   },
   "WordDetails": {
     "tabs": {
@@ -454,7 +457,8 @@
     "not_found": "لم نتمكن من العثور على إعادة تعيين كلمة المرور الخاصة بك.",
     "actions": {
       "log_in": "تسجيل الدخول"
-    }
+    },
+    "headTitle": "إعادة تعيين كلمة المرور"
   },
   "RichTextInput": {
     "bold_tooltip": "غامق",
@@ -469,7 +473,10 @@
     "app_name": "أدوات الكتاب المقدس العالمية"
   },
   "RootNotFoundPage": {
-    "title": "غير موجود"
+    "title": "غير موجود",
+    "actions": {
+      "log_in": "تسجيل الدخول"
+    }
   },
   "SettingsMenu": {
     "text_size": "حجم النص",
@@ -649,7 +656,8 @@
       "يوحنا الثالثة",
       "يهوذا",
       "رؤيا"
-    ]
+    ],
+    "headTitle": "{bookId, select, 1 {Genesis} 2 {Exodus} 3 {Leviticus} 4 {Numbers} 5 {Deuteronomy} 6 {Joshua} 7 {Judges} 8 {Ruth} 9 {1 Samuel} 10 {2 Samuel} 11 {1 Kings} 12 {2 Kings} 13 {1 Chronicles} 14 {2 Chronicles} 15 {Ezra} 16 {Nehemiah} 17 {Esther} 18 {Job} 19 {Psalm} 20 {Proverbs} 21 {Ecclesiastes} 22 {Song of Songs} 23 {Isaiah} 24 {Jeremiah} 25 {Lamentations} 26 {Ezekiel} 27 {Daniel} 28 {Hosea} 29 {Joel} 30 {Amos} 31 {Obadiah} 32 {Jonah} 33 {Micah} 34 {Nahum} 35 {Habakkuk} 36 {Zephaniah} 37 {Haggai} 38 {Zechariah} 39 {Malachi} 40 {Matthew} 41 {Mark} 42 {Luke} 43 {John} 44 {Acts} 45 {Romans} 46 {1 Corinthians} 47 {2 Corinthians} 48 {Galatians} 49 {Ephesians} 50 {Philippians} 51 {Colossians} 52 {1 Thessalonians} 53 {2 Thessalonians} 54 {1 Timothy} 55 {2 Timothy} 56 {Titus} 57 {Philemon} 58 {Hebrews} 59 {James} 60 {1 Peter} 61 {2 Peter} 62 {1 John} 63 {2 John} 64 {3 John} 65 {Jude} 66 {Revelation} other {}} {chapter}:{verse}"
   },
   "VerseDetails": {
     "tabs": {

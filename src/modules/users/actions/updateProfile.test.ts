@@ -1,61 +1,28 @@
-import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
-import { Scrypt } from "oslo/password";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
 import { updateProfile } from "./updateProfile";
 import { userFactory } from "../test-utils/userFactory";
-import logIn from "@/tests/vitest/login";
 import {
   findEmailVerificationForUser,
   findUserById,
 } from "../test-utils/dbUtils";
+import Password from "../model/Password";
 
 initializeDatabase();
 
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  {
-    const formData = new FormData();
-    const response = await updateProfile({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        email: ["Please enter your email."],
-        name: ["Please input your name"],
-      },
-    });
-  }
-  {
-    const formData = new FormData();
-    formData.set("email", "");
-    formData.set("name", "");
-    const response = await updateProfile({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        email: ["Please enter a valid email.", "Please enter your email."],
-        name: ["Please input your name"],
-      },
-    });
-  }
-  {
-    const formData = new FormData();
-    formData.set("email", "garbage");
-    formData.set("name", "Test User");
-    formData.set("password", "short");
-    const response = await updateProfile({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        email: ["Please enter a valid email."],
-        password: ["Your password should be at least 8 characters."],
-        confirm_password: ["Your password confirmation does not match."],
-      },
-    });
-  }
+  const formData = new FormData();
+
+  await expect(
+    runServerFn(updateProfile, {
+      data: formData,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
 });
 
-test("returns not found error if user is not logged in", async () => {
+test("returns error if user is not logged in", async () => {
   const { user } = await userFactory.build();
 
   const newEmail = "changed@example.com";
@@ -63,7 +30,11 @@ test("returns not found error if user is not logged in", async () => {
   formData.set("email", newEmail);
   formData.set("name", "new name");
 
-  await expect(updateProfile({ state: "idle" }, formData)).toBeNextjsNotFound();
+  await expect(
+    runServerFn(updateProfile, {
+      data: formData,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: UnauthorizedError]`);
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual(user);
   const emailVerification = await findEmailVerificationForUser(user.id);
@@ -71,19 +42,18 @@ test("returns not found error if user is not logged in", async () => {
 });
 
 test("starts email verification process if email changed", async () => {
-  const { user } = await userFactory.build();
-  await logIn(user.id);
+  const { user, session } = await userFactory.build({ session: true });
 
   const newEmail = "changed@example.com";
   const formData = new FormData();
   formData.set("email", newEmail);
   formData.set("name", user.name!);
-  const response = await updateProfile({ state: "idle" }, formData);
-
-  expect(response).toEqual({
-    state: "success",
-    message: "Profile updated successfully!",
+  const { response } = await runServerFn(updateProfile, {
+    data: formData,
+    sessionId: session!.id,
   });
+
+  expect(response.status).toEqual(204);
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual(user);
 
@@ -106,8 +76,7 @@ ${process.env.ORIGIN}/verify-email?token=${emailVerification!.token}`,
 });
 
 test("rehashes password if it changed", async () => {
-  const { user } = await userFactory.build();
-  await logIn(user.id);
+  const { user, session } = await userFactory.build({ session: true });
 
   const newPassword = "newPa$$word!";
   const formData = new FormData();
@@ -115,19 +84,19 @@ test("rehashes password if it changed", async () => {
   formData.set("name", user.name!);
   formData.set("password", newPassword);
   formData.set("confirm_password", newPassword);
-  const response = await updateProfile({ state: "idle" }, formData);
-
-  expect(response).toEqual({
-    state: "success",
-    message: "Profile updated successfully!",
+  const { response } = await runServerFn(updateProfile, {
+    data: formData,
+    sessionId: session!.id,
   });
+
+  expect(response.status).toEqual(204);
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({
     ...user,
     hashed_password: expect.any(String),
   });
   await expect(
-    new Scrypt().verify(updatedUser?.hashed_password ?? "", newPassword),
+    Password.verify(updatedUser?.hashed_password ?? "", newPassword),
   ).resolves.toEqual(true);
   const emailVerification = await findEmailVerificationForUser(user.id);
   expect(emailVerification).toBeUndefined();
@@ -141,19 +110,18 @@ test("rehashes password if it changed", async () => {
 });
 
 test("update user's name if it changed", async () => {
-  const { user } = await userFactory.build();
-  await logIn(user.id);
+  const { user, session } = await userFactory.build({ session: true });
 
   const newName = "Joe Translator";
   const formData = new FormData();
   formData.set("email", user.email);
   formData.set("name", newName);
-  const response = await updateProfile({ state: "idle" }, formData);
-
-  expect(response).toEqual({
-    state: "success",
-    message: "Profile updated successfully!",
+  const { response } = await runServerFn(updateProfile, {
+    data: formData,
+    sessionId: session!.id,
   });
+
+  expect(response.status).toEqual(204);
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({
     ...user,

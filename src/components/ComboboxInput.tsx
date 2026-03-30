@@ -10,7 +10,7 @@ import {
 import {
   ComponentProps,
   KeyboardEventHandler,
-  forwardRef,
+  Ref,
   useEffect,
   useRef,
   useState,
@@ -35,131 +35,126 @@ interface BaseComboboxInputProps
   onBlur?(): void;
   onChange?(value: string): void;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
+  ref?: Ref<HTMLInputElement>;
 }
 
-const ComboboxInput = forwardRef<HTMLInputElement, BaseComboboxInputProps>(
-  (
-    {
-      className = "",
-      value,
-      defaultValue,
-      onChange,
-      onBlur,
-      items,
-      name,
-      up,
-      onKeyDown,
-      disabled,
-      autosubmit = false,
-      ...props
-    }: BaseComboboxInputProps,
-    ref,
-  ) => {
-    const [normalizedInputValue, setNormalizedInputValue] = useState("");
-    const [filteredItems, setFilteredItems] = useState<ComboboxItem[]>(items);
+export default function ComboboxInput({
+  className = "",
+  value,
+  defaultValue,
+  onChange,
+  onBlur,
+  items,
+  name,
+  up,
+  onKeyDown,
+  disabled,
+  autosubmit = false,
+  ref,
+  ...props
+}: BaseComboboxInputProps) {
+  const [normalizedInputValue, setNormalizedInputValue] = useState("");
+  const [filteredItems, setFilteredItems] = useState<ComboboxItem[]>(items);
 
-    const formContext = useFormContext();
-    const hasErrors =
-      formContext?.state === "error" &&
-      (formContext.validation?.[name ?? ""]?.length ?? 0) > 0;
+  const formContext = useFormContext();
+  const hasErrors =
+    formContext?.state === "error" &&
+    (formContext.validation?.[name ?? ""]?.length ?? 0) > 0;
 
-    // If none of the items matches the input value exactly,
-    // then we want to give the option of creating a new item.
-    useEffect(() => {
-      if (normalizedInputValue) {
-        const filteredItems = items.filter((item) =>
-          ignoreDiacritics(item.label.normalize("NFD").toLowerCase()).includes(
-            ignoreDiacritics(normalizedInputValue.toLowerCase()),
-          ),
-        );
-        setFilteredItems(filteredItems);
-      } else {
-        setFilteredItems(items);
-      }
-    }, [items, normalizedInputValue]);
+  // If none of the items matches the input value exactly,
+  // then we want to give the option of creating a new item.
+  useEffect(() => {
+    if (normalizedInputValue) {
+      const filteredItems = items.filter((item) =>
+        ignoreDiacritics(item.label.normalize("NFD").toLowerCase()).includes(
+          ignoreDiacritics(normalizedInputValue.toLowerCase()),
+        ),
+      );
+      setFilteredItems(filteredItems);
+    } else {
+      setFilteredItems(items);
+    }
+  }, [items, normalizedInputValue]);
 
-    const root = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
-    return (
-      <div
-        ref={root}
-        className={`${className} relative ${disabled ? "opacity-25" : ""}`}
+  return (
+    <div
+      ref={rootRef}
+      className={`${className} relative ${disabled ? "opacity-25" : ""}`}
+    >
+      <Combobox
+        value={value}
+        defaultValue={defaultValue}
+        onChange={(value) => {
+          // Comboboxes always have a value
+          if (!value) return;
+
+          if (autosubmit) {
+            // We have to wait a tick so that the internal input element is updated when we submit the form
+            setTimeout(() => {
+              const form = rootRef.current?.closest("form");
+              form?.requestSubmit();
+            });
+          }
+          onChange?.(value);
+        }}
+        name={name}
+        disabled={disabled}
       >
-        <Combobox
-          value={value}
-          defaultValue={defaultValue}
-          onChange={(value) => {
-            // Comboboxes always have a value
-            if (!value) return;
-
-            if (autosubmit) {
-              // We have to wait a tick so that the internal input element is updated when we submit the form
-              setTimeout(() => {
-                const form = root.current?.closest("form");
-                form?.requestSubmit();
-              });
+        <div
+          className={`
+            h-9 border rounded shadow-inner flex has-focus-visible:outline-2 bg-white
+            dark:shadow-none dark:bg-gray-900
+            ${
+              hasErrors ?
+                "border-red-700 shadow-red-100 outline-red-700"
+              : "border-gray-400 outline-green-300 dark:border-gray-700"
             }
-            onChange?.(value);
-          }}
-          name={name}
-          disabled={disabled}
+        `}
         >
-          <div
-            className={`
-              h-9 border rounded shadow-inner flex has-focus-visible:outline-2 bg-white
-              dark:shadow-none dark:bg-gray-900
-              ${
-                hasErrors ?
-                  "border-red-700 shadow-red-100 outline-red-700"
-                : "border-gray-400 outline-green-300 dark:border-gray-700"
+          <BaseComboboxInput
+            {...props}
+            onChange={(event) =>
+              setNormalizedInputValue(event.target.value.normalize("NFD"))
+            }
+            onBlur={onBlur}
+            className="w-full px-3 h-full rounded-b grow outline-none bg-transparent rounded-sm"
+            displayValue={(value) =>
+              items.find((i) => i.value === value)?.label ?? ""
+            }
+            onKeyDown={(e) => {
+              if (onKeyDown) {
+                onKeyDown(e);
               }
+            }}
+            ref={ref}
+          />
+          <ComboboxButton className="w-8">
+            {({ open }) => <Icon icon={open ? "caret-up" : "caret-down"} />}
+          </ComboboxButton>
+        </div>
+        <ComboboxOptions
+          className={`
+            z-10 absolute w-full max-h-80 bg-white overflow-auto mt-1 rounded border border-gray-400 shadow
+            dark:bg-gray-800 dark:border-gray-700
+            ${up ? "-mt-1 top-0 transform -translate-y-full" : "mt-1"}
           `}
-          >
-            <BaseComboboxInput
-              {...props}
-              onChange={(event) =>
-                setNormalizedInputValue(event.target.value.normalize("NFD"))
-              }
-              onBlur={onBlur}
-              className="w-full px-3 h-full rounded-b grow outline-none bg-transparent rounded-sm"
-              displayValue={(value) =>
-                items.find((i) => i.value === value)?.label ?? ""
-              }
-              onKeyDown={(e) => {
-                if (onKeyDown) {
-                  onKeyDown(e);
-                }
-              }}
-              ref={ref}
-            />
-            <ComboboxButton className="w-8">
-              {({ open }) => <Icon icon={open ? "caret-up" : "caret-down"} />}
-            </ComboboxButton>
-          </div>
-          <ComboboxOptions
-            className={`
-              z-10 absolute w-full max-h-80 bg-white overflow-auto mt-1 rounded border border-gray-400 shadow
-              dark:bg-gray-800 dark:border-gray-700
-              ${up ? "-mt-1 top-0 transform -translate-y-full" : "mt-1"}
-            `}
-          >
-            {filteredItems.map((item) => (
-              <ComboboxOption
-                className="px-3 py-2 data-focus:bg-green-200 dark:data-focus:green-400 dark:data-focus:text-gray-900"
-                key={item.value}
-                value={item.value}
-              >
-                {item.label}
-              </ComboboxOption>
-            ))}
-          </ComboboxOptions>
-        </Combobox>
-      </div>
-    );
-  },
-);
-ComboboxInput.displayName = "ComboboxInput";
-export default ComboboxInput;
+        >
+          {filteredItems.map((item) => (
+            <ComboboxOption
+              className="px-3 py-2 data-focus:bg-green-200 dark:data-focus:green-400 dark:data-focus:text-gray-900"
+              key={item.value}
+              value={item.value}
+            >
+              {item.label}
+            </ComboboxOption>
+          ))}
+        </ComboboxOptions>
+      </Combobox>
+    </div>
+  );
+}
 
 /**
  * Return a version of the word where all diacritics have been removed.

@@ -1,18 +1,22 @@
-import { ComponentProps, forwardRef } from "react";
+import { ComponentProps, Ref } from "react";
 
-const FormLabel = forwardRef<HTMLLabelElement, ComponentProps<"label">>(
-  ({ className = "", ...props }, ref) => {
-    return (
-      <label
-        ref={ref}
-        className={`
-          font-bold text-sm uppercase
-          ${className}
-        `}
-        {...props}
-      />
-    );
-  },
-);
-FormLabel.displayName = "FormLabel";
-export default FormLabel;
+interface FormLabelProps extends ComponentProps<"label"> {
+  ref?: Ref<HTMLLabelElement>;
+}
+
+export default function FormLabel({
+  ref,
+  className = "",
+  ...props
+}: FormLabelProps) {
+  return (
+    <label
+      ref={ref}
+      className={`
+        font-bold text-sm uppercase
+        ${className}
+      `}
+      {...props}
+    />
+  );
+}

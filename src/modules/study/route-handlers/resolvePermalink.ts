@@ -1,42 +1,39 @@
-import { logger } from "@/logging";
 import { parseChapterPermalinkReference } from "@/verse-utils";
-import { NextRequest, NextResponse } from "next/server";
+import { notFound, ParsedLocation, redirect } from "@tanstack/react-router";
 
 const PERMALINK_PATHNAME_REGEX = /^\/p\/(\w+)\/(.+)$/;
-const DEFAULT_LOCALE = "en";
 
-export async function resolvePermalink(request: NextRequest) {
-  const match = PERMALINK_PATHNAME_REGEX.exec(request.nextUrl.pathname);
+export function resolvePermalink(location: ParsedLocation): never {
+  const match = PERMALINK_PATHNAME_REGEX.exec(location.pathname);
   if (!match) {
-    return new NextResponse("", { status: 404 });
+    throw notFound();
   }
 
   const [, type, identifier] = match;
 
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const host = forwardedHost ?? request.headers.get("host");
-  const proto = request.headers.get("x-forwarded-proto") ?? "http";
-  const url = new URL(request.nextUrl.pathname, `${proto}://${host}`);
-
   switch (type) {
     default: {
-      return new NextResponse("", { status: 404 });
+      throw notFound();
     }
     case "ref": {
       let chapterId;
       try {
         chapterId = parseChapterPermalinkReference(identifier);
-      } catch (error) {
-        logger.error(error);
-        return;
+      } catch {
+        throw notFound();
       }
 
       if (!chapterId) {
-        return new NextResponse("", { status: 404 });
+        throw notFound();
       }
 
-      url.pathname = `/${DEFAULT_LOCALE}/read/eng/${chapterId}`;
-      return NextResponse.redirect(url);
+      throw redirect({
+        to: "/read/$code/$chapterId",
+        params: {
+          code: "eng",
+          chapterId,
+        },
+      });
     }
   }
 }

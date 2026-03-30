@@ -1,10 +1,9 @@
-"use client";
-
 import Button, { ActionProps } from "./Button";
-import { FormState } from "./Form";
-import { useEffect, useRef, useActionState, startTransition } from "react";
+import { useRef } from "react";
 import { useFlash } from "../flash";
 import ConfirmModal, { ConfirmModalRef } from "./ConfirmModal";
+import { OptionalFetcher, useServerFn } from "@tanstack/react-start";
+import { useRouter } from "@tanstack/react-router";
 
 export interface ServerActionProps extends ActionProps {
   // At some point, we can allow action data to take nested objects and arrays if we need to.
@@ -12,57 +11,47 @@ export interface ServerActionProps extends ActionProps {
     string,
     string | number | boolean | Record<string, string | number | boolean>
   >;
-  action: (
-    state: Awaited<FormState>,
-    formData: FormData,
-  ) => FormState | Promise<FormState>;
+  action: OptionalFetcher<any, any, any>;
   confirm?: string | boolean;
+  successMessage?: string;
+  invalidate?: boolean;
 }
 
 export default function ServerAction({
   action,
   actionData,
   confirm = false,
+  successMessage,
+  invalidate,
   ...props
 }: ServerActionProps) {
-  const [state, serverAction] = useActionState(action, { state: "idle" });
+  const serverFn = useServerFn(action);
   const flash = useFlash();
-
-  const confirmModal = useRef<ConfirmModalRef>(null);
-
-  useEffect(() => {
-    if (state.state === "error" && state.error) {
-      flash.error(state.error);
-    } else if (state.state === "success" && state.message) {
-      flash.success(state.message);
-    }
-  }, [state, flash]);
+  const router = useRouter();
+  const confirmModalRef = useRef<ConfirmModalRef>(null);
 
   function onModalClose() {
-    const result = confirmModal.current?.returnValue;
+    const result = confirmModalRef.current?.returnValue;
 
     if (result === "yes") {
       submit();
     }
   }
 
-  function submit() {
-    const form = new FormData();
-    if (actionData) {
-      for (const [key, value] of Object.entries(actionData)) {
-        if (typeof value === "object") {
-          for (const [nestedKey, nestedValue] of Object.entries(value)) {
-            form.set(`${key}[${nestedKey}]`, nestedValue.toString());
-          }
-        } else {
-          form.set(key, value.toString());
-        }
-      }
-    }
+  async function submit() {
+    try {
+      await serverFn({ data: actionData });
 
-    startTransition(() => {
-      serverAction(form);
-    });
+      if (invalidate) {
+        router.invalidate();
+      }
+
+      if (successMessage) {
+        flash.success(successMessage);
+      }
+    } catch (error) {
+      flash.error(error instanceof Error ? error.message : "Failed request");
+    }
   }
 
   return (
@@ -71,7 +60,7 @@ export default function ServerAction({
         {...props}
         onClick={() => {
           if (confirm) {
-            confirmModal.current?.showModal();
+            confirmModalRef.current?.showModal();
             return;
           }
 
@@ -80,7 +69,7 @@ export default function ServerAction({
       />
       {confirm && (
         <ConfirmModal
-          ref={confirmModal}
+          ref={confirmModalRef}
           prompt={typeof confirm === "string" ? confirm : ""}
           onClose={onModalClose}
         />

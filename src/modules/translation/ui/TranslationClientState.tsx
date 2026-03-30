@@ -1,11 +1,11 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams } from "@tanstack/react-router";
 import {
   createContext,
   ReactNode,
   useCallback,
-  useContext,
+  use,
   useEffect,
   useState,
 } from "react";
@@ -33,9 +33,9 @@ export function TranslationClientStateProvider({
 }: {
   children: ReactNode;
 }) {
-  const { verseId } = useParams<{ verseId: string }>();
+  const { verseId } = useParams({ from: "/_main/translate/$code/$verseId" });
 
-  const [focusedPhrase, focusPhrase] = useState<Phrase>();
+  const [focusedPhrase, setFocusedPhrase] = useState<Phrase>();
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
   const [backtranslations, setBacktranslations] = useState<
     undefined | { translation: string; phraseId: number }[]
@@ -43,7 +43,7 @@ export function TranslationClientStateProvider({
 
   useEffect(() => {
     setSelectedWords([]);
-    focusPhrase(undefined);
+    setFocusedPhrase(undefined);
     setBacktranslations(undefined);
   }, [verseId]);
 
@@ -62,24 +62,24 @@ export function TranslationClientStateProvider({
   }, []);
 
   return (
-    <TranslationClientStateContext.Provider
+    <TranslationClientStateContext
       value={{
         selectedWords,
         focusedPhrase,
         backtranslations,
         selectWord,
         clearSelectedWords,
-        focusPhrase,
+        focusPhrase: setFocusedPhrase,
         setBacktranslations,
       }}
     >
       {children}
-    </TranslationClientStateContext.Provider>
+    </TranslationClientStateContext>
   );
 }
 
 export function useTranslationClientState() {
-  const context = useContext(TranslationClientStateContext);
+  const context = use(TranslationClientStateContext);
   if (!context) {
     throw new Error(
       "useTranslationClientState must be used inside of TranslationClientStateProvider",

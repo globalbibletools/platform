@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from "react";
+import { createContext, use, useEffect, useId, useRef, useState } from "react";
 import * as d3 from "d3";
 import {
   addDays,
@@ -22,8 +15,7 @@ import {
 } from "date-fns";
 import { UTCDate } from "@date-fns/utc";
 import Button from "@/components/Button";
-import { useSearchParams } from "next/navigation";
-import { usePathname, useRouter } from "@/shared/i18n/navigation";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 
 export interface ActivityChartEntry {
   date: Date;
@@ -60,21 +52,16 @@ export function ActivityChartRangeToggle({
 }: {
   range?: ActivityChartRange;
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
+  const navigate = useNavigate();
+  const search = useSearch({ from: "/_main/admin/languages/$code/users/" });
 
   function onClick() {
-    if (range === "30d") {
-      router.replace({
-        pathname,
-        query: { range: "6m" },
-      });
-    } else {
-      router.replace({
-        pathname,
-        query: { range: "30d" },
-      });
-    }
+    const nextRange = range === "30d" ? "6m" : "30d";
+    navigate({
+      to: ".",
+      search: { ...search, range: nextRange },
+      replace: true,
+    });
   }
 
   return (
@@ -97,7 +84,7 @@ export default function ActivityChart({
   yMax: number;
   range: ActivityChartRange;
 }) {
-  const ctx = useContext(ActivityChartContext);
+  const ctx = use(ActivityChartContext);
   const [localCursor, setLocalCursor] = useState<UTCDate | null>(null);
   const cursor = ctx ? ctx.cursor : localCursor;
   const setCursor = ctx ? ctx.setCursor : setLocalCursor;

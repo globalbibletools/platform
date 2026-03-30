@@ -1,13 +1,15 @@
 "use client";
 
+import * as z from "zod";
 import { useState, Fragment } from "react";
 import { Tab, TabPanels, TabPanel, TabList, TabGroup } from "@headlessui/react";
-import { useTranslations } from "next-intl";
-import useSWR from "swr";
-import { VerseImmersiveContentReadModel } from "@/modules/bible-core/read-models/getVerseImmersiveContentReadModel";
+import { useTranslations } from "use-intl";
+import { getVerseImmseriveContentReadModel } from "@/modules/bible-core/read-models/getVerseImmersiveContentReadModel";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
+import { createServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 
 interface Verse {
   number: number;
@@ -29,19 +31,15 @@ export default function VerseDetails({
 
   const bookId = parseInt(chapterId.slice(0, 2));
   const chapterNumber = parseInt(chapterId.slice(2, 5));
+  const verseId = chapterId + verse.number.toString().padStart(3, "0");
 
-  const { data, isLoading } = useSWR(
-    ["verse-content", chapterId, verse.number],
-    async ([, chapterId, verseNumber]) => {
-      const verseId = `${chapterId}${verseNumber.toString().padStart(3, "0")}`;
-      const response = await fetch(
-        `${window.location.pathname}/api/verses/${verseId}`,
-      );
-      return (await response.json()) as Promise<
-        VerseImmersiveContentReadModel | undefined
-      >;
-    },
-  );
+  const { data, isLoading } = useQuery({
+    queryKey: ["verse-content", verseId],
+    queryFn: () =>
+      getVerseContent({
+        data: { verseId },
+      }),
+  });
 
   return (
     <div className="absolute w-full h-full flex flex-col gap-4">
@@ -130,3 +128,17 @@ export default function VerseDetails({
     </div>
   );
 }
+
+const getVerseContent = createServerFn()
+  .inputValidator(
+    z.object({
+      verseId: z.string(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const d = await getVerseImmseriveContentReadModel(data.verseId);
+
+    console.log(data.verseId, d);
+
+    return d;
+  });

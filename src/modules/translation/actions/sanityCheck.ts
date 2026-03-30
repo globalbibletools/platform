@@ -1,11 +1,8 @@
-"use server";
-
 import * as z from "zod";
-import { parseForm } from "@/form-parser";
-import { notFound } from "next/navigation";
+import { createServerFn } from "@tanstack/react-start";
 import { query } from "@/db";
-import { verifySession } from "@/session";
 import { translateClient } from "@/google-translate";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -17,25 +14,19 @@ type SanityCheckResult =
   | { state: "error"; error?: string }
   | { state: "success"; data: { translation: string; phraseId: number }[] };
 
-export async function sanityCheck(
-  _prev: SanityCheckResult,
-  formData: FormData,
-): Promise<SanityCheckResult> {
-  const session = await verifySession();
-  if (!session?.user.roles.includes("ADMIN")) {
-    notFound();
-  }
+const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
-  const request = requestSchema.safeParse(parseForm(formData));
-  if (!request.success) {
-    return { state: "error" };
-  }
+export const sanityCheck = createServerFn({ method: "POST" })
+  .inputValidator(requestSchema)
+  .middleware([createPolicyMiddleware({ policy })])
+  .handler(async ({ data }) => {
+    const request = data;
 
-  const glossesQuery = await query<{
-    phraseId: number;
-    gloss: string | null;
-  }>(
-    `SELECT
+    const glossesQuery = await query<{
+      phraseId: number;
+      gloss: string | null;
+    }>(
+      `SELECT
             ph.id as "phraseId",
             g.gloss
         FROM gloss g
@@ -49,17 +40,19 @@ export async function sanityCheck(
                     AND w.verse_id = $2
             )
         `,
-    [request.data.code, request.data.verseId],
-  );
-  const glosses = glossesQuery.rows;
+      [request.code, request.verseId],
+    );
+    const glosses = glossesQuery.rows;
 
-  const translations = await backtranslate(
-    request.data.code,
-    glosses.filter((g): g is { gloss: string; phraseId: number } => !!g.gloss),
-  );
+    const translations = await backtranslate(
+      request.code,
+      glosses.filter(
+        (g): g is { gloss: string; phraseId: number } => !!g.gloss,
+      ),
+    );
 
-  return { state: "success", data: translations };
-}
+    return { state: "success", data: translations } as SanityCheckResult;
+  });
 
 async function backtranslate(
   code: string,

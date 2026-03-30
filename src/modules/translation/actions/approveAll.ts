@@ -1,23 +1,17 @@
-"use server";
-
 import * as z from "zod";
-import { getLocale } from "next-intl/server";
-import { parseForm } from "@/form-parser";
-import { notFound } from "next/navigation";
-import { verifySession } from "@/session";
-import { revalidatePath } from "next/cache";
+import { createServerFn } from "@tanstack/react-start";
+import { notFound } from "@tanstack/react-router";
 import { serverActionLogger } from "@/server-action";
-import { Policy } from "@/modules/access";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { GlossApprovalMethodRaw } from "../types";
 import { approveAllUseCase } from "../use-cases/approveAll";
 import { NotFoundError } from "@/shared/errors";
 
 const requestSchema = z.object({
-  verseId: z.string(),
   code: z.string(),
   phrases: z.array(
     z.object({
-      id: z.coerce.number(),
+      id: z.number(),
       gloss: z.string(),
       method: z.nativeEnum(GlossApprovalMethodRaw).optional(),
     }),
@@ -28,42 +22,30 @@ const policy = new Policy({
   languageMember: true,
 });
 
-export async function approveAll(formData: FormData): Promise<void> {
-  const logger = serverActionLogger("approveAll");
+export const approveAll = createServerFn({ method: "POST" })
+  .inputValidator(requestSchema)
+  .middleware([
+    createPolicyMiddleware({
+      policy,
+      languageCodeField: "code",
+    }),
+  ])
+  .handler(async ({ data, context }) => {
+    console.log(data);
+    const logger = serverActionLogger("approveAll");
 
-  const request = requestSchema.safeParse(parseForm(formData));
-  if (!request.success) {
-    logger.error("request parse error");
-    return;
-  }
+    try {
+      await approveAllUseCase({
+        languageCode: data.code,
+        phrases: data.phrases,
+        userId: context.session.user.id,
+      });
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        logger.error("not found");
+        throw notFound();
+      }
 
-  const session = await verifySession();
-  const authorized = await policy.authorize({
-    actorId: session?.user.id,
-    languageCode: request.data.code,
-  });
-  if (!authorized) {
-    logger.error("unauthorized");
-    notFound();
-  }
-
-  try {
-    await approveAllUseCase({
-      languageCode: request.data.code,
-      phrases: request.data.phrases,
-      userId: session!.user.id,
-    });
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      logger.error("not found");
-      notFound();
-    } else {
       throw error;
     }
-  }
-
-  const locale = await getLocale();
-  revalidatePath(
-    `/${locale}/translate/${request.data.code}/${request.data.verseId}`,
-  );
-}
+  });

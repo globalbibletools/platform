@@ -1,11 +1,9 @@
-import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
 import { UserStatusRaw } from "../model/UserStatus";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
 import { ulid } from "@/shared/ulid";
 import { disableUser } from "./disableUser";
-import logIn from "@/tests/vitest/login";
-import { sessionFactory } from "../test-utils/sessionFactory";
 import { userFactory } from "../test-utils/userFactory";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 import {
@@ -20,62 +18,83 @@ import { findLanguageMembersForUser } from "@/modules/languages/test-utils/dbUti
 initializeDatabase();
 
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
-
-  const formData = new FormData();
-  const response = await disableUser({ state: "idle" }, formData);
-  expect(response).toEqual({
-    state: "error",
-    error: "Invalid request",
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
   });
+
+  await expect(
+    runServerFn(disableUser, {
+      data: {},
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`
+    [ZodError: [
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "userId"
+        ],
+        "message": "Required"
+      }
+    ]]
+  `);
 });
 
 test("returns not found if actor is not a platform admin", async () => {
-  const { user } = await userFactory.build();
-  await logIn(user.id);
+  const { session } = await userFactory.build({ session: true });
 
   const { user: target } = await userFactory.build();
 
-  const formData = new FormData();
-  formData.set("userId", target.id);
-  const response = disableUser({ state: "idle" }, formData);
-  await expect(response).toBeNextjsNotFound();
+  const response = runServerFn(disableUser, {
+    data: (() => {
+      const formData = new FormData();
+      formData.set("userId", target.id);
+      return formData;
+    })(),
+    sessionId: session!.id,
+  });
+  await expect(response).rejects.toThrowErrorMatchingInlineSnapshot(
+    `[Error: UnauthorizedError]`,
+  );
 
   const updatedUser = await findUserById(target.id);
   expect(updatedUser).toEqual(target);
 });
 
 test("returns not found if the user does not exist", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
-  const formData = new FormData();
-  formData.set("userId", ulid());
-  const response = disableUser({ state: "idle" }, formData);
-  await expect(response).toBeNextjsNotFound();
+  const response = runServerFn(disableUser, {
+    data: { userId: ulid() },
+    sessionId: session!.id,
+  });
+  await expect(response).toBeTanstackNotFound();
 });
 
 test("disable active user and removes all related data", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+  const { session: adminSession } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
   const { user } = await userFactory.build({
     emailVerification: "active",
     passwordReset: "active",
+    session: true,
   });
-  await Promise.all([
-    sessionFactory.build(user.id),
-    languageFactory.build({ members: [user.id] }),
-  ]);
+  await languageFactory.build({ members: [user.id] });
 
-  const formData = new FormData();
-  formData.set("userId", user.id);
-  const response = await disableUser({ state: "idle" }, formData);
-  expect(response).toEqual({
-    state: "success",
-    message: "User disabled successfully",
+  const { response } = await runServerFn(disableUser, {
+    data: { userId: user.id },
+    sessionId: adminSession!.id,
   });
+  expect(response.status).toEqual(204);
 
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({
@@ -91,18 +110,18 @@ test("disable active user and removes all related data", async () => {
 });
 
 test("disables invited user and removes all related data", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
   const { user } = await userFactory.build({ state: "invited" });
 
-  const formData = new FormData();
-  formData.set("userId", user.id);
-  const response = await disableUser({ state: "idle" }, formData);
-  expect(response).toEqual({
-    state: "success",
-    message: "User disabled successfully",
+  const { response } = await runServerFn(disableUser, {
+    data: { userId: user.id },
+    sessionId: session!.id,
   });
+  expect(response.status).toEqual(204);
 
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({

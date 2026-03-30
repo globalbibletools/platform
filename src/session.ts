@@ -1,9 +1,14 @@
 "use server";
 
 import { query } from "@/db";
+import {
+  deleteCookie,
+  getCookie,
+  setCookie,
+} from "@tanstack/react-start/server";
 import { randomBytes } from "crypto";
-import { cookies } from "next/headers";
 import * as React from "react";
+import { SystemRoleRaw } from "./modules/users/types";
 
 const DAY_FROM_MS = 24 * 60 * 60 * 1000;
 const EXPIRES_IN =
@@ -23,6 +28,7 @@ export async function createSession(userId?: string) {
     expiresAt: new Date(Date.now() + EXPIRES_IN),
     userId,
   };
+
   if (userId) {
     await query(
       `INSERT INTO session (id, expires_at, user_id) VALUES ($1, $2, $3)`,
@@ -30,8 +36,7 @@ export async function createSession(userId?: string) {
     );
   }
 
-  const cookieStore = await cookies();
-  cookieStore.set("session", session.id, {
+  setCookie("session", session.id, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     expires: session.expiresAt,
@@ -43,23 +48,26 @@ export async function createSession(userId?: string) {
 }
 
 export async function clearSessionsForUser(userId: string) {
-  await query(`delete from session where user_id = $1`, [userId]);
+  await query(`DELETE FROM session WHERE user_id = $1`, [userId]);
 }
 
 export async function clearSession() {
-  const cookieStore = await cookies();
+  const sessionId = getCookie("session");
 
-  const sessionId = cookieStore.get("session")?.value;
-  if (!sessionId) return;
+  if (sessionId) {
+    await query(`DELETE FROM session WHERE id = $1`, [sessionId]);
+  }
 
-  cookieStore.delete("session");
+  deleteCookie("session", {
+    path: "/",
+  });
 }
 
 export async function verifySession() {
-  const cookieStore = await cookies();
-
-  const sessionId = cookieStore.get("session")?.value;
-  if (!sessionId) return;
+  const sessionId = getCookie("session");
+  if (!sessionId) {
+    return;
+  }
 
   const session = await fetchSession(sessionId);
   if (!session || session.expiresAt < new Date()) {
@@ -69,14 +77,14 @@ export async function verifySession() {
   return session;
 }
 
-interface Session {
+export interface Session {
   id: string;
   expiresAt: Date;
   user: {
     id: string;
     name: string;
     email: string;
-    roles: string[];
+    roles: SystemRoleRaw[];
   };
 }
 
@@ -84,16 +92,17 @@ const fetchSession = React.cache(
   async (sessionId: string): Promise<Session | undefined> => {
     const result = await query<Session>(
       `
-            SELECT
-                session.id, expires_at,
-                JSON_BUILD_OBJECT(
-                    'id', users.id, 'email', email, 'name', name,
-                    'roles', (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') FROM user_system_role AS r WHERE r.user_id = users.id)
-                ) AS user
-            FROM session
-            JOIN users ON users.id = session.user_id
-            WHERE session.id = $1
-            `,
+        SELECT
+          session.id,
+          session.expires_at AS "expiresAt",
+          JSON_BUILD_OBJECT(
+            'id', users.id, 'email', email, 'name', name,
+            'roles', (SELECT COALESCE(json_agg(r.role) FILTER (WHERE r.role IS NOT NULL), '[]') FROM user_system_role AS r WHERE r.user_id = users.id)
+          ) AS user
+        FROM session
+        JOIN users ON users.id = session.user_id
+        WHERE session.id = $1
+      `,
       [sessionId],
     );
     return result.rows[0];

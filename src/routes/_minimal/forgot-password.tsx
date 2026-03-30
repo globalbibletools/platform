@@ -1,0 +1,68 @@
+import ModalView, { ModalViewTitle } from "@/components/ModalView";
+import Button from "@/components/Button";
+import FormLabel from "@/components/FormLabel";
+import TextInput from "@/components/TextInput";
+import FieldError from "@/components/FieldError";
+import Form from "@/components/Form";
+import { startPasswordReset } from "@/modules/users/actions/startPasswordReset";
+import { createFileRoute } from "@tanstack/react-router";
+import { useTranslations } from "use-intl";
+import { Policy } from "@/modules/access";
+import { routerGuard } from "@/modules/access/routerGuard";
+import { withDocumentTitle } from "@/documentTitle";
+import { getTranslator } from "@/shared/i18n/messages";
+
+export const Route = createFileRoute("/_minimal/forgot-password")({
+  beforeLoad: ({ context }) => {
+    routerGuard({
+      context: context.auth,
+      policy: new Policy({ authenticated: false }),
+    });
+  },
+  head: async () => {
+    const t = await getTranslator("ForgotPasswordPage");
+    return withDocumentTitle(t("headTitle"));
+  },
+  component: ForgotPasswordRoute,
+});
+
+export default function ForgotPasswordRoute() {
+  const t = useTranslations("ForgotPasswordPage");
+
+  return (
+    <ModalView
+      className="max-w-[480px] w-full"
+      header={
+        <Button to="/login" variant="tertiary">
+          {t("actions.log_in")}
+        </Button>
+      }
+    >
+      <ModalViewTitle>{t("title")}</ModalViewTitle>
+      <Form
+        className="max-w-[300px] w-full mx-auto"
+        action={startPasswordReset}
+        redirect={{ to: "/login" }}
+      >
+        <div className="mb-6">
+          <FormLabel htmlFor="email">{t("form.email")}</FormLabel>
+          <TextInput
+            id="email"
+            name="email"
+            className="w-full"
+            autoComplete="username"
+            aria-describedby="email-error"
+          />
+          <FieldError
+            id="email-error"
+            name="email"
+            messages={{ too_small: t("errors.email_required") }}
+          />
+        </div>
+        <Button type="submit" className="w-full mb-2">
+          {t("form.submit")}
+        </Button>
+      </Form>
+    </ModalView>
+  );
+}

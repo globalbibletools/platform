@@ -1,14 +1,11 @@
-"use server";
-
 import * as z from "zod";
-import { getLocale, getTranslations } from "next-intl/server";
+import { createServerFn } from "@tanstack/react-start";
+import { notFound } from "@tanstack/react-router";
 import { createSession } from "@/session";
-import { notFound, redirect } from "next/navigation";
 import { parseForm } from "@/form-parser";
-import { FormState } from "@/components/Form";
-import { serverActionLogger } from "@/server-action";
 import { acceptInvite as acceptInviteUseCase } from "../use-cases/acceptInvite";
 import { InvalidInvitationTokenError } from "../model/errors";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 
 const loginSchema = z
   .object({
@@ -22,63 +19,36 @@ const loginSchema = z
     path: ["confirm_password"],
   });
 
-export async function acceptInvite(
-  prevState: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const logger = serverActionLogger("acceptInvite");
-
-  const t = await getTranslations("AcceptInvitePage");
-
-  const request = loginSchema.safeParse(parseForm(formData), {
-    errorMap: (error) => {
-      if (error.path.toString() === "password") {
-        if (error.code === "too_small") {
-          return { message: t("errors.password_format") };
-        } else {
-          return { message: t("errors.password_required") };
-        }
-      } else if (error.path.toString() === "confirm_password") {
-        if (error.code === "custom") {
-          return { message: t("errors.confirm_password_mismatch") };
-        } else {
-          return { message: t("errors.confirm_password_required") };
-        }
-      } else if (error.path.toString() === "first_name") {
-        return { message: t("errors.first_name_required") };
-      } else if (error.path.toString() === "last_name") {
-        return { message: t("errors.last_name_required") };
-      } else {
-        return { message: "Invalid" };
-      }
-    },
-  });
-  if (!request.success) {
-    logger.error("request parse error");
-    return {
-      state: "error",
-      validation: request.error.flatten().fieldErrors,
-    };
-  }
-
-  let userId;
-  try {
-    const result = await acceptInviteUseCase({
-      token: request.data.token,
-      firstName: request.data.first_name,
-      lastName: request.data.last_name,
-      password: request.data.password,
-    });
-    userId = result.userId;
-  } catch (error) {
-    if (error instanceof InvalidInvitationTokenError) {
-      notFound();
-    } else {
-      throw error;
+export const acceptInvite = createServerFn({ method: "POST" })
+  .inputValidator((data) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
     }
-  }
 
-  await createSession(userId);
-  const locale = await getLocale();
-  redirect(`/${locale}/dashboard`);
-}
+    return loginSchema.parse(parseForm(data));
+  })
+  .middleware([
+    createPolicyMiddleware({
+      policy: new Policy({ authenticated: false }),
+    }),
+  ])
+  .handler(async ({ data }) => {
+    let userId;
+    try {
+      const result = await acceptInviteUseCase({
+        token: data.token,
+        firstName: data.first_name,
+        lastName: data.last_name,
+        password: data.password,
+      });
+      userId = result.userId;
+    } catch (error) {
+      if (error instanceof InvalidInvitationTokenError) {
+        throw notFound();
+      } else {
+        throw error;
+      }
+    }
+
+    await createSession(userId);
+  });

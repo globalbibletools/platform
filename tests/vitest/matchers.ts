@@ -1,6 +1,5 @@
 import { expect } from "vitest";
 import { differenceInSeconds } from "date-fns";
-import { notFound, redirect } from "next/navigation";
 
 expect.extend({
   toBeUlid(received: any) {
@@ -61,7 +60,7 @@ expect.extend({
         `${received} is${this.isNot ? "" : " not"} a token${length && `of length ${length}`}`,
     };
   },
-  async toBeNextjsRedirect(receivedPromise: any, path: string) {
+  async toBeTanstackNotFound(receivedPromise: any) {
     let received;
     try {
       received = await receivedPromise;
@@ -69,40 +68,10 @@ expect.extend({
       received = error;
     }
 
-    let expected: any;
-    try {
-      redirect(path);
-    } catch (error) {
-      expected = error;
-    }
-
     return {
-      pass:
-        received?.message === expected.message &&
-        received?.digest === expected.digest,
+      pass: received.isNotFound,
       message: () =>
-        `${received instanceof Error ? received.stack : JSON.stringify(received)} is${this.isNot ? "" : " not"} a Next.js redirect to ${path}`,
-    };
-  },
-  async toBeNextjsNotFound(receivedPromise: any) {
-    let received;
-    try {
-      received = await receivedPromise;
-    } catch (error) {
-      received = error;
-    }
-
-    let expected: any;
-    try {
-      notFound();
-    } catch (error) {
-      expected = error;
-    }
-
-    return {
-      pass: received?.message === expected.message,
-      message: () =>
-        `${received instanceof Error ? received.stack : JSON.stringify(received)} is${this.isNot ? "" : " not"} a Next.js not found redirect`,
+        `${received instanceof Error ? received.stack : JSON.stringify(received)} is${this.isNot ? "" : " not"} a not found error`,
     };
   },
 });

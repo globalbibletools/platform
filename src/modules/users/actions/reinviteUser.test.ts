@@ -1,10 +1,9 @@
-import "@/tests/vitest/mocks/nextjs";
 import { sendEmailMock } from "@/tests/vitest/mocks/mailer";
 import { test, expect } from "vitest";
 import { UserStatusRaw } from "../model/UserStatus";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
 import { reinviteUserAction } from "./reinviteUser";
-import logIn from "@/tests/vitest/login";
 import { userFactory } from "../test-utils/userFactory";
 import { findInvitationsForUser, findUserById } from "../test-utils/dbUtils";
 import { ulid } from "@/shared/ulid";
@@ -12,61 +11,71 @@ import { ulid } from "@/shared/ulid";
 initializeDatabase();
 
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
-  {
-    const formData = new FormData();
-    const response = await reinviteUserAction({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-    });
-  }
-  {
-    const formData = new FormData();
-    formData.set("userId", "");
-    const response = await reinviteUserAction({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-    });
-  }
+  await expect(
+    runServerFn(reinviteUserAction, {
+      data: {},
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`
+    [ZodError: [
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "userId"
+        ],
+        "message": "Required"
+      }
+    ]]
+  `);
 });
 
 test("returns not found if user is not a platform admin", async () => {
-  const { user } = await userFactory.build();
-  await logIn(user.id);
+  const { session } = await userFactory.build({ session: true });
 
   const { user: invitedUser } = await userFactory.build({ state: "invited" });
 
-  const formData = new FormData();
-  formData.set("userId", invitedUser.id);
-  const response = reinviteUserAction({ state: "idle" }, formData);
-  await expect(response).toBeNextjsNotFound();
+  const response = runServerFn(reinviteUserAction, {
+    data: { userId: invitedUser.id },
+    sessionId: session!.id,
+  });
+  await expect(response).rejects.toThrowErrorMatchingInlineSnapshot(
+    `[Error: UnauthorizedError]`,
+  );
 });
 
 test("returns error if user is not found", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
-  const formData = new FormData();
-  formData.set("userId", ulid());
-  const response = reinviteUserAction({ state: "idle" }, formData);
-  await expect(response).toBeNextjsNotFound();
+  const response = runServerFn(reinviteUserAction, {
+    data: { userId: ulid() },
+    sessionId: session!.id,
+  });
+  await expect(response).toBeTanstackNotFound();
 });
 
-test("reinvites user with pending invite and redirects back to users list", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+test("reinvites user with pending invite", async () => {
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
   const { user, invitation } = await userFactory.build({ state: "invited" });
 
-  const formData = new FormData();
-  formData.set("userId", user.id);
-  const response = await reinviteUserAction({ state: "idle" }, formData);
-  expect(response).toEqual({
-    state: "success",
-    message: "User invitation resent",
+  const { response } = await runServerFn(reinviteUserAction, {
+    data: { userId: user.id },
+    sessionId: session!.id,
   });
+  expect(response.status).toEqual(204);
 
   const invites = await findInvitationsForUser(user.id);
   expect(invites).toEqual([
@@ -87,19 +96,19 @@ test("reinvites user with pending invite and redirects back to users list", asyn
   });
 });
 
-test("reinvites disabled user and redirects back to users list", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+test("reinvites disabled user", async () => {
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
   const { user } = await userFactory.build({ state: "disabled" });
 
-  const formData = new FormData();
-  formData.set("userId", user.id);
-  const response = await reinviteUserAction({ state: "idle" }, formData);
-  expect(response).toEqual({
-    state: "success",
-    message: "User invitation resent",
+  const { response } = await runServerFn(reinviteUserAction, {
+    data: { userId: user.id },
+    sessionId: session!.id,
   });
+  expect(response.status).toEqual(204);
 
   const updatedUser = await findUserById(user.id);
   expect(updatedUser).toEqual({

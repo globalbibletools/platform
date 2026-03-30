@@ -1,14 +1,10 @@
-"use server";
-
 import * as z from "zod";
-import { getTranslations, getLocale } from "next-intl/server";
-import { notFound, redirect } from "next/navigation";
-import { verifySession } from "@/session";
-import { FormState } from "@/components/Form";
+import { createServerFn } from "@tanstack/react-start";
+import { parseForm } from "@/form-parser";
 import { serverActionLogger } from "@/server-action";
 import { createLanguage as createLanguageUseCase } from "../use-cases/createLanguage";
 import { LanguageAlreadyExistsError } from "../model";
-import { Policy } from "@/modules/access";
+import { createPolicyMiddleware, Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   code: z.string().length(3),
@@ -20,66 +16,27 @@ const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
 
-export async function createLanguage(
-  _prevState: FormState,
-  formData: FormData,
-): Promise<FormState> {
-  const logger = serverActionLogger("createLanguage");
+export const createLanguage = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => {
+    if (!(data instanceof FormData)) {
+      throw new Error("expected FormData");
+    }
 
-  const t = await getTranslations("NewLanguagePage");
+    return requestSchema.parse(parseForm(data));
+  })
+  .middleware([createPolicyMiddleware({ policy })])
+  .handler(async ({ data }) => {
+    const logger = serverActionLogger("createLanguage");
 
-  const request = requestSchema.safeParse(
-    {
-      code: formData.get("code"),
-      englishName: formData.get("englishName"),
-      localName: formData.get("localName"),
-    },
-    {
-      errorMap: (error) => {
-        if (error.path.toString() === "code") {
-          return { message: t("errors.code_size") };
-        } else if (error.path.toString() === "englishName") {
-          return { message: t("errors.english_name_required") };
-        } else if (error.path.toString() === "localName") {
-          return { message: t("errors.local_name_required") };
-        } else {
-          return { message: "Invalid" };
-        }
-      },
-    },
-  );
-  if (!request.success) {
-    logger.error("request parse error");
-    return {
-      state: "error",
-      validation: request.error.flatten().fieldErrors,
-    };
-  }
+    try {
+      await createLanguageUseCase(data);
+    } catch (error) {
+      if (error instanceof LanguageAlreadyExistsError) {
+        logger.error("language already exists");
+        // TODO: convert to error code
+        throw new Error("language_exists");
+      }
 
-  const session = await verifySession();
-  const authorized = await policy.authorize({
-    actorId: session?.user.id,
-    languageCode: formData.get("code")?.toString(),
-  });
-  if (!authorized) {
-    logger.error("unauthorized");
-    notFound();
-  }
-
-  try {
-    await createLanguageUseCase(request.data);
-  } catch (error) {
-    if (error instanceof LanguageAlreadyExistsError) {
-      logger.error("language already exists");
-      return {
-        state: "error",
-        error: t("errors.language_exists"),
-      };
-    } else {
       throw error;
     }
-  }
-
-  const locale = await getLocale();
-  redirect(`/${locale}/admin/languages/${request.data.code}/settings`);
-}
+  });

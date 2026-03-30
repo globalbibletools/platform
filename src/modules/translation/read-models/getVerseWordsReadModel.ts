@@ -1,14 +1,13 @@
 import { getDb } from "@/db";
-import { jsonArrayFrom, jsonBuildObject } from "kysely/helpers/postgres";
+import { jsonArrayFrom } from "kysely/helpers/postgres";
 
 export interface VerseWordReadModel {
   id: string;
   text: string;
-  referenceGloss?: string;
+  referenceGloss: string | null;
   lemma: string;
   formId: string;
   grammar: string;
-  resource?: { name: string; entry: string };
 }
 
 export interface VerseWordsReadModel {
@@ -60,20 +59,10 @@ export async function getVerseWordsReadModel(
               .select("g.gloss")
               .limit(1)
               .as("referenceGloss"),
-            wordEb
-              .selectFrom("lemma_resource as lr")
-              .where("lr.lemma_id", "=", wordEb.ref("lf.lemma_id"))
-              .select((lrEb) =>
-                jsonBuildObject({
-                  name: lrEb.ref("lr.resource_code"),
-                  entry: lrEb.ref("lr.content"),
-                }).as("resource"),
-              )
-              .as("resource"),
           ]),
       ).as("words"),
     ])
     .executeTakeFirst();
 
-  return result as VerseWordsReadModel | undefined;
+  return result;
 }

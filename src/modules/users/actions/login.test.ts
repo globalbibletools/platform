@@ -1,48 +1,54 @@
-import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
-import { login } from "./login";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
+import { logIn } from "./login";
 import { userFactory } from "../test-utils/userFactory";
 import { findSessionsForUser } from "../test-utils/dbUtils";
 
 initializeDatabase();
 
 test("returns validation errors if the request shape doesn't match the schema", async () => {
-  {
-    const formData = new FormData();
-    const response = await login({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        email: ["Please enter your email."],
-        password: ["Please enter your password."],
+  const formData = new FormData();
+  await expect(
+    runServerFn(logIn, {
+      data: formData,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`
+    [ZodError: [
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "email"
+        ],
+        "message": "Required"
       },
-    });
-  }
-  {
-    const formData = new FormData();
-    formData.set("email", "");
-    formData.set("password", "");
-    const response = await login({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        email: ["Please enter your email."],
-        password: ["Please enter your password."],
-      },
-    });
-  }
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "undefined",
+        "path": [
+          "password"
+        ],
+        "message": "Required"
+      }
+    ]]
+  `);
 });
 
 test("returns error if no user is found", async () => {
   const formData = new FormData();
   formData.set("email", "test@example.com");
   formData.set("password", "pa$$word");
-  const response = await login({ state: "idle" }, formData);
-  expect(response).toEqual({
-    state: "error",
-    error: "Invalid email or password.",
-  });
+
+  await expect(
+    runServerFn(logIn, {
+      data: formData,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(
+    `[Error: Invalid email or password.]`,
+  );
 });
 
 test("returns error if password does not match", async () => {
@@ -51,11 +57,14 @@ test("returns error if password does not match", async () => {
   const formData = new FormData();
   formData.set("email", user.email);
   formData.set("password", "garbage");
-  const response = await login({ state: "idle" }, formData);
-  expect(response).toEqual({
-    state: "error",
-    error: "Invalid email or password.",
-  });
+
+  await expect(
+    runServerFn(logIn, {
+      data: formData,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(
+    `[Error: Invalid email or password.]`,
+  );
 });
 
 test("creates session for user if password matches", async () => {
@@ -64,14 +73,22 @@ test("creates session for user if password matches", async () => {
   const formData = new FormData();
   formData.set("email", user.email);
   formData.set("password", "pa$$word");
-  await expect(login({ state: "idle" }, formData)).toBeNextjsRedirect(
-    "/en/dashboard",
-  );
+
+  const { response } = await runServerFn(logIn, {
+    data: formData,
+  });
+
+  expect(response.status).toEqual(204);
+
+  const sessionId = response.headers
+    .get("set-cookie")
+    ?.match(/session=([^;]+);/)?.[1];
+  expect(sessionId).toBeToken();
 
   const sessions = await findSessionsForUser(user.id);
   expect(sessions).toEqual([
     {
-      id: expect.any(String),
+      id: sessionId,
       user_id: user.id,
       expires_at: expect.toBeDaysIntoFuture(30),
     },

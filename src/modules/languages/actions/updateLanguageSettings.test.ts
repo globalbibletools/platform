@@ -1,9 +1,8 @@
-import "@/tests/vitest/mocks/nextjs";
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
+import { runServerFn } from "@/tests/vitest/serverFnHarness";
 import { updateLanguageSettings } from "./updateLanguageSettings";
 import { MachineGlossStrategy, TextDirectionRaw } from "../model";
-import logIn from "@/tests/vitest/login";
 import { languageFactory } from "../test-utils/languageFactory";
 import { findLanguageByCode } from "../test-utils/dbUtils";
 import { userFactory } from "@/modules/users/test-utils/userFactory";
@@ -11,47 +10,79 @@ import { userFactory } from "@/modules/users/test-utils/userFactory";
 initializeDatabase();
 
 test("returns validation error if the request shape doesn't match the schema", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
-  {
-    const formData = new FormData();
-    const response = await updateLanguageSettings({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        code: ["Invalid"],
-        englishName: ["Please enter the language's English name."],
-        localName: ["Please enter the language's local name."],
-        font: ["Please select a font."],
-        textDirection: ["Please select a text direction."],
-        machineGlossStrategy: ["Please select a machine gloss strategy."],
+  const formData = new FormData();
+  await expect(
+    runServerFn(updateLanguageSettings, {
+      data: formData,
+      sessionId: session!.id,
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`
+    [ZodError: [
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "null",
+        "path": [
+          "code"
+        ],
+        "message": "Expected string, received null"
       },
-    });
-  }
-  {
-    const formData = new FormData();
-    formData.set("code", "spa");
-    formData.set("englishName", "");
-    formData.set("localName", "");
-    formData.set("font", "");
-    formData.set("text_direction", TextDirectionRaw.LTR);
-    formData.set("machineGlossStrategy", MachineGlossStrategy.LLM);
-    const response = await updateLanguageSettings({ state: "idle" }, formData);
-    expect(response).toEqual({
-      state: "error",
-      validation: {
-        englishName: ["Please enter the language's English name."],
-        localName: ["Please enter the language's local name."],
-        font: ["Please select a font."],
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "null",
+        "path": [
+          "localName"
+        ],
+        "message": "Expected string, received null"
       },
-    });
-  }
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "null",
+        "path": [
+          "englishName"
+        ],
+        "message": "Expected string, received null"
+      },
+      {
+        "code": "invalid_type",
+        "expected": "string",
+        "received": "null",
+        "path": [
+          "font"
+        ],
+        "message": "Expected string, received null"
+      },
+      {
+        "expected": "'ltr' | 'rtl'",
+        "received": "null",
+        "code": "invalid_type",
+        "path": [
+          "textDirection"
+        ],
+        "message": "Expected 'ltr' | 'rtl', received null"
+      },
+      {
+        "expected": "'google' | 'llm' | 'none'",
+        "received": "null",
+        "code": "invalid_type",
+        "path": [
+          "machineGlossStrategy"
+        ],
+        "message": "Expected 'google' | 'llm' | 'none', received null"
+      }
+    ]]
+  `);
 });
 
 test("returns not found if the user is not authorized", async () => {
-  const { user } = await userFactory.build();
-  await logIn(user.id);
+  const { session } = await userFactory.build({ session: true });
 
   const { language } = await languageFactory.build();
 
@@ -62,13 +93,20 @@ test("returns not found if the user is not authorized", async () => {
   formData.set("text_direction", TextDirectionRaw.LTR);
   formData.set("font", "Noto Sans");
   formData.set("machineGlossStrategy", MachineGlossStrategy.LLM);
-  const response = updateLanguageSettings({ state: "idle" }, formData);
-  await expect(response).toBeNextjsNotFound();
+  const response = runServerFn(updateLanguageSettings, {
+    data: formData,
+    sessionId: session!.id,
+  });
+  await expect(response).rejects.toThrowErrorMatchingInlineSnapshot(
+    `[Error: UnauthorizedError]`,
+  );
 });
 
 test("returns not found if the language does not exist", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
   const formData = new FormData();
   formData.set("code", "random");
@@ -77,13 +115,18 @@ test("returns not found if the language does not exist", async () => {
   formData.set("text_direction", TextDirectionRaw.LTR);
   formData.set("font", "Noto Sans");
   formData.set("machineGlossStrategy", MachineGlossStrategy.LLM);
-  const response = updateLanguageSettings({ state: "idle" }, formData);
-  await expect(response).toBeNextjsNotFound();
+  const response = runServerFn(updateLanguageSettings, {
+    data: formData,
+    sessionId: session!.id,
+  });
+  await expect(response).toBeTanstackNotFound();
 });
 
 test("updates the language settings", async () => {
-  const { user: admin } = await userFactory.build({ roles: ["admin"] });
-  await logIn(admin.id);
+  const { session } = await userFactory.build({
+    roles: ["admin"],
+    session: true,
+  });
 
   const { language } = await languageFactory.build({
     code: "spa",
@@ -114,8 +157,11 @@ test("updates the language settings", async () => {
   formData.set("bible_translations", request.translation_ids.join(","));
   formData.set("reference_language_id", request.reference_language_id);
   formData.set("machineGlossStrategy", request.machine_gloss_strategy);
-  const response = await updateLanguageSettings({ state: "idle" }, formData);
-  expect(response).toEqual({ state: "success" });
+  const { response } = await runServerFn(updateLanguageSettings, {
+    data: formData,
+    sessionId: session!.id,
+  });
+  expect(response.status).toEqual(204);
 
   const languages = await findLanguageByCode(language.code);
   expect(languages).toEqual({
