@@ -49,7 +49,7 @@ export function readReadNavigationCookie():
   | undefined {
   const cookieValue = readCookie(LAST_READ_COOKIE);
   if (!cookieValue) {
-    return defaultReadNavigation;
+    return;
   }
 
   const [code, chapterId] = cookieValue.split(":");
