@@ -5,6 +5,7 @@ import { createFileRoute, notFound, useRouter } from "@tanstack/react-router";
 import { incrementVerseId, parseVerseId } from "@/verse-utils";
 import { withDocumentTitle } from "@/documentTitle";
 import { getTranslator } from "@/shared/i18n/messages";
+import { updateTranslateNavigationCookie } from "@/shared/navigationCookies";
 import { useEffect } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
@@ -51,6 +52,10 @@ function TranslationRoute() {
   if (!data.language) {
     throw notFound();
   }
+
+  useEffect(() => {
+    updateTranslateNavigationCookie({ code, verseId });
+  }, [code, verseId]);
 
   const router = useRouter();
   useEffect(() => {

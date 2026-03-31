@@ -7,6 +7,8 @@ import * as z from "zod";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { withDocumentTitle } from "@/documentTitle";
 import { getTranslator } from "@/shared/i18n/messages";
+import { useEffect } from "react";
+import { updateReadNavigationCookie } from "@/shared/navigationCookies";
 
 export const Route = createFileRoute("/_main/read/$code/$chapterId")({
   loader: ({ params }) => loaderFn({ data: params }),
@@ -56,8 +58,12 @@ function ReadingRoutePending() {
 }
 
 function ReadingRoute() {
-  const { chapterId } = Route.useParams();
+  const { chapterId, code } = Route.useParams();
   const { currentLanguage, chapterVerses } = Route.useLoaderData();
+
+  useEffect(() => {
+    updateReadNavigationCookie({ code, chapterId });
+  }, [code, chapterId]);
 
   return (
     <ClientReadingView
