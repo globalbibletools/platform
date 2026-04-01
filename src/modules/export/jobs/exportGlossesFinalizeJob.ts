@@ -4,9 +4,7 @@ import { Job, JobStatus } from "@/shared/jobs/model";
 import { githubExportService } from "../GithubExportService";
 import { EXPORT_JOB_TYPES } from "./jobTypes";
 
-export async function finalizeGithubExportRunJob(
-  job: Job<void>,
-): Promise<void> {
+export async function exportGlossesFinalizeJob(job: Job<void>): Promise<void> {
   const jobLogger = logger.child({
     job: {
       id: job.id,
@@ -21,12 +19,12 @@ export async function finalizeGithubExportRunJob(
     throw new Error("finalize_github_export_run job missing parentJobId");
   }
 
-  if (job.type !== EXPORT_JOB_TYPES.FINALIZE_GITHUB_EXPORT_RUN) {
+  if (job.type !== EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE) {
     jobLogger.error(
-      `received job type ${job.type}, expected ${EXPORT_JOB_TYPES.FINALIZE_GITHUB_EXPORT_RUN}`,
+      `received job type ${job.type}, expected ${EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE}`,
     );
     throw new Error(
-      `Expected job type ${EXPORT_JOB_TYPES.FINALIZE_GITHUB_EXPORT_RUN}, but received ${job.type}`,
+      `Expected job type ${EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE}, but received ${job.type}`,
     );
   }
 
@@ -96,7 +94,7 @@ function toAdvisoryLockKey(input: string): number {
 async function getChildJobs(parentJobId: string) {
   return getDb()
     .selectFrom("job")
-    .where("type", "=", EXPORT_JOB_TYPES.EXPORT_LANGUAGE_BLOBS)
+    .where("type", "=", EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD)
     .where("parent_job_id", "=", parentJobId)
     .where("status", "=", JobStatus.Complete)
     .select(["id", "data"])

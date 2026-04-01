@@ -12,7 +12,7 @@ import jobRepository from "@/shared/jobs/data-access/jobRepository";
 import { getDb } from "@/db";
 import { GlossStateRaw } from "@/modules/translation/types";
 
-export async function exportLanguageBlobsJob(
+export async function exportGlossesChildJob(
   job: Job<ExportLanguageBlobsJobPayload>,
 ): Promise<void> {
   const jobLogger = logger.child({
@@ -29,12 +29,12 @@ export async function exportLanguageBlobsJob(
     throw new Error("export_language_blobs job missing parentJobId");
   }
 
-  if (job.type !== EXPORT_JOB_TYPES.EXPORT_LANGUAGE_BLOBS) {
+  if (job.type !== EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD) {
     jobLogger.error(
-      `received job type ${job.type}, expected ${EXPORT_JOB_TYPES.EXPORT_LANGUAGE_BLOBS}`,
+      `received job type ${job.type}, expected ${EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD}`,
     );
     throw new Error(
-      `Expected job type ${EXPORT_JOB_TYPES.EXPORT_LANGUAGE_BLOBS}, but received ${job.type}`,
+      `Expected job type ${EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD}, but received ${job.type}`,
     );
   }
 
@@ -66,7 +66,7 @@ export async function exportLanguageBlobsJob(
   const remainingJobs = await getChildJobsRemaining(job.payload.languageCode);
   if (remainingJobs === 0) {
     await enqueueJob(
-      EXPORT_JOB_TYPES.FINALIZE_GITHUB_EXPORT_RUN,
+      EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE,
       {},
       {
         parentJobId: job.parentJobId,
@@ -135,7 +135,7 @@ async function compileBooks({
 async function getChildJobsRemaining(parentJobId: string): Promise<number> {
   const result = await getDb()
     .selectFrom("job")
-    .where("type", "=", EXPORT_JOB_TYPES.EXPORT_LANGUAGE_BLOBS)
+    .where("type", "=", EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD)
     .where("parent_job_id", "=", parentJobId)
     .where("status", "not in", [JobStatus.Complete, JobStatus.Failed])
     .select([(eb) => eb.fn.countAll<number>().as("count")])

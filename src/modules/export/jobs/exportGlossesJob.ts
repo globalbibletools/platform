@@ -11,7 +11,7 @@ import type {
 
 const DEFAULT_WINDOW_DAYS = 8;
 
-export async function queueGithubExportRunJob(
+export async function exportGlossesJob(
   job: Job<QueueGithubExportRunJobPayload>,
 ): Promise<void> {
   const jobLogger = logger.child({
@@ -21,12 +21,12 @@ export async function queueGithubExportRunJob(
     },
   });
 
-  if (job.type !== EXPORT_JOB_TYPES.QUEUE_GITHUB_EXPORT_RUN) {
+  if (job.type !== EXPORT_JOB_TYPES.EXPORT_GLOSSES) {
     jobLogger.error(
-      `received job type ${job.type}, expected ${EXPORT_JOB_TYPES.QUEUE_GITHUB_EXPORT_RUN}`,
+      `received job type ${job.type}, expected ${EXPORT_JOB_TYPES.EXPORT_GLOSSES}`,
     );
     throw new Error(
-      `Expected job type ${EXPORT_JOB_TYPES.QUEUE_GITHUB_EXPORT_RUN}, but received ${job.type}`,
+      `Expected job type ${EXPORT_JOB_TYPES.EXPORT_GLOSSES}, but received ${job.type}`,
     );
   }
 
@@ -39,7 +39,7 @@ export async function queueGithubExportRunJob(
         languageCode,
       };
 
-      return enqueueJob(EXPORT_JOB_TYPES.EXPORT_LANGUAGE_BLOBS, payload, {
+      return enqueueJob(EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD, payload, {
         parentJobId: job.id,
       });
     }),
