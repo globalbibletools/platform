@@ -30,7 +30,7 @@ export async function exportGlossesJob(
     );
   }
 
-  const windowDays = job.payload.windowDays ?? DEFAULT_WINDOW_DAYS;
+  const windowDays = job.payload?.windowDays ?? DEFAULT_WINDOW_DAYS;
   const languageCodes = await getUpdatedLanguageCodes({ windowDays });
 
   await Promise.all(
