@@ -5,6 +5,9 @@ import { updateBookCompletionProgressJob } from "@/modules/reporting/jobs/update
 import { REPORTING_JOB_TYPES } from "@/modules/reporting/jobs/jobTypes";
 import { EXPORT_JOB_TYPES } from "@/modules/export/jobs/jobTypes";
 import exportInterlinearPdfJob from "@/modules/export/jobs/exportInterlinearPdfJob";
+import { queueGithubExportRunJob } from "@/modules/export/jobs/queueGithubExportRunJob";
+import { exportLanguageBlobsJob } from "@/modules/export/jobs/exportLanguageBlobsJob";
+import { finalizeGithubExportRunJob } from "@/modules/export/jobs/finalizeGithubExportRunJob";
 import { TRANSLATION_JOB_TYPES } from "@/modules/translation/jobs/jobType";
 import { importAIGlosses } from "@/modules/translation/jobs/importAIGlosses";
 
@@ -34,6 +37,18 @@ const jobMap: Record<string, JobMapEntry<any>> = {
   },
   [EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF]: {
     handler: exportInterlinearPdfJob,
+    timeout: 60 * 5, // 5 minutes
+  },
+  [EXPORT_JOB_TYPES.QUEUE_GITHUB_EXPORT_RUN]: {
+    handler: queueGithubExportRunJob,
+    timeout: 60 * 15, // 15 minutes
+  },
+  [EXPORT_JOB_TYPES.EXPORT_LANGUAGE_BLOBS]: {
+    handler: exportLanguageBlobsJob,
+    timeout: 60 * 15, // 15 minutes
+  },
+  [EXPORT_JOB_TYPES.FINALIZE_GITHUB_EXPORT_RUN]: {
+    handler: finalizeGithubExportRunJob,
     timeout: 60 * 5, // 5 minutes
   },
   [TRANSLATION_JOB_TYPES.IMPORT_AI_GLOSSES]: {
