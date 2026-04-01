@@ -3,6 +3,8 @@ import { getDb } from "@/db";
 import { Job, JobStatus } from "@/shared/jobs/model";
 import { githubExportService } from "../GithubExportService";
 import { EXPORT_JOB_TYPES } from "./jobTypes";
+import { GithubTreeItem } from "../model";
+import { createHash, hash } from "node:crypto";
 
 export async function exportGlossesFinalizeJob(job: Job<void>): Promise<void> {
   const jobLogger = logger.child({
@@ -39,7 +41,11 @@ export async function exportGlossesFinalizeJob(job: Job<void>): Promise<void> {
       const childJobs = await getChildJobs(parentJobId);
 
       const commitSha = await githubExportService.createCommit({
-        items: childJobs.flatMap((child) => child.data.treeItems ?? []),
+        items: childJobs.flatMap((child) => {
+          // TODO: parse this eventually rather than type casting
+          const data = child.data as { treeItems?: GithubTreeItem[] };
+          return data.treeItems ?? [];
+        }),
         message: `Export from Global Bible Tools for ${new Date().toISOString()}`,
       });
 
@@ -48,6 +54,9 @@ export async function exportGlossesFinalizeJob(job: Job<void>): Promise<void> {
   });
 }
 
+// This is a db session level lock, which is ok in a lambda environment.
+// If jobs ever run in an environment with shared db sessions,
+// then this may not work as expected.
 async function lockJob({
   parentJobId,
   withLock,
@@ -57,11 +66,13 @@ async function lockJob({
   withLock: () => Promise<void>;
   whenLocked: () => void;
 }) {
-  const lockKey = toAdvisoryLockKey(parentJobId);
-
   const lock = await getDb()
     .selectNoFrom((eb) =>
-      eb.fn("pg_try_advisory_lock", [eb.val(lockKey)]).as("locked"),
+      eb
+        .fn("pg_try_advisory_lock", [
+          eb.fn("hashtextextended", [eb.val(parentJobId), eb.val(0)]),
+        ])
+        .as("locked"),
     )
     .executeTakeFirst();
 
@@ -75,20 +86,14 @@ async function lockJob({
   } finally {
     await getDb()
       .selectNoFrom((eb) =>
-        eb.fn("pg_advisory_unlock", [eb.val(lockKey)]).as("unlocked"),
+        eb
+          .fn("pg_advisory_unlock", [
+            eb.fn("hashtextextended", [eb.val(parentJobId), eb.val(0)]),
+          ])
+          .as("unlocked"),
       )
-      .executeTakeFirst();
+      .execute();
   }
-}
-
-function toAdvisoryLockKey(input: string): number {
-  let hash = 0;
-
-  for (let i = 0; i < input.length; i++) {
-    hash = (hash * 31 + input.charCodeAt(i)) | 0;
-  }
-
-  return Math.abs(hash);
 }
 
 async function getChildJobs(parentJobId: string) {

@@ -1,4 +1,3 @@
-import { JSONColumnType } from "kysely";
 import { JobStatus } from "../model";
 
 export interface JobTable {
@@ -6,8 +5,8 @@ export interface JobTable {
   parent_job_id: string | null;
   type: string;
   status: JobStatus;
-  payload: JSONColumnType<any> | null;
-  data: JSONColumnType<any> | null;
+  payload: unknown | null;
+  data: unknown | null;
   created_at: Date;
   updated_at: Date;
 }

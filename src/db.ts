@@ -1,4 +1,5 @@
 import pg, { type QueryResult, type QueryResultRow } from "pg";
+import Cursor from "pg-cursor";
 import QueryStream from "pg-query-stream";
 import { from as copyFrom } from "pg-copy-streams";
 import { logger } from "./logging";
@@ -105,7 +106,7 @@ let _db: Kysely<Database> | undefined;
 export function getDb(): Kysely<Database> {
   if (!_db) {
     _db = new Kysely<Database>({
-      dialect: new PostgresDialect({ pool: getPool() }),
+      dialect: new PostgresDialect({ pool: getPool(), cursor: Cursor }),
     });
   }
   return _db;

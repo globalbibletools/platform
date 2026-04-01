@@ -63,8 +63,8 @@ export async function exportGlossesChildJob(
 
   jobLogger.info(`Exported language blobs for ${job.payload.languageCode}`);
 
-  const remainingJobs = await getChildJobsRemaining(job.payload.languageCode);
-  if (remainingJobs === 0) {
+  const remainingJobs = await getChildJobsRemaining(job.parentJobId);
+  if (remainingJobs === 1) {
     await enqueueJob(
       EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE,
       {},
@@ -93,10 +93,10 @@ async function compileBooks({
     let chapter = 1;
     const resultChapters = [];
 
-    while (verses[vi].bookId === book.id) {
+    while (verses[vi]?.bookId === book.id) {
       const resultVerses = [];
 
-      while (verses[vi].chapter == chapter) {
+      while (verses[vi]?.chapter == chapter) {
         const resultWords = [];
 
         while (!word.done && word.value.verseId === verses[vi].id) {
