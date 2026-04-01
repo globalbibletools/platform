@@ -7,6 +7,7 @@ export enum JobStatus {
 
 export interface Job<Payload, Data = unknown> {
   id: string;
+  parentJobId?: string;
   type: string;
   status: JobStatus;
   payload: Payload;

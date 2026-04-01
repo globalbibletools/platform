@@ -118,7 +118,7 @@ test("creates job if it does not already exist", async () => {
     payload: "payload",
   };
 
-  mockedJob.mockResolvedValue("result");
+  mockedJob.mockResolvedValue();
 
   await processJob({
     body: JSON.stringify(queuedJob),
@@ -127,6 +127,7 @@ test("creates job if it does not already exist", async () => {
   expect(mockedJob).toHaveBeenCalledExactlyOnceWith({
     ...queuedJob,
     id: expect.toBeUlid(),
+    parentJobId: undefined,
     status: JobStatus.InProgress,
     createdAt: expect.any(Date),
     updatedAt: expect.any(Date),
@@ -136,6 +137,7 @@ test("creates job if it does not already exist", async () => {
   expect(mockedCreateJob).toHaveBeenCalledExactlyOnceWith({
     ...queuedJob,
     id: expect.toBeUlid(),
+    parentJobId: undefined,
     status: JobStatus.InProgress,
     createdAt: expect.any(Date),
     updatedAt: expect.any(Date),
@@ -143,7 +145,6 @@ test("creates job if it does not already exist", async () => {
   expect(mockedUpdateJob).toHaveBeenCalledExactlyOnceWith(
     expect.toBeUlid(),
     JobStatus.Complete,
-    "result",
   );
   expect(mockedExtendTimeout).not.toHaveBeenCalled();
 });
@@ -164,7 +165,7 @@ test("handles successful job", async () => {
   };
   mockedGetJobById.mockResolvedValue(job);
 
-  mockedJob.mockResolvedValue("result");
+  mockedJob.mockResolvedValue();
 
   await processJob({
     body: JSON.stringify(queuedJob),
@@ -182,7 +183,6 @@ test("handles successful job", async () => {
     2,
     job.id,
     JobStatus.Complete,
-    "result",
   );
   expect(mockedUpdateJob).toHaveBeenCalledTimes(2);
   expect(mockedExtendTimeout).not.toHaveBeenCalled();
@@ -242,7 +242,7 @@ test("extends visibility timeout before starting job", async () => {
   };
   mockedGetJobById.mockResolvedValue(job);
 
-  mockedJobWithTimeout.mockResolvedValue("result");
+  mockedJobWithTimeout.mockResolvedValue();
 
   const handle = "handle";
   await processJob({
@@ -265,7 +265,6 @@ test("extends visibility timeout before starting job", async () => {
     2,
     job.id,
     JobStatus.Complete,
-    "result",
   );
   expect(mockedUpdateJob).toHaveBeenCalledTimes(2);
 });

@@ -54,10 +54,37 @@ describe("getById", () => {
       id: job.id,
       type: job.type,
       status: job.status,
-      payload: null,
-      data: null,
       createdAt: job.created_at,
       updatedAt: job.updated_at,
+    });
+  });
+
+  test("returns parent job ID", async () => {
+    const parentJob: Insertable<JobTable> = {
+      id: ulid(),
+      type: "test_job",
+      status: JobStatus.Complete,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+    const job: Insertable<JobTable> = {
+      id: ulid(),
+      type: "test_job",
+      status: JobStatus.Complete,
+      created_at: new Date(),
+      updated_at: new Date(),
+      parent_job_id: parentJob.id,
+    };
+    await getDb().insertInto("job").values([parentJob, job]).execute();
+
+    const result = await jobRepository.getById(job.id);
+    expect(result).toEqual({
+      id: job.id,
+      type: job.type,
+      status: job.status,
+      createdAt: job.created_at,
+      updatedAt: job.updated_at,
+      parentJobId: job.parent_job_id,
     });
   });
 });
@@ -85,6 +112,7 @@ describe("create", () => {
         data: null,
         created_at: job.createdAt,
         updated_at: job.updatedAt,
+        parent_job_id: null,
       },
     ]);
   });
@@ -111,6 +139,50 @@ describe("create", () => {
         data: null,
         created_at: job.createdAt,
         updated_at: job.updatedAt,
+        parent_job_id: null,
+      },
+    ]);
+  });
+
+  test("inserts a new job with a parent job ID into the database", async () => {
+    const parentJob: Insertable<JobTable> = {
+      id: ulid(),
+      type: "test_job",
+      status: JobStatus.Complete,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+    await getDb().insertInto("job").values(parentJob).execute();
+
+    const job: Job<void> = {
+      id: ulid(),
+      type: "test_job",
+      status: JobStatus.Complete,
+      payload: undefined,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      parentJobId: parentJob.id,
+    };
+
+    await jobRepository.create(job);
+
+    const jobs = await getDb().selectFrom("job").selectAll().execute();
+    expect(jobs).toEqual([
+      {
+        ...parentJob,
+        data: null,
+        payload: null,
+        parent_job_id: null,
+      },
+      {
+        id: job.id,
+        type: job.type,
+        status: job.status,
+        payload: null,
+        data: null,
+        created_at: job.createdAt,
+        updated_at: job.updatedAt,
+        parent_job_id: parentJob.id,
       },
     ]);
   });
@@ -144,6 +216,7 @@ describe("update", () => {
       data: { updated: false },
       created_at: job.created_at,
       updated_at: expect.toBeNow(),
+      parent_job_id: null,
     });
   });
 
@@ -175,6 +248,40 @@ describe("update", () => {
       data: newData,
       created_at: job.created_at,
       updated_at: expect.toBeNow(),
+      parent_job_id: null,
+    });
+  });
+});
+
+describe("updateData", () => {
+  test("updates the job's data", async () => {
+    const job: Insertable<JobTable> = {
+      id: ulid(),
+      type: "test_job",
+      status: JobStatus.Pending,
+      data: { updated: false },
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+    await getDb().insertInto("job").values(job).execute();
+
+    const newData = { updated: true };
+    await jobRepository.updateData(job.id, newData);
+
+    const updatedJob = await getDb()
+      .selectFrom("job")
+      .where("id", "=", job.id)
+      .selectAll()
+      .executeTakeFirst();
+    expect(updatedJob).toEqual({
+      id: job.id,
+      type: job.type,
+      status: job.status,
+      payload: null,
+      data: newData,
+      created_at: job.created_at,
+      updated_at: expect.toBeNow(),
+      parent_job_id: null,
     });
   });
 });

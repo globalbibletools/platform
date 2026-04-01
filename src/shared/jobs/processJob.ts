@@ -78,9 +78,9 @@ export async function processJob(message: SQSRecord) {
 
     const handler =
       "handler" in handlerOrEntry ? handlerOrEntry.handler : handlerOrEntry;
-    const data = await handler(job);
+    await handler(job);
 
-    await jobRepo.update(job.id, JobStatus.Complete, data);
+    await jobRepo.update(job.id, JobStatus.Complete);
     jobLogger.info("Job complete");
   } catch (error) {
     jobLogger.error({ err: error }, "Job failed");

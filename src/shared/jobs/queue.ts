@@ -10,6 +10,7 @@ export interface QueuedJob<Payload> {
   // which does not allow its message to dynamically generate an ID.
   // Instead we generate it when the job is processed.
   id?: string;
+  parentJobId?: string | null;
   type: string;
   payload: Payload;
 }

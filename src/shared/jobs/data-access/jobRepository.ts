@@ -10,6 +10,7 @@ const jobRepository = {
       .where("id", "=", id)
       .select([
         "id",
+        "parent_job_id as parentJobId",
         "type",
         "status",
         "payload",
@@ -23,8 +24,9 @@ const jobRepository = {
 
     return {
       ...job,
-      payload: job.payload as Payload,
-      data: job.data as Data,
+      parentJobId: job.parentJobId ?? undefined,
+      payload: (job.payload ?? undefined) as Payload,
+      data: (job.data as Data) ?? undefined,
     };
   },
 
@@ -33,6 +35,7 @@ const jobRepository = {
       .insertInto("job")
       .values({
         id: job.id,
+        parent_job_id: job.parentJobId,
         type: job.type,
         status: job.status,
         payload: job.payload,
@@ -50,6 +53,17 @@ const jobRepository = {
         status,
         updated_at: new Date(),
         ...(data && { data }),
+      })
+      .execute();
+  },
+
+  async updateData(jobId: string, data: any): Promise<void> {
+    await getDb()
+      .updateTable("job")
+      .where("id", "=", jobId)
+      .set({
+        updated_at: new Date(),
+        data,
       })
       .execute();
   },

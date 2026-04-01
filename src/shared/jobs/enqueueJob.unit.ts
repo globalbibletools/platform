@@ -27,11 +27,13 @@ test("creates job and pushes on to the queue", async () => {
 
   expect(mockedQueueAdd).toHaveBeenCalledExactlyOnceWith({
     id: expect.toBeUlid(),
+    parentJobId: undefined,
     type,
     payload,
   });
   expect(mockedCreateJob).toHaveBeenCalledExactlyOnceWith({
     id: expect.toBeUlid(),
+    parentJobId: undefined,
     type,
     payload,
     status: JobStatus.Pending,
