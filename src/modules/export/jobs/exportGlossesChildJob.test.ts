@@ -9,10 +9,10 @@ import { GlossStateRaw } from "@/modules/translation/types";
 import { getDb } from "@/db";
 import { EXPORT_JOB_TYPES } from "./jobTypes";
 import { exportGlossesChildJob } from "./exportGlossesChildJob";
-import { githubExportService } from "../GithubExportService";
+import { githubExportService } from "../data-access/githubExportService";
 
 vitest.mock("@/shared/jobs/enqueueJob");
-vitest.mock("../GithubExportService", () => ({
+vitest.mock("../data-access/githubExportService", () => ({
   githubExportService: {
     createBlob: vitest.fn(),
   },

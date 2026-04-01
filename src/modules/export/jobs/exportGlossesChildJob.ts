@@ -1,7 +1,7 @@
 import { logger } from "@/logging";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
 import { Job, JobStatus } from "@/shared/jobs/model";
-import { githubExportService } from "../GithubExportService";
+import { githubExportService } from "../data-access/githubExportService";
 import type {
   ExportLanguageBlobsJobData,
   ExportLanguageBlobsJobPayload,

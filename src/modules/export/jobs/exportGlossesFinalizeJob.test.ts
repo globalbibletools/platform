@@ -10,7 +10,7 @@ const { createCommitMock } = vitest.hoisted(() => ({
   createCommitMock: vitest.fn(),
 }));
 
-vitest.mock("../GithubExportService", () => ({
+vitest.mock("../data-access/githubExportService", () => ({
   githubExportService: {
     createCommit: createCommitMock,
   },

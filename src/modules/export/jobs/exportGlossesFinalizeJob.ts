@@ -1,10 +1,9 @@
 import { logger } from "@/logging";
 import { getDb } from "@/db";
 import { Job, JobStatus } from "@/shared/jobs/model";
-import { githubExportService } from "../GithubExportService";
+import { githubExportService } from "../data-access/githubExportService";
 import { EXPORT_JOB_TYPES } from "./jobTypes";
 import { GithubTreeItem } from "../model";
-import { createHash, hash } from "node:crypto";
 
 export async function exportGlossesFinalizeJob(job: Job<void>): Promise<void> {
   const jobLogger = logger.child({
