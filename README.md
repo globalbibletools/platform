@@ -14,12 +14,11 @@ The first step is to build a platform where volunteers can translate each word o
 The result will power a public facing digital Reader's Bible to augment [Hebrew](https://www.youtube.com/@AlephwithBeth) and [Greek](https://www.youtube.com/@AlphawithAngela) video lessons.
 This work is in progress and more details can be found in the [GitHub project](https://github.com/orgs/globalbibletools/projects/1/views/1).
 
-### Future Work
-
 #### Study App
 
-Once we have a Reader's Bible in a few languages, we want to make it available through a native app for both Android and iPhone.
-As we are able to translate additional resources, we will make them available in the app as well.
+We are working on a [Flutter study app](https://github.com/globalbibletools/study-app) to make the translated glosses vailable.
+
+### Future Work
 
 #### Additional Resources
 
