@@ -104,15 +104,6 @@ function AdminLanguageLayoutRoute() {
                   {t("links.users")}
                 </SidebarLink>
               </li>
-              <li>
-                <SidebarLink
-                  to="/admin/languages/$code/import"
-                  params={{ code }}
-                >
-                  <Icon icon="file-import" className="w-4 me-2" />
-                  {t("links.import")}
-                </SidebarLink>
-              </li>
               <FeatureFlagged
                 feature="ff-interlinear-pdf-export"
                 enabledChildren={

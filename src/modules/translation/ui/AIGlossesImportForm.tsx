@@ -104,7 +104,7 @@ export default function AIGlossesImportForm({ code }: { code: string }) {
           destructive
           className="mb-2"
           onClick={async () => {
-            await importAIGlosses();
+            await importAIGlosses({ data: { code } });
             refetch();
           }}
         >

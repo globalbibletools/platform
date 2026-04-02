@@ -3,11 +3,13 @@ import {
   ButtonSelectorInput,
   ButtonSelectorOption,
 } from "@/components/ButtonSelectorInput";
+import Button from "@/components/Button";
 import ComboboxInput from "@/components/ComboboxInput";
 import FieldError from "@/components/FieldError";
 import Form from "@/components/Form";
 import FormLabel from "@/components/FormLabel";
 import { Icon } from "@/components/Icon";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import SortableMultiselectInput from "@/components/SortableMultiselectInput";
 import TextInput from "@/components/TextInput";
 import ViewTitle from "@/components/ViewTitle";
@@ -15,12 +17,14 @@ import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { updateLanguageSettings } from "@/modules/languages/actions/updateLanguageSettings";
 import { MachineGlossStrategy } from "@/modules/languages/model";
+import AIGlossesImportForm from "@/modules/translation/ui/AIGlossesImportForm";
 import { getAllLanguagesReadModel } from "@/modules/languages/read-models/getAllLanguagesReadModel";
 import { getLanguageSettingsReadModel } from "@/modules/languages/read-models/getLanguageSettingsReadModel";
 import SavingIndicator from "@/modules/languages/ui/SavingIndicator";
 import { fontMap } from "@/fonts";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { Suspense } from "react";
 import { useTranslations } from "use-intl";
 import * as z from "zod";
 import { withDocumentTitle } from "@/documentTitle";
@@ -240,64 +244,103 @@ function LanguageSettingsRoute() {
           </div>
           <FieldError id="bible-transations-error" name="bible_translations" />
         </section>
-        <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 px-10">
-          <div className="grow">
-            <h3 className="font-bold text-lg mb-2">
-              {t("headings.gloss_prediction")}
-            </h3>
-            <p className="text-sm">{t("gloss_prediction_description")}</p>
-          </div>
-          <div className="shrink-0 w-80">
-            <div className="mb-4">
-              <FormLabel id="machine-gloss-strategy-label">
-                {t("form.machine_gloss_strategy").toUpperCase()}
-              </FormLabel>
-              <div>
-                <ButtonSelectorInput
+        <section className="py-8 px-10">
+          <div className="flex flex-col gap-4 lg:flex-row lg:gap-20">
+            <div className="grow">
+              <h3 className="font-bold text-lg mb-2">
+                {t("headings.gloss_prediction")}
+              </h3>
+              <p className="text-sm">{t("gloss_prediction_description")}</p>
+            </div>
+            <div className="shrink-0 w-80">
+              <div className="mb-4">
+                <FormLabel id="machine-gloss-strategy-label">
+                  {t("form.machine_gloss_strategy").toUpperCase()}
+                </FormLabel>
+                <div>
+                  <ButtonSelectorInput
+                    name="machineGlossStrategy"
+                    aria-labelledby="machine-gloss-strategy-label"
+                    aria-describedby="machine_gloss_strategy_error"
+                    defaultValue={languageSettings.machineGlossStrategy}
+                    autosubmit
+                  >
+                    <ButtonSelectorOption value={MachineGlossStrategy.None}>
+                      None
+                    </ButtonSelectorOption>
+                    <ButtonSelectorOption value={MachineGlossStrategy.Google}>
+                      Google
+                    </ButtonSelectorOption>
+                    <ButtonSelectorOption value={MachineGlossStrategy.LLM}>
+                      LLM
+                    </ButtonSelectorOption>
+                  </ButtonSelectorInput>
+                </div>
+                <FieldError
+                  id="machine_gloss_strategy_error"
                   name="machineGlossStrategy"
-                  aria-labelledby="machine-gloss-strategy-label"
-                  aria-describedby="machine_gloss_strategy_error"
-                  defaultValue={languageSettings.machineGlossStrategy}
-                  autosubmit
-                >
-                  <ButtonSelectorOption value={MachineGlossStrategy.None}>
-                    None
-                  </ButtonSelectorOption>
-                  <ButtonSelectorOption value={MachineGlossStrategy.Google}>
-                    Google
-                  </ButtonSelectorOption>
-                  <ButtonSelectorOption value={MachineGlossStrategy.LLM}>
-                    LLM
-                  </ButtonSelectorOption>
-                </ButtonSelectorInput>
+                />
               </div>
-              <FieldError
-                id="machine_gloss_strategy_error"
-                name="machineGlossStrategy"
-              />
             </div>
-            <div>
-              <FormLabel htmlFor="reference-language">
-                {t("form.reference_language").toUpperCase()}
-              </FormLabel>
-              <ComboboxInput
-                id="reference-language"
-                name="reference_language_id"
-                items={languages.map((language) => ({
-                  label: language.englishName,
-                  value: language.id,
-                }))}
-                className="block w-64"
-                defaultValue={languageSettings.referenceLanguageId ?? undefined}
-                autosubmit
-                aria-describedby="reference_language_error"
-              />
-              <FieldError
-                id="reference_language_error"
-                name="reference_language"
-              />
-            </div>
+            {languageSettings.machineGlossStrategy ===
+              MachineGlossStrategy.Google && (
+              <div>
+                <FormLabel htmlFor="reference-language">
+                  {t("form.reference_language").toUpperCase()}
+                </FormLabel>
+                <ComboboxInput
+                  id="reference-language"
+                  name="reference_language_id"
+                  items={languages.map((language) => ({
+                    label: language.englishName,
+                    value: language.id,
+                  }))}
+                  className="block w-64"
+                  defaultValue={
+                    languageSettings.referenceLanguageId ?? undefined
+                  }
+                  autosubmit
+                  aria-describedby="reference_language_error"
+                />
+                <FieldError
+                  id="reference_language_error"
+                  name="reference_language"
+                />
+              </div>
+            )}
           </div>
+          {languageSettings.machineGlossStrategy ===
+            MachineGlossStrategy.LLM && (
+            <div className="flex flex-col gap-4 lg:flex-row lg:gap-20 mt-4">
+              <div className="grow">
+                <p className="text-sm">
+                  Import AI translated glosses from{" "}
+                  <Button
+                    href="https://global-tools.bible.systems"
+                    variant="link"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    global-tools.bible.systems
+                    <Icon icon="external-link" className="ms-1" />
+                  </Button>
+                  .
+                </p>
+              </div>
+              <div className="shrink-0 w-80">
+                <Suspense
+                  fallback={
+                    <>
+                      <p className="text-sm">Looking for glosses to import</p>
+                      <LoadingSpinner className="w-fit" />
+                    </>
+                  }
+                >
+                  <AIGlossesImportForm code={languageSettings.code} />
+                </Suspense>
+              </div>
+            </div>
+          )}
         </section>
       </Form>
     </div>
