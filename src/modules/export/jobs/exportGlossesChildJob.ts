@@ -50,7 +50,6 @@ export async function exportGlossesChildJob(
 
       const compiledBooks = await compileBooks({ books, verses, words });
 
-      const treeItems: GithubTreeItem[] = [];
       for (const book of compiledBooks) {
         treeItems.push(
           await githubExportService.createBlob({
