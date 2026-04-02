@@ -56,7 +56,7 @@ export default function AttributionDialog({
     resources.push({
       name: "English Glosses",
       author: "Allan Bunning and the Center for New Testament Restoration",
-      link: "https://github.com/Center-for-New-Testament-Restoration/SR",
+      link: "https://greekcntr.org/apparatus/index.html",
       plural: true,
       use: "permission",
     });
