@@ -20,7 +20,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { createFileRoute } from "@tanstack/react-router";
 import { withDocumentTitle } from "@/documentTitle";
 import { sql } from "kysely";
-import { jsonBuildObject } from "kysely/helpers/postgres";
 
 export const Route = createFileRoute("/_main/admin/_main/jobs")({
   head: () => withDocumentTitle("Jobs | Admin"),
