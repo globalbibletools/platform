@@ -16,8 +16,12 @@ vitest.mock("@/shared/jobs/enqueueJob");
 initializeDatabase();
 
 test("queues child jobs only for languages with changes in the default window", async () => {
-  const { language: changedLanguage } = await languageFactory.build();
-  const { language: unchangedLanguage } = await languageFactory.build();
+  const { language: changedLanguage } = await languageFactory.build({
+    code: "spa",
+  });
+  const { language: unchangedLanguage } = await languageFactory.build({
+    code: "hin",
+  });
 
   await phraseFactory.build({
     languageId: changedLanguage.id,
@@ -61,8 +65,12 @@ test("queues child jobs only for languages with changes in the default window", 
 });
 
 test("queues child jobs only for languages with changes in the specified window", async () => {
-  const { language: changedLanguage } = await languageFactory.build();
-  const { language: unchangedLanguage } = await languageFactory.build();
+  const { language: changedLanguage } = await languageFactory.build({
+    code: "spa",
+  });
+  const { language: unchangedLanguage } = await languageFactory.build({
+    code: "hin",
+  });
 
   await phraseFactory.build({
     languageId: changedLanguage.id,
@@ -105,4 +113,56 @@ test("queues child jobs only for languages with changes in the specified window"
       parentJobId: job.id,
     },
   );
+});
+
+test("ignores eng language even when there are changes", async () => {
+  const { language } = await languageFactory.build({ code: "eng" });
+
+  await phraseFactory.build({
+    languageId: language.id,
+    events: true,
+    gloss: {
+      state: GlossStateRaw.Approved,
+      updated_at: subDays(new Date(), 1),
+    },
+  });
+
+  const job: Job<QueueGithubExportRunJobPayload> = {
+    id: ulid(),
+    type: EXPORT_JOB_TYPES.EXPORT_GLOSSES,
+    status: JobStatus.Pending,
+    payload: {},
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  await exportGlossesJob(job);
+
+  expect(enqueueJob).not.toHaveBeenCalled();
+});
+
+test("does not queue jobs if there are no changed languages", async () => {
+  const { language } = await languageFactory.build({ code: "hin" });
+
+  await phraseFactory.build({
+    languageId: language.id,
+    events: true,
+    gloss: {
+      state: GlossStateRaw.Approved,
+      updated_at: subDays(new Date(), 9),
+    },
+  });
+
+  const job: Job<QueueGithubExportRunJobPayload> = {
+    id: ulid(),
+    type: EXPORT_JOB_TYPES.EXPORT_GLOSSES,
+    status: JobStatus.Pending,
+    payload: {},
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  await exportGlossesJob(job);
+
+  expect(enqueueJob).not.toHaveBeenCalled();
 });

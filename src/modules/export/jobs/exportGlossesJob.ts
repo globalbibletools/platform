@@ -31,7 +31,21 @@ export async function exportGlossesJob(
   }
 
   const windowDays = job.payload?.windowDays ?? DEFAULT_WINDOW_DAYS;
-  const languageCodes = await getUpdatedLanguageCodes({ windowDays });
+
+  let languageCodes = await getUpdatedLanguageCodes({ windowDays });
+  // Filter out English glosses for now until Allan Bunning's Greek glosses are in an open license
+  languageCodes = languageCodes.filter((code) => code !== "eng");
+
+  if (languageCodes.length === 0) {
+    jobLogger.info(
+      {
+        windowDays,
+        languageCount: languageCodes.length,
+      },
+      "No languages have changes to export",
+    );
+    return;
+  }
 
   const batchSize = 5;
   const batchCount = Math.ceil(languageCodes.length / batchSize);
