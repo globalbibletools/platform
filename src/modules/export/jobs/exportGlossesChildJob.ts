@@ -38,6 +38,8 @@ export async function exportGlossesChildJob(
     );
   }
 
+  const treeItems: GithubTreeItem[] = [];
+
   for (const languageCode of job.payload.languageCodes) {
     try {
       const [books, verses, words] = await Promise.all([
@@ -58,11 +60,6 @@ export async function exportGlossesChildJob(
         );
       }
 
-      const data: ExportLanguageBlobsJobData = {
-        treeItems,
-      };
-      await jobRepository.updateData(job.id, data);
-
       jobLogger.info(`Exported language blobs for ${languageCode}`);
     } catch (err) {
       jobLogger.error(
@@ -71,6 +68,11 @@ export async function exportGlossesChildJob(
       );
     }
   }
+
+  const data: ExportLanguageBlobsJobData = {
+    treeItems,
+  };
+  await jobRepository.updateData(job.id, data);
 
   const remainingJobs = await getChildJobsRemaining(job.parentJobId);
   if (remainingJobs === 1) {
