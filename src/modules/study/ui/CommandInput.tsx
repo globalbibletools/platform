@@ -14,6 +14,7 @@ import {
   parseReference,
 } from "@/verse-utils";
 import { useNavigate, useParams } from "@tanstack/react-router";
+import { useFlash } from "@/flash";
 
 export default function CommandInput() {
   const { chapterId, code: languageCode } = useParams({
@@ -80,6 +81,8 @@ export default function CommandInput() {
     return () => window.removeEventListener("keydown", keydownCallback);
   }, [navigate, chapterId, languageCode]);
 
+  const flash = useFlash();
+
   return (
     <form
       className="relative w-56 shrink"
@@ -93,12 +96,17 @@ export default function CommandInput() {
           referenceElement.value,
           t.raw("book_names"),
         );
-        if (verseId) {
-          navigate({
-            to: "/read/$code/$chapterId",
-            params: { code: languageCode, chapterId: verseId.slice(0, -3) },
-          });
+        if (!verseId) {
+          flash.error(
+            t("invalid_reference", { reference: referenceElement.value }),
+          );
+          return;
         }
+
+        navigate({
+          to: "/read/$code/$chapterId",
+          params: { code: languageCode, chapterId: verseId.slice(0, -3) },
+        });
       }}
     >
       <input type="hidden" value={languageCode} name="language" />

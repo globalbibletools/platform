@@ -349,7 +349,10 @@ export default function TranslationToolbar({
               const reference = referenceElement.value;
 
               const verseId = parseReference(reference, t.raw("book_names"));
-              if (!verseId) return;
+              if (!verseId) {
+                flash.error(`${reference} is not a valid verse`);
+                return;
+              }
 
               await navigate({
                 to: "/translate/$code/$verseId",
