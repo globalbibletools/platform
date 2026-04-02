@@ -86,7 +86,7 @@ describe("AttributionDialog", () => {
         {
           "links": [
             {
-              "href": "https://github.com/Center-for-New-Testament-Restoration/SR",
+              "href": "https://greekcntr.org/apparatus/index.html",
               "text": "English Glosses",
             },
           ],
