@@ -1,4 +1,4 @@
-import type { GithubTreeItem } from "./model";
+import type { GithubTreeItem } from "../model";
 import { Octokit } from "@octokit/rest";
 
 type OctokitInstance = InstanceType<typeof Octokit>;

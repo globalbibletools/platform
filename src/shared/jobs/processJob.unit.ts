@@ -118,8 +118,6 @@ test("creates job if it does not already exist", async () => {
     payload: "payload",
   };
 
-  mockedJob.mockResolvedValue();
-
   await processJob({
     body: JSON.stringify(queuedJob),
   } as any);
@@ -164,8 +162,6 @@ test("handles successful job", async () => {
     payload: job.payload,
   };
   mockedGetJobById.mockResolvedValue(job);
-
-  mockedJob.mockResolvedValue();
 
   await processJob({
     body: JSON.stringify(queuedJob),
@@ -241,8 +237,6 @@ test("extends visibility timeout before starting job", async () => {
     payload: job.payload,
   };
   mockedGetJobById.mockResolvedValue(job);
-
-  mockedJobWithTimeout.mockResolvedValue();
 
   const handle = "handle";
   await processJob({
