@@ -1,5 +1,5 @@
 import * as z from "zod";
-import verseCounts from "@/data/verse-counts.json";
+import { verseCounts } from "@/data/verse-counts.json";
 
 const API_KEY = process.env.BIBLE_SYSTEMS_API_KEY;
 

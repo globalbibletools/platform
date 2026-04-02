@@ -1,4 +1,4 @@
-import verseCounts from "@/data/verse-counts.json";
+import { verseCounts, missingVerses } from "@/data/verse-counts.json";
 import bookKeys from "@/data/book-keys.json";
 import fuzzysort from "fuzzysort";
 
@@ -27,7 +27,12 @@ export function decrementVerseId(verseId: string) {
     }
     verseNumber = verseCount(bookId, chapterNumber);
   }
-  return generateVerseId({ bookId, chapterNumber, verseNumber });
+
+  const newVerseId = generateVerseId({ bookId, chapterNumber, verseNumber });
+  if (missingVerseIds.has(newVerseId)) {
+    return decrementVerseId(newVerseId);
+  }
+  return newVerseId;
 }
 export function incrementVerseId(verseId: string) {
   let { bookId, chapterNumber, verseNumber }: VerseInfo = parseVerseId(verseId);
@@ -43,16 +48,32 @@ export function incrementVerseId(verseId: string) {
     }
     verseNumber = 1;
   }
-  return generateVerseId({ bookId, chapterNumber, verseNumber });
+
+  const newVerseId = generateVerseId({ bookId, chapterNumber, verseNumber });
+  if (missingVerseIds.has(newVerseId)) {
+    return incrementVerseId(newVerseId);
+  }
+  return newVerseId;
 }
 
 export function bookFirstVerseId(bookId: number) {
-  return generateVerseId({ bookId, chapterNumber: 1, verseNumber: 1 });
+  const verseId = generateVerseId({ bookId, chapterNumber: 1, verseNumber: 1 });
+  if (missingVerseIds.has(verseId)) {
+    return incrementVerseId(verseId);
+  }
+
+  return verseId;
 }
 export function bookLastVerseId(bookId: number) {
   const chapterNumber = chapterCount(bookId);
   const verseNumber = verseCount(bookId, chapterNumber);
-  return generateVerseId({ bookId, chapterNumber, verseNumber });
+
+  const verseId = generateVerseId({ bookId, chapterNumber, verseNumber });
+  if (missingVerseIds.has(verseId)) {
+    return decrementVerseId(verseId);
+  }
+
+  return verseId;
 }
 
 const REFERENCE_REGEX = /^(.+?)(?:[.]?\s*(\d+)(?:([:.,]|\s)(\d+))?)?[;.,]?$/;
@@ -91,7 +112,11 @@ export function parseReference(
     verseStr ?
       clamp(parseInt(verseStr), 1, verseCount(bookId, chapterNumber))
     : 1;
-  return `${bookId.toString().padStart(2, "0")}${chapterNumber.toString().padStart(3, "0")}${verseNumber.toString().padStart(3, "0")}`;
+  const verseId = generateVerseId({ bookId, verseNumber, chapterNumber });
+  if (missingVerseIds.has(verseId)) {
+    return null;
+  }
+  return verseId;
 }
 
 const PERMALINK_REFERENCE_REGEX = /^([^.]+)\.(\d+)$/;
@@ -227,3 +252,9 @@ export function verseCount(bookId: number, chapterNumber: number): number {
 function clamp(num: number, min: number, max: number) {
   return Math.min(Math.max(num, min), max);
 }
+
+const missingVerseIds = new Set(
+  missingVerses.map(({ bookId, chapter, verse }) =>
+    generateVerseId({ bookId, chapterNumber: chapter, verseNumber: verse }),
+  ),
+);

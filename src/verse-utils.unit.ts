@@ -17,6 +17,14 @@ describe("decrementVerseId", () => {
   test("decrements the verse id to back to Revelation", () => {
     expect(decrementVerseId("01001001")).toEqual("66022021");
   });
+
+  test("skips missing verses when decrementing within a chapter", () => {
+    expect(decrementVerseId("40016004")).toEqual("40016002");
+  });
+
+  test("skips missing verses when decrementing across chapters", () => {
+    expect(decrementVerseId("43008012")).toEqual("43007052");
+  });
 });
 
 describe("incrementVerseId", () => {
@@ -34,5 +42,13 @@ describe("incrementVerseId", () => {
 
   test("increments the verse id to back to Genesis", () => {
     expect(incrementVerseId("66022021")).toEqual("01001001");
+  });
+
+  test("skips missing verses when incrementing within a chapter", () => {
+    expect(incrementVerseId("40016002")).toEqual("40016004");
+  });
+
+  test("skips missing verses when incrementing across chapters", () => {
+    expect(incrementVerseId("43007052")).toEqual("43008012");
   });
 });
