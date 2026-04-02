@@ -123,8 +123,14 @@ export default function TranslationToolbar({
     };
 
     await approveAllFn({ data });
-    await router.invalidate();
-  }, [approveAllFn, code, router]);
+
+    await queryClient.invalidateQueries({
+      queryKey: ["book-progress", parseInt(verseId.slice(0, 2)), code],
+    });
+    await queryClient.invalidateQueries({
+      queryKey: ["verse-translation-data", code, verseId],
+    });
+  }, [approveAllFn, code, router, verseId]);
 
   const onLinkWords = useCallback(async () => {
     const data = {
@@ -138,7 +144,9 @@ export default function TranslationToolbar({
     await queryClient.invalidateQueries({
       queryKey: ["book-progress", parseInt(verseId.slice(0, 2)), code],
     });
-    router.invalidate();
+    await queryClient.invalidateQueries({
+      queryKey: ["verse-translation-data", code, verseId],
+    });
   }, [
     code,
     selectedWords,
@@ -161,7 +169,9 @@ export default function TranslationToolbar({
     await queryClient.invalidateQueries({
       queryKey: ["book-progress", parseInt(verseId.slice(0, 2)), code],
     });
-    router.invalidate();
+    await queryClient.invalidateQueries({
+      queryKey: ["verse-translation-data", code, verseId],
+    });
   }, [code, focusedPhrase, unlinkPhraseFn, verseId, queryClient, router]);
 
   const navigateToVerse = useCallback(
