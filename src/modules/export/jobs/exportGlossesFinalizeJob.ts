@@ -39,12 +39,19 @@ export async function exportGlossesFinalizeJob(job: Job<void>): Promise<void> {
     withLock: async () => {
       const childJobs = await getChildJobs(parentJobId);
 
+      const items = childJobs.flatMap((child) => {
+        // TODO: parse this eventually rather than type casting
+        const data = child.data as { treeItems?: GithubTreeItem[] };
+        return data.treeItems ?? [];
+      });
+
+      if (items.length === 0) {
+        jobLogger.info(`Nothing to commit`);
+        return;
+      }
+
       const commitSha = await githubExportService.createCommit({
-        items: childJobs.flatMap((child) => {
-          // TODO: parse this eventually rather than type casting
-          const data = child.data as { treeItems?: GithubTreeItem[] };
-          return data.treeItems ?? [];
-        }),
+        items,
         message: `Export from Global Bible Tools for ${new Date().toISOString()}`,
       });
 

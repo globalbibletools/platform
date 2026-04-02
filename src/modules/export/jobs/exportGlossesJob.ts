@@ -33,10 +33,17 @@ export async function exportGlossesJob(
   const windowDays = job.payload?.windowDays ?? DEFAULT_WINDOW_DAYS;
   const languageCodes = await getUpdatedLanguageCodes({ windowDays });
 
+  const batchSize = 5;
+  const batchCount = Math.ceil(languageCodes.length / batchSize);
+
+  const batches = Array.from({ length: batchCount }, (_, i) =>
+    languageCodes.slice(5 * i, 5 * (i + 1)),
+  );
+
   await Promise.all(
-    languageCodes.map((languageCode) => {
+    batches.map((languageCodes) => {
       const payload: ExportLanguageBlobsJobPayload = {
-        languageCode,
+        languageCodes,
       };
 
       return enqueueJob(EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD, payload, {

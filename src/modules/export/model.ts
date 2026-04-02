@@ -16,7 +16,7 @@ export interface QueueGithubExportRunJobPayload {
 }
 
 export interface ExportLanguageBlobsJobPayload {
-  languageCode: string;
+  languageCodes: Array<string>;
 }
 
 export interface GithubTreeItem {

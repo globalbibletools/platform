@@ -10,6 +10,7 @@ import { getDb } from "@/db";
 import { EXPORT_JOB_TYPES } from "./jobTypes";
 import { exportGlossesChildJob } from "./exportGlossesChildJob";
 import { githubExportService } from "../data-access/githubExportService";
+import { ExportLanguageBlobsJobPayload } from "../model";
 
 vitest.mock("@/shared/jobs/enqueueJob");
 vitest.mock("../data-access/githubExportService", () => ({
@@ -47,13 +48,13 @@ test("creates blobs for Haggai glosses and then enqueues the finalize job", asyn
 
   const parentJobId = ulid();
 
-  const job: Job<{ languageCode: string }> = {
+  const job: Job<ExportLanguageBlobsJobPayload> = {
     id: ulid(),
     parentJobId,
     type: EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
     status: JobStatus.Pending,
     payload: {
-      languageCode: language.code,
+      languageCodes: [language.code],
     },
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -83,64 +84,6 @@ test("creates blobs for Haggai glosses and then enqueues the finalize job", asyn
 
   await exportGlossesChildJob(job);
 
-  const expectedBook = {
-    id: 37,
-    name: "Hag",
-    chapters: [
-      {
-        id: 1,
-        verses: [
-          {
-            id: "37001001",
-            words: [{ id: "3700100101", gloss: "test gloss" }],
-          },
-          { id: "37001002", words: [] },
-          { id: "37001003", words: [] },
-          { id: "37001004", words: [] },
-          { id: "37001005", words: [] },
-          { id: "37001006", words: [] },
-          { id: "37001007", words: [] },
-          { id: "37001008", words: [] },
-          { id: "37001009", words: [] },
-          { id: "37001010", words: [] },
-          { id: "37001011", words: [] },
-          { id: "37001012", words: [] },
-          { id: "37001013", words: [] },
-          { id: "37001014", words: [] },
-          { id: "37001015", words: [] },
-        ],
-      },
-      {
-        id: 2,
-        verses: [
-          { id: "37002001", words: [] },
-          { id: "37002002", words: [] },
-          { id: "37002003", words: [] },
-          { id: "37002004", words: [] },
-          { id: "37002005", words: [] },
-          { id: "37002006", words: [] },
-          { id: "37002007", words: [] },
-          { id: "37002008", words: [] },
-          { id: "37002009", words: [] },
-          { id: "37002010", words: [] },
-          { id: "37002011", words: [] },
-          { id: "37002012", words: [] },
-          { id: "37002013", words: [] },
-          { id: "37002014", words: [] },
-          { id: "37002015", words: [] },
-          { id: "37002016", words: [] },
-          { id: "37002017", words: [] },
-          { id: "37002018", words: [] },
-          { id: "37002019", words: [] },
-          { id: "37002020", words: [] },
-          { id: "37002021", words: [] },
-          { id: "37002022", words: [] },
-          { id: "37002023", words: [] },
-        ],
-      },
-    ],
-  };
-
   const updatedJob = await getDb()
     .selectFrom("job")
     .where("id", "=", job.id)
@@ -161,10 +104,8 @@ test("creates blobs for Haggai glosses and then enqueues the finalize job", asyn
       ],
     },
   });
-  expect(mockedCreateBlob).toHaveBeenCalledExactlyOnceWith({
-    path: `${language.code}/37-Hag.json`,
-    content: JSON.stringify(expectedBook, null, 2),
-  });
+  expect(mockedCreateBlob).toHaveBeenCalledOnce();
+  expect(mockedCreateBlob.mock.lastCall).toMatchSnapshot();
   expect(enqueueJob).toHaveBeenCalledExactlyOnceWith(
     EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE,
     {},
@@ -188,13 +129,13 @@ test("doesn't enqueue the finalize job if there are other child jobs are in prog
 
   const parentJobId = ulid();
 
-  const job: Job<{ languageCode: string }> = {
+  const job: Job<ExportLanguageBlobsJobPayload> = {
     id: ulid(),
     parentJobId,
     type: EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
     status: JobStatus.Pending,
     payload: {
-      languageCode: language.code,
+      languageCodes: [language.code],
     },
     createdAt: new Date(),
     updatedAt: new Date(),

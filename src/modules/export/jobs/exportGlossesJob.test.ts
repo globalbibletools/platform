@@ -52,7 +52,7 @@ test("queues child jobs only for languages with changes in the default window", 
   expect(enqueueJob).toHaveBeenCalledExactlyOnceWith(
     EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
     {
-      languageCode: changedLanguage.code,
+      languageCodes: [changedLanguage.code],
     },
     {
       parentJobId: job.id,
@@ -99,7 +99,7 @@ test("queues child jobs only for languages with changes in the specified window"
   expect(enqueueJob).toHaveBeenCalledExactlyOnceWith(
     EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
     {
-      languageCode: changedLanguage.code,
+      languageCodes: [changedLanguage.code],
     },
     {
       parentJobId: job.id,

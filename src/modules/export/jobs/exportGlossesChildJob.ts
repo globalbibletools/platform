@@ -19,7 +19,7 @@ export async function exportGlossesChildJob(
     job: {
       id: job.id,
       type: job.type,
-      languageCode: job.payload.languageCode,
+      languageCodes: job.payload.languageCodes,
       parentJobId: job.parentJobId,
     },
   });
@@ -38,30 +38,39 @@ export async function exportGlossesChildJob(
     );
   }
 
-  const [books, verses, words] = await Promise.all([
-    getBooks(),
-    getVerses(),
-    getWordsWithGlosses(job.payload.languageCode),
-  ]);
+  for (const languageCode of job.payload.languageCodes) {
+    try {
+      const [books, verses, words] = await Promise.all([
+        getBooks(),
+        getVerses(),
+        getWordsWithGlosses(languageCode),
+      ]);
 
-  const compiledBooks = await compileBooks({ books, verses, words });
+      const compiledBooks = await compileBooks({ books, verses, words });
 
-  const treeItems: GithubTreeItem[] = [];
-  for (const book of compiledBooks) {
-    treeItems.push(
-      await githubExportService.createBlob({
-        path: `${job.payload.languageCode}/${book.id.toString().padStart(2, "0")}-${book.name}.json`,
-        content: JSON.stringify(book, null, 2),
-      }),
-    );
+      const treeItems: GithubTreeItem[] = [];
+      for (const book of compiledBooks) {
+        treeItems.push(
+          await githubExportService.createBlob({
+            path: `${languageCode}/${book.id.toString().padStart(2, "0")}-${book.name}.json`,
+            content: JSON.stringify(book, null, 2),
+          }),
+        );
+      }
+
+      const data: ExportLanguageBlobsJobData = {
+        treeItems,
+      };
+      await jobRepository.updateData(job.id, data);
+
+      jobLogger.info(`Exported language blobs for ${languageCode}`);
+    } catch (err) {
+      jobLogger.error(
+        { err },
+        `Error exported language blobs for ${languageCode}`,
+      );
+    }
   }
-
-  const data: ExportLanguageBlobsJobData = {
-    treeItems,
-  };
-  await jobRepository.updateData(job.id, data);
-
-  jobLogger.info(`Exported language blobs for ${job.payload.languageCode}`);
 
   const remainingJobs = await getChildJobsRemaining(job.parentJobId);
   if (remainingJobs === 1) {
@@ -201,7 +210,7 @@ function getWordsWithGlosses(
         .select(["ph.id as phrase_id", "pw.word_id", "g.gloss"]),
     )
     .selectFrom("word")
-    .innerJoin("gloss_word", "gloss_word.word_id", "word.id")
+    .leftJoin("gloss_word", "gloss_word.word_id", "word.id")
     .select(["word.verse_id as verseId", "word.id", "gloss_word.gloss"])
     .orderBy("word.id")
     .stream();
