@@ -15,6 +15,7 @@ export interface ServerActionProps extends ActionProps {
   confirm?: string | boolean;
   successMessage?: string;
   invalidate?: boolean;
+  onComplete?(): void;
 }
 
 export default function ServerAction({
@@ -23,6 +24,7 @@ export default function ServerAction({
   confirm = false,
   successMessage,
   invalidate,
+  onComplete,
   ...props
 }: ServerActionProps) {
   const serverFn = useServerFn(action);
@@ -49,6 +51,8 @@ export default function ServerAction({
       if (successMessage) {
         flash.success(successMessage);
       }
+
+      onComplete?.();
     } catch (error) {
       flash.error(error instanceof Error ? error.message : "Failed request");
     }

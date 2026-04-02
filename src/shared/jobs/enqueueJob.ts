@@ -11,13 +11,20 @@ export async function enqueueJob<Payload>(
 ): Promise<Job<Payload>>;
 export async function enqueueJob<Payload>(
   type: string,
+  payload: Payload,
+  options: { parentJobId?: string },
+): Promise<Job<Payload>>;
+export async function enqueueJob<Payload>(
+  type: string,
   payload?: Payload,
+  options?: { parentJobId?: string },
 ): Promise<Job<Payload | void>> {
   const jobLogger = logger.child({});
 
   const date = new Date();
   const job: Job<Payload | void> = {
     id: ulid(),
+    parentJobId: options?.parentJobId,
     type,
     status: JobStatus.Pending,
     payload,
@@ -36,6 +43,7 @@ export async function enqueueJob<Payload>(
     await jobRepo.create(job);
     await queue.add({
       id: job.id,
+      parentJobId: job.parentJobId ?? undefined,
       type: job.type,
       payload: job.payload,
     });

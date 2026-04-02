@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict J1yHi9ctYRB6Jmi7CwTPNR96W0kIWlvL7fBUUgKCL4chhDbIf4Fl0XG3ISrQQHh
+\restrict BhH2o9IQI1T8RGC8f6T8TuapQnniv56nQHJX0eonxucCMLdZkUhSnB3y1om1aPw
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -574,7 +574,8 @@ CREATE TABLE public.job (
     data jsonb,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    type text
+    type text,
+    parent_job_id uuid
 );
 
 
@@ -1446,6 +1447,13 @@ CREATE UNIQUE INDEX idx_machine_gloss_language_word ON public.machine_gloss USIN
 
 
 --
+-- Name: job_parent_job_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX job_parent_job_id ON public.job USING btree (parent_job_id) WHERE (parent_job_id IS NOT NULL);
+
+
+--
 -- Name: language_code_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1471,6 +1479,20 @@ CREATE INDEX lemma_resource_lemma_id_idx ON public.lemma_resource USING btree (l
 --
 
 CREATE INDEX phrase_language_id_deleted_at_idx ON public.phrase USING btree (language_id, deleted_at) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: phrase_language_id_partial; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX phrase_language_id_partial ON public.phrase USING btree (language_id, id) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: phrase_word_phrase_id_word_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX phrase_word_phrase_id_word_id ON public.phrase_word USING btree (phrase_id, word_id);
 
 
 --
@@ -1658,6 +1680,14 @@ ALTER TABLE ONLY public.gloss
 
 ALTER TABLE ONLY public.gloss
     ADD CONSTRAINT gloss_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id);
+
+
+--
+-- Name: job job_parent_job_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.job
+    ADD CONSTRAINT job_parent_job_id_fkey FOREIGN KEY (parent_job_id) REFERENCES public.job(id);
 
 
 --
@@ -1944,5 +1974,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict J1yHi9ctYRB6Jmi7CwTPNR96W0kIWlvL7fBUUgKCL4chhDbIf4Fl0XG3ISrQQHh
+\unrestrict BhH2o9IQI1T8RGC8f6T8TuapQnniv56nQHJX0eonxucCMLdZkUhSnB3y1om1aPw
 
