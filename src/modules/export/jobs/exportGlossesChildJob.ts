@@ -85,7 +85,7 @@ export async function exportGlossesChildJob(
   }
 }
 
-async function compileBooks({
+export async function compileBooks({
   books,
   verses,
   words,
@@ -106,7 +106,12 @@ async function compileBooks({
     while (verses[vi]?.bookId === book.id) {
       const resultVerses = [];
 
-      while (verses[vi]?.chapter == chapter) {
+      // We have to duplicate the condition of the chapter while loop for books that have only one chapter
+      // Otherwise the first chapter of the subsequent book will end up in the previous book.
+      while (
+        verses[vi]?.bookId === book.id &&
+        verses[vi]?.chapter === chapter
+      ) {
         const resultWords = [];
 
         while (!word.done && word.value.verseId === verses[vi].id) {
