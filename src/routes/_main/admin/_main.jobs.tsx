@@ -115,7 +115,7 @@ function AdminJobsView() {
                             {(() => {
                               switch (job.type) {
                                 case EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD:
-                                  return `Export ${job.language.englishName}`;
+                                  return `Export ${job.languages.join(", ")}`;
                                 case EXPORT_JOB_TYPES.EXPORT_GLOSSES:
                                   return `Setup`;
                                 case EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE:
@@ -169,13 +169,6 @@ const getActiveJobsReadModel = createServerFn()
           .limit(1),
       )
       .selectFrom("job")
-      .leftJoin("language", (jb) =>
-        jb.onRef(
-          (eb) => sql<string>`${eb.ref("job.payload")}->>'languageCode'`,
-          "=",
-          "language.code",
-        ),
-      )
       .where((eb) =>
         eb.or([
           eb(
@@ -194,11 +187,9 @@ const getActiveJobsReadModel = createServerFn()
         "job.updated_at as updatedAt",
         "job.created_at as createdAt",
         (eb) =>
-          jsonBuildObject({
-            id: eb.ref("language.id"),
-            code: eb.ref("language.code"),
-            englishName: eb.ref("language.english_name"),
-          }).as("language"),
+          sql<Array<string>>`${eb.ref("job.payload")}->'languageCodes'`.as(
+            "languages",
+          ),
       ])
       .execute();
 
