@@ -6,6 +6,7 @@ import ComboboxInput from "@/components/ComboboxInput";
 import FormLabel from "@/components/FormLabel";
 import { Icon } from "@/components/Icon";
 import SliderInput from "@/components/SliderInput";
+import Button from "@/components/Button";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useTranslations } from "use-intl";
@@ -33,8 +34,8 @@ export default function SettingsMenu({
   const params = useParams({ from: "/_main/read/$code/$chapterId" });
 
   return (
-    <Popover className="relative">
-      <PopoverButton className="text-blue-800 dark:text-green-400">
+    <Popover className="relative leading-0">
+      <PopoverButton as={Button} variant="tertiary">
         <Icon icon="sliders" size="xl" />
       </PopoverButton>
       <PopoverPanel className="absolute z-10 border border-gray-400 shadow-lg p-4 rounded-sm bg-white -end-1 mt-3 min-w-[200px] flex flex-col gap-4 dark:bg-gray-800 dark:border-gray-700 dark:shadow-none">

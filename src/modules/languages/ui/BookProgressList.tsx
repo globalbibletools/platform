@@ -102,7 +102,7 @@ export default function BookProgressList({ books }: BookProgressListProps) {
                       <div className="text-xs text-right">
                         {showOthersRow ?
                           <Button
-                            variant="link"
+                            variant="tertiary"
                             small
                             onClick={() => toggle(book.bookId)}
                           >
@@ -133,7 +133,7 @@ export default function BookProgressList({ books }: BookProgressListProps) {
                 {isExpanded && showExpand && (
                   <div className="text-center col-span-3">
                     <Button
-                      variant="link"
+                      variant="tertiary"
                       small
                       className="text-xs"
                       onClick={() => toggle(book.bookId)}

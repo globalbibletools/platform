@@ -105,7 +105,7 @@ function DashboardRoute() {
           />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-5 gap-4 w-full auto-rows-max">
-          <DashboardCard className="md:col-span-3 md:h-60">
+          <DashboardCard className="md:col-span-3 h-60">
             <DashboardCard.Heading>
               Continue were you left off
             </DashboardCard.Heading>
@@ -126,7 +126,7 @@ function DashboardRoute() {
                               {book.name}
                             </span>
                             <Button
-                              variant="link"
+                              variant="tertiary"
                               className="sm:hidden"
                               to="/translate/$code/$verseId"
                               params={{
@@ -149,7 +149,7 @@ function DashboardRoute() {
                           </td>
                           <td className="hidden sm:table-cell">
                             <Button
-                              variant="link"
+                              variant="tertiary"
                               className="ml-4 lg:ml-8 whitespace-nowrap"
                               to="/translate/$code/$verseId"
                               params={{

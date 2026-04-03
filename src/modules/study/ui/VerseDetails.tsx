@@ -43,10 +43,10 @@ export default function VerseDetails({
 
   return (
     <div className="absolute w-full h-full flex flex-col gap-4">
-      <div className="flex items-start p-4 pb-0">
+      <div className="flex items-baseline p-4 pb-0">
         {t("reference", { bookId, chapterNumber, verseNumber: verse.number })}
         <Button
-          variant="link"
+          variant="tertiary"
           className="ms-2 w-6"
           disabled={verse.number === 1}
           onClick={() =>
@@ -59,7 +59,7 @@ export default function VerseDetails({
           <span className="sr-only">Previous Verse</span>
         </Button>
         <Button
-          variant="link"
+          variant="tertiary"
           className="w-6"
           disabled={verse.number === verseCount}
           onClick={() =>

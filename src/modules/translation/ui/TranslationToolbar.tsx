@@ -413,7 +413,7 @@ export default function TranslationToolbar({
             </div>
           )}
         </div>
-        <div className="shrink-0 flex">
+        <div className="shrink-0 flex items-center">
           <ComboboxInput
             aria-label={t("language")}
             items={languages.map((l) => ({

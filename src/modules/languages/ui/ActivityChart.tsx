@@ -65,7 +65,7 @@ export function ActivityChartRangeToggle({
   }
 
   return (
-    <Button variant="link" onClick={onClick}>
+    <Button variant="tertiary" onClick={onClick}>
       {range ?? "30d"}
     </Button>
   );

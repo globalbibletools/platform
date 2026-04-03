@@ -53,14 +53,18 @@ function buttonClasses(
       } border-2 bg-white shadow-md`;
     }
     case "tertiary": {
-      return `${sharedClasses} ${small ? "h-6" : "h-9"} ${
-        destructive ?
-          "text-red-800 dark:text-red-700 outline-red-300"
-        : "text-blue-800 dark:text-green-400 outline-green-300"
-      }`;
+      return `
+        ${sharedClasses}
+        ${small ? "outline-offset-2" : "outline-offset-4"}
+        ${
+          destructive ?
+            "text-red-800 dark:text-red-700 outline-red-300"
+          : "text-blue-800 dark:text-green-400 outline-green-300"
+        }
+      `;
     }
     case "link": {
-      return `inline font-bold focus:underline disabled:text-gray-400 dark:disabled:text-gray-500
+      return `inline focus:underline disabled:text-gray-400 dark:disabled:text-gray-500
             ${destructive ? "text-red-800 dark:text-red-700" : "text-blue-800 dark:text-green-400"}
         `;
     }

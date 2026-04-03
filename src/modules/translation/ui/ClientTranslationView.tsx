@@ -163,7 +163,7 @@ export default function TranslateView({
             <li className="mx-2" dir={isHebrew ? "rtl" : "ltr"}>
               <Button
                 variant="tertiary"
-                className="mt-[72px]"
+                className="mt-[78px]"
                 to="/translate/$code/$verseId"
                 params={{
                   code: language.code,

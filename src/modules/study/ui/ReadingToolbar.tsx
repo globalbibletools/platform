@@ -64,19 +64,19 @@ export default function ReadingToolbar({
           aria-label={t("language")}
         />
         <div className="flex gap-4 items-center">
-          <Button variant="link" onClick={() => copyToClipboard("asdf")}>
+          <Button variant="tertiary" onClick={() => copyToClipboard("asdf")}>
             <Icon icon="share-from-square" size="xl" />
             <span className="sr-only">{t("share")}</span>
           </Button>
           <Button
-            variant="link"
+            variant="tertiary"
             onClick={() => setShowAudioPlayer((show) => !show)}
           >
             <Icon icon="circle-play" size="xl" />
             <span className="sr-only">{t("audio")}</span>
           </Button>
           <Button
-            variant="link"
+            variant="tertiary"
             href="https://chatgpt.com/g/g-67721a4d937c81918c7daf9e4ad7a803-biblical-hebrew-encyclopedia-and-grammar"
             target="_blank"
             rel="noopener noreferrer"

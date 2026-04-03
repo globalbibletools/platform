@@ -104,7 +104,7 @@ export default function AttributionDialog({
   return (
     <>
       <Button
-        variant="link"
+        variant="tertiary"
         onClick={() => {
           dialogRef.current?.showModal();
         }}
