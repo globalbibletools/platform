@@ -1,7 +1,7 @@
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import { useRef } from "react";
-import { useTranslations } from "use-intl";
+import { useFormatter, useTranslations } from "use-intl";
 
 type LicenseCode = "cc_by_4_0" | "cc0_1_0";
 type AttributedResourceUse =
@@ -11,12 +11,17 @@ type AttributedResourceUse =
     }
   | "permission";
 
-interface AttributedResource {
+interface AttributedAuthor {
   name: string;
-  author: string;
-  use: AttributedResourceUse;
-  link: string;
+  link?: string;
+}
+
+interface AttributedResource {
   plural?: true;
+  name: string;
+  link: string;
+  authors: AttributedAuthor[];
+  use: AttributedResourceUse;
 }
 
 interface AttributionLicense {
@@ -43,7 +48,15 @@ export default function AttributionDialog({
   if (!isOT) {
     resources.push({
       name: "Statistical Restoration Greek New Testament",
-      author: "Allan Bunning and the Center for New Testament Restoration",
+      authors: [
+        {
+          name: "Alan Bunning",
+        },
+        {
+          name: "The Center for New Testament Restoration",
+          link: "https://greekcntr.org",
+        },
+      ],
       link: "https://github.com/Center-for-New-Testament-Restoration/SR",
       use: {
         type: "licensed",
@@ -55,7 +68,15 @@ export default function AttributionDialog({
   if (language.code === "eng" && !isOT) {
     resources.push({
       name: "English Glosses",
-      author: "Allan Bunning and the Center for New Testament Restoration",
+      authors: [
+        {
+          name: "Alan Bunning",
+        },
+        {
+          name: "The Center for New Testament Restoration",
+          link: "https://greekcntr.org",
+        },
+      ],
       link: "https://greekcntr.org/apparatus/index.html",
       plural: true,
       use: "permission",
@@ -63,7 +84,12 @@ export default function AttributionDialog({
   } else {
     resources.push({
       name: `${language.englishName} Glosses`,
-      author: "Global Bible Tools",
+      authors: [
+        {
+          name: "Global Bible Tools",
+          link: "https://globalbibletools.com",
+        },
+      ],
       link: `https://github.com/globalbibletools/data/tree/main/${language.code}`,
       plural: true,
       use: {
@@ -72,6 +98,8 @@ export default function AttributionDialog({
       },
     });
   }
+
+  const format = useFormatter();
 
   return (
     <>
@@ -109,10 +137,25 @@ export default function AttributionDialog({
               {(() => {
                 const resourceSize = resource.plural ? 1000 : 1;
 
+                const authors = format.list(
+                  resource.authors.map((author) =>
+                    author.link ?
+                      <Button
+                        key={author.link}
+                        variant="link"
+                        href={author.link}
+                        newTab
+                      >
+                        {author.name} <Icon icon="external-link" size="xs" />
+                      </Button>
+                    : author.name,
+                  ),
+                );
+
                 if (resource.use === "permission") {
                   return t.rich("resource_permission", {
                     resourceSize,
-                    author: resource.author,
+                    authors: () => authors,
                     resourceLink: () => (
                       <Button variant="link" href={resource.link} newTab>
                         {resource.name} <Icon icon="external-link" size="xs" />
@@ -126,7 +169,7 @@ export default function AttributionDialog({
 
                   return t.rich("resource_self", {
                     resourceSize,
-                    author: resource.author,
+                    authors: () => authors,
                     resourceLink: () => (
                       <Button variant="link" href={resource.link} newTab>
                         {resource.name} <Icon icon="external-link" size="xs" />
@@ -145,7 +188,7 @@ export default function AttributionDialog({
 
                   return t.rich("resource_licensed", {
                     resourceSize,
-                    author: resource.author,
+                    authors: () => authors,
                     resourceLink: () => (
                       <Button variant="link" href={resource.link} newTab>
                         {resource.name} <Icon icon="external-link" size="xs" />
