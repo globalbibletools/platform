@@ -77,11 +77,15 @@ describe("AttributionDialog", () => {
               "text": "Statistical Restoration Greek New Testament",
             },
             {
-              "href": "https://creativecommons.org/licenses/by/4.0/",
-              "text": "Creative Commons Attribution 4.0 International License (CC BY 4.0)",
+              "href": "https://greekcntr.org",
+              "text": "The Center for New Testament Restoration",
+            },
+            {
+              "href": "https://creativecommons.org/licenses/by/4.0/deed.en",
+              "text": "Creative Commons Attribution 4.0 International License",
             },
           ],
-          "text": "Statistical Restoration Greek New Testament by Allan Bunning and the Center for New Testament Restoration is used under Creative Commons Attribution 4.0 International License (CC BY 4.0) .",
+          "text": "Statistical Restoration Greek New Testament by Alan Bunning and The Center for New Testament Restoration is used under Creative Commons Attribution 4.0 International License .",
         },
         {
           "links": [
@@ -89,8 +93,12 @@ describe("AttributionDialog", () => {
               "href": "https://greekcntr.org/apparatus/index.html",
               "text": "English Glosses",
             },
+            {
+              "href": "https://greekcntr.org",
+              "text": "The Center for New Testament Restoration",
+            },
           ],
-          "text": "English Glosses by Allan Bunning and the Center for New Testament Restoration are used with permission.",
+          "text": "English Glosses by Alan Bunning and The Center for New Testament Restoration are used with permission.",
         },
       ]
     `);
@@ -112,11 +120,15 @@ describe("AttributionDialog", () => {
               "text": "Statistical Restoration Greek New Testament",
             },
             {
-              "href": "https://creativecommons.org/licenses/by/4.0/",
-              "text": "Creative Commons Attribution 4.0 International License (CC BY 4.0)",
+              "href": "https://greekcntr.org",
+              "text": "The Center for New Testament Restoration",
+            },
+            {
+              "href": "https://creativecommons.org/licenses/by/4.0/deed.en",
+              "text": "Creative Commons Attribution 4.0 International License",
             },
           ],
-          "text": "Statistical Restoration Greek New Testament by Allan Bunning and the Center for New Testament Restoration is used under Creative Commons Attribution 4.0 International License (CC BY 4.0) .",
+          "text": "Statistical Restoration Greek New Testament by Alan Bunning and The Center for New Testament Restoration is used under Creative Commons Attribution 4.0 International License .",
         },
         {
           "links": [
@@ -125,11 +137,15 @@ describe("AttributionDialog", () => {
               "text": "French Glosses",
             },
             {
-              "href": "https://creativecommons.org/publicdomain/zero/1.0/",
-              "text": "Creative Commons CC0 1.0 Universal (CC0 1.0)",
+              "href": "https://globalbibletools.com",
+              "text": "Global Bible Tools",
+            },
+            {
+              "href": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+              "text": "Creative Commons CC0 1.0 Universal",
             },
           ],
-          "text": "French Glosses by Global Bible Tools are available under Creative Commons CC0 1.0 Universal (CC0 1.0) .",
+          "text": "French Glosses by Global Bible Tools are available under Creative Commons CC0 1.0 Universal .",
         },
       ]
     `);
@@ -151,11 +167,15 @@ describe("AttributionDialog", () => {
               "text": "English Glosses",
             },
             {
-              "href": "https://creativecommons.org/publicdomain/zero/1.0/",
-              "text": "Creative Commons CC0 1.0 Universal (CC0 1.0)",
+              "href": "https://globalbibletools.com",
+              "text": "Global Bible Tools",
+            },
+            {
+              "href": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+              "text": "Creative Commons CC0 1.0 Universal",
             },
           ],
-          "text": "English Glosses by Global Bible Tools are available under Creative Commons CC0 1.0 Universal (CC0 1.0) .",
+          "text": "English Glosses by Global Bible Tools are available under Creative Commons CC0 1.0 Universal .",
         },
       ]
     `);
