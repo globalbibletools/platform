@@ -281,33 +281,33 @@ function LanguageSettingsRoute() {
                   name="machineGlossStrategy"
                 />
               </div>
+              {languageSettings.machineGlossStrategy ===
+                MachineGlossStrategy.Google && (
+                <div>
+                  <FormLabel htmlFor="reference-language">
+                    {t("form.reference_language").toUpperCase()}
+                  </FormLabel>
+                  <ComboboxInput
+                    id="reference-language"
+                    name="reference_language_id"
+                    items={languages.map((language) => ({
+                      label: language.englishName,
+                      value: language.id,
+                    }))}
+                    className="block w-64"
+                    defaultValue={
+                      languageSettings.referenceLanguageId ?? undefined
+                    }
+                    autosubmit
+                    aria-describedby="reference_language_error"
+                  />
+                  <FieldError
+                    id="reference_language_error"
+                    name="reference_language"
+                  />
+                </div>
+              )}
             </div>
-            {languageSettings.machineGlossStrategy ===
-              MachineGlossStrategy.Google && (
-              <div>
-                <FormLabel htmlFor="reference-language">
-                  {t("form.reference_language").toUpperCase()}
-                </FormLabel>
-                <ComboboxInput
-                  id="reference-language"
-                  name="reference_language_id"
-                  items={languages.map((language) => ({
-                    label: language.englishName,
-                    value: language.id,
-                  }))}
-                  className="block w-64"
-                  defaultValue={
-                    languageSettings.referenceLanguageId ?? undefined
-                  }
-                  autosubmit
-                  aria-describedby="reference_language_error"
-                />
-                <FieldError
-                  id="reference_language_error"
-                  name="reference_language"
-                />
-              </div>
-            )}
           </div>
           {languageSettings.machineGlossStrategy ===
             MachineGlossStrategy.LLM && (
