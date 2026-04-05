@@ -76,6 +76,7 @@
     "fuzzysort": "3.0.2",
     "googleapis": "148.0.0",
     "husky": "9.1.7",
+    "jsdom": "^26.1.0",
     "kysely": "0.28.2",
     "lint-staged": "15.2.11",
     "lru-cache": "11.2.7",
