@@ -164,15 +164,11 @@ async function main() {
     process.env.PDFKIT_DATA_DIR ||
     path.join(process.cwd(), "node_modules", "pdfkit", "js", "data");
 
-  const layout =
-    (process.env.INTERLINEAR_LAYOUT as "standard" | "parallel") || "standard";
-
   const { generateInterlinearPdf } = await import(
     "../src/modules/export/pdf/InterlinearPdfGenerator"
   );
 
   const { stream } = generateInterlinearPdf(sample, {
-    layout,
     pageSize: "letter",
     direction: "rtl",
     header: { title: "Test Interlinear" },
