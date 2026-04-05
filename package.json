@@ -60,6 +60,7 @@
     "@types/react": "19.2.10",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.4",
+    "@opentelemetry/api": "^1.9.0",
     "aws-lambda": "1.0.7",
     "chart.js": "4.4.4",
     "chartjs-adapter-date-fns": "3.0.0",
