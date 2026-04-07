@@ -16,6 +16,7 @@ import {
 import { UTCDate } from "@date-fns/utc";
 import Button from "@/components/Button";
 import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useElementDimensions } from "@/utils/measure-element";
 
 export interface ActivityChartEntry {
   date: Date;
@@ -72,12 +73,14 @@ export function ActivityChartRangeToggle({
 }
 
 export default function ActivityChart({
+  className = "",
   data,
   total,
   range,
   yMin,
   yMax,
 }: {
+  className?: string;
   data: ActivityChartEntry[];
   total: number;
   yMin: number;
@@ -103,7 +106,7 @@ export default function ActivityChart({
     : "text-gray-500";
 
   return (
-    <div className="flex flex-col">
+    <div className={`flex flex-col items-stretch gap-1 ${className}`}>
       <ActivityChartSVG
         data={data}
         yMin={yMin}
@@ -112,29 +115,21 @@ export default function ActivityChart({
         cursor={cursor}
         onCursorChange={setCursor}
       />
-      <span className="flex h-5 leading-0">
+      <span className="flex text-xs tabular-nums text-gray-600 dark:text-gray-400">
         <span className="grow">
-          <span className="text-xs font-bold">TOTAL: </span>
-          <span className={`text-sm font-bold ${totalColor}`}>{total}</span>
+          <span>Total: </span>
+          <span className={`${totalColor}`}>{total}</span>
         </span>
         {cursor && (
           <span>
-            <span className="text-xs font-bold uppercase">
-              {format(cursor, "MMM d")}:{" "}
-            </span>
-            <span className={`text-sm font-bold ${cursorColor}`}>
-              {cursorValue}
-            </span>
+            <span>{format(cursor, "MMM d")}: </span>
+            <span className={`${cursorColor}`}>{cursorValue}</span>
           </span>
         )}
       </span>
     </div>
   );
 }
-
-const WIDTH = 200;
-const HEIGHT = 24;
-
 const COLOR = {
   positive: "var(--color-blue-800)",
   negative: "var(--color-red-800)",
@@ -173,6 +168,8 @@ function ActivityChartSVG({
   const gradientId = `activity-gradient-${uid}`;
   const clipId = `activity-clip-${uid}`;
 
+  const [elementRef, size] = useElementDimensions<HTMLDivElement>();
+
   useEffect(() => {
     const svg = d3.select(svgRef.current);
 
@@ -202,11 +199,14 @@ function ActivityChartSVG({
     const effectiveMin = yMin === yMax ? -1 : yMin;
     const effectiveMax = yMin === yMax ? 1 : yMax;
 
-    const xScale = d3.scaleUtc().domain([start, today]).range([0, WIDTH]);
+    const xScale = d3
+      .scaleUtc()
+      .domain([start, today])
+      .range([0, size.inlineSize]);
     const yScale = d3
       .scaleLinear()
       .domain([effectiveMin, effectiveMax])
-      .range([HEIGHT, 0]);
+      .range([size.blockSize, 0]);
     xScaleRef.current = xScale;
 
     const zeroY = yScale(0);
@@ -252,8 +252,8 @@ function ActivityChartSVG({
       .append("clipPath")
       .attr("id", clipId)
       .append("rect")
-      .attr("width", WIDTH)
-      .attr("height", HEIGHT);
+      .attr("width", size.inlineSize)
+      .attr("height", size.blockSize);
 
     const g = svg.append("g");
 
@@ -288,7 +288,7 @@ function ActivityChartSVG({
     cursorLineRef.current = svg
       .append("line")
       .attr("y1", 0)
-      .attr("y2", HEIGHT)
+      .attr("y2", size.blockSize)
       .attr("stroke", "var(--color-gray-400)")
       .attr("stroke-width", 2)
       .attr("stroke-dasharray", "3 2")
@@ -314,7 +314,7 @@ function ActivityChartSVG({
       cursorLineRef.current = null;
       xScaleRef.current = null;
     };
-  }, [data, yMin, yMax, gradientId, clipId, onCursorChange, range]);
+  }, [data, yMin, yMax, gradientId, clipId, onCursorChange, range, size]);
 
   useEffect(() => {
     const line = cursorLineRef.current;
@@ -330,13 +330,15 @@ function ActivityChartSVG({
   }, [cursor]);
 
   return (
-    <svg
-      className="cursor-crosshair"
-      ref={svgRef}
-      width={WIDTH}
-      height={HEIGHT}
-      overflow="visible"
-    />
+    <div ref={elementRef} className="w-full flex-1">
+      <svg
+        className="cursor-crosshair"
+        ref={svgRef}
+        width={size.inlineSize}
+        height={size.blockSize}
+        overflow="visible"
+      />
+    </div>
   );
 }
 
