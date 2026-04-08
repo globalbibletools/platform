@@ -1,21 +1,48 @@
 import ViewTitle from "@/components/ViewTitle";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
+import { getLanguageDashboardBaseData } from "@/modules/languages/actions/getLanguageDashboardBaseData";
+import { getLanguageDashboardRangeData } from "@/modules/languages/actions/getLanguageDashboardRangeData";
 import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
 import BookProgressList from "@/modules/languages/ui/BookProgressList";
-import { getLanguageBookProgressReadModel } from "@/modules/reporting";
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
 import { withDocumentTitle } from "@/documentTitle";
 
 const requestSchema = z.object({ code: z.string() });
+const searchSchema = z.object({
+  bookDetails: z.coerce.number().int().positive().optional(),
+  range: z.enum(["30d", "6m"]).optional(),
+});
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
 
 export const Route = createFileRoute("/_main/admin/languages/$code/dashboard")({
-  loader: ({ params }) => loaderFn({ data: params }),
+  validateSearch: searchSchema,
+  loader: async ({ params }) => {
+    const [languageData, baseData, range30dData, range6mData] =
+      await Promise.all([
+        loaderFn({ data: params }),
+        getLanguageDashboardBaseData({ data: params }),
+        getLanguageDashboardRangeData({
+          data: { code: params.code, range: "30d" },
+        }),
+        getLanguageDashboardRangeData({
+          data: { code: params.code, range: "6m" },
+        }),
+      ]);
+
+    return {
+      ...languageData,
+      ...baseData,
+      activityByRange: {
+        "30d": range30dData.activity,
+        "6m": range6mData.activity,
+      },
+    };
+  },
   head: ({ loaderData }) =>
     withDocumentTitle(`Dashboard | ${loaderData?.language.englishName}`),
   component: LanguageDashboardRoute,
@@ -35,24 +62,61 @@ const loaderFn = createServerFn()
       throw notFound();
     }
 
-    const books = await getLanguageBookProgressReadModel(language.id);
-    return { books, language };
+    return { language };
   });
 
 function LanguageDashboardRoute() {
-  const { books } = Route.useLoaderData();
+  const { books, members, contributions, activityByRange } =
+    Route.useLoaderData();
+  const { bookDetails, range = "30d" } = Route.useSearch();
+
+  const navigate = useNavigate({
+    from: "/admin/languages/$code/dashboard",
+  });
 
   return (
     <div className="absolute w-full h-full overflow-auto">
-      <div className="px-8 py-6 w-fit">
+      <div className="px-8 py-6 w-full">
         <div className="flex items-baseline mb-4">
           <ViewTitle>Dashboard</ViewTitle>
         </div>
-        {books.length === 0 ?
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            No books are currently in progress.
-          </p>
-        : <BookProgressList books={books} />}
+        <BookProgressList
+          className="w-[50vw] aspect-square"
+          books={books}
+          members={members}
+          contributions={contributions}
+          activity={activityByRange[range]}
+          range={range}
+          bookDetails={bookDetails}
+          onRangeChange={(nextRange) => {
+            navigate({
+              to: ".",
+              replace: true,
+              search: (prev) => ({
+                ...prev,
+                range: nextRange,
+              }),
+            });
+          }}
+          onDetailsOpen={(nextBookId) => {
+            navigate({
+              to: ".",
+              search: (prev) => ({
+                ...prev,
+                bookDetails: nextBookId,
+              }),
+            });
+          }}
+          onDetailsClose={() => {
+            navigate({
+              to: ".",
+              search: (prev) => ({
+                ...prev,
+                bookDetails: undefined,
+              }),
+            });
+          }}
+        />
       </div>
     </div>
   );

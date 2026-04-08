@@ -171,6 +171,7 @@ function LanguageUsersRoute() {
                     </ListCell>
                     <ListCell className="py-2 pe-4">
                       <ActivityChart
+                        className="h-10 w-48"
                         data={userActivity?.data ?? []}
                         total={userActivity?.total ?? 0}
                         range={range}

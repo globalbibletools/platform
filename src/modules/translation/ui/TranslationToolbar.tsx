@@ -250,7 +250,8 @@ export default function TranslationToolbar({
 
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
 
-  const [toolbarRef, { blockSize: toolbarHeight }] = useElementDimensions();
+  const [toolbarRef, { blockSize: toolbarHeight }] =
+    useElementDimensions<HTMLDivElement>();
   useLayoutEffect(() => {
     document.body.style.setProperty("--translate-nav-h", `${toolbarHeight}px`);
   }, [toolbarHeight]);

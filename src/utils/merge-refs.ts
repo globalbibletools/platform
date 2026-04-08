@@ -1,8 +1,6 @@
-import { ForwardedRef, MutableRefObject, RefCallback } from "react";
+import { Ref } from "react";
 
-export function mergeRefs<T>(
-  ...refs: (RefCallback<T> | MutableRefObject<T> | ForwardedRef<T>)[]
-) {
+export function mergeRefs<T>(...refs: Ref<T>[]): Ref<T> {
   return (instance: T) => {
     refs.forEach((ref) => {
       if (typeof ref === "function") {

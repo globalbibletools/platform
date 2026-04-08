@@ -1,7 +1,7 @@
-import { useCallback, useRef, useState } from "react";
+import { Ref, useCallback, useRef, useState } from "react";
 
-export function useElementDimensions(): [
-  (element: HTMLElement | null) => void,
+export function useElementDimensions<E extends Element>(): [
+  Ref<E>,
   ResizeObserverSize,
 ] {
   const [size, setSize] = useState({ blockSize: 0, inlineSize: 0 });
@@ -16,9 +16,9 @@ export function useElementDimensions(): [
     : null,
   );
 
-  const elementRef = useRef<HTMLElement | null>(null);
+  const elementRef = useRef<E | null>(null);
   const ref = useCallback(
-    (element: HTMLElement | null) => {
+    (element: E | null) => {
       if (elementRef.current === element) {
         return;
       }

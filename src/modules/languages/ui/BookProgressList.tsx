@@ -1,151 +1,181 @@
 "use client";
 
-import { Fragment, useState } from "react";
-import { type BookProgressRow } from "@/modules/reporting";
+import { useMemo } from "react";
+import ProgressBar from "@/modules/languages/ui/ProgressBar";
 import Button from "@/components/Button";
+import { Icon } from "@/components/Icon";
+import BookProgressDetailsModal, {
+  type BookProgressDetails,
+} from "@/modules/languages/ui/BookProgressDetailsModal";
+import { type ActivityChartRange } from "@/modules/languages/ui/ActivityChart";
+import {
+  type LanguageDashboardActivityEntryReadModel,
+  type LanguageDashboardBookReadModel,
+  type LanguageDashboardContributionReadModel,
+  type LanguageDashboardMemberReadModel,
+} from "@/modules/reporting";
 
 interface BookProgressListProps {
-  books: BookProgressRow[];
+  className?: string;
+  books: LanguageDashboardBookReadModel[];
+  members: LanguageDashboardMemberReadModel[];
+  contributions: LanguageDashboardContributionReadModel[];
+  activity: LanguageDashboardActivityEntryReadModel[];
+  range: ActivityChartRange;
+  bookDetails?: number;
+  onDetailsOpen: (bookId: number) => void;
+  onDetailsClose: () => void;
+  onRangeChange: (range: ActivityChartRange) => void;
 }
 
-function labelFor(userId: string | null, name: string | null): string {
-  if (userId === null) return "Imported";
-  return name ?? userId;
-}
+export default function BookProgressList({
+  className = "",
+  books,
+  members,
+  contributions,
+  activity,
+  range,
+  bookDetails,
+  onDetailsOpen,
+  onDetailsClose,
+  onRangeChange,
+}: BookProgressListProps) {
+  const memberNameById = useMemo(
+    () => new Map(members.map((member) => [member.id, member.name])),
+    [members],
+  );
 
-const COLLAPSE_ROW_COUNT = 3;
+  const detailsByBookId = useMemo(() => {
+    const contributionByBook = new Map<
+      number,
+      Array<{
+        userId: string | null;
+        name: string | null;
+        wordCount: number;
+      }>
+    >();
 
-export default function BookProgressList({ books }: BookProgressListProps) {
-  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+    for (const contribution of contributions) {
+      const current = contributionByBook.get(contribution.bookId) ?? [];
+      current.push({
+        userId: contribution.userId,
+        name:
+          contribution.name ??
+          (contribution.userId === null ?
+            null
+          : (memberNameById.get(contribution.userId) ?? null)),
+        wordCount: contribution.approvedGlossCount,
+      });
+      contributionByBook.set(contribution.bookId, current);
+    }
 
-  function toggle(bookId: number) {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(bookId)) {
-        next.delete(bookId);
-      } else {
-        next.add(bookId);
-      }
-      return next;
-    });
-  }
+    const activityByBook = new Map<
+      number,
+      Array<{
+        userId: string;
+        date: Date;
+        net: number;
+      }>
+    >();
+    for (const entry of activity) {
+      const current = activityByBook.get(entry.bookId) ?? [];
+      current.push({ userId: entry.userId, date: entry.date, net: entry.net });
+      activityByBook.set(entry.bookId, current);
+    }
+
+    return Object.fromEntries(
+      books.map((book) => {
+        const contributors =
+          contributionByBook
+            .get(book.bookId)
+            ?.sort((left, right) => right.wordCount - left.wordCount) ?? [];
+        const approvedWords = contributors.reduce(
+          (sum, contributor) => sum + contributor.wordCount,
+          0,
+        );
+        const details: BookProgressDetails = {
+          bookId: book.bookId,
+          name: book.name,
+          totalWords: book.totalWords,
+          approvedWords,
+          progress: book.totalWords > 0 ? approvedWords / book.totalWords : 0,
+          contributors,
+          activity: activityByBook.get(book.bookId) ?? [],
+        };
+
+        return [book.bookId, details];
+      }),
+    );
+  }, [activity, books, contributions, memberNameById]);
+
+  const inProgressBooks = useMemo(
+    () =>
+      Object.values(detailsByBookId)
+        .filter((book) => book.progress < 1)
+        .sort((left, right) => right.progress - left.progress),
+    [detailsByBookId],
+  );
+
+  const selectedDetails =
+    bookDetails === undefined ? undefined : detailsByBookId[bookDetails];
 
   return (
-    <div
-      className="grid gap-x-6"
-      style={{ gridTemplateColumns: "240px auto 120px auto" }}
+    <section
+      className={`
+        ${className}
+        rounded-xl border border-gray-200 bg-white shadow-sm dark:bg-gray-900 dark:border-gray-700
+        flex flex-col
+     `}
     >
-      <div className="col-span-4 grid grid-cols-subgrid border-b-2 border-green-300 px-4 items-start">
-        <div className="text-start font-bold text-sm uppercase">Book</div>
-        <div className="col-span-3 text-start font-bold text-sm uppercase">
-          Contributors
-        </div>
+      <div className="border-b border-gray-200 px-5 py-4 dark:border-gray-700">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+          Progress
+        </h2>
       </div>
-      {books
-        .filter((book) => book.progress < 1)
-        .map((book) => {
-          const percent = (book.progress * 100).toFixed(2);
-          const isExpanded = expanded.has(book.bookId);
-          const showExpand = book.contributors.length > COLLAPSE_ROW_COUNT;
-
-          const contributors =
-            isExpanded || !showExpand ?
-              book.contributors
-            : book.contributors.slice(0, COLLAPSE_ROW_COUNT);
-
-          const othersWordCount = book.contributors
-            .slice(COLLAPSE_ROW_COUNT - 1)
-            .reduce((sum, c) => sum + c.wordCount, 0);
-          const hiddenCount = book.contributors.length - 1;
-
-          return (
-            <div
-              key={book.bookId}
-              className="col-span-4 grid grid-cols-subgrid py-2 border-b border-green-200 px-4 items-start"
-            >
-              <div className="flex flex-col pr-2">
-                <span className="font-bold text-sm grow mb-1.5">
-                  {book.name}
-                </span>
-                <div className="h-3 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden mb-[3px]">
-                  <div
-                    className="
-                      h-full rounded-full bg-linear-to-r from-green-300 to-blue-700
-                      dark:from-green-500 dark:to-blue-800
-                    "
-                    style={{
-                      maskImage: `linear-gradient(to right, black ${percent}%, transparent ${percent}%)`,
-                    }}
-                  />
-                </div>
-                <div className="flex items-baseline justify-between">
-                  <span className="text-xs tabular-nums">
-                    {book.totalWords - book.approvedWords} words remaining
-                  </span>
-                  <span className="text-xs tabular-nums">{percent}%</span>
-                </div>
-              </div>
-
-              <div className="col-span-3 grid gap-x-2 gap-y-0.5 content-center grid-cols-subgrid items-center pt-1">
-                {contributors.map((c, i) => {
-                  const isLastRow = i === contributors.length - 1;
-                  const showOthersRow = isLastRow && !isExpanded && showExpand;
-                  const pct =
-                    showOthersRow ?
-                      (othersWordCount / book.totalWords) * 100
-                    : (c.wordCount / book.totalWords) * 100;
-                  const wordCount =
-                    showOthersRow ? othersWordCount : c.wordCount;
-
-                  return (
-                    <Fragment key={`${book.bookId}-${c.userId}`}>
-                      <div className="text-xs text-right">
-                        {showOthersRow ?
-                          <Button
-                            variant="tertiary"
-                            small
-                            onClick={() => toggle(book.bookId)}
-                          >
-                            + {hiddenCount} more
-                          </Button>
-                        : labelFor(c.userId, c.name)}
-                      </div>
-                      <div>
-                        <div className="h-2 rounded-full bg-gray-200 dark:bg-gray-700">
-                          <div
-                            className="
-                              h-full rounded-full bg-linear-to-r from-green-300 to-green-400
-                              dark:from-green-400 dark:to-green-600
-                            "
-                            style={{
-                              maskImage: `linear-gradient(to right, black ${pct}%, transparent ${pct}%)`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div className="text-xs tabular-nums">
-                        {wordCount.toLocaleString()}
-                      </div>
-                    </Fragment>
-                  );
-                })}
-
-                {isExpanded && showExpand && (
-                  <div className="text-center col-span-3">
-                    <Button
-                      variant="tertiary"
-                      small
-                      className="text-xs"
-                      onClick={() => toggle(book.bookId)}
-                    >
-                      show less
-                    </Button>
+      <div className="flex-1 overflow-auto relative">
+        {inProgressBooks.length === 0 ?
+          <div className="h-full flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+            No books are currently in progress.
+          </div>
+        : <div className="divide-y divide-gray-200 dark:divide-gray-700 grid grid-cols-[auto_1fr_auto]">
+            {inProgressBooks.map((book) => (
+              <div
+                key={book.bookId}
+                className="grid grid-cols-subgrid col-span-3 items-start gap-3 py-2 px-3"
+              >
+                <h3 className="text-sm font-bold text-right">{book.name}</h3>
+                <div className="pt-1">
+                  <ProgressBar progress={book.progress} />
+                  <div className="flex mt-1 text-xs tabular-nums text-gray-600 dark:text-gray-400">
+                    <span className="grow">
+                      {(book.totalWords - book.approvedWords).toLocaleString()}{" "}
+                      words remaining
+                    </span>
+                    <span>{(book.progress * 100).toFixed(2)}%</span>
                   </div>
-                )}
+                </div>
+                <div>
+                  <Button
+                    variant="tertiary"
+                    onClick={() => onDetailsOpen(book.bookId)}
+                  >
+                    <Icon icon="maximize" />
+                    <span className="sr-only">Open details</span>
+                  </Button>
+                </div>
               </div>
-            </div>
-          );
-        })}
-    </div>
+            ))}
+          </div>
+        }
+      </div>
+      {selectedDetails !== undefined && (
+        <BookProgressDetailsModal
+          details={selectedDetails}
+          range={range}
+          onRangeChange={onRangeChange}
+          onClose={onDetailsClose}
+        />
+      )}
+    </section>
   );
 }
