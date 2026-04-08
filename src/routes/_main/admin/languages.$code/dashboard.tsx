@@ -81,7 +81,7 @@ function LanguageDashboardRoute() {
           <ViewTitle>Dashboard</ViewTitle>
         </div>
         <BookProgressList
-          className="w-[50vw] aspect-square"
+          className="w-full h-[60vh] md:w-1/2 md:max-h-full"
           books={books}
           members={members}
           contributions={contributions}
