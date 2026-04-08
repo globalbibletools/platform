@@ -12,7 +12,7 @@ import { withDocumentTitle } from "@/documentTitle";
 const requestSchema = z.object({ code: z.string() });
 const searchSchema = z.object({
   bookDetails: z.coerce.number().int().positive().optional(),
-  range: z.enum(["30d", "6m"]).default("30d"),
+  range: z.enum(["30d", "6m"]).optional(),
 });
 
 const policy = new Policy({
@@ -68,7 +68,7 @@ const loaderFn = createServerFn()
 function LanguageDashboardRoute() {
   const { books, members, contributions, activityByRange } =
     Route.useLoaderData();
-  const { bookDetails, range } = Route.useSearch();
+  const { bookDetails, range = "30d" } = Route.useSearch();
 
   const navigate = useNavigate({
     from: "/admin/languages/$code/dashboard",
