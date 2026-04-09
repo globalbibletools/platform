@@ -39,7 +39,7 @@ function InviteLanguageUserPage() {
         action={inviteLanguageMember}
         successMessage="User invited successfully!"
         redirect={{
-          to: "/admin/languages/$code/users",
+          to: "/admin/languages/$code",
           params: { code: params.code },
         }}
       >

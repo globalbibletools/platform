@@ -54,13 +54,12 @@ export function ActivityChartRangeToggle({
   range?: ActivityChartRange;
 }) {
   const navigate = useNavigate();
-  const search = useSearch({ from: "/_main/admin/languages/$code/users/" });
 
   function onClick() {
     const nextRange = range === "30d" ? "6m" : "30d";
     navigate({
       to: ".",
-      search: { ...search, range: nextRange },
+      search: (search) => ({ ...search, range: nextRange }),
       replace: true,
     });
   }
