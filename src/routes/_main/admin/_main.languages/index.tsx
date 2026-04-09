@@ -16,7 +16,6 @@ import { routerGuard } from "@/modules/access/routerGuard";
 import { searchLanguagesReadModel } from "@/modules/languages/read-models/searchLanguagesReadModel";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { useTranslations } from "use-intl";
 import { withDocumentTitle } from "@/documentTitle";
 
 const LIMIT = 20;
@@ -59,29 +58,26 @@ const loaderFn = createServerFn()
 
 function AdminLanguagesRoute() {
   const { languages, total } = Route.useLoaderData();
-  const t = useTranslations("AdminLanguagesPage");
 
   return (
     <div className="absolute w-full h-full overflow-auto">
       <div className="px-8 py-6 w-fit">
         <div className="flex items-baseline mb-4">
-          <ViewTitle>{t("title")}</ViewTitle>
+          <ViewTitle>Languages</ViewTitle>
           <div className="grow" />
           <Button variant="primary" to="/admin/languages/new">
             <Icon icon="plus" className="me-1" />
-            {t("actions.add_language")}
+            Add Language
           </Button>
         </div>
         <List>
           <ListHeader>
-            <ListHeaderCell className="min-w-[240px]">
-              {t("headers.language")}
+            <ListHeaderCell className="min-w-[240px]">Language</ListHeaderCell>
+            <ListHeaderCell className="min-w-[120px]">
+              OT Progress
             </ListHeaderCell>
             <ListHeaderCell className="min-w-[120px]">
-              {t("headers.ot_progress")}
-            </ListHeaderCell>
-            <ListHeaderCell className="min-w-[120px]">
-              {t("headers.nt_progress")}
+              NT Progress
             </ListHeaderCell>
             <ListHeaderCell />
           </ListHeader>
@@ -89,7 +85,13 @@ function AdminLanguagesRoute() {
             {languages.map((language) => (
               <ListRow key={language.code}>
                 <ListCell header>
-                  {language.englishName}
+                  <Button
+                    to="/admin/languages/$code/dashboard"
+                    variant="tertiary"
+                    params={{ code: language.code }}
+                  >
+                    {language.englishName}
+                  </Button>
                   <span className="text-sm ml-1 font-normal">
                     {language.code}
                   </span>
@@ -102,7 +104,8 @@ function AdminLanguagesRoute() {
                     to="/admin/languages/$code/settings"
                     params={{ code: language.code }}
                   >
-                    {t("actions.manage")}
+                    <Icon icon="gear" className="me-1" />
+                    Settings
                   </Button>
                 </ListCell>
               </ListRow>
