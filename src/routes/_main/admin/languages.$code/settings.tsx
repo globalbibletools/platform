@@ -84,7 +84,7 @@ function LanguageSettingsRoute() {
         invalidate
       >
         <div className="flex items-baseline mb-4">
-          <ViewTitle>{t("title")}</ViewTitle>
+          <ViewTitle>{languageSettings.englishName} Settings</ViewTitle>
           <SavingIndicator
             labels={{
               saving: t("saving"),
@@ -92,7 +92,7 @@ function LanguageSettingsRoute() {
             }}
           />
         </div>
-        <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 pb-8 px-10 border-b border-b-green-300 dark:border-b-blue-800">
+        <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 pb-8 border-b border-b-green-300 dark:border-b-blue-800">
           <div className="grow">
             <h3 className="font-bold text-lg mb-2">
               {t("headings.identification")}
@@ -172,7 +172,7 @@ function LanguageSettingsRoute() {
             </div>
           </div>
         </section>
-        <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 px-10 border-b border-b-green-300 dark:border-b-blue-800">
+        <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 border-b border-b-green-300 dark:border-b-blue-800">
           <div className="grow">
             <h3 className="font-bold text-lg mb-2">{t("headings.text")}</h3>
             <p className="text-sm">{t("text_description")}</p>
@@ -222,7 +222,7 @@ function LanguageSettingsRoute() {
             </div>
           </div>
         </section>
-        <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 px-10 border-b border-b-green-300 dark:border-b-blue-800">
+        <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 border-b border-b-green-300 dark:border-b-blue-800">
           <div className="grow">
             <h3 className="font-bold text-lg mb-2">
               {t("headings.bible_translation")}
@@ -244,7 +244,7 @@ function LanguageSettingsRoute() {
           </div>
           <FieldError id="bible-transations-error" name="bible_translations" />
         </section>
-        <section className="py-8 px-10">
+        <section className="py-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:gap-20">
             <div className="grow">
               <h3 className="font-bold text-lg mb-2">
