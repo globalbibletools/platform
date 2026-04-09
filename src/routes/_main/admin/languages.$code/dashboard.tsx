@@ -86,7 +86,7 @@ function LanguageDashboardRoute() {
           <div className="grow sm:justify-end row-start-2 col-span-2 flex items-center gap-4">
             <Button
               variant="tertiary"
-              to="/admin/languages/$code/users/invite"
+              to="/admin/languages/$code/invite"
               params={{ code }}
             >
               <Icon icon="envelope" className="me-1" />

@@ -15,9 +15,7 @@ const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
 
-export const Route = createFileRoute(
-  "/_main/admin/languages/$code/users/invite",
-)({
+export const Route = createFileRoute("/_main/admin/languages/$code/invite")({
   beforeLoad({ context }) {
     routerGuard({ context: context.auth, policy });
   },
