@@ -9,6 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
 import { withDocumentTitle } from "@/documentTitle";
 import LanguageUsersDashboardCard from "@/modules/languages/ui/LanguageUsersDashboardCard";
+import RangeToggle from "@/modules/languages/ui/RangeToggle";
 
 const requestSchema = z.object({ code: z.string() });
 const searchSchema = z.object({
@@ -78,8 +79,21 @@ function LanguageDashboardRoute() {
   return (
     <div className="absolute w-full h-full overflow-auto">
       <div className="px-8 py-6 w-full">
-        <div className="flex items-baseline mb-4">
-          <ViewTitle>Dashboard</ViewTitle>
+        <div className="flex items-center mb-4">
+          <ViewTitle className="grow">Dashboard</ViewTitle>
+          <RangeToggle
+            range={range}
+            onChange={(nextRange) => {
+              navigate({
+                to: ".",
+                replace: true,
+                search: (prev) => ({
+                  ...prev,
+                  range: nextRange,
+                }),
+              });
+            }}
+          />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 auto-rows-[60vh] gap-4">
           <BookProgressList
