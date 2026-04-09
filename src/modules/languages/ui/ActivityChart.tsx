@@ -15,7 +15,7 @@ import {
 } from "date-fns";
 import { UTCDate } from "@date-fns/utc";
 import Button from "@/components/Button";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useElementDimensions } from "@/utils/measure-element";
 
 export interface ActivityChartEntry {
