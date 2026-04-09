@@ -4,6 +4,11 @@ import { useMemo } from "react";
 import ProgressBar from "@/modules/languages/ui/ProgressBar";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
+import {
+  DashboardCard,
+  DashboardCardEmptyState,
+  DashboardCardHeader,
+} from "./DashboardCard";
 import BookProgressDetailsModal, {
   type BookProgressDetails,
 } from "@/modules/languages/ui/BookProgressDetailsModal";
@@ -15,7 +20,7 @@ import {
   type LanguageDashboardMemberReadModel,
 } from "@/modules/reporting";
 
-interface BookProgressListProps {
+interface LanguageBookProgressDashboardCardProps {
   className?: string;
   books: LanguageDashboardBookReadModel[];
   members: LanguageDashboardMemberReadModel[];
@@ -28,7 +33,7 @@ interface BookProgressListProps {
   onRangeChange: (range: ActivityChartRange) => void;
 }
 
-export default function BookProgressList({
+export default function LanguageBookProgressDashboardCard({
   className = "",
   books,
   members,
@@ -39,7 +44,7 @@ export default function BookProgressList({
   onDetailsOpen,
   onDetailsClose,
   onRangeChange,
-}: BookProgressListProps) {
+}: LanguageBookProgressDashboardCardProps) {
   const memberNameById = useMemo(
     () => new Map(members.map((member) => [member.id, member.name])),
     [members],
@@ -120,23 +125,13 @@ export default function BookProgressList({
     bookDetails === undefined ? undefined : detailsByBookId[bookDetails];
 
   return (
-    <section
-      className={`
-        ${className}
-        rounded-xl border border-gray-200 bg-white shadow-sm dark:bg-gray-900 dark:border-gray-700
-        flex flex-col
-     `}
-    >
-      <div className="border-b border-gray-200 px-5 py-4 dark:border-gray-700">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-300">
-          Progress
-        </h2>
-      </div>
+    <DashboardCard className={className}>
+      <DashboardCardHeader title="Progress" />
       <div className="flex-1 overflow-auto relative">
         {inProgressBooks.length === 0 ?
-          <div className="h-full flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+          <DashboardCardEmptyState>
             No books are currently in progress.
-          </div>
+          </DashboardCardEmptyState>
         : <div className="divide-y divide-gray-200 dark:divide-gray-700 grid grid-cols-[auto_1fr_auto]">
             {inProgressBooks.map((book) => (
               <div
@@ -176,6 +171,6 @@ export default function BookProgressList({
           onClose={onDetailsClose}
         />
       )}
-    </section>
+    </DashboardCard>
   );
 }

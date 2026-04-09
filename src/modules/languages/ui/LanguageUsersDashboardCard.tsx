@@ -10,6 +10,12 @@ import ContributionBar from "./ContributionBar";
 import ServerAction from "@/components/ServerAction";
 import { removeLanguageMember } from "../actions/removeLanguageMember";
 import { reinviteLanguageMemberAction } from "../actions/reinviteLanguageMember";
+import {
+  DashboardCard,
+  DashboardCardEmptyState,
+  DashboardCardHeader,
+} from "./DashboardCard";
+import StatusBadge from "./StatusBadge";
 
 export default function LanguageUsersDashboardCard({
   className = "",
@@ -99,26 +105,14 @@ export default function LanguageUsersDashboardCard({
     0,
   );
 
-  console.log(fullMembers);
-
   return (
-    <section
-      className={`
-        ${className}
-        rounded-xl border border-gray-200 bg-white shadow-sm dark:bg-gray-900 dark:border-gray-700
-        flex flex-col
-     `}
-    >
-      <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-700">
-        <h2 className="text-sm font-bold uppercase tracking-wide">
-          Contributors
-        </h2>
-      </div>
+    <DashboardCard className={className}>
+      <DashboardCardHeader title="Contributors" />
       <div className="flex-1 overflow-auto relative">
         {members.length === 0 ?
-          <div className="h-full flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
-            No books are currently in progress.
-          </div>
+          <DashboardCardEmptyState>
+            No contributors have been added to this language.
+          </DashboardCardEmptyState>
         : <div className="divide-y divide-gray-200 dark:divide-gray-700 grid grid-cols-[1fr_1fr]">
             {fullMembers.map((member) => {
               return (
@@ -131,14 +125,10 @@ export default function LanguageUsersDashboardCard({
                       {member.name ?? member.email}
                     </h3>
                     {member.status === "removed" && (
-                      <span className="inline-block text-xs rounded bg-red-200 uppercase font-bold px-1 py-0.5">
-                        Removed
-                      </span>
+                      <StatusBadge color="red">Removed</StatusBadge>
                     )}
                     {member.status === "invited" && (
-                      <span className="inline-block text-xs rounded bg-brown-100 uppercase font-bold px-1 py-0.5">
-                        Invited
-                      </span>
+                      <StatusBadge color="brown">Invited</StatusBadge>
                     )}
                     <div className="flex grow justify-end gap-3">
                       {member.status === "invited" && (
@@ -193,6 +183,6 @@ export default function LanguageUsersDashboardCard({
           </div>
         }
       </div>
-    </section>
+    </DashboardCard>
   );
 }

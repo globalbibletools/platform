@@ -3,7 +3,7 @@ import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { getLanguageDashboardBaseData } from "@/modules/languages/actions/getLanguageDashboardBaseData";
 import { getLanguageDashboardRangeData } from "@/modules/languages/actions/getLanguageDashboardRangeData";
 import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
-import BookProgressList from "@/modules/languages/ui/BookProgressList";
+import LanguageBookProgressDashboardCard from "@/modules/languages/ui/LanguageBookProgressDashboardCard";
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
@@ -117,7 +117,7 @@ function LanguageDashboardRoute() {
         </div>
         <ActivityChartProvider>
           <div className="grid grid-cols-1 md:grid-cols-2 auto-rows-[50vh] gap-4 mb-8">
-            <BookProgressList
+            <LanguageBookProgressDashboardCard
               books={books}
               members={members}
               contributions={contributions}
