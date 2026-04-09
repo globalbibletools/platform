@@ -5,22 +5,28 @@ import {
 } from "@/modules/reporting";
 import ActivityChart, { ActivityChartRange } from "./ActivityChart";
 import { useMemo } from "react";
-import ProgressBar from "./ProgressBar";
+import { Icon } from "@/components/Icon";
+import ContributionBar from "./ContributionBar";
+import ServerAction from "@/components/ServerAction";
+import { removeLanguageMember } from "../actions/removeLanguageMember";
+import { reinviteLanguageMemberAction } from "../actions/reinviteLanguageMember";
 
 export default function LanguageUsersDashboardCard({
   className = "",
+  languageCode,
   members,
   contributions,
   activity,
   range,
 }: {
   className?: string;
+  languageCode: string;
   members: LanguageDashboardMemberReadModel[];
   contributions: LanguageDashboardContributionReadModel[];
   activity: LanguageDashboardActivityEntryReadModel[];
   range: ActivityChartRange;
 }) {
-  const { fullMembers, yMin, yMax } = useMemo(() => {
+  const fullMembers = useMemo(() => {
     let totalGlosses = 0;
     const contributionMap = new Map<string, number>();
 
@@ -73,21 +79,27 @@ export default function LanguageUsersDashboardCard({
       };
     });
 
-    const yMin = fullMembers.reduce(
-      (min, member) =>
-        member.activity.reduce((min, entry) => Math.min(min, entry.net), min),
-      0,
-    );
-    const yMax = fullMembers.reduce(
-      (max, member) =>
-        member.activity.reduce((max, entry) => Math.max(max, entry.net), max),
-      0,
-    );
-
     fullMembers.sort((a, b) => b.contributedGlosses - a.contributedGlosses);
 
-    return { fullMembers, yMin, yMax };
-  }, [members, contributions]);
+    return fullMembers;
+  }, [members, contributions, activity]);
+
+  const yMin = fullMembers.reduce(
+    (min, member) =>
+      member.activity.reduce((min, entry) => Math.min(min, entry.net), min),
+    0,
+  );
+  const yMax = fullMembers.reduce(
+    (max, member) =>
+      member.activity.reduce((max, entry) => Math.max(max, entry.net), max),
+    0,
+  );
+  const maxContribution = fullMembers.reduce(
+    (max, member) => Math.max(max, member.contributedGlosses),
+    0,
+  );
+
+  console.log(fullMembers);
 
   return (
     <section
@@ -97,8 +109,8 @@ export default function LanguageUsersDashboardCard({
         flex flex-col
      `}
     >
-      <div className="border-b border-gray-200 px-5 py-4 dark:border-gray-700">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-300">
+      <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-700">
+        <h2 className="text-sm font-bold uppercase tracking-wide">
           Contributors
         </h2>
       </div>
@@ -112,27 +124,69 @@ export default function LanguageUsersDashboardCard({
               return (
                 <div
                   key={member.id}
-                  className="grid grid-cols-subgrid col-span-2 gap-3 py-2 px-3 items-stretch"
+                  className="grid grid-cols-subgrid col-span-2 gap-y-1 gap-x-4 py-3 px-4 items-stretch"
                 >
-                  <div>
-                    <div className="w-full mb-1 flex items-baseline">
-                      <h3 className="grow text-sm font-bold">{member.name}</h3>
-                      <span className="shrink-0 text-xs tabular-nums text-gray-600 dark:text-gray-400">
+                  <div className="min-w-0 col-span-2 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-nowrap text-ellipsis">
+                      {member.name ?? member.email}
+                    </h3>
+                    {member.status === "removed" && (
+                      <span className="inline-block text-xs rounded bg-red-200 uppercase font-bold px-1 py-0.5">
+                        Removed
+                      </span>
+                    )}
+                    {member.status === "invited" && (
+                      <span className="inline-block text-xs rounded bg-brown-100 uppercase font-bold px-1 py-0.5">
+                        Invited
+                      </span>
+                    )}
+                    <div className="flex grow justify-end gap-3">
+                      {member.status === "invited" && (
+                        <ServerAction
+                          variant="tertiary"
+                          actionData={{ userId: member.id, code: languageCode }}
+                          action={reinviteLanguageMemberAction}
+                          successMessage="Invite resent!"
+                        >
+                          <Icon icon="envelope" />
+                          <span className="sr-only">Reinvite</span>
+                        </ServerAction>
+                      )}
+                      {member.status !== "removed" && (
+                        <ServerAction
+                          variant="tertiary"
+                          destructive
+                          actionData={{ userId: member.id, code: languageCode }}
+                          action={removeLanguageMember}
+                          successMessage="Language member removed"
+                          invalidate
+                          confirm="Are you sure you want to remove this member?"
+                        >
+                          <Icon icon="trash" size="sm" />
+                          <span className="sr-only">Remove</span>
+                        </ServerAction>
+                      )}
+                    </div>
+                  </div>
+                  <div className="min-w-0 self-end">
+                    <ContributionBar
+                      contribution={member.contributedGlosses}
+                      max={maxContribution}
+                    />
+                    <div className="mt-1 flex text-xs tabular-nums text-gray-600 dark:text-gray-400">
+                      <span className="grow">
                         {member.contributedGlosses.toLocaleString()} glosses
                       </span>
                     </div>
-                    <ProgressBar progress={member.contributionPercent} />
                   </div>
-                  <div>
-                    <ActivityChart
-                      className="h-full w-full"
-                      data={member.activity}
-                      total={member.activityTotal}
-                      yMin={yMin}
-                      yMax={yMax}
-                      range={range}
-                    />
-                  </div>
+                  <ActivityChart
+                    className="min-w-0 place-self-stretch h-12"
+                    data={member.activity}
+                    total={member.activityTotal}
+                    yMin={yMin}
+                    yMax={yMax}
+                    range={range}
+                  />
                 </div>
               );
             })}

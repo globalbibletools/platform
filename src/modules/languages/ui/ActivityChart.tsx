@@ -330,9 +330,9 @@ function ActivityChartSVG({
   }, [cursor]);
 
   return (
-    <div ref={elementRef} className="w-full flex-1">
+    <div ref={elementRef} className="flex-1 relative w-full">
       <svg
-        className="cursor-crosshair"
+        className="absolute inset-0 cursor-crosshair"
         ref={svgRef}
         width={size.inlineSize}
         height={size.blockSize}

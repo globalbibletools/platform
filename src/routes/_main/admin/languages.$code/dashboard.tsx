@@ -10,6 +10,9 @@ import * as z from "zod";
 import { withDocumentTitle } from "@/documentTitle";
 import LanguageUsersDashboardCard from "@/modules/languages/ui/LanguageUsersDashboardCard";
 import RangeToggle from "@/modules/languages/ui/RangeToggle";
+import { ActivityChartProvider } from "@/modules/languages/ui/ActivityChart";
+import Button from "@/components/Button";
+import { Icon } from "@/components/Icon";
 
 const requestSchema = z.object({ code: z.string() });
 const searchSchema = z.object({
@@ -68,19 +71,36 @@ const loaderFn = createServerFn()
   });
 
 function LanguageDashboardRoute() {
-  const { books, members, contributions, activityByRange } =
+  const { language, books, members, contributions, activityByRange } =
     Route.useLoaderData();
   const { bookDetails, range = "30d" } = Route.useSearch();
+  const { code } = Route.useParams();
 
-  const navigate = useNavigate({
-    from: "/admin/languages/$code/dashboard",
-  });
+  const navigate = useNavigate();
 
   return (
-    <div className="absolute w-full h-full overflow-auto">
-      <div className="px-8 py-6 w-full">
-        <div className="flex items-center mb-4">
-          <ViewTitle className="grow">Dashboard</ViewTitle>
+    <div className="">
+      <div className="px-4 lg:px-8 py-6 w-full">
+        <div className="mb-4 grid grid-cols-[1fr_auto] sm:flex sm:items-center sm:gap-4">
+          <ViewTitle>{language.englishName}</ViewTitle>
+          <div className="grow sm:justify-end row-start-2 col-span-2 flex items-center gap-4">
+            <Button
+              variant="tertiary"
+              to="/admin/languages/$code/users/invite"
+              params={{ code }}
+            >
+              <Icon icon="envelope" className="me-1" />
+              Invite
+            </Button>
+            <Button
+              variant="tertiary"
+              to="/admin/languages/$code/settings"
+              params={{ code }}
+            >
+              <Icon icon="gear" className="me-1" />
+              Settings
+            </Button>
+          </div>
           <RangeToggle
             range={range}
             onChange={(nextRange) => {
@@ -95,50 +115,53 @@ function LanguageDashboardRoute() {
             }}
           />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 auto-rows-[60vh] gap-4">
-          <BookProgressList
-            books={books}
-            members={members}
-            contributions={contributions}
-            activity={activityByRange[range]}
-            range={range}
-            bookDetails={bookDetails}
-            onRangeChange={(nextRange) => {
-              navigate({
-                to: ".",
-                replace: true,
-                search: (prev) => ({
-                  ...prev,
-                  range: nextRange,
-                }),
-              });
-            }}
-            onDetailsOpen={(nextBookId) => {
-              navigate({
-                to: ".",
-                search: (prev) => ({
-                  ...prev,
-                  bookDetails: nextBookId,
-                }),
-              });
-            }}
-            onDetailsClose={() => {
-              navigate({
-                to: ".",
-                search: (prev) => ({
-                  ...prev,
-                  bookDetails: undefined,
-                }),
-              });
-            }}
-          />
-          <LanguageUsersDashboardCard
-            members={members}
-            contributions={contributions}
-            activity={activityByRange[range]}
-            range={range}
-          />
-        </div>
+        <ActivityChartProvider>
+          <div className="grid grid-cols-1 md:grid-cols-2 auto-rows-[50vh] gap-4 mb-8">
+            <BookProgressList
+              books={books}
+              members={members}
+              contributions={contributions}
+              activity={activityByRange[range]}
+              range={range}
+              bookDetails={bookDetails}
+              onRangeChange={(nextRange) => {
+                navigate({
+                  to: ".",
+                  replace: true,
+                  search: (prev) => ({
+                    ...prev,
+                    range: nextRange,
+                  }),
+                });
+              }}
+              onDetailsOpen={(nextBookId) => {
+                navigate({
+                  to: ".",
+                  search: (prev) => ({
+                    ...prev,
+                    bookDetails: nextBookId,
+                  }),
+                });
+              }}
+              onDetailsClose={() => {
+                navigate({
+                  to: ".",
+                  search: (prev) => ({
+                    ...prev,
+                    bookDetails: undefined,
+                  }),
+                });
+              }}
+            />
+            <LanguageUsersDashboardCard
+              languageCode={code}
+              members={members}
+              contributions={contributions}
+              activity={activityByRange[range]}
+              range={range}
+            />
+          </div>
+        </ActivityChartProvider>
       </div>
     </div>
   );
