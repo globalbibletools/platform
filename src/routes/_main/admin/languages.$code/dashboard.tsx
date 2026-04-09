@@ -8,6 +8,7 @@ import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
 import { withDocumentTitle } from "@/documentTitle";
+import LanguageUsersDashboardCard from "@/modules/languages/ui/LanguageUsersDashboardCard";
 
 const requestSchema = z.object({ code: z.string() });
 const searchSchema = z.object({
@@ -80,43 +81,50 @@ function LanguageDashboardRoute() {
         <div className="flex items-baseline mb-4">
           <ViewTitle>Dashboard</ViewTitle>
         </div>
-        <BookProgressList
-          className="w-full h-[60vh] md:w-1/2 md:max-h-full"
-          books={books}
-          members={members}
-          contributions={contributions}
-          activity={activityByRange[range]}
-          range={range}
-          bookDetails={bookDetails}
-          onRangeChange={(nextRange) => {
-            navigate({
-              to: ".",
-              replace: true,
-              search: (prev) => ({
-                ...prev,
-                range: nextRange,
-              }),
-            });
-          }}
-          onDetailsOpen={(nextBookId) => {
-            navigate({
-              to: ".",
-              search: (prev) => ({
-                ...prev,
-                bookDetails: nextBookId,
-              }),
-            });
-          }}
-          onDetailsClose={() => {
-            navigate({
-              to: ".",
-              search: (prev) => ({
-                ...prev,
-                bookDetails: undefined,
-              }),
-            });
-          }}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 auto-rows-[60vh] gap-4">
+          <BookProgressList
+            books={books}
+            members={members}
+            contributions={contributions}
+            activity={activityByRange[range]}
+            range={range}
+            bookDetails={bookDetails}
+            onRangeChange={(nextRange) => {
+              navigate({
+                to: ".",
+                replace: true,
+                search: (prev) => ({
+                  ...prev,
+                  range: nextRange,
+                }),
+              });
+            }}
+            onDetailsOpen={(nextBookId) => {
+              navigate({
+                to: ".",
+                search: (prev) => ({
+                  ...prev,
+                  bookDetails: nextBookId,
+                }),
+              });
+            }}
+            onDetailsClose={() => {
+              navigate({
+                to: ".",
+                search: (prev) => ({
+                  ...prev,
+                  bookDetails: undefined,
+                }),
+              });
+            }}
+          />
+          <LanguageUsersDashboardCard
+            members={members}
+            contributions={contributions}
+            activity={activityByRange[range]}
+            range={range}
+          />
+        </div>
       </div>
     </div>
   );
