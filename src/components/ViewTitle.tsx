@@ -10,8 +10,6 @@ export default function ViewTitle({
   children,
 }: ViewTitleProps) {
   return (
-    <h1 className={`text-2xl font-bold pb-2 capitalize ${className}`}>
-      {children}
-    </h1>
+    <h1 className={`text-2xl font-bold capitalize ${className}`}>{children}</h1>
   );
 }

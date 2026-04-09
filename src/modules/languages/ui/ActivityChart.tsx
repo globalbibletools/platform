@@ -15,7 +15,7 @@ import {
 } from "date-fns";
 import { UTCDate } from "@date-fns/utc";
 import Button from "@/components/Button";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useElementDimensions } from "@/utils/measure-element";
 
 export interface ActivityChartEntry {
@@ -54,13 +54,12 @@ export function ActivityChartRangeToggle({
   range?: ActivityChartRange;
 }) {
   const navigate = useNavigate();
-  const search = useSearch({ from: "/_main/admin/languages/$code/users/" });
 
   function onClick() {
     const nextRange = range === "30d" ? "6m" : "30d";
     navigate({
       to: ".",
-      search: { ...search, range: nextRange },
+      search: (search) => ({ ...search, range: nextRange }),
       replace: true,
     });
   }
@@ -330,9 +329,9 @@ function ActivityChartSVG({
   }, [cursor]);
 
   return (
-    <div ref={elementRef} className="w-full flex-1">
+    <div ref={elementRef} className="flex-1 relative w-full">
       <svg
-        className="cursor-crosshair"
+        className="absolute inset-0 cursor-crosshair"
         ref={svgRef}
         width={size.inlineSize}
         height={size.blockSize}
