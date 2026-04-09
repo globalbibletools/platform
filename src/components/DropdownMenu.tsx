@@ -8,7 +8,7 @@ import { Link, LinkProps } from "@tanstack/react-router";
 export interface DropdownProps {
   className?: string;
   buttonClassName?: string;
-  text: string | ReactNode;
+  text: string;
   children: ReactNode;
 }
 
