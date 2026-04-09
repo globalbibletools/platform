@@ -86,7 +86,7 @@ function AdminLanguagesRoute() {
               <ListRow key={language.code}>
                 <ListCell header>
                   <Button
-                    to="/admin/languages/$code/dashboard"
+                    to="/admin/languages/$code"
                     variant="tertiary"
                     params={{ code: language.code }}
                   >

@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_main/admin/languages/$code")({
 
     const [, , , code] = pathParts;
     throw redirect({
-      to: "/admin/languages/$code/dashboard",
+      to: "/admin/languages/$code",
       params: { code },
     });
   },

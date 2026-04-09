@@ -24,7 +24,7 @@ const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
 });
 
-export const Route = createFileRoute("/_main/admin/languages/$code/dashboard")({
+export const Route = createFileRoute("/_main/admin/languages/$code/")({
   validateSearch: searchSchema,
   loader: async ({ params }) => {
     const [languageData, baseData, range30dData, range6mData] =
