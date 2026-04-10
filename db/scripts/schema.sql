@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict LPnEQlmi2DTXgUi0lSpcInZHfmHpNbW7eyam7W4SdOIHWPaCUZoWx55ssNl6KRj
+\restrict c94gLPI6ezO1vBMLBMfOfYjDbpargAbfZojWXlj17MycdwqgZaVDh4Fq687emKQ
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -752,7 +752,7 @@ CREATE TABLE public.machine_gloss (
     word_id text NOT NULL,
     language_id uuid NOT NULL,
     gloss text,
-    model_id integer,
+    model_id integer NOT NULL,
     id integer NOT NULL
 );
 
@@ -2036,5 +2036,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict LPnEQlmi2DTXgUi0lSpcInZHfmHpNbW7eyam7W4SdOIHWPaCUZoWx55ssNl6KRj
+\unrestrict c94gLPI6ezO1vBMLBMfOfYjDbpargAbfZojWXlj17MycdwqgZaVDh4Fq687emKQ
 

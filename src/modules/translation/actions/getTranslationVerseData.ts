@@ -20,16 +20,28 @@ export const getTranslationVerseData = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => requestSchema.parse(input))
   .middleware([createPolicyMiddleware({ policy })])
   .handler(async ({ data, context }) => {
-    const [language, verse, phrases, suggestions, machineSuggestions] =
-      await Promise.all([
-        getCurrentLanguageReadModel(data.code, context.session.user.id),
+    const language = await getCurrentLanguageReadModel(
+      data.code,
+      context.session.user.id,
+    );
+    if (!language) {
+      return { language: null, words: [], phrases: [] };
+    }
+
+    const [verse, phrases, suggestions, machineSuggestions] = await Promise.all(
+      [
         getVerseWordsReadModel(data.verseId, data.code),
         fetchPhrases(data.verseId, data.code, context.session.user.id),
         fetchSuggestions(data.verseId, data.code),
-        fetchMachineSuggestions(data.verseId, data.code),
-      ]);
+        fetchMachineSuggestions(
+          data.verseId,
+          data.code,
+          language.machineGlossStrategy,
+        ),
+      ],
+    );
 
-    if (!verse || !language) {
+    if (!verse) {
       return { language: null, words: [], phrases: [] };
     }
 
@@ -164,7 +176,16 @@ interface MachineSuggestion {
 async function fetchMachineSuggestions(
   verseId: string,
   languageCode: string,
+  machineGlossStrategy: MachineGlossStrategy,
 ): Promise<MachineSuggestion[]> {
+  const modelCode =
+    machineGlossStrategy === "google" ? "google"
+    : machineGlossStrategy === "llm" ? "llm_import"
+    : undefined;
+  if (!modelCode) {
+    return [];
+  }
+
   const result = await query<MachineSuggestion>(
     `
         SELECT
@@ -174,8 +195,9 @@ async function fetchMachineSuggestions(
         JOIN machine_gloss AS mg ON mg.word_id = w.id
         WHERE w.verse_id = $1
 			AND mg.language_id = (SELECT id FROM language WHERE code = $2)
+            AND mg.model_id = (SELECT id FROM machine_gloss_model WHERE code = $3)
         `,
-    [verseId, languageCode],
+    [verseId, languageCode, modelCode],
   );
 
   return result.rows;
