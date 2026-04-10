@@ -253,10 +253,11 @@ async function saveMachineTranslations(
   try {
     await query(
       `
-            INSERT INTO machine_gloss (word_id, gloss, language_id)
+            INSERT INTO machine_gloss (word_id, gloss, language_id, model_id)
             SELECT
                 phw.word_id, data.machine_gloss,
-                (SELECT id FROM language WHERE code = $1)
+                (SELECT id FROM language WHERE code = $1),
+                (SELECT id FROM machine_gloss_model WHERE code = 'google')
             FROM phrase_word AS phw
             JOIN gloss AS g ON g.phrase_id = phw.phrase_id
             JOIN phrase AS ph ON phw.phrase_id = ph.id
@@ -264,8 +265,9 @@ async function saveMachineTranslations(
                 ON LOWER(g.gloss) = data.ref_gloss
             WHERE ph.deleted_at IS NULL
                 AND ph.language_id = (SELECT id FROM language WHERE code = 'eng')
-            ON CONFLICT (language_id, word_id)
-            DO UPDATE SET gloss = EXCLUDED.gloss
+            ON CONFLICT (language_id, word_id, model_id)
+            DO UPDATE SET
+              gloss = EXCLUDED.gloss
             `,
       [code, referenceGlosses, machineGlosses],
     );

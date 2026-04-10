@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict BhH2o9IQI1T8RGC8f6T8TuapQnniv56nQHJX0eonxucCMLdZkUhSnB3y1om1aPw
+\restrict LPnEQlmi2DTXgUi0lSpcInZHfmHpNbW7eyam7W4SdOIHWPaCUZoWx55ssNl6KRj
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -752,6 +752,7 @@ CREATE TABLE public.machine_gloss (
     word_id text NOT NULL,
     language_id uuid NOT NULL,
     gloss text,
+    model_id integer,
     id integer NOT NULL
 );
 
@@ -774,6 +775,36 @@ CREATE SEQUENCE public.machine_gloss_id_seq
 --
 
 ALTER SEQUENCE public.machine_gloss_id_seq OWNED BY public.machine_gloss.id;
+
+
+--
+-- Name: machine_gloss_model; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.machine_gloss_model (
+    id integer NOT NULL,
+    code text NOT NULL
+);
+
+
+--
+-- Name: machine_gloss_model_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.machine_gloss_model_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: machine_gloss_model_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.machine_gloss_model_id_seq OWNED BY public.machine_gloss_model.id;
 
 
 --
@@ -1059,6 +1090,13 @@ ALTER TABLE ONLY public.machine_gloss ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: machine_gloss_model id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss_model ALTER COLUMN id SET DEFAULT nextval('public.machine_gloss_model_id_seq'::regclass);
+
+
+--
 -- Name: phrase id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1204,6 +1242,22 @@ ALTER TABLE ONLY public.lemma
 
 ALTER TABLE ONLY public.lemma_resource
     ADD CONSTRAINT lemma_resource_pkey PRIMARY KEY (lemma_id, resource_code);
+
+
+--
+-- Name: machine_gloss_model machine_gloss_model_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss_model
+    ADD CONSTRAINT machine_gloss_model_code_key UNIQUE (code);
+
+
+--
+-- Name: machine_gloss_model machine_gloss_model_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss_model
+    ADD CONSTRAINT machine_gloss_model_pkey PRIMARY KEY (id);
 
 
 --
@@ -1443,7 +1497,7 @@ CREATE INDEX gloss_phrase_id_idx ON public.gloss USING btree (phrase_id);
 -- Name: idx_machine_gloss_language_word; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_machine_gloss_language_word ON public.machine_gloss USING btree (language_id, word_id);
+CREATE UNIQUE INDEX idx_machine_gloss_language_word ON public.machine_gloss USING btree (language_id, word_id, model_id);
 
 
 --
@@ -1763,6 +1817,14 @@ ALTER TABLE ONLY public.machine_gloss
 
 
 --
+-- Name: machine_gloss machine_gloss_model_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss
+    ADD CONSTRAINT machine_gloss_model_id_fkey FOREIGN KEY (model_id) REFERENCES public.machine_gloss_model(id);
+
+
+--
 -- Name: machine_gloss machine_gloss_word_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1974,5 +2036,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict BhH2o9IQI1T8RGC8f6T8TuapQnniv56nQHJX0eonxucCMLdZkUhSnB3y1om1aPw
+\unrestrict LPnEQlmi2DTXgUi0lSpcInZHfmHpNbW7eyam7W4SdOIHWPaCUZoWx55ssNl6KRj
 

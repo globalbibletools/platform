@@ -136,6 +136,10 @@ echo "==> [5/9] Copying translation data for target languages..."
 psql -U postgres -d "$STAGING_DB" <<SQL
 SET session_replication_role = replica;
 
+INSERT INTO machine_gloss_model (code)
+VALUES ('google'), ('llm_import')
+ON CONFLICT (code) DO NOTHING;
+
 -- phrase
 INSERT INTO phrase
   SELECT * FROM dblink('dbname=$SOURCE_DB user=postgres', '
@@ -202,10 +206,22 @@ INSERT INTO gloss_event
 -- machine_gloss
 INSERT INTO machine_gloss
   SELECT * FROM dblink('dbname=$SOURCE_DB user=postgres', '
-    SELECT word_id, language_id, gloss, id
-    FROM machine_gloss
-    WHERE language_id IN (SELECT id FROM language WHERE code IN (''eng'', ''spa'', ''hin''))
-  ') AS t(word_id text, language_id uuid, gloss text, id int)
+    SELECT
+      mg.word_id,
+      mg.language_id,
+      mg.gloss,
+      mg.id,
+      case when l.code = ''hin'' then llm_model.id else google_model.id end as model_id
+    FROM machine_gloss mg
+    JOIN language l ON l.id = mg.language_id
+    CROSS JOIN LATERAL (
+      SELECT id FROM machine_gloss_model WHERE code = ''google''
+    ) google_model
+    CROSS JOIN LATERAL (
+      SELECT id FROM machine_gloss_model WHERE code = ''llm_import''
+    ) llm_model
+    WHERE mg.language_id IN (SELECT id FROM language WHERE code IN (''eng'', ''spa'', ''hin''))
+  ') AS t(word_id text, language_id uuid, gloss text, id int, model_id int)
   ON CONFLICT DO NOTHING;
 
 -- lemma_form_suggestion
