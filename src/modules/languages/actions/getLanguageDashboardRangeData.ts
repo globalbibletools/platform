@@ -1,7 +1,9 @@
 import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
 import {
+  getLanguageApprovalActivityReadModel,
   getLanguageDashboardActivityReadModel,
+  LanguageApprovalActivityReadModel,
   type LanguageDashboardActivityEntryReadModel,
 } from "@/modules/reporting";
 import { notFound } from "@tanstack/react-router";
@@ -19,6 +21,7 @@ const requestSchema = z.object({
 
 export interface LanguageDashboardRangeData {
   activity: LanguageDashboardActivityEntryReadModel[];
+  approvalActivity: LanguageApprovalActivityReadModel[];
 }
 
 export const getLanguageDashboardRangeData = createServerFn()
@@ -35,11 +38,24 @@ export const getLanguageDashboardRangeData = createServerFn()
       throw notFound();
     }
 
-    return {
-      activity: await getLanguageDashboardActivityReadModel({
+    const granularity = data.range === "30d" ? "day" : "week";
+    const range = data.range === "30d" ? 30 : 182;
+
+    const [activity, approvalActivity] = await Promise.all([
+      await getLanguageDashboardActivityReadModel({
         languageId: language.id,
-        granularity: data.range === "30d" ? "day" : "week",
-        range: data.range === "30d" ? 30 : 182,
+        granularity,
+        range,
       }),
+      await getLanguageApprovalActivityReadModel({
+        languageId: language.id,
+        granularity,
+        range,
+      }),
+    ]);
+
+    return {
+      activity,
+      approvalActivity,
     };
   });

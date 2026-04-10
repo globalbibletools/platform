@@ -148,6 +148,9 @@
   --color-brown-900: #573e2c;
   --color-brown-950: #312117;
 
+  --color-viz-purple: #6d75af;
+  --color-viz-pink: #cc728a;
+
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-hebrew: var(--font-sbl-hebrew), var(--font-sans), ui-sans-serif,

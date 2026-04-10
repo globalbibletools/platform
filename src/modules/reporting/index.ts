@@ -23,3 +23,7 @@ export {
   getLanguageDashboardActivityReadModel,
   type LanguageDashboardActivityEntryReadModel,
 } from "./read-models/getLanguageDashboardActivityReadModel";
+export {
+  getLanguageApprovalActivityReadModel,
+  type LanguageApprovalActivityReadModel,
+} from "./read-models/getLanguageApprovalActivityReadModel";

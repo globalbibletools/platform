@@ -13,6 +13,7 @@ import RangeToggle from "@/modules/languages/ui/RangeToggle";
 import { ActivityChartProvider } from "@/modules/languages/ui/ActivityChart";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
+import LanguageGlossApprovalDashboardCard from "@/modules/languages/ui/LanguageGlossApprovalDashboardCard";
 
 const requestSchema = z.object({ code: z.string() });
 const searchSchema = z.object({
@@ -43,8 +44,8 @@ export const Route = createFileRoute("/_main/admin/languages/$code/")({
       ...languageData,
       ...baseData,
       activityByRange: {
-        "30d": range30dData.activity,
-        "6m": range6mData.activity,
+        "30d": range30dData,
+        "6m": range6mData,
       },
     };
   },
@@ -121,7 +122,7 @@ function LanguageDashboardRoute() {
               books={books}
               members={members}
               contributions={contributions}
-              activity={activityByRange[range]}
+              activity={activityByRange[range].activity}
               range={range}
               bookDetails={bookDetails}
               onRangeChange={(nextRange) => {
@@ -157,7 +158,11 @@ function LanguageDashboardRoute() {
               languageCode={code}
               members={members}
               contributions={contributions}
-              activity={activityByRange[range]}
+              activity={activityByRange[range].activity}
+              range={range}
+            />
+            <LanguageGlossApprovalDashboardCard
+              approvalActivity={activityByRange[range].approvalActivity}
               range={range}
             />
           </div>
