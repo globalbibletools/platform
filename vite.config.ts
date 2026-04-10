@@ -68,14 +68,6 @@ export default defineConfig({
       compressPublicAssets: true,
     }),
     viteReact(),
-    {
-      name: "show-config",
-      configResolved(config) {
-        console.log("Resolved Vite Config:", config);
-        // You might want to stringify for better readability
-        // console.log("Resolved Vite Config:", JSON.stringify(config, null, 2));
-      },
-    },
   ],
   test: {
     projects: [
