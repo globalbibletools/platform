@@ -13,10 +13,10 @@ import {
   useRef,
   useState,
 } from "react";
-import { updateGlossAction } from "../actions/updateGloss";
+import { updateGlossAction } from "@/modules/translation/actions/updateGloss";
 import { fontMap } from "@/fonts";
 import { useParams } from "@tanstack/react-router";
-import { GlossApprovalMethodRaw } from "../types";
+import { GlossApprovalMethodRaw } from "@/modules/translation/types";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import { MachineGlossStrategy } from "@/modules/languages/model";
 import { useServerFn } from "@tanstack/react-start";

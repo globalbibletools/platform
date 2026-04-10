@@ -13,11 +13,11 @@ import {
   useState,
   type JSX,
 } from "react";
-import { approveAll } from "../actions/approveAll";
-import { linkWords } from "../actions/linkWords";
-import { redirectToUnapproved } from "../actions/redirectToUnapproved";
-import { sanityCheck } from "../actions/sanityCheck";
-import { unlinkPhrase } from "../actions/unlinkPhrase";
+import { approveAll } from "@/modules/translation/actions/approveAll";
+import { linkWords } from "@/modules/translation/actions/linkWords";
+import { redirectToUnapproved } from "@/ui/translation/serverFns/redirectToUnapproved";
+import { sanityCheck } from "@/modules/translation/actions/sanityCheck";
+import { unlinkPhrase } from "@/modules/translation/actions/unlinkPhrase";
 import {
   bookFirstVerseId,
   bookLastVerseId,

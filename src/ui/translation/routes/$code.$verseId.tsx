@@ -1,6 +1,6 @@
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { getTranslationVerseData } from "@/modules/translation/actions/getTranslationVerseData";
-import ClientTranslationView from "@/modules/translation/ui/ClientTranslationView";
+import { getTranslationVerseData } from "../serverFns/getTranslationVerseData";
+import ClientTranslationView from "../components/ClientTranslationView";
 import { createFileRoute, notFound, useRouter } from "@tanstack/react-router";
 import { incrementVerseId, parseVerseId } from "@/verse-utils";
 import { withDocumentTitle } from "@/documentTitle";

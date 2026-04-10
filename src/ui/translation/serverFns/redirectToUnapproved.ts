@@ -1,7 +1,7 @@
 import * as z from "zod";
 import { serverActionLogger } from "@/server-action";
 import { createServerFn } from "@tanstack/react-start";
-import glossRepository from "../data-access/GlossRepository";
+import glossRepository from "@/modules/translation/data-access/GlossRepository";
 
 const requestSchema = z.object({
   code: z.string(),

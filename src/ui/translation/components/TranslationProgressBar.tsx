@@ -4,7 +4,7 @@ import { useTextWidth } from "@/utils/text-width";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { getBookProgress } from "../actions/getBookProgress";
+import { getBookProgress } from "../serverFns/getBookProgress";
 import { useTranslations } from "use-intl";
 
 export default function TranslationProgressBar({

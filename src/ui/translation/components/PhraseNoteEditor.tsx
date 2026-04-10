@@ -12,9 +12,9 @@ import React, {
   useState,
   Suspense,
 } from "react";
-import { getPhraseNote } from "../actions/getPhraseNote";
-import { updateFootnoteAction } from "../actions/updateFootnote";
-import { updateTranslatorNoteAction } from "../actions/updateTranslatorNote";
+import { getPhraseNote } from "@/ui/translation/serverFns/getPhraseNote";
+import { updateFootnoteAction } from "@/modules/translation/actions/updateFootnote";
+import { updateTranslatorNoteAction } from "@/modules/translation/actions/updateTranslatorNote";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 const RichText = React.lazy(() => import("@/components/RichText"));

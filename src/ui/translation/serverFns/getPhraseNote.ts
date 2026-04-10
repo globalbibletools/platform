@@ -5,7 +5,7 @@ import { serverActionLogger } from "@/server-action";
 import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";
 import * as z from "zod";
-import { phraseRepository } from "../data-access/phraseRepository";
+import { phraseRepository } from "@/modules/translation/data-access/phraseRepository";
 
 const requestSchema = z.object({
   phraseId: z.coerce.number().int(),
