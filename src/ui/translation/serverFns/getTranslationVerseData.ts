@@ -6,7 +6,7 @@ import { MachineGlossStrategy } from "@/modules/languages/model";
 import { getCurrentLanguageReadModel } from "@/modules/languages/read-models/getCurrentLanguageReadModel";
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
-import { getVerseWordsReadModel } from "../read-models/getVerseWordsReadModel";
+import { getVerseWordsReadModel } from "../readModels/getVerseWordsReadModel";
 
 const requestSchema = z.object({
   code: z.string(),

@@ -1,7 +1,7 @@
 import { Outlet, createFileRoute } from "@tanstack/react-router";
-import { getTranslationLayoutData } from "@/modules/translation/actions/getTranslationLayoutData";
-import TranslationToolbar from "@/modules/translation/ui/TranslationToolbar";
-import { TranslationClientStateProvider } from "@/modules/translation/ui/TranslationClientState";
+import { getTranslationLayoutData } from "../serverFns/getTranslationLayoutData";
+import TranslationToolbar from "../components/TranslationToolbar";
+import { TranslationClientStateProvider } from "../components/TranslationClientState";
 
 export const Route = createFileRoute("/_main/translate/$code")({
   loader: ({ params }) =>

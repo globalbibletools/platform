@@ -7,7 +7,7 @@ import { useTranslations } from "use-intl";
 import { useQuery } from "@tanstack/react-query";
 import { VersesPreview } from "@/components/VersesPreview";
 import { parseReferenceRange } from "@/verse-utils";
-import { getWordResource } from "../actions/getWordResource";
+import { getWordResource } from "@/ui/translation/serverFns/getWordResource";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { ClientOnly } from "@tanstack/react-router";
 

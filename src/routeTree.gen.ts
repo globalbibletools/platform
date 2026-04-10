@@ -21,13 +21,13 @@ import { Route as MinimalForgotPasswordRouteImport } from "./routes/_minimal/for
 import { Route as MainProfileRouteImport } from "./routes/_main/profile";
 import { Route as MainFeaturesRouteImport } from "./routes/_main/features";
 import { Route as MainDashboardRouteImport } from "./routes/_main/dashboard";
-import { Route as MainTranslateRouteRouteImport } from "./routes/_main/translate/route";
+import { Route as mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteImport } from "./ui/translation/routes/route";
 import { Route as MainReadRouteRouteImport } from "./routes/_main/read/route";
-import { Route as MainTranslateCodeRouteImport } from "./routes/_main/translate/$code";
+import { Route as mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteImport } from "./ui/translation/routes/$code";
 import { Route as MainReadCodeRouteImport } from "./routes/_main/read/$code";
 import { Route as MainPSplatRouteImport } from "./routes/_main/p.$";
 import { Route as mainAdminDotDotDotDotDotDotUiAdminRoutesMainRouteImport } from "./ui/admin/routes/_main";
-import { Route as MainTranslateCodeVerseIdRouteImport } from "./routes/_main/translate/$code.$verseId";
+import { Route as mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRouteImport } from "./ui/translation/routes/$code.$verseId";
 import { Route as MainReadCodeChapterIdRouteImport } from "./routes/_main/read/$code.$chapterId";
 import { Route as mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRouteImport } from "./ui/admin/routes/_main.jobs";
 import { Route as mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeRouteRouteImport } from "./ui/admin/routes/languages.$code/route";
@@ -98,21 +98,24 @@ const MainDashboardRoute = MainDashboardRouteImport.update({
   path: "/dashboard",
   getParentRoute: () => MainRouteRoute,
 } as any);
-const MainTranslateRouteRoute = MainTranslateRouteRouteImport.update({
-  id: "/translate",
-  path: "/translate",
-  getParentRoute: () => MainRouteRoute,
-} as any);
+const mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRoute =
+  mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteImport.update({
+    id: "/translate",
+    path: "/translate",
+    getParentRoute: () => MainRouteRoute,
+  } as any);
 const MainReadRouteRoute = MainReadRouteRouteImport.update({
   id: "/read",
   path: "/read",
   getParentRoute: () => MainRouteRoute,
 } as any);
-const MainTranslateCodeRoute = MainTranslateCodeRouteImport.update({
-  id: "/$code",
-  path: "/$code",
-  getParentRoute: () => MainTranslateRouteRoute,
-} as any);
+const mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRoute =
+  mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteImport.update({
+    id: "/$code",
+    path: "/$code",
+    getParentRoute: () =>
+      mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRoute,
+  } as any);
 const MainReadCodeRoute = MainReadCodeRouteImport.update({
   id: "/$code",
   path: "/$code",
@@ -129,12 +132,15 @@ const mainAdminDotDotDotDotDotDotUiAdminRoutesMainRoute =
     path: "/admin",
     getParentRoute: () => MainRouteRoute,
   } as any);
-const MainTranslateCodeVerseIdRoute =
-  MainTranslateCodeVerseIdRouteImport.update({
-    id: "/$verseId",
-    path: "/$verseId",
-    getParentRoute: () => MainTranslateCodeRoute,
-  } as any);
+const mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRoute =
+  mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRouteImport.update(
+    {
+      id: "/$verseId",
+      path: "/$verseId",
+      getParentRoute: () =>
+        mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRoute,
+    } as any,
+  );
 const MainReadCodeChapterIdRoute = MainReadCodeChapterIdRouteImport.update({
   id: "/$chapterId",
   path: "/$chapterId",
@@ -222,7 +228,7 @@ const mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotlanguagesNewRoute =
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
   "/read": typeof MainReadRouteRouteWithChildren;
-  "/translate": typeof MainTranslateRouteRouteWithChildren;
+  "/translate": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteWithChildren;
   "/dashboard": typeof MainDashboardRoute;
   "/features": typeof MainFeaturesRoute;
   "/profile": typeof MainProfileRoute;
@@ -235,11 +241,11 @@ export interface FileRoutesByFullPath {
   "/admin": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainRouteWithChildren;
   "/p/$": typeof MainPSplatRoute;
   "/read/$code": typeof MainReadCodeRouteWithChildren;
-  "/translate/$code": typeof MainTranslateCodeRouteWithChildren;
+  "/translate/$code": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteWithChildren;
   "/admin/languages/$code": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeRouteRouteWithChildren;
   "/admin/jobs": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRoute;
   "/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
-  "/translate/$code/$verseId": typeof MainTranslateCodeVerseIdRoute;
+  "/translate/$code/$verseId": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRoute;
   "/admin/languages/new": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotlanguagesNewRoute;
   "/admin/users/invite": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotusersInviteRoute;
   "/admin/languages/$code/exports": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeExportsRoute;
@@ -252,7 +258,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
   "/read": typeof MainReadRouteRouteWithChildren;
-  "/translate": typeof MainTranslateRouteRouteWithChildren;
+  "/translate": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteWithChildren;
   "/dashboard": typeof MainDashboardRoute;
   "/features": typeof MainFeaturesRoute;
   "/profile": typeof MainProfileRoute;
@@ -265,10 +271,10 @@ export interface FileRoutesByTo {
   "/admin": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainRouteWithChildren;
   "/p/$": typeof MainPSplatRoute;
   "/read/$code": typeof MainReadCodeRouteWithChildren;
-  "/translate/$code": typeof MainTranslateCodeRouteWithChildren;
+  "/translate/$code": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteWithChildren;
   "/admin/jobs": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRoute;
   "/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
-  "/translate/$code/$verseId": typeof MainTranslateCodeVerseIdRoute;
+  "/translate/$code/$verseId": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRoute;
   "/admin/languages/new": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotlanguagesNewRoute;
   "/admin/users/invite": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotusersInviteRoute;
   "/admin/languages/$code/exports": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeExportsRoute;
@@ -284,7 +290,7 @@ export interface FileRoutesById {
   "/_main": typeof MainRouteRouteWithChildren;
   "/_minimal": typeof MinimalRouteRouteWithChildren;
   "/_main/read": typeof MainReadRouteRouteWithChildren;
-  "/_main/translate": typeof MainTranslateRouteRouteWithChildren;
+  "/_main/translate": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteWithChildren;
   "/_main/dashboard": typeof MainDashboardRoute;
   "/_main/features": typeof MainFeaturesRoute;
   "/_main/profile": typeof MainProfileRoute;
@@ -297,11 +303,11 @@ export interface FileRoutesById {
   "/_main/admin/_main": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainRouteWithChildren;
   "/_main/p/$": typeof MainPSplatRoute;
   "/_main/read/$code": typeof MainReadCodeRouteWithChildren;
-  "/_main/translate/$code": typeof MainTranslateCodeRouteWithChildren;
+  "/_main/translate/$code": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteWithChildren;
   "/_main/admin/languages/$code": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeRouteRouteWithChildren;
   "/_main/admin/_main/jobs": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRoute;
   "/_main/read/$code/$chapterId": typeof MainReadCodeChapterIdRoute;
-  "/_main/translate/$code/$verseId": typeof MainTranslateCodeVerseIdRoute;
+  "/_main/translate/$code/$verseId": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRoute;
   "/_main/admin/_main/languages/new": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotlanguagesNewRoute;
   "/_main/admin/_main/users/invite": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotusersInviteRoute;
   "/_main/admin/languages/$code/exports": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeExportsRoute;
@@ -502,7 +508,7 @@ declare module "@tanstack/react-router" {
       id: "/_main/translate";
       path: "/translate";
       fullPath: "/translate";
-      preLoaderRoute: typeof MainTranslateRouteRouteImport;
+      preLoaderRoute: typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteImport;
       parentRoute: typeof MainRouteRoute;
     };
     "/_main/read": {
@@ -516,8 +522,8 @@ declare module "@tanstack/react-router" {
       id: "/_main/translate/$code";
       path: "/$code";
       fullPath: "/translate/$code";
-      preLoaderRoute: typeof MainTranslateCodeRouteImport;
-      parentRoute: typeof MainTranslateRouteRoute;
+      preLoaderRoute: typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteImport;
+      parentRoute: typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRoute;
     };
     "/_main/read/$code": {
       id: "/_main/read/$code";
@@ -544,8 +550,8 @@ declare module "@tanstack/react-router" {
       id: "/_main/translate/$code/$verseId";
       path: "/$verseId";
       fullPath: "/translate/$code/$verseId";
-      preLoaderRoute: typeof MainTranslateCodeVerseIdRouteImport;
-      parentRoute: typeof MainTranslateCodeRoute;
+      preLoaderRoute: typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRouteImport;
+      parentRoute: typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRoute;
     };
     "/_main/read/$code/$chapterId": {
       id: "/_main/read/$code/$chapterId";
@@ -651,27 +657,35 @@ const MainReadRouteRouteWithChildren = MainReadRouteRoute._addFileChildren(
   MainReadRouteRouteChildren,
 );
 
-interface MainTranslateCodeRouteChildren {
-  MainTranslateCodeVerseIdRoute: typeof MainTranslateCodeVerseIdRoute;
+interface mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteChildren {
+  mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRoute: typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRoute;
 }
 
-const MainTranslateCodeRouteChildren: MainTranslateCodeRouteChildren = {
-  MainTranslateCodeVerseIdRoute: MainTranslateCodeVerseIdRoute,
-};
+const mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteChildren: mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteChildren =
+  {
+    mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRoute:
+      mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRoute,
+  };
 
-const MainTranslateCodeRouteWithChildren =
-  MainTranslateCodeRoute._addFileChildren(MainTranslateCodeRouteChildren);
+const mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteWithChildren =
+  mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRoute._addFileChildren(
+    mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteChildren,
+  );
 
-interface MainTranslateRouteRouteChildren {
-  MainTranslateCodeRoute: typeof MainTranslateCodeRouteWithChildren;
+interface mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteChildren {
+  mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRoute: typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteWithChildren;
 }
 
-const MainTranslateRouteRouteChildren: MainTranslateRouteRouteChildren = {
-  MainTranslateCodeRoute: MainTranslateCodeRouteWithChildren,
-};
+const mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteChildren: mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteChildren =
+  {
+    mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRoute:
+      mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteWithChildren,
+  };
 
-const MainTranslateRouteRouteWithChildren =
-  MainTranslateRouteRoute._addFileChildren(MainTranslateRouteRouteChildren);
+const mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteWithChildren =
+  mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRoute._addFileChildren(
+    mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteChildren,
+  );
 
 interface mainAdminDotDotDotDotDotDotUiAdminRoutesMainRouteChildren {
   mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRoute: typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRoute;
@@ -726,7 +740,7 @@ const mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeRouteRouteWithChil
 
 interface MainRouteRouteChildren {
   MainReadRouteRoute: typeof MainReadRouteRouteWithChildren;
-  MainTranslateRouteRoute: typeof MainTranslateRouteRouteWithChildren;
+  mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRoute: typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteWithChildren;
   MainDashboardRoute: typeof MainDashboardRoute;
   MainFeaturesRoute: typeof MainFeaturesRoute;
   MainProfileRoute: typeof MainProfileRoute;
@@ -737,7 +751,8 @@ interface MainRouteRouteChildren {
 
 const MainRouteRouteChildren: MainRouteRouteChildren = {
   MainReadRouteRoute: MainReadRouteRouteWithChildren,
-  MainTranslateRouteRoute: MainTranslateRouteRouteWithChildren,
+  mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRoute:
+    mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteWithChildren,
   MainDashboardRoute: MainDashboardRoute,
   MainFeaturesRoute: MainFeaturesRoute,
   MainProfileRoute: MainProfileRoute,
