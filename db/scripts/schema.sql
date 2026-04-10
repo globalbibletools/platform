@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict BhH2o9IQI1T8RGC8f6T8TuapQnniv56nQHJX0eonxucCMLdZkUhSnB3y1om1aPw
+\restrict LPnEQlmi2DTXgUi0lSpcInZHfmHpNbW7eyam7W4SdOIHWPaCUZoWx55ssNl6KRj
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -758,16 +758,6 @@ CREATE TABLE public.machine_gloss (
 
 
 --
--- Name: machine_gloss_model; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.machine_gloss_model (
-    id integer NOT NULL,
-    code text NOT NULL
-);
-
-
---
 -- Name: machine_gloss_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -785,6 +775,16 @@ CREATE SEQUENCE public.machine_gloss_id_seq
 --
 
 ALTER SEQUENCE public.machine_gloss_id_seq OWNED BY public.machine_gloss.id;
+
+
+--
+-- Name: machine_gloss_model; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.machine_gloss_model (
+    id integer NOT NULL,
+    code text NOT NULL
+);
 
 
 --
@@ -1245,14 +1245,6 @@ ALTER TABLE ONLY public.lemma_resource
 
 
 --
--- Name: machine_gloss machine_gloss_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss
-    ADD CONSTRAINT machine_gloss_pkey PRIMARY KEY (id);
-
-
---
 -- Name: machine_gloss_model machine_gloss_model_code_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1266,6 +1258,14 @@ ALTER TABLE ONLY public.machine_gloss_model
 
 ALTER TABLE ONLY public.machine_gloss_model
     ADD CONSTRAINT machine_gloss_model_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: machine_gloss machine_gloss_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss
+    ADD CONSTRAINT machine_gloss_pkey PRIMARY KEY (id);
 
 
 --
@@ -1497,9 +1497,10 @@ CREATE INDEX gloss_phrase_id_idx ON public.gloss USING btree (phrase_id);
 -- Name: idx_machine_gloss_language_word; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX idx_machine_gloss_language_word ON public.machine_gloss USING btree (language_id, word_id);
+CREATE UNIQUE INDEX idx_machine_gloss_language_word ON public.machine_gloss USING btree (language_id, word_id, model_id);
 
 
+--
 -- Name: job_parent_job_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1816,19 +1817,19 @@ ALTER TABLE ONLY public.machine_gloss
 
 
 --
--- Name: machine_gloss machine_gloss_word_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.machine_gloss
-    ADD CONSTRAINT machine_gloss_word_id_fkey FOREIGN KEY (word_id) REFERENCES public.word(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-
-
---
 -- Name: machine_gloss machine_gloss_model_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.machine_gloss
     ADD CONSTRAINT machine_gloss_model_id_fkey FOREIGN KEY (model_id) REFERENCES public.machine_gloss_model(id);
+
+
+--
+-- Name: machine_gloss machine_gloss_word_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss
+    ADD CONSTRAINT machine_gloss_word_id_fkey FOREIGN KEY (word_id) REFERENCES public.word(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 
 --
@@ -2035,4 +2036,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict BhH2o9IQI1T8RGC8f6T8TuapQnniv56nQHJX0eonxucCMLdZkUhSnB3y1om1aPw
+\unrestrict LPnEQlmi2DTXgUi0lSpcInZHfmHpNbW7eyam7W4SdOIHWPaCUZoWx55ssNl6KRj
+
