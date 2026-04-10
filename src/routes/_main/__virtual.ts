@@ -1,9 +1,8 @@
-import {
-  defineVirtualSubtreeConfig,
-  physical,
-} from "@tanstack/virtual-file-routes";
+import { adminRoutes } from "@/ui/admin/virtual";
+import { translationRoutes } from "@/ui/translation/virtual";
+import { defineVirtualSubtreeConfig } from "@tanstack/virtual-file-routes";
 
 export default defineVirtualSubtreeConfig([
-  physical("/admin", "../../../ui/admin/routes"),
-  physical("/translate", "../../../ui/translation/routes"),
+  ...translationRoutes,
+  ...adminRoutes,
 ]);
