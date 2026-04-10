@@ -1,8 +1,8 @@
 import { verifySession } from "@/session";
 import { createServerFn } from "@tanstack/react-start";
 import { getUserLanguagesReadModel } from "../languages/read-models/getUserLanguagesReadModel";
-import { LanguageReadModel } from "../languages/read-models/getAllLanguagesReadModel";
 import { SystemRoleRaw } from "@/modules/users/types";
+import { UserLanguageReadModel } from "../languages/read-models/getUserLanguagesReadModel";
 
 export interface AuthState {
   user?: { id: string; name: string };
@@ -14,7 +14,7 @@ export const fetchAuthState = createServerFn().handler(
   async (): Promise<AuthState> => {
     const session = await verifySession();
 
-    let languages: LanguageReadModel[] = [];
+    let languages: UserLanguageReadModel[] = [];
     if (session) {
       languages = await getUserLanguagesReadModel(session.user.id);
     }
