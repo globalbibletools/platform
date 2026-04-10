@@ -4,5 +4,6 @@ import {
 } from "@tanstack/virtual-file-routes";
 
 export default defineVirtualSubtreeConfig([
-  physical("../../../ui/admin/routes"),
+  physical("/admin", "../../../ui/admin/routes"),
+  physical("/translate", "../../../ui/translation/routes"),
 ]);
