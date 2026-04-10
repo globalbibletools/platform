@@ -71,10 +71,16 @@ describe("updateAllForLanguage", () => {
     const { language: spaLanguage } = await languageFactory.build({
       members: [],
     });
+    const llmImportModel = await getDb()
+      .insertInto("machine_gloss_model")
+      .values({ code: "llm_import" })
+      .returning("id")
+      .executeTakeFirstOrThrow();
 
     const existingGloss = {
       word_id: "0100100101",
       language_id: engLanguage.id,
+      model_id: llmImportModel.id,
       gloss: "Gloss in another language",
     };
 
@@ -85,6 +91,7 @@ describe("updateAllForLanguage", () => {
         {
           word_id: "0100100101",
           language_id: spaLanguage.id,
+          model_id: llmImportModel.id,
           gloss: "Existing gloss to be removed",
         },
       ])
@@ -107,6 +114,7 @@ describe("updateAllForLanguage", () => {
 
     await machineGlossRepository.updateAllForLanguage({
       languageId: spaLanguage.id,
+      modelCode: "llm_import",
       stream: Readable.from(newGlosses),
     });
 
@@ -122,6 +130,7 @@ describe("updateAllForLanguage", () => {
         word_id: g.wordId,
         gloss: g.gloss,
         language_id: spaLanguage.id,
+        model_id: llmImportModel.id,
       })),
     ]);
   });

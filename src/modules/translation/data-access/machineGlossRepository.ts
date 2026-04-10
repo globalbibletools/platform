@@ -9,11 +9,19 @@ interface StreamedMachineGloss {
 export const machineGlossRepository = {
   async updateAllForLanguage({
     languageId,
+    modelCode,
     stream,
   }: {
     languageId: string;
+    modelCode: string;
     stream: Readable;
   }): Promise<void> {
+    const model = await getDb()
+      .selectFrom("machine_gloss_model")
+      .select("id")
+      .where("code", "=", modelCode)
+      .executeTakeFirstOrThrow();
+
     await getDb()
       .deleteFrom("machine_gloss")
       .where("language_id", "=", languageId)
@@ -25,6 +33,7 @@ export const machineGlossRepository = {
       fields: {
         word_id: (record) => record.wordId,
         language_id: () => languageId,
+        model_id: () => model.id.toString(),
         gloss: (record) => record.gloss,
       },
     });
