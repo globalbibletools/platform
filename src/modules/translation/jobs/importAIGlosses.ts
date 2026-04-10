@@ -42,6 +42,7 @@ export async function importAIGlosses(job: ImportAIGlossesJob) {
   );
   await machineGlossRepository.updateAllForLanguage({
     languageId: language.id,
+    modelCode: "llm_import",
     stream: Readable.from(requestStream),
   });
 
