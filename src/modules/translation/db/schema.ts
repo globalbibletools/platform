@@ -56,7 +56,7 @@ export interface MachineGlossTable {
   id: Generated<number>;
   word_id: string;
   language_id: string;
-  model_id: number | null;
+  model_id: number;
   gloss: string;
 }
 
