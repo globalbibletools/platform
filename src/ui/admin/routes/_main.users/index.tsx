@@ -17,13 +17,15 @@ import Form from "@/components/Form";
 import ServerAction from "@/components/ServerAction";
 import { useTranslations } from "use-intl";
 import Pagination from "@/components/Pagination";
-import { searchUsersReadModel } from "@/modules/users/read-models/searchUsersReadModel";
 import { reinviteUserAction } from "@/modules/users/actions/reinviteUser";
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
+import { createFileRoute } from "@tanstack/react-router";
 import { withDocumentTitle } from "@/documentTitle";
+import { loadAdminUsersPage } from "@/ui/admin/serverFns/loadAdminUsersPage";
+import { routerGuard } from "@/modules/access/routerGuard";
+import { Policy } from "@/modules/access";
 
 const LIMIT = 20;
+const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
 const schema = z.object({
   page: z.coerce.number().int().default(1),
@@ -32,29 +34,13 @@ const schema = z.object({
 export const Route = createFileRoute("/_main/admin/_main/users/")({
   validateSearch: schema,
   loaderDeps: ({ search }) => search,
-  loader: ({ deps }) => loaderFn({ data: deps }),
+  beforeLoad: ({ context }) => {
+    routerGuard({ context: context.auth, policy });
+  },
+  loader: ({ deps }) => loadAdminUsersPage({ data: { ...deps, limit: LIMIT } }),
   head: () => withDocumentTitle("Users | Admin"),
   component: AdminUsersPage,
 });
-
-const loaderFn = createServerFn()
-  .inputValidator(schema)
-  .handler(async ({ data }) => {
-    if (data.page <= 0) {
-      throw redirect({ to: "/admin/users", search: { page: 1 } });
-    }
-
-    const { page: users, total } = await searchUsersReadModel({
-      page: data.page - 1,
-      limit: LIMIT,
-    });
-
-    if (users.length === 0 && data.page !== 1) {
-      throw redirect({ to: "/admin/users", search: { page: 1 } });
-    }
-
-    return { users, total };
-  });
 
 function AdminUsersPage() {
   const { users, total } = Route.useLoaderData();

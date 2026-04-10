@@ -6,9 +6,9 @@ import ActivityChart, {
   ActivityChartProvider,
   type ActivityChartEntry,
   type ActivityChartRange,
-} from "@/modules/languages/ui/ActivityChart";
-import ProgressBar from "@/modules/languages/ui/ProgressBar";
-import RangeToggle from "@/modules/languages/ui/RangeToggle";
+} from "@/ui/admin/components/ActivityChart";
+import ProgressBar from "@/ui/admin/components/ProgressBar";
+import RangeToggle from "@/ui/admin/components/RangeToggle";
 import Button from "@/components/Button";
 
 export interface BookProgressDetails {

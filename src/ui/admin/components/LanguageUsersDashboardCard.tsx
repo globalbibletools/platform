@@ -8,8 +8,8 @@ import { useMemo } from "react";
 import { Icon } from "@/components/Icon";
 import ContributionBar from "./ContributionBar";
 import ServerAction from "@/components/ServerAction";
-import { removeLanguageMember } from "../actions/removeLanguageMember";
-import { reinviteLanguageMemberAction } from "../actions/reinviteLanguageMember";
+import { removeLanguageMember } from "@/modules/languages/actions/removeLanguageMember";
+import { reinviteLanguageMemberAction } from "@/modules/languages/actions/reinviteLanguageMember";
 import {
   DashboardCard,
   DashboardCardEmptyState,

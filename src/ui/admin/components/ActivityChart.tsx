@@ -163,9 +163,9 @@ function ActivityChartSVG({
   const xScaleRef = useRef<d3.ScaleTime<number, number, never> | null>(null);
 
   // Unique IDs so multiple charts on the same page don't share gradient defs
-  const uid = useId().replace(/:/g, "");
-  const gradientId = `activity-gradient-${uid}`;
-  const clipId = `activity-clip-${uid}`;
+  const chartId = useId().replace(/:/g, "");
+  const gradientId = `activity-gradient-${chartId}`;
+  const clipId = `activity-clip-${chartId}`;
 
   const [elementRef, size] = useElementDimensions<HTMLDivElement>();
 

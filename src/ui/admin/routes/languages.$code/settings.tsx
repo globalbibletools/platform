@@ -1,4 +1,3 @@
-import { BibleClient } from "@gracious.tech/fetch-client";
 import {
   ButtonSelectorInput,
   ButtonSelectorOption,
@@ -13,28 +12,23 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import SortableMultiselectInput from "@/components/SortableMultiselectInput";
 import TextInput from "@/components/TextInput";
 import ViewTitle from "@/components/ViewTitle";
-import { createPolicyMiddleware, Policy } from "@/modules/access";
+import { Policy } from "@/modules/access";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { updateLanguageSettings } from "@/modules/languages/actions/updateLanguageSettings";
 import { MachineGlossStrategy } from "@/modules/languages/model";
-import AIGlossesImportForm from "@/modules/translation/ui/AIGlossesImportForm";
-import { getAllLanguagesReadModel } from "@/modules/languages/read-models/getAllLanguagesReadModel";
-import { getLanguageSettingsReadModel } from "@/modules/languages/read-models/getLanguageSettingsReadModel";
-import SavingIndicator from "@/modules/languages/ui/SavingIndicator";
+import AIGlossesImportForm from "@/ui/admin/components/AIGlossesImportForm";
+import SavingIndicator from "@/ui/admin/components/SavingIndicator";
 import { fontMap } from "@/fonts";
-import { createFileRoute, notFound } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
+import { createFileRoute } from "@tanstack/react-router";
 import { Suspense } from "react";
 import { useTranslations } from "use-intl";
-import * as z from "zod";
 import { withDocumentTitle } from "@/documentTitle";
+import { loadLanguageSettings } from "@/ui/admin/serverFns/loadLanguageSettings";
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
   languageMember: true,
 });
-
-const loaderRequestSchema = z.object({ code: z.string() });
 
 export const Route = createFileRoute("/_main/admin/languages/$code/settings")({
   beforeLoad: ({ context, params }) => {
@@ -44,33 +38,11 @@ export const Route = createFileRoute("/_main/admin/languages/$code/settings")({
       languageCode: params.code,
     });
   },
-  loader: ({ params }) => loaderFn({ data: params }),
+  loader: ({ params }) => loadLanguageSettings({ data: params }),
   head: ({ loaderData }) =>
     withDocumentTitle(`Settings | ${loaderData?.languageSettings.englishName}`),
   component: LanguageSettingsRoute,
 });
-
-const loaderFn = createServerFn()
-  .inputValidator(loaderRequestSchema)
-  .middleware([
-    createPolicyMiddleware({
-      policy,
-      languageCodeField: "code",
-    }),
-  ])
-  .handler(async ({ data }) => {
-    const [languageSettings, languages, translations] = await Promise.all([
-      getLanguageSettingsReadModel(data.code),
-      getAllLanguagesReadModel(),
-      fetchTranslations(data.code),
-    ]);
-
-    if (!languageSettings) {
-      throw notFound();
-    }
-
-    return { languageSettings, languages, translations };
-  });
 
 function LanguageSettingsRoute() {
   const t = useTranslations("LanguageSettingsPage");
@@ -345,20 +317,4 @@ function LanguageSettingsRoute() {
       </Form>
     </div>
   );
-}
-
-async function fetchTranslations(
-  languageCode: string,
-): Promise<{ id: string; name: string }[]> {
-  const client = new BibleClient();
-  const collection = await client.fetch_collection();
-  const translations = collection.get_translations({
-    sort_by_year: true,
-    language: languageCode,
-  });
-
-  return translations.map(({ id, name_english, name_local }) => ({
-    id,
-    name: name_local ? name_local : name_english,
-  }));
 }

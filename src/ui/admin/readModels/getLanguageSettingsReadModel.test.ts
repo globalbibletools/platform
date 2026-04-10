@@ -1,8 +1,11 @@
 import { test, expect } from "vitest";
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
-import { getLanguageSettingsReadModel } from "./getLanguageSettingsReadModel";
-import { languageFactory } from "../test-utils/languageFactory";
-import { MachineGlossStrategy, TextDirectionRaw } from "../model";
+import { getLanguageSettingsReadModel } from "@/ui/admin/readModels/getLanguageSettingsReadModel";
+import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
+import {
+  MachineGlossStrategy,
+  TextDirectionRaw,
+} from "@/modules/languages/model";
 
 initializeDatabase();
 

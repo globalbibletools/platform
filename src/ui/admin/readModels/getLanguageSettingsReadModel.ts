@@ -1,6 +1,6 @@
 import { getDb } from "@/db";
 import { sql } from "kysely";
-import { MachineGlossStrategy } from "../model";
+import { MachineGlossStrategy } from "@/modules/languages/model";
 
 export interface LanguageSettingsReadModel {
   englishName: string;

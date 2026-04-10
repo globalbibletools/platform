@@ -1,28 +1,20 @@
 import ViewTitle from "@/components/ViewTitle";
-import { createPolicyMiddleware, Policy } from "@/modules/access";
-import { getLanguageDashboardBaseData } from "@/modules/languages/actions/getLanguageDashboardBaseData";
-import { getLanguageDashboardRangeData } from "@/modules/languages/actions/getLanguageDashboardRangeData";
-import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
-import LanguageBookProgressDashboardCard from "@/modules/languages/ui/LanguageBookProgressDashboardCard";
-import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
+import { getLanguageDashboardBaseData } from "@/ui/admin/serverFns/getLanguageDashboardBaseData";
+import { getLanguageDashboardRangeData } from "@/ui/admin/serverFns/getLanguageDashboardRangeData";
+import LanguageBookProgressDashboardCard from "@/ui/admin/components/LanguageBookProgressDashboardCard";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import * as z from "zod";
 import { withDocumentTitle } from "@/documentTitle";
-import LanguageUsersDashboardCard from "@/modules/languages/ui/LanguageUsersDashboardCard";
-import RangeToggle from "@/modules/languages/ui/RangeToggle";
-import { ActivityChartProvider } from "@/modules/languages/ui/ActivityChart";
+import LanguageUsersDashboardCard from "@/ui/admin/components/LanguageUsersDashboardCard";
+import RangeToggle from "@/ui/admin/components/RangeToggle";
+import { ActivityChartProvider } from "@/ui/admin/components/ActivityChart";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
-import LanguageGlossApprovalDashboardCard from "@/modules/languages/ui/LanguageGlossApprovalDashboardCard";
-
-const requestSchema = z.object({ code: z.string() });
+import LanguageGlossApprovalDashboardCard from "@/ui/admin/components/LanguageGlossApprovalDashboardCard";
+import { getAdminLanguageByCode } from "@/ui/admin/serverFns/getAdminLanguageByCode";
 const searchSchema = z.object({
   bookDetails: z.coerce.number().int().positive().optional(),
   range: z.enum(["30d", "6m"]).optional(),
-});
-
-const policy = new Policy({
-  systemRoles: [Policy.SystemRole.Admin],
 });
 
 export const Route = createFileRoute("/_main/admin/languages/$code/")({
@@ -30,7 +22,7 @@ export const Route = createFileRoute("/_main/admin/languages/$code/")({
   loader: async ({ params }) => {
     const [languageData, baseData, range30dData, range6mData] =
       await Promise.all([
-        loaderFn({ data: params }),
+        getAdminLanguageByCode({ data: params }),
         getLanguageDashboardBaseData({ data: params }),
         getLanguageDashboardRangeData({
           data: { code: params.code, range: "30d" },
@@ -53,23 +45,6 @@ export const Route = createFileRoute("/_main/admin/languages/$code/")({
     withDocumentTitle(`Dashboard | ${loaderData?.language.englishName}`),
   component: LanguageDashboardRoute,
 });
-
-const loaderFn = createServerFn()
-  .inputValidator(requestSchema)
-  .middleware([
-    createPolicyMiddleware({
-      policy,
-      languageCodeField: "code",
-    }),
-  ])
-  .handler(async ({ data }) => {
-    const language = await getLanguageByCodeReadModel(data.code);
-    if (!language) {
-      throw notFound();
-    }
-
-    return { language };
-  });
 
 function LanguageDashboardRoute() {
   const { language, books, members, contributions, activityByRange } =

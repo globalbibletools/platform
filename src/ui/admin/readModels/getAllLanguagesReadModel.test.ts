@@ -1,6 +1,6 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { expect, test } from "vitest";
-import { getAllLanguagesReadModel } from "./getAllLanguagesReadModel";
+import { getAllLanguagesReadModel } from "@/ui/admin/readModels/getAllLanguagesReadModel";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 
 initializeDatabase();

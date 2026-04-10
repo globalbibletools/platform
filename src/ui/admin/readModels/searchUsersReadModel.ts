@@ -1,9 +1,9 @@
 import { jsonBuildObject } from "kysely/helpers/postgres";
 import { getDb } from "@/db";
-import { UserStatusRaw } from "../model/UserStatus";
+import { UserStatusRaw } from "@/modules/users/model/UserStatus";
 import { sql } from "kysely";
-import { SystemRoleRaw } from "../model/SystemRole";
-import { EmailStatusRaw } from "../model/EmailStatus";
+import { SystemRoleRaw } from "@/modules/users/model/SystemRole";
+import { EmailStatusRaw } from "@/modules/users/model/EmailStatus";
 
 export interface UserReadModel {
   id: string;

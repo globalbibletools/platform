@@ -12,22 +12,15 @@ import {
 import { queueJobAction } from "@/shared/jobs/queueJobAction";
 import { REPORTING_JOB_TYPES } from "@/modules/reporting/jobs/jobTypes";
 import { EXPORT_JOB_TYPES } from "@/modules/export/jobs/jobTypes";
-import { createPolicyMiddleware, Policy } from "@/modules/access";
-import { getDb } from "@/db";
 import { JobStatus } from "@/shared/jobs/model";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createServerFn } from "@tanstack/react-start";
 import { createFileRoute } from "@tanstack/react-router";
 import { withDocumentTitle } from "@/documentTitle";
-import { sql } from "kysely";
+import { getActiveJobs } from "@/ui/admin/serverFns/getActiveJobs";
 
 export const Route = createFileRoute("/_main/admin/_main/jobs")({
   head: () => withDocumentTitle("Jobs | Admin"),
   component: AdminJobsView,
-});
-
-const githubExportPolicy = new Policy({
-  systemRoles: [Policy.SystemRole.Admin],
 });
 
 function getStatusClassName(status: JobStatus): string {
@@ -50,7 +43,7 @@ function AdminJobsView() {
     refetch,
   } = useSuspenseQuery({
     queryKey: ["activeJobs"],
-    queryFn: () => getActiveJobsReadModel(),
+    queryFn: () => getActiveJobs(),
     refetchInterval: ({ state }) => {
       const hasInprogressJobs = state.data?.exportJobs.some(
         (job) =>
@@ -150,47 +143,3 @@ function AdminJobsView() {
     </div>
   );
 }
-
-const getActiveJobsReadModel = createServerFn()
-  .middleware([
-    createPolicyMiddleware({
-      policy: githubExportPolicy,
-    }),
-  ])
-  .handler(async () => {
-    const exportJobs = await getDb()
-      .with("export_job", (db) =>
-        db
-          .selectFrom("job")
-          .where("type", "=", EXPORT_JOB_TYPES.EXPORT_GLOSSES)
-          .orderBy("created_at", "desc")
-          .select(["id"])
-          .limit(1),
-      )
-      .selectFrom("job")
-      .where((eb) =>
-        eb.or([
-          eb(
-            "job.parent_job_id",
-            "=",
-            eb.selectFrom("export_job").select("id"),
-          ),
-          eb("job.id", "=", eb.selectFrom("export_job").select("id")),
-        ]),
-      )
-      .orderBy("created_at")
-      .select([
-        "job.id",
-        "job.type",
-        "job.status",
-        "job.updated_at as updatedAt",
-        "job.created_at as createdAt",
-        (eb) =>
-          sql<Array<string>>`${eb.ref("job.payload")}->'languageCodes'`.as(
-            "languages",
-          ),
-      ])
-      .execute();
-
-    return { exportJobs };
-  });

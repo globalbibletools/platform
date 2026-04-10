@@ -248,8 +248,8 @@ function ApprovalActivityChart({
     >
   > | null>(null);
 
-  const uid = useId().replace(/:/g, "");
-  const clipId = `approval-clip-${uid}`;
+  const chartId = useId().replace(/:/g, "");
+  const clipId = `approval-clip-${chartId}`;
 
   const [elementRef, size] = useElementDimensions<HTMLDivElement>();
 

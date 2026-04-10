@@ -1,44 +1,10 @@
 import { Icon } from "@/components/Icon";
-import { createPolicyMiddleware, Policy } from "@/modules/access";
-import { importAIGlosses } from "../actions/importAIGlosses";
-import { getAIGlossImportJobReadModel } from "../read-models/getAIGlossImportJobReadModel";
-import { getAIGlossImportLanguagesReadModel } from "../read-models/getAIGlossImportLanguagesReadModel";
+import { importAIGlosses } from "@/modules/translation/actions/importAIGlosses";
 import JobStatusPoller from "@/shared/jobs/ui/JobStatusPoller";
 import { JobStatus } from "@/shared/jobs/model";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createServerFn } from "@tanstack/react-start";
-import * as z from "zod";
 import Button from "@/components/Button";
-
-const requestSchema = z.object({
-  code: z.string(),
-});
-
-const policy = new Policy({
-  systemRoles: [Policy.SystemRole.Admin],
-  languageMember: true,
-});
-
-export const getAIGlossesImportFormData = createServerFn()
-  .inputValidator(requestSchema)
-  .middleware([
-    createPolicyMiddleware({
-      policy,
-      languageCodeField: "code",
-    }),
-  ])
-  .handler(async ({ data }) => {
-    const [job, availableLanguages] = await Promise.all([
-      getAIGlossImportJobReadModel(data.code),
-      getAIGlossImportLanguagesReadModel(),
-    ]);
-
-    const language = availableLanguages.find(
-      (entry) => entry.code === data.code,
-    );
-
-    return { job, languageAvailable: !!language };
-  });
+import { getAIGlossesImportFormData } from "@/ui/admin/serverFns/getAIGlossesImportFormData";
 
 export default function AIGlossesImportForm({ code }: { code: string }) {
   const { data, refetch } = useSuspenseQuery({

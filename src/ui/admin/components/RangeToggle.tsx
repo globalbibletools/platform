@@ -1,5 +1,5 @@
 import { Radio, RadioGroup } from "@headlessui/react";
-import { type ActivityChartRange } from "@/modules/languages/ui/ActivityChart";
+import { type ActivityChartRange } from "@/ui/admin/components/ActivityChart";
 
 export default function RangeToggle({
   range,

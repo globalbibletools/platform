@@ -1,39 +1,11 @@
 import { requestInterlinearExport } from "@/modules/export/actions/requestInterlinearExport";
-import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { JobStatus } from "@/shared/jobs/model";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
-import exportJobQueryService from "../data-access/ExportJobQueryService";
 import JobStatusPoller from "@/shared/jobs/ui/JobStatusPoller";
 import { useTranslations } from "use-intl";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createServerFn } from "@tanstack/react-start";
-import * as z from "zod";
-
-const requestSchema = z.object({
-  languageCode: z.string().min(1),
-});
-
-const policy = new Policy({
-  systemRoles: [Policy.SystemRole.Admin],
-  languageMember: true,
-});
-
-export const getInterlinearExportPanelData = createServerFn()
-  .inputValidator(requestSchema)
-  .middleware([
-    createPolicyMiddleware({
-      policy,
-    }),
-  ])
-  .handler(async ({ data }) => {
-    const [jobs, pendingJob] = await Promise.all([
-      exportJobQueryService.findRecentForLanguage(data.languageCode),
-      exportJobQueryService.findPendingForLanguage(data.languageCode),
-    ]);
-
-    return { jobs, pendingJob };
-  });
+import { getInterlinearExportPanelData } from "@/ui/admin/serverFns/getInterlinearExportPanelData";
 
 export default function InterlinearExportPanel({
   languageCode,

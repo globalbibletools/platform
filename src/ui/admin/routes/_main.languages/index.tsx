@@ -11,15 +11,15 @@ import {
 } from "@/components/List";
 import Pagination from "@/components/Pagination";
 import ViewTitle from "@/components/ViewTitle";
-import { createPolicyMiddleware, Policy } from "@/modules/access";
+import { Policy } from "@/modules/access";
 import { routerGuard } from "@/modules/access/routerGuard";
-import { searchLanguagesReadModel } from "@/modules/languages/read-models/searchLanguagesReadModel";
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
+import { createFileRoute } from "@tanstack/react-router";
 import { withDocumentTitle } from "@/documentTitle";
+import { loadAdminLanguagesPage } from "@/ui/admin/serverFns/loadAdminLanguagesPage";
+
+const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
 const LIMIT = 20;
-const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
 const schema = z.object({
   page: z.coerce.number().int().default(1),
@@ -31,30 +31,11 @@ export const Route = createFileRoute("/_main/admin/_main/languages/")({
   beforeLoad: ({ context }) => {
     routerGuard({ context: context.auth, policy });
   },
-  loader: ({ deps }) => loaderFn({ data: deps }),
+  loader: ({ deps }) =>
+    loadAdminLanguagesPage({ data: { ...deps, limit: LIMIT } }),
   head: () => withDocumentTitle("Languages | Admin"),
   component: AdminLanguagesRoute,
 });
-
-const loaderFn = createServerFn()
-  .inputValidator(schema)
-  .middleware([createPolicyMiddleware({ policy })])
-  .handler(async ({ data }) => {
-    if (data.page <= 0) {
-      throw redirect({ to: "/admin/languages", search: { page: 1 } });
-    }
-
-    const { page: languages, total } = await searchLanguagesReadModel({
-      page: data.page - 1,
-      limit: LIMIT,
-    });
-
-    if (languages.length === 0 && data.page !== 1) {
-      throw redirect({ to: "/admin/languages", search: { page: 1 } });
-    }
-
-    return { languages, total };
-  });
 
 function AdminLanguagesRoute() {
   const { languages, total } = Route.useLoaderData();

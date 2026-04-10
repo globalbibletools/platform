@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import ProgressBar from "@/modules/languages/ui/ProgressBar";
+import ProgressBar from "@/ui/admin/components/ProgressBar";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import {
@@ -11,8 +11,8 @@ import {
 } from "./DashboardCard";
 import BookProgressDetailsModal, {
   type BookProgressDetails,
-} from "@/modules/languages/ui/BookProgressDetailsModal";
-import { type ActivityChartRange } from "@/modules/languages/ui/ActivityChart";
+} from "@/ui/admin/components/BookProgressDetailsModal";
+import { type ActivityChartRange } from "@/ui/admin/components/ActivityChart";
 import {
   type LanguageDashboardActivityEntryReadModel,
   type LanguageDashboardBookReadModel,
