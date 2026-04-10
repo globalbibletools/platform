@@ -72,9 +72,9 @@ describe("updateAllForLanguage", () => {
       members: [],
     });
     const llmImportModel = await getDb()
-      .insertInto("machine_gloss_model")
-      .values({ code: "llm_import" })
-      .returning("id")
+      .selectFrom("machine_gloss_model")
+      .where("code", "=", "llm_import")
+      .select("id")
       .executeTakeFirstOrThrow();
 
     const existingGloss = {
