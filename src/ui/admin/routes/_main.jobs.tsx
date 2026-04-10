@@ -23,20 +23,6 @@ export const Route = createFileRoute("/_main/admin/_main/jobs")({
   component: AdminJobsView,
 });
 
-function getStatusClassName(status: JobStatus): string {
-  switch (status) {
-    case JobStatus.Complete:
-      return "bg-green-200 text-gray-900";
-    case JobStatus.Failed:
-      return "bg-red-300 text-gray-900";
-    case JobStatus.InProgress:
-      return "bg-brown-100 text-gray-900";
-    case JobStatus.Pending:
-    default:
-      return "bg-gray-200 text-gray-900";
-  }
-}
-
 function AdminJobsView() {
   const {
     data: { exportJobs },
@@ -142,4 +128,18 @@ function AdminJobsView() {
       </div>
     </div>
   );
+}
+
+function getStatusClassName(status: JobStatus): string {
+  switch (status) {
+    case JobStatus.Complete:
+      return "bg-green-200 text-gray-900";
+    case JobStatus.Failed:
+      return "bg-red-300 text-gray-900";
+    case JobStatus.InProgress:
+      return "bg-brown-100 text-gray-900";
+    case JobStatus.Pending:
+    default:
+      return "bg-gray-200 text-gray-900";
+  }
 }

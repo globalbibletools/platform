@@ -1,4 +1,3 @@
-import { ReactNode } from "react";
 import SidebarLink from "@/components/SidebarLink";
 import { Icon } from "@/components/Icon";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
@@ -24,11 +23,6 @@ export const Route = createFileRoute("/_main/admin/_main")({
   },
   component: AdminLayout,
 });
-
-export interface AdminLayoutProps {
-  children?: ReactNode;
-  params: Promise<{ locale: string }>;
-}
 
 function AdminLayout() {
   const t = useTranslations("AdminLayout");

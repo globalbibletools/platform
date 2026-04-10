@@ -20,6 +20,7 @@ export const getInterlinearExportPanelData = createServerFn()
     }),
   ])
   .handler(async ({ data }) => {
+    // TODO: move these to read models
     const [jobs, pendingJob] = await Promise.all([
       exportJobQueryService.findRecentForLanguage(data.languageCode),
       exportJobQueryService.findPendingForLanguage(data.languageCode),

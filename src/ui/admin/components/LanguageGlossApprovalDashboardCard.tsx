@@ -14,7 +14,7 @@ import {
 import { UTCDate } from "@date-fns/utc";
 import * as d3 from "d3";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { type LanguageApprovalActivityReadModel } from "@/modules/reporting";
+import { type LanguageApprovalActivityReadModel } from "@/ui/admin/readModels/getLanguageApprovalActivityReadModel";
 import { useElementDimensions } from "@/utils/measure-element";
 import { type ActivityChartRange } from "./ActivityChart";
 import {

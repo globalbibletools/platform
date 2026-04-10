@@ -1,11 +1,13 @@
 import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
 import {
-  getLanguageApprovalActivityReadModel,
   getLanguageDashboardActivityReadModel,
-  LanguageApprovalActivityReadModel,
   type LanguageDashboardActivityEntryReadModel,
-} from "@/modules/reporting";
+} from "@/ui/admin/readModels/getLanguageDashboardActivityReadModel";
+import {
+  getLanguageApprovalActivityReadModel,
+  type LanguageApprovalActivityReadModel,
+} from "@/ui/admin/readModels/getLanguageApprovalActivityReadModel";
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";

@@ -1,7 +1,7 @@
 import * as z from "zod";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
-import { getAIGlossImportJobReadModel } from "@/modules/translation/read-models/getAIGlossImportJobReadModel";
-import { getAIGlossImportLanguagesReadModel } from "@/modules/translation/read-models/getAIGlossImportLanguagesReadModel";
+import { getAIGlossImportJobReadModel } from "@/ui/admin/readModels/getAIGlossImportJobReadModel";
+import { getAIGlossImportLanguagesReadModel } from "@/ui/admin/readModels/getAIGlossImportLanguagesReadModel";
 import { createServerFn } from "@tanstack/react-start";
 
 const requestSchema = z.object({

@@ -1,8 +1,6 @@
-import {
-  LanguageDashboardActivityEntryReadModel,
-  LanguageDashboardContributionReadModel,
-  LanguageDashboardMemberReadModel,
-} from "@/modules/reporting";
+import { type LanguageDashboardActivityEntryReadModel } from "@/ui/admin/readModels/getLanguageDashboardActivityReadModel";
+import { type LanguageDashboardContributionReadModel } from "@/ui/admin/readModels/getLanguageDashboardContributionsReadModel";
+import { type LanguageDashboardMemberReadModel } from "@/ui/admin/readModels/getLanguageDashboardMembersReadModel";
 import ActivityChart, { ActivityChartRange } from "./ActivityChart";
 import { useMemo } from "react";
 import { Icon } from "@/components/Icon";

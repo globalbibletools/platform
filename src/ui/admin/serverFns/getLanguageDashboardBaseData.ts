@@ -2,12 +2,16 @@ import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { getLanguageByCodeReadModel } from "@/modules/languages/read-models/getLanguageByCodeReadModel";
 import {
   getLanguageDashboardBooksReadModel,
-  getLanguageDashboardContributionsReadModel,
-  getLanguageDashboardMembersReadModel,
   type LanguageDashboardBookReadModel,
-  type LanguageDashboardContributionReadModel,
+} from "@/ui/admin/readModels/getLanguageDashboardBooksReadModel";
+import {
+  getLanguageDashboardMembersReadModel,
   type LanguageDashboardMemberReadModel,
-} from "@/modules/reporting";
+} from "@/ui/admin/readModels/getLanguageDashboardMembersReadModel";
+import {
+  getLanguageDashboardContributionsReadModel,
+  type LanguageDashboardContributionReadModel,
+} from "@/ui/admin/readModels/getLanguageDashboardContributionsReadModel";
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";

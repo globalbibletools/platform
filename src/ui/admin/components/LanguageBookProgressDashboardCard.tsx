@@ -13,12 +13,10 @@ import BookProgressDetailsModal, {
   type BookProgressDetails,
 } from "@/ui/admin/components/BookProgressDetailsModal";
 import { type ActivityChartRange } from "@/ui/admin/components/ActivityChart";
-import {
-  type LanguageDashboardActivityEntryReadModel,
-  type LanguageDashboardBookReadModel,
-  type LanguageDashboardContributionReadModel,
-  type LanguageDashboardMemberReadModel,
-} from "@/modules/reporting";
+import { type LanguageDashboardActivityEntryReadModel } from "@/ui/admin/readModels/getLanguageDashboardActivityReadModel";
+import { type LanguageDashboardContributionReadModel } from "@/ui/admin/readModels/getLanguageDashboardContributionsReadModel";
+import { type LanguageDashboardMemberReadModel } from "@/ui/admin/readModels/getLanguageDashboardMembersReadModel";
+import { type LanguageDashboardBookReadModel } from "@/ui/admin/readModels/getLanguageDashboardBooksReadModel";
 
 interface LanguageBookProgressDashboardCardProps {
   className?: string;

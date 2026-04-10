@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { TRANSLATION_JOB_TYPES } from "../jobs/jobType";
+import { TRANSLATION_JOB_TYPES } from "@/modules/translation/jobs/jobType";
 import { JobStatus } from "@/shared/jobs/model";
 
 interface AIGlossImportJobReadModel {
