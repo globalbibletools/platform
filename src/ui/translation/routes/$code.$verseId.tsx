@@ -5,8 +5,8 @@ import { incrementVerseId, parseVerseId } from "@/verse-utils";
 import { withDocumentTitle } from "@/documentTitle";
 import { getTranslator } from "@/shared/i18n/messages";
 import { updateTranslateNavigationCookie } from "@/shared/navigationCookies";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useEffect, useReducer, useRef, useState } from "react";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import TranslationToolbar from "../components/TranslationToolbar";
 import TranslationReference from "../components/TranslationReference";
 import Button from "@/components/Button";
@@ -16,6 +16,7 @@ import TranslationSidebar, {
 } from "../components/TranslationSidebar";
 import TranslateWord from "../components/TranslateWord";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
+import { sanityCheck } from "@/modules/translation/actions/sanityCheck";
 
 function verseTranslationQuery(code: string, verseId: string) {
   return {
@@ -57,6 +58,8 @@ function TranslationRoute() {
   const { code, verseId } = Route.useParams();
   const { auth } = Route.useRouteContext();
 
+  const isHebrew = parseInt(verseId.slice(0, 2)) < 40;
+
   const { data } = useSuspenseQuery(verseTranslationQuery(code, verseId));
   if (!data.language) {
     throw notFound();
@@ -77,63 +80,29 @@ function TranslationRoute() {
     });
   }, [code, verseId, router]);
 
-  const [focusedPhrase, setFocusedPhrase] = useState<
-    { id: number; wordIds: string[] } | undefined
-  >();
-  const [selectedWords, setSelectedWords] = useState<string[]>([]);
-  const [backtranslations, setBacktranslations] = useState<
-    Array<{ translation: string; phraseId: number }> | undefined
-  >();
+  const { backtranslations, runningSanityCheck, runSanityCheck } =
+    useSanityCheck({ code, verseId });
 
-  useEffect(() => {
-    setSelectedWords([]);
-    setFocusedPhrase(undefined);
-    setBacktranslations(undefined);
-  }, [verseId]);
-
-  const selectWord = useCallback((wordId: string) => {
-    setSelectedWords((words) => {
-      if (words.includes(wordId)) {
-        return words.filter((w) => w !== wordId);
-      }
-
-      return [...words, wordId];
+  const { selectedWordIds, focusedPhraseId, lastFocusedPhraseId, dispatch } =
+    useSelectionState({
+      verseId,
+      firstPhraseId:
+        data.phrases.find((ph) => ph.wordIds.includes(data.words[0].id))?.id ??
+        0,
     });
-  }, []);
 
-  const clearSelectedWords = useCallback(() => {
-    setSelectedWords([]);
-  }, []);
-
-  const isHebrew = parseInt(verseId.slice(0, 2)) < 40;
+  const focusedPhrase = data.phrases.find((ph) => ph.id === focusedPhraseId);
+  const sidebarPhrase = data.phrases.find(
+    (ph) => ph.id === lastFocusedPhraseId,
+  );
+  const sidebarWord =
+    (sidebarPhrase ?
+      data.words.find((word) => word.id === sidebarPhrase.wordIds[0])
+    : undefined) ?? data.words[0];
 
   const [showSidebar, setShowSidebar] = useState(false);
-  const [sidebarWord, setSidebarWord] = useState(data.words[0]);
-  const sidebarPhrase = data.phrases.find((ph) =>
-    ph.wordIds.includes(sidebarWord.id),
-  );
-  const lastVerseRef = useRef(verseId);
-  useEffect(() => {
-    if (lastVerseRef.current !== verseId) {
-      setSidebarWord(data.words[0]);
-      lastVerseRef.current = verseId;
-    }
-  }, [data.words, verseId]);
-
   const sidebarRef = useRef<TranslationSidebarRef>(null);
 
-  useEffect(() => {
-    const input = document.activeElement;
-    if (input instanceof HTMLElement && input.dataset.phrase) {
-      const phraseId = parseInt(input.dataset.phrase);
-      const phrase = data.phrases.find((ph) => ph.id === phraseId);
-      setFocusedPhrase(phrase);
-    } else {
-      setFocusedPhrase(undefined);
-    }
-  }, [data.phrases, setFocusedPhrase]);
-
-  const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const keydownCallback = async (e: globalThis.KeyboardEvent) => {
       if (hasShortcutModifier(e) && !e.shiftKey && !e.altKey) {
@@ -141,19 +110,21 @@ function TranslationRoute() {
           case "d":
             return setShowSidebar((show) => !show);
           case "Home": {
-            const words = Array.from(
-              rootRef.current?.querySelectorAll("input[data-phrase]") ?? [],
+            const firstPhrase = data.phrases.find((ph) =>
+              ph.wordIds.includes(data.words[0]?.id),
             );
-            const firstWord = words[0] as HTMLElement;
-            firstWord?.focus();
+            if (!firstPhrase) return;
+
+            dispatch({ type: "focus-phrase", phraseId: firstPhrase.id });
             break;
           }
           case "End": {
-            const words = Array.from(
-              rootRef.current?.querySelectorAll("input[data-phrase]") ?? [],
+            const lastPhrase = data.phrases.find((ph) =>
+              ph.wordIds.includes(data.words[data.words.length - 1]?.id),
             );
-            const lastWord = words.at(-1) as HTMLElement;
-            lastWord?.focus();
+            if (!lastPhrase) return;
+
+            dispatch({ type: "focus-phrase", phraseId: lastPhrase.id });
             break;
           }
         }
@@ -170,15 +141,15 @@ function TranslationRoute() {
         languages={languages}
         currentLanguage={currentLanguage}
         userRoles={auth.systemRoles}
-        selectedWords={selectedWords}
+        selectedWords={selectedWordIds}
         focusedPhrase={focusedPhrase}
-        clearSelectedWords={clearSelectedWords}
-        setBacktranslations={setBacktranslations}
+        clearSelectedWords={() => dispatch({ type: "clear-selected-words" })}
+        runningSanityCheck={runningSanityCheck}
+        onSanityCheck={async () => {
+          await runSanityCheck();
+        }}
       />
-      <div
-        ref={rootRef}
-        className="flex flex-col grow w-full min-h-0 lg:flex-row"
-      >
+      <div className="flex flex-col grow w-full min-h-0 lg:flex-row">
         <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-24 px-6">
           <TranslationReference verseId={verseId} language={data.language} />
           <ol
@@ -196,24 +167,26 @@ function TranslationRoute() {
                   key={word.id}
                   verseId={verseId}
                   word={word}
-                  wordSelected={selectedWords.includes(word.id)}
+                  wordSelected={selectedWordIds.includes(word.id)}
                   phrase={phrase}
-                  phraseFocused={phrase === focusedPhrase}
+                  phraseFocused={phrase.id === focusedPhraseId}
                   backtranslation={
-                    backtranslations?.find((t) => t.phraseId === phrase.id)
-                      ?.translation
+                    backtranslations?.find(
+                      (translation) => translation.phraseId === phrase.id,
+                    )?.translation
                   }
                   language={data.language}
                   isHebrew={isHebrew}
-                  onFocus={() => {
-                    setSidebarWord(word);
-                    setFocusedPhrase(phrase);
-                  }}
+                  onFocus={() =>
+                    dispatch({ type: "focus-phrase", phraseId: phrase.id })
+                  }
                   onShowDetail={() => setShowSidebar(true)}
                   onOpenNotes={() =>
                     setTimeout(() => sidebarRef.current?.openNotes(), 0)
                   }
-                  onSelect={() => selectWord(word.id)}
+                  onSelect={() =>
+                    dispatch({ type: "toggle-word", wordId: word.id })
+                  }
                 />
               );
             })}
@@ -258,4 +231,94 @@ function TranslationRoute() {
       </div>
     </>
   );
+}
+
+function useSanityCheck({ code, verseId }: { code: string; verseId: string }) {
+  const {
+    data: backtranslations,
+    isFetching: runningSanityCheck,
+    refetch: runSanityCheck,
+  } = useQuery({
+    queryKey: ["sanity-check", code, verseId],
+    queryFn: () => sanityCheck({ data: { code, verseId } }),
+    enabled: false,
+  });
+
+  return {
+    backtranslations,
+    runningSanityCheck,
+    runSanityCheck,
+  };
+}
+
+type SelectionState = {
+  selectedWordIds: string[];
+  lastFocusedPhraseId: number;
+  focusedPhraseId?: number;
+};
+
+type SelectionAction =
+  | { type: "toggle-word"; wordId: string }
+  | { type: "clear-selected-words" }
+  | { type: "focus-phrase"; phraseId: number }
+  | { type: "reset"; firstPhraseId: number };
+
+function useSelectionState({
+  verseId,
+  firstPhraseId,
+}: {
+  verseId: string;
+  firstPhraseId: number;
+}) {
+  const [state, dispatch] = useReducer(
+    (currentState: SelectionState, action: SelectionAction): SelectionState => {
+      switch (action.type) {
+        case "toggle-word":
+          if (currentState.selectedWordIds.includes(action.wordId)) {
+            return {
+              ...currentState,
+              selectedWordIds: currentState.selectedWordIds.filter(
+                (wordId) => wordId !== action.wordId,
+              ),
+            };
+          }
+
+          return {
+            ...currentState,
+            selectedWordIds: [...currentState.selectedWordIds, action.wordId],
+          };
+        case "clear-selected-words":
+          return {
+            ...currentState,
+            selectedWordIds: [],
+          };
+        case "focus-phrase":
+          return {
+            ...currentState,
+            lastFocusedPhraseId: action.phraseId,
+            focusedPhraseId: action.phraseId,
+          };
+        case "reset":
+          return {
+            selectedWordIds: [],
+            lastFocusedPhraseId: action.firstPhraseId,
+            focusedPhraseId: undefined,
+          };
+      }
+    },
+    {
+      selectedWordIds: [],
+      lastFocusedPhraseId: firstPhraseId,
+      focusedPhraseId: undefined,
+    },
+  );
+
+  useEffect(() => {
+    dispatch({ type: "reset", firstPhraseId });
+  }, [verseId, firstPhraseId]);
+
+  return {
+    ...state,
+    dispatch,
+  };
 }

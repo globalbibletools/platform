@@ -16,7 +16,6 @@ import {
 import { approveAll } from "@/modules/translation/actions/approveAll";
 import { linkWords } from "@/modules/translation/actions/linkWords";
 import { redirectToUnapproved } from "@/ui/translation/serverFns/redirectToUnapproved";
-import { sanityCheck } from "@/modules/translation/actions/sanityCheck";
 import { unlinkPhrase } from "@/modules/translation/actions/unlinkPhrase";
 import {
   bookFirstVerseId,
@@ -41,7 +40,8 @@ export interface TranslationToolbarProps {
   selectedWords: string[];
   focusedPhrase?: { id: number; wordIds: string[] };
   clearSelectedWords(): void;
-  setBacktranslations(list: { translation: string; phraseId: number }[]): void;
+  runningSanityCheck: boolean;
+  onSanityCheck(): void;
 }
 
 export default function TranslationToolbar({
@@ -51,7 +51,8 @@ export default function TranslationToolbar({
   selectedWords,
   focusedPhrase,
   clearSelectedWords,
-  setBacktranslations,
+  runningSanityCheck,
+  onSanityCheck,
 }: TranslationToolbarProps) {
   const t = useTranslations("TranslationToolbar");
   const { verseId = "", code = "" } = useParams({ strict: false });
@@ -63,7 +64,6 @@ export default function TranslationToolbar({
   const approveAllFn = useServerFn(approveAll);
   const linkWordsFn = useServerFn(linkWords);
   const unlinkPhraseFn = useServerFn(unlinkPhrase);
-  const sanityCheckFn = useServerFn(sanityCheck);
 
   const isTranslator = currentLanguage?.isMember;
   const isPlatformAdmin = userRoles.includes("ADMIN");
@@ -185,22 +185,6 @@ export default function TranslationToolbar({
     },
     [code, navigate],
   );
-
-  const [runningSanityCheck, setRunningSanityCheck] = useState(false);
-  const onSanityCheck = useCallback(async () => {
-    const data = {
-      code,
-      verseId,
-    };
-    setRunningSanityCheck(true);
-    const result = await sanityCheckFn({ data });
-    if (result.state === "error" && result.error) {
-      flash.error(result.error);
-    } else if (result.state === "success" && result.data) {
-      setBacktranslations(result.data);
-    }
-    setRunningSanityCheck(false);
-  }, [code, verseId, flash, sanityCheckFn, setBacktranslations]);
 
   useEffect(() => {
     if (!verseId) return;

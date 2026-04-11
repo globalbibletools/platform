@@ -9,11 +9,6 @@ const requestSchema = z.object({
   verseId: z.string(),
 });
 
-type SanityCheckResult =
-  | { state: "idle" }
-  | { state: "error"; error?: string }
-  | { state: "success"; data: { translation: string; phraseId: number }[] };
-
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
 export const sanityCheck = createServerFn({ method: "POST" })
@@ -51,7 +46,7 @@ export const sanityCheck = createServerFn({ method: "POST" })
       ),
     );
 
-    return { state: "success", data: translations } as SanityCheckResult;
+    return translations;
   });
 
 async function backtranslate(

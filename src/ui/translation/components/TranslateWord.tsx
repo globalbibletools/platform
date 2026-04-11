@@ -81,6 +81,14 @@ export default function TranslateWord({
   const llmGlossRef = useRef<HTMLSpanElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    if (!phraseFocused || !inputRef.current) return;
+
+    if (inputRef.current !== document.activeElement) {
+      inputRef.current.focus();
+    }
+  }, [phraseFocused]);
+
   const editable = language.isMember;
   const canViewTranslatorNotes = language.isMember;
 
