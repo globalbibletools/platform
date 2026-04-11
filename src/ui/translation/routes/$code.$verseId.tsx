@@ -6,8 +6,10 @@ import { withDocumentTitle } from "@/documentTitle";
 import { getTranslator } from "@/shared/i18n/messages";
 import { updateTranslateNavigationCookie } from "@/shared/navigationCookies";
 import { useEffect, useReducer, useRef, useState } from "react";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import TranslationToolbar from "../components/TranslationToolbar";
+import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import TranslationToolbar, {
+  ActionMap,
+} from "../components/TranslationToolbar";
 import TranslationReference from "../components/TranslationReference";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
@@ -17,6 +19,10 @@ import TranslationSidebar, {
 import TranslateWord from "../components/TranslateWord";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import { sanityCheck } from "@/modules/translation/actions/sanityCheck";
+import { approveAll } from "@/modules/translation/actions/approveAll";
+import { linkWords } from "@/modules/translation/actions/linkWords";
+import { unlinkPhrase } from "@/modules/translation/actions/unlinkPhrase";
+import { SystemRoleRaw } from "@/modules/users/types";
 
 function verseTranslationQuery(code: string, verseId: string) {
   return {
@@ -58,6 +64,8 @@ function TranslationRoute() {
   const { code, verseId } = Route.useParams();
   const { auth } = Route.useRouteContext();
 
+  const router = useRouter();
+
   const isHebrew = parseInt(verseId.slice(0, 2)) < 40;
 
   const { data } = useSuspenseQuery(verseTranslationQuery(code, verseId));
@@ -69,7 +77,6 @@ function TranslationRoute() {
     updateTranslateNavigationCookie({ code, verseId });
   }, [code, verseId]);
 
-  const router = useRouter();
   useEffect(() => {
     router.preloadRoute({
       to: "/translate/$code/$verseId",
@@ -102,6 +109,63 @@ function TranslationRoute() {
 
   const [showSidebar, setShowSidebar] = useState(false);
   const sidebarRef = useRef<TranslationSidebarRef>(null);
+
+  const { approveAll, isApprovingAll } = useApproveAll({ code, verseId });
+  const { linkWords, isLinkingWords } = useLinkWords({
+    code,
+    verseId,
+    dispatch,
+  });
+  const { unlinkPhrase, isUnlinkingPhrase } = useUnlinkPhrase({
+    code,
+    verseId,
+    dispatch,
+  });
+
+  const isTranslator = currentLanguage?.isMember;
+  const isPlatformAdmin = auth.systemRoles.includes(SystemRoleRaw.Admin);
+
+  const canLinkWords = selectedWordIds.length > 1;
+  const canUnlinkWords = (focusedPhrase?.wordIds.length ?? 0) > 1;
+  const actions: ActionMap = {};
+
+  if (isTranslator) {
+    actions.approveAll = {
+      state: isApprovingAll ? "pending" : "active",
+      fn: approveAll,
+    };
+
+    if (!canUnlinkWords || canLinkWords) {
+      actions.linkWords = {
+        state:
+          !canLinkWords ? "disabled"
+          : isLinkingWords ? "pending"
+          : "active",
+        fn: () => {
+          if (selectedWordIds.length < 2) return;
+          linkWords({ wordIds: selectedWordIds });
+        },
+      };
+    } else {
+      actions.unlinkPhrase = {
+        state:
+          !canUnlinkWords ? "disabled"
+          : isUnlinkingPhrase ? "pending"
+          : "active",
+        fn: () => {
+          if (!focusedPhrase) return;
+          unlinkPhrase({ phraseId: focusedPhrase.id });
+        },
+      };
+    }
+  }
+
+  if (isPlatformAdmin) {
+    actions.sanityCheck = {
+      state: runningSanityCheck ? "pending" : "active",
+      fn: runSanityCheck,
+    };
+  }
 
   useEffect(() => {
     const keydownCallback = async (e: globalThis.KeyboardEvent) => {
@@ -138,16 +202,10 @@ function TranslationRoute() {
   return (
     <>
       <TranslationToolbar
+        actions={actions}
         languages={languages}
         currentLanguage={currentLanguage}
         userRoles={auth.systemRoles}
-        selectedWords={selectedWordIds}
-        focusedPhrase={focusedPhrase}
-        clearSelectedWords={() => dispatch({ type: "clear-selected-words" })}
-        runningSanityCheck={runningSanityCheck}
-        onSanityCheck={async () => {
-          await runSanityCheck();
-        }}
       />
       <div className="flex flex-col grow w-full min-h-0 lg:flex-row">
         <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-24 px-6">
@@ -248,6 +306,119 @@ function useSanityCheck({ code, verseId }: { code: string; verseId: string }) {
     backtranslations,
     runningSanityCheck,
     runSanityCheck,
+  };
+}
+
+function useApproveAll({ verseId, code }: { verseId: string; code: string }) {
+  const { mutate, isPending } = useMutation({
+    mutationFn: async () => {
+      const phrases: Array<{ id: number; gloss: string; method?: string }> = [];
+      const inputs = document.querySelectorAll("[data-phrase]");
+      inputs.forEach((input) => {
+        const phraseId = parseInt(
+          (input as HTMLInputElement).dataset.phrase ?? "",
+        );
+        const gloss = (input as HTMLInputElement).value;
+        const method = (input as HTMLInputElement).dataset.method;
+
+        if (phraseId && gloss) {
+          phrases.push({ id: phraseId, gloss, method });
+        }
+      });
+
+      await approveAll({ data: { code, phrases } });
+    },
+    async onSuccess(_data, _variables, _result, { client }) {
+      await Promise.all([
+        client.invalidateQueries({
+          queryKey: ["book-progress", parseInt(verseId.slice(0, 2)), code],
+        }),
+        client.invalidateQueries({
+          queryKey: ["verse-translation-data", code, verseId],
+        }),
+      ]);
+    },
+  });
+
+  return {
+    approveAll: mutate,
+    isApprovingAll: isPending,
+  };
+}
+
+function useLinkWords({
+  dispatch,
+  verseId,
+  code,
+}: {
+  dispatch: (action: SelectionAction) => void;
+  verseId: string;
+  code: string;
+}) {
+  const { mutate, isPending } = useMutation({
+    mutationFn: ({ wordIds }: { wordIds: Array<string> }) =>
+      linkWords({
+        data: {
+          code,
+          wordIds,
+        },
+      }),
+    onMutate() {
+      dispatch({ type: "clear-selected-words" });
+    },
+    async onSuccess(data, _variables, _result, { client }) {
+      await Promise.all([
+        client.invalidateQueries({
+          queryKey: ["book-progress", parseInt(verseId.slice(0, 2)), code],
+        }),
+        client.invalidateQueries({
+          queryKey: ["verse-translation-data", code, verseId],
+        }),
+      ]);
+
+      dispatch({ type: "focus-phrase", phraseId: data.phraseId });
+    },
+  });
+
+  return {
+    linkWords: mutate,
+    isLinkingWords: isPending,
+  };
+}
+
+function useUnlinkPhrase({
+  dispatch,
+  verseId,
+  code,
+}: {
+  dispatch: (action: SelectionAction) => void;
+  verseId: string;
+  code: string;
+}) {
+  const { mutate, isPending } = useMutation({
+    mutationFn: ({ phraseId }: { phraseId: number }) =>
+      unlinkPhrase({
+        data: {
+          code,
+          phraseId,
+        },
+      }),
+    onMutate() {
+      dispatch({ type: "clear-selected-words" });
+    },
+    async onSuccess(_data, _variables, _result, { client }) {
+      await client.invalidateQueries({
+        queryKey: ["book-progress", parseInt(verseId.slice(0, 2)), code],
+      });
+      await client.invalidateQueries({
+        queryKey: ["verse-translation-data", code, verseId],
+      });
+    },
+  });
+
+  return {
+    unlinkPhrase: mutate,
+    isUnlinkingPhrase: isPending,
   };
 }
 

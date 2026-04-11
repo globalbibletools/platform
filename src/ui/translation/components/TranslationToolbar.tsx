@@ -5,7 +5,7 @@ import ComboboxInput from "@/components/ComboboxInput";
 import { Icon } from "@/components/Icon";
 import TextInput from "@/components/TextInput";
 import { useTranslations } from "use-intl";
-import { useNavigate, useParams, useRouter } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import {
   useCallback,
   useEffect,
@@ -13,10 +13,7 @@ import {
   useState,
   type JSX,
 } from "react";
-import { approveAll } from "@/modules/translation/actions/approveAll";
-import { linkWords } from "@/modules/translation/actions/linkWords";
 import { redirectToUnapproved } from "@/ui/translation/serverFns/redirectToUnapproved";
-import { unlinkPhrase } from "@/modules/translation/actions/unlinkPhrase";
 import {
   bookFirstVerseId,
   bookLastVerseId,
@@ -30,46 +27,41 @@ import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import AudioDialog from "@/modules/study/ui/AudioDialog";
 import { useElementDimensions } from "@/utils/measure-element";
 import { useServerFn } from "@tanstack/react-start";
-import { useQueryClient } from "@tanstack/react-query";
 import { LanguageReadModel } from "../readModels/getLanguagesReadModel";
 
+export type ActionType =
+  | "approveAll"
+  | "linkWords"
+  | "unlinkPhrase"
+  | "sanityCheck";
+export interface Action {
+  state: "disabled" | "pending" | "active";
+  fn: () => void;
+}
+export type ActionMap = Partial<Record<ActionType, Action>>;
+
 export interface TranslationToolbarProps {
+  actions: ActionMap;
   languages: Array<LanguageReadModel>;
   currentLanguage: { isMember: boolean } | null;
   userRoles: string[];
-  selectedWords: string[];
-  focusedPhrase?: { id: number; wordIds: string[] };
-  clearSelectedWords(): void;
-  runningSanityCheck: boolean;
-  onSanityCheck(): void;
 }
 
 export default function TranslationToolbar({
+  actions,
   languages,
   currentLanguage,
   userRoles,
-  selectedWords,
-  focusedPhrase,
-  clearSelectedWords,
-  runningSanityCheck,
-  onSanityCheck,
 }: TranslationToolbarProps) {
   const t = useTranslations("TranslationToolbar");
   const { verseId = "", code = "" } = useParams({ strict: false });
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const flash = useFlash();
 
   const redirectToUnapprovedFn = useServerFn(redirectToUnapproved);
-  const approveAllFn = useServerFn(approveAll);
-  const linkWordsFn = useServerFn(linkWords);
-  const unlinkPhraseFn = useServerFn(unlinkPhrase);
 
   const isTranslator = currentLanguage?.isMember;
   const isPlatformAdmin = userRoles.includes("ADMIN");
-
-  const canLinkWords = selectedWords.length > 1;
-  const canUnlinkWords = (focusedPhrase?.wordIds.length ?? 0) > 1;
 
   const bookId = parseInt(verseId.slice(0, 2)) || 1;
   const chapter = parseInt(verseId.slice(2, 5)) || 1;
@@ -92,85 +84,6 @@ export default function TranslationToolbar({
     }
   }, [verseId, code, flash, navigate, redirectToUnapprovedFn]);
 
-  const router = useRouter();
-
-  const approveAllGlosses = useCallback(async () => {
-    const phrases: Array<{ id: number; gloss: string; method?: string }> = [];
-    const inputs = document.querySelectorAll("[data-phrase]");
-    inputs.forEach((input) => {
-      const phraseId = parseInt(
-        (input as HTMLInputElement).dataset.phrase ?? "",
-      );
-      const gloss = (input as HTMLInputElement).value;
-      const method = (input as HTMLInputElement).dataset.method;
-
-      if (phraseId && gloss) {
-        const phrase = {
-          id: phraseId,
-          gloss,
-          method,
-        };
-        phrases.push(phrase);
-      }
-    });
-
-    const data = {
-      code,
-      phrases,
-    };
-
-    await approveAllFn({ data });
-
-    await queryClient.invalidateQueries({
-      queryKey: ["book-progress", parseInt(verseId.slice(0, 2)), code],
-    });
-    await queryClient.invalidateQueries({
-      queryKey: ["verse-translation-data", code, verseId],
-    });
-  }, [approveAllFn, code, router, verseId]);
-
-  const onLinkWords = useCallback(async () => {
-    const data = {
-      code,
-      wordIds: selectedWords,
-    };
-    clearSelectedWords();
-
-    await linkWordsFn({ data });
-
-    await queryClient.invalidateQueries({
-      queryKey: ["book-progress", parseInt(verseId.slice(0, 2)), code],
-    });
-    await queryClient.invalidateQueries({
-      queryKey: ["verse-translation-data", code, verseId],
-    });
-  }, [
-    code,
-    selectedWords,
-    clearSelectedWords,
-    linkWordsFn,
-    queryClient,
-    verseId,
-    router,
-  ]);
-
-  const onUnlinkWords = useCallback(async () => {
-    if (!focusedPhrase) return;
-
-    const data = {
-      code,
-      phraseId: focusedPhrase.id,
-    };
-    await unlinkPhraseFn({ data });
-
-    await queryClient.invalidateQueries({
-      queryKey: ["book-progress", parseInt(verseId.slice(0, 2)), code],
-    });
-    await queryClient.invalidateQueries({
-      queryKey: ["verse-translation-data", code, verseId],
-    });
-  }, [code, focusedPhrase, unlinkPhraseFn, verseId, queryClient, router]);
-
   const navigateToVerse = useCallback(
     (nextVerseId: string) => {
       return navigate({
@@ -188,16 +101,16 @@ export default function TranslationToolbar({
       if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
         switch (e.key) {
           case "a":
-            return isTranslator && approveAllGlosses();
+            return actions.approveAll?.fn();
           case "n":
-            return isTranslator && navigateToNextUnapprovedVerse();
+            return navigateToNextUnapprovedVerse();
         }
       } else if (hasShortcutModifier(e) && !e.shiftKey && !e.altKey) {
         switch (e.key) {
           case "l":
-            return isTranslator && onLinkWords();
+            return actions.linkWords?.fn();
           case "u":
-            return isTranslator && onUnlinkWords();
+            return actions.unlinkPhrase?.fn();
           case "ArrowUp":
             return navigateToVerse(decrementVerseId(verseId));
           case "ArrowDown":
@@ -217,10 +130,10 @@ export default function TranslationToolbar({
     return () => window.removeEventListener("keydown", keydownCallback);
   }, [
     isTranslator,
+    actions.approveAll?.fn,
+    actions.linkWords?.fn,
+    actions.unlinkPhrase?.fn,
     navigateToNextUnapprovedVerse,
-    approveAllGlosses,
-    onLinkWords,
-    onUnlinkWords,
     navigateToVerse,
     bookId,
     verseId,
@@ -236,44 +149,65 @@ export default function TranslationToolbar({
 
   const buttons = [];
 
-  if (isTranslator) {
+  if (actions.approveAll) {
     buttons.push(
       <Button
         key="approve-all"
         variant="tertiary"
-        disabled={!verseId}
-        onClick={approveAllGlosses}
+        disabled={actions.approveAll.state === "disabled"}
+        onClick={actions.approveAll.fn}
       >
-        <Icon icon="check" className="me-1" />
-        {t("approve_all")}
+        <Icon
+          icon={
+            actions.approveAll.state === "pending" ? "arrows-rotate" : "check"
+          }
+          fixedWidth
+          className="me-1"
+        />
+        Approve All
       </Button>,
     );
+  }
 
-    if (!canUnlinkWords || canLinkWords) {
-      buttons.push(
-        <Button
-          key="word-linking"
-          variant="tertiary"
-          disabled={!canLinkWords || !verseId}
-          onClick={onLinkWords}
-        >
-          <Icon icon="link" className="me-1" />
-          {t("link_words")}
-        </Button>,
-      );
-    } else {
-      buttons.push(
-        <Button
-          key="word-linking"
-          variant="tertiary"
-          disabled={!verseId}
-          onClick={onUnlinkWords}
-        >
-          <Icon icon="unlink" className="me-1" />
-          {t("unlink_words")}
-        </Button>,
-      );
-    }
+  if (actions.linkWords) {
+    buttons.push(
+      <Button
+        key="word-linking"
+        variant="tertiary"
+        disabled={actions.linkWords.state === "disabled"}
+        onClick={actions.linkWords.fn}
+      >
+        <Icon
+          icon={
+            actions.linkWords.state === "pending" ? "arrows-rotate" : "link"
+          }
+          fixedWidth
+          className="me-1"
+        />
+        Link Words
+      </Button>,
+    );
+  }
+  if (actions.unlinkPhrase) {
+    buttons.push(
+      <Button
+        key="word-linking"
+        variant="tertiary"
+        disabled={actions.unlinkPhrase.state === "disabled"}
+        onClick={actions.unlinkPhrase.fn}
+      >
+        <Icon
+          icon={
+            actions.unlinkPhrase.state === "pending" ?
+              "arrows-rotate"
+            : "unlink"
+          }
+          fixedWidth
+          className="me-1"
+        />
+        Unlink Words
+      </Button>,
+    );
   }
 
   buttons.push(
@@ -287,19 +221,24 @@ export default function TranslationToolbar({
     </Button>,
   );
 
-  if (isPlatformAdmin) {
+  if (actions.sanityCheck) {
     buttons.push(
       <Button
         key="sanity-check"
         variant="tertiary"
-        disabled={!verseId}
-        onClick={onSanityCheck}
+        disabled={actions.sanityCheck.state === "disabled"}
+        onClick={actions.sanityCheck.fn}
       >
         <Icon
-          icon={runningSanityCheck ? "arrows-rotate" : "clipboard-check"}
+          icon={
+            actions.sanityCheck.state === "pending" ?
+              "arrows-rotate"
+            : "clipboard-check"
+          }
+          fixedWidth
           className="me-1"
         />
-        {t("sanity_check")}
+        Sanity Check
       </Button>,
     );
   }
@@ -378,19 +317,15 @@ export default function TranslationToolbar({
               </Button>
             </div>
           </form>
-          {isTranslator && (
-            <div>
-              <Button
-                variant="tertiary"
-                disabled={!verseId}
-                onClick={navigateToNextUnapprovedVerse}
-              >
-                {t("next_unapproved")}
-                <Icon icon="arrow-right" className="ms-1 rtl:hidden" />
-                <Icon icon="arrow-left" className="ms-1 ltr:hidden" />
-              </Button>
-            </div>
-          )}
+          <Button
+            variant="tertiary"
+            disabled={!verseId}
+            onClick={navigateToNextUnapprovedVerse}
+          >
+            {t("next_unapproved")}
+            <Icon icon="arrow-right" className="ms-1 rtl:hidden" />
+            <Icon icon="arrow-left" className="ms-1 ltr:hidden" />
+          </Button>
         </div>
         <div className="shrink-0 flex items-center">
           <ComboboxInput
