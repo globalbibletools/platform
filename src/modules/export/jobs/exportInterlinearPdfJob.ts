@@ -2,6 +2,7 @@ import { PDFDocument } from "pdf-lib";
 import { Readable } from "stream";
 import { logger } from "@/logging";
 import { Job } from "@/shared/jobs/model";
+import jobRepository from "@/shared/jobs/data-access/jobRepository";
 import { getStorageEnvironment } from "@/shared/storageEnvironment";
 import exportStorageRepository from "../data-access/ExportStorageRepository";
 import type {
@@ -12,7 +13,7 @@ import { EXPORT_JOB_TYPES } from "./jobTypes";
 
 export async function exportInterlinearPdfJob(
   job: Job<ExportInterlinearPdfJobPayload>,
-): Promise<ExportInterlinearPdfJobData> {
+): Promise<void> {
   const jobLogger = logger.child({ jobId: job.id, jobType: job.type });
 
   const environment = getStorageEnvironment();
@@ -38,15 +39,10 @@ export async function exportInterlinearPdfJob(
       stream: Readable.from([bytes]),
     });
 
-    const url = await exportStorageRepository.presignPdf({
-      environment,
-      key: exportKey,
-      expiresInSeconds: 60 * 60 * 24,
-    });
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const data: ExportInterlinearPdfJobData = { exportKey };
+    await jobRepository.updateData(job.id, data);
 
-    jobLogger.info({ url, exportKey }, "Interlinear placeholder PDF uploaded");
-    return { exportKey, downloadUrl: url, expiresAt };
+    jobLogger.info({ exportKey }, "Interlinear placeholder PDF uploaded");
   } catch (error) {
     jobLogger.error({ err: error }, "Interlinear export job failed");
     throw error;
