@@ -25,7 +25,6 @@ import {
   incrementVerseId,
   parseReference,
 } from "@/verse-utils";
-import { useTranslationClientState } from "./TranslationClientState";
 import TranslationProgressBar from "./TranslationProgressBar";
 import { useFlash } from "@/flash";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
@@ -39,12 +38,20 @@ export interface TranslationToolbarProps {
   languages: Array<LanguageReadModel>;
   currentLanguage: { isMember: boolean } | null;
   userRoles: string[];
+  selectedWords: string[];
+  focusedPhrase?: { id: number; wordIds: string[] };
+  clearSelectedWords(): void;
+  setBacktranslations(list: { translation: string; phraseId: number }[]): void;
 }
 
 export default function TranslationToolbar({
   languages,
   currentLanguage,
   userRoles,
+  selectedWords,
+  focusedPhrase,
+  clearSelectedWords,
+  setBacktranslations,
 }: TranslationToolbarProps) {
   const t = useTranslations("TranslationToolbar");
   const { verseId = "", code = "" } = useParams({ strict: false });
@@ -61,12 +68,6 @@ export default function TranslationToolbar({
   const isTranslator = currentLanguage?.isMember;
   const isPlatformAdmin = userRoles.includes("ADMIN");
 
-  const {
-    selectedWords,
-    focusedPhrase,
-    clearSelectedWords,
-    setBacktranslations,
-  } = useTranslationClientState();
   const canLinkWords = selectedWords.length > 1;
   const canUnlinkWords = (focusedPhrase?.wordIds.length ?? 0) > 1;
 

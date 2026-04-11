@@ -5,7 +5,6 @@ import TranslateWord from "./TranslateWord";
 import TranslationSidebar, {
   TranslationSidebarRef,
 } from "./TranslationSidebar";
-import { useTranslationClientState } from "./TranslationClientState";
 import TranslationReference from "./TranslationReference";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
@@ -43,6 +42,11 @@ export interface TranslationViewProps {
     isMember: boolean;
     machineGlossStrategy: MachineGlossStrategy;
   };
+  selectedWords: string[];
+  focusedPhrase?: { id: number; wordIds: string[] };
+  backtranslations?: { translation: string; phraseId: number }[];
+  selectWord(wordId: string): void;
+  focusPhrase(phrase?: { id: number; wordIds: string[] }): void;
 }
 
 export default function TranslateView({
@@ -50,6 +54,11 @@ export default function TranslateView({
   words,
   phrases,
   language,
+  selectedWords,
+  focusedPhrase,
+  backtranslations,
+  selectWord,
+  focusPhrase,
 }: TranslationViewProps) {
   const isHebrew = parseInt(verseId.slice(0, 2)) < 40;
 
@@ -67,14 +76,6 @@ export default function TranslateView({
   }, [words, verseId]);
 
   const sidebarRef = useRef<TranslationSidebarRef>(null);
-
-  const {
-    selectedWords,
-    focusedPhrase,
-    backtranslations,
-    selectWord,
-    focusPhrase,
-  } = useTranslationClientState();
 
   useEffect(() => {
     const input = document.activeElement;

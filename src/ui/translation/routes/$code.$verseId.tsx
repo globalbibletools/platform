@@ -6,10 +6,9 @@ import { incrementVerseId, parseVerseId } from "@/verse-utils";
 import { withDocumentTitle } from "@/documentTitle";
 import { getTranslator } from "@/shared/i18n/messages";
 import { updateTranslateNavigationCookie } from "@/shared/navigationCookies";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import TranslationToolbar from "../components/TranslationToolbar";
-import { TranslationClientStateProvider } from "../components/TranslationClientState";
 
 function verseTranslationQuery(code: string, verseId: string) {
   return {
@@ -52,7 +51,6 @@ function TranslationRoute() {
   const { auth } = Route.useRouteContext();
 
   const { data } = useSuspenseQuery(verseTranslationQuery(code, verseId));
-
   if (!data.language) {
     throw notFound();
   }
@@ -72,19 +70,56 @@ function TranslationRoute() {
     });
   }, [code, verseId, router]);
 
+  const [focusedPhrase, setFocusedPhrase] = useState<
+    { id: number; wordIds: string[] } | undefined
+  >();
+  const [selectedWords, setSelectedWords] = useState<string[]>([]);
+  const [backtranslations, setBacktranslations] = useState<
+    Array<{ translation: string; phraseId: number }> | undefined
+  >();
+
+  useEffect(() => {
+    setSelectedWords([]);
+    setFocusedPhrase(undefined);
+    setBacktranslations(undefined);
+  }, [verseId]);
+
+  const selectWord = useCallback((wordId: string) => {
+    setSelectedWords((words) => {
+      if (words.includes(wordId)) {
+        return words.filter((w) => w !== wordId);
+      }
+
+      return [...words, wordId];
+    });
+  }, []);
+
+  const clearSelectedWords = useCallback(() => {
+    setSelectedWords([]);
+  }, []);
+
   return (
-    <TranslationClientStateProvider>
+    <>
       <TranslationToolbar
         languages={languages}
         currentLanguage={currentLanguage}
         userRoles={auth.systemRoles}
+        selectedWords={selectedWords}
+        focusedPhrase={focusedPhrase}
+        clearSelectedWords={clearSelectedWords}
+        setBacktranslations={setBacktranslations}
       />
       <ClientTranslationView
         verseId={verseId}
         words={data.words}
         phrases={data.phrases}
         language={data.language}
+        selectedWords={selectedWords}
+        focusedPhrase={focusedPhrase}
+        backtranslations={backtranslations}
+        selectWord={selectWord}
+        focusPhrase={setFocusedPhrase}
       />
-    </TranslationClientStateProvider>
+    </>
   );
 }
