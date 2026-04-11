@@ -71,15 +71,10 @@ export default function TranslationToolbar({
   const canLinkWords = selectedWords.length > 1;
   const canUnlinkWords = (focusedPhrase?.wordIds.length ?? 0) > 1;
 
-  const [reference, setReference] = useState("");
-  useEffect(() => {
-    if (!verseId) return setReference("");
-
-    const bookId = parseInt(verseId.slice(0, 2)) || 1;
-    const chapter = parseInt(verseId.slice(2, 5)) || 1;
-    const verse = parseInt(verseId.slice(5, 8)) || 1;
-    setReference(t("verse_reference", { bookId, chapter, verse }));
-  }, [verseId, t]);
+  const bookId = parseInt(verseId.slice(0, 2)) || 1;
+  const chapter = parseInt(verseId.slice(2, 5)) || 1;
+  const verse = parseInt(verseId.slice(5, 8)) || 1;
+  const reference = t("verse_reference", { bookId, chapter, verse });
 
   const navigateToNextUnapprovedVerse = useCallback(async () => {
     try {
@@ -211,13 +206,9 @@ export default function TranslationToolbar({
       } else if (hasShortcutModifier(e) && e.shiftKey && !e.altKey) {
         switch (e.key) {
           case "Home":
-            return navigateToVerse(
-              bookFirstVerseId(parseInt(verseId.slice(0, 2))),
-            );
+            return navigateToVerse(bookFirstVerseId(bookId));
           case "End":
-            return navigateToVerse(
-              bookLastVerseId(parseInt(verseId.slice(0, 2))),
-            );
+            return navigateToVerse(bookLastVerseId(bookId));
         }
       }
     };
@@ -231,6 +222,7 @@ export default function TranslationToolbar({
     onLinkWords,
     onUnlinkWords,
     navigateToVerse,
+    bookId,
     verseId,
   ]);
 
@@ -350,9 +342,9 @@ export default function TranslationToolbar({
             <input type="hidden" value={code} name="language" />
             <div className="relative">
               <TextInput
+                key={verseId}
                 className="pe-16 placeholder-current w-56"
-                value={reference}
-                onChange={(e) => setReference(e.target.value)}
+                defaultValue={reference}
                 name="reference"
                 autoComplete="off"
                 aria-label={t("verse")}
