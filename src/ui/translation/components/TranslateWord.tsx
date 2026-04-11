@@ -111,20 +111,13 @@ export default function TranslateWord({
     phrase?.gloss?.text ||
     (isMultiWord ? undefined : word.suggestions[0] || machineSuggestion);
 
-  let approvalMethod: GlossApprovalMethodRaw = GlossApprovalMethodRaw.UserInput;
-  if (language.machineGlossStrategy === MachineGlossStrategy.Google) {
-    if (word.suggestions[0] && glossValue === word.suggestions[0]) {
-      approvalMethod = GlossApprovalMethodRaw.MachineSuggestion;
-    } else if (machineSuggestion && glossValue === machineSuggestion) {
-      approvalMethod = GlossApprovalMethodRaw.GoogleSuggestion;
-    }
-  } else if (language.machineGlossStrategy === MachineGlossStrategy.LLM) {
-    if (machineSuggestion && glossValue === machineSuggestion) {
-      approvalMethod = GlossApprovalMethodRaw.LLMSuggestion;
-    } else if (word.suggestions[0] && glossValue === word.suggestions[0]) {
-      approvalMethod = GlossApprovalMethodRaw.MachineSuggestion;
-    }
-  }
+  const approvalMethod = determineApprovalMethod({
+    strategy: language.machineGlossStrategy,
+    gloss: glossValue ?? "",
+    machineSuggestion: word.suggestions[0],
+    googleSuggestion: machineSuggestion,
+    llmSuggestion: machineSuggestion,
+  });
 
   const { code } = useParams({ from: "/_main/translate/$code/$verseId" });
   const [saving, setSaving] = useState(false);
@@ -143,22 +136,14 @@ export default function TranslateWord({
       phraseId: phrase.id,
       state: state,
       gloss: updatedGloss,
-      method: GlossApprovalMethodRaw.UserInput as GlossApprovalMethodRaw,
+      method: determineApprovalMethod({
+        strategy: language.machineGlossStrategy,
+        gloss: updatedGloss,
+        machineSuggestion: word.suggestions[0],
+        googleSuggestion: machineSuggestion,
+        llmSuggestion: machineSuggestion,
+      }),
     };
-
-    if (language.machineGlossStrategy === MachineGlossStrategy.Google) {
-      if (word.suggestions[0] && updatedGloss === word.suggestions[0]) {
-        data.method = GlossApprovalMethodRaw.MachineSuggestion;
-      } else if (machineSuggestion && updatedGloss === machineSuggestion) {
-        data.method = GlossApprovalMethodRaw.GoogleSuggestion;
-      }
-    } else if (language.machineGlossStrategy === MachineGlossStrategy.LLM) {
-      if (machineSuggestion && updatedGloss === machineSuggestion) {
-        data.method = GlossApprovalMethodRaw.LLMSuggestion;
-      } else if (word.suggestions[0] && updatedGloss === word.suggestions[0]) {
-        data.method = GlossApprovalMethodRaw.MachineSuggestion;
-      }
-    }
 
     // TODO: handle errors in the result
     await updateGlossFn({ data });
@@ -506,4 +491,40 @@ export default function TranslateWord({
       )}
     </li>
   );
+}
+
+function determineApprovalMethod({
+  strategy,
+  gloss,
+  machineSuggestion,
+  googleSuggestion,
+  llmSuggestion,
+}: {
+  strategy: MachineGlossStrategy;
+  gloss: string;
+  machineSuggestion?: string;
+  googleSuggestion?: string;
+  llmSuggestion?: string;
+}): GlossApprovalMethodRaw {
+  switch (strategy) {
+    case MachineGlossStrategy.Google: {
+      if (machineSuggestion && gloss === machineSuggestion) {
+        return GlossApprovalMethodRaw.MachineSuggestion;
+      } else if (googleSuggestion && gloss === googleSuggestion) {
+        return GlossApprovalMethodRaw.GoogleSuggestion;
+      }
+      return GlossApprovalMethodRaw.UserInput;
+    }
+    case MachineGlossStrategy.LLM: {
+      if (llmSuggestion && gloss === llmSuggestion) {
+        return GlossApprovalMethodRaw.LLMSuggestion;
+      } else if (machineSuggestion && gloss === machineSuggestion) {
+        return GlossApprovalMethodRaw.MachineSuggestion;
+      }
+      return GlossApprovalMethodRaw.UserInput;
+    }
+    default: {
+      return GlossApprovalMethodRaw.UserInput;
+    }
+  }
 }
