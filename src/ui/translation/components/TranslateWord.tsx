@@ -19,8 +19,7 @@ import { useParams } from "@tanstack/react-router";
 import { GlossApprovalMethodRaw } from "@/modules/translation/types";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import { MachineGlossStrategy } from "@/modules/languages/model";
-import { useServerFn } from "@tanstack/react-start";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 
 export interface TranslateWordProps {
   verseId: string;
@@ -70,8 +69,9 @@ export default function TranslateWord({
   onOpenNotes,
 }: TranslateWordProps) {
   const t = useTranslations("TranslateWord");
-  const queryClient = useQueryClient();
-  const updateGlossFn = useServerFn(updateGlossAction);
+
+  const editable = language.isMember;
+  const canViewTranslatorNotes = language.isMember;
 
   const rootRef = useRef<HTMLLIElement>(null);
   const ancientWordRef = useRef<HTMLSpanElement>(null);
@@ -89,12 +89,8 @@ export default function TranslateWord({
     }
   }, [phraseFocused]);
 
-  const editable = language.isMember;
-  const canViewTranslatorNotes = language.isMember;
-
   const hasNote =
     phrase.hasFootnote || (phrase.hasTranslatorNote && canViewTranslatorNotes);
-  const dir = "ltr";
 
   const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
   const machineSuggestion =
@@ -119,44 +115,52 @@ export default function TranslateWord({
     llmSuggestion: word.machineSuggestion,
   });
 
-  const { code } = useParams({ from: "/_main/translate/$code/$verseId" });
-  const [saving, setSaving] = useState(false);
-  useEffect(() => {
-    setSaving(false);
-  }, [phrase.id]);
-  const autosaveQueuedRef = useRef(false);
-  async function saveGloss(state: "APPROVED" | "UNAPPROVED") {
-    setSaving(true);
-    autosaveQueuedRef.current = false;
+  const { mutate: saveGloss, isPending: saving } = useMutation({
+    mutationFn: async (state: "APPROVED" | "UNAPPROVED") => {
+      const updatedGloss = inputRef.current?.value ?? "";
 
-    const updatedGloss = inputRef.current?.value ?? "";
-
-    const data = {
-      languageCode: language.code,
-      phraseId: phrase.id,
-      state: state,
-      gloss: updatedGloss,
-      method: determineApprovalMethod({
-        strategy: language.machineGlossStrategy,
+      const data = {
+        languageCode: language.code,
+        phraseId: phrase.id,
+        state: state,
         gloss: updatedGloss,
-        machineSuggestion: word.suggestions[0],
-        googleSuggestion: word.machineSuggestion,
-        llmSuggestion: word.machineSuggestion,
-      }),
-    };
+        method: determineApprovalMethod({
+          strategy: language.machineGlossStrategy,
+          gloss: updatedGloss,
+          machineSuggestion: word.suggestions[0],
+          googleSuggestion: word.machineSuggestion,
+          llmSuggestion: word.machineSuggestion,
+        }),
+      };
 
-    // TODO: handle errors in the result
-    await updateGlossFn({ data });
+      await updateGlossAction({ data });
+    },
+    onMutate() {
+      autosaveQueuedRef.current = false;
+    },
+    async onSuccess(_data, _variables, _result, { client }) {
+      await client.invalidateQueries({
+        queryKey: ["book-progress", parseInt(word.id.slice(0, 2)), code],
+      });
+      await client.invalidateQueries({
+        queryKey: ["verse-translation-data", code, verseId],
+      });
+    },
+  });
 
-    await queryClient.invalidateQueries({
-      queryKey: ["book-progress", parseInt(word.id.slice(0, 2)), code],
-    });
-    await queryClient.invalidateQueries({
-      queryKey: ["verse-translation-data", code, verseId],
-    });
-
-    setSaving(false);
+  const autosaveQueuedRef = useRef(false);
+  function autosave(gloss: string) {
+    console.log("autosave", gloss);
+    autosaveQueuedRef.current = true;
+    setTimeout(() => {
+      console.log(gloss, phrase.gloss?.text);
+      if (autosaveQueuedRef.current && gloss !== phrase.gloss?.text) {
+        saveGloss("UNAPPROVED");
+      }
+    }, 200);
   }
+
+  const { code } = useParams({ from: "/_main/translate/$code/$verseId" });
 
   let status: "empty" | "saving" | "saved" | "approved" = "empty";
   if (saving) {
@@ -358,17 +362,7 @@ export default function TranslateWord({
                   state={status === "approved" ? "success" : undefined}
                   aria-describedby={`word-help-${word.id}`}
                   aria-labelledby={`word-${word.id}`}
-                  onChange={(value) => {
-                    autosaveQueuedRef.current = true;
-                    setTimeout(() => {
-                      if (
-                        autosaveQueuedRef.current &&
-                        value !== phrase.gloss?.text
-                      ) {
-                        saveGloss("UNAPPROVED");
-                      }
-                    }, 200);
-                  }}
+                  onChange={autosave}
                   onSelect={() => {
                     saveGloss("APPROVED");
 
@@ -447,14 +441,14 @@ export default function TranslateWord({
                 return (
                   <>
                     <Icon icon="arrows-rotate" className="me-1" />
-                    <span dir={dir}>{t("saving")}</span>
+                    <span dir="ltr">{t("saving")}</span>
                   </>
                 );
               } else if (status === "approved") {
                 return (
                   <>
                     <Icon icon="check" className="me-1" />
-                    <span dir={dir}>{t("approved")}</span>
+                    <span dir="ltr">{t("approved")}</span>
                   </>
                 );
               } else {

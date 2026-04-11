@@ -134,6 +134,7 @@ export default function AutocompleteInput({
           setIsFocused(false);
           close();
           props.onBlur?.(e);
+          change(e.target.value);
         }}
         onChange={(e) => {
           open();
