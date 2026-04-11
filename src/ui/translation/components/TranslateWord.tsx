@@ -115,8 +115,8 @@ export default function TranslateWord({
     strategy: language.machineGlossStrategy,
     gloss: glossValue ?? "",
     machineSuggestion: word.suggestions[0],
-    googleSuggestion: machineSuggestion,
-    llmSuggestion: machineSuggestion,
+    googleSuggestion: word.machineSuggestion,
+    llmSuggestion: word.machineSuggestion,
   });
 
   const { code } = useParams({ from: "/_main/translate/$code/$verseId" });
@@ -140,8 +140,8 @@ export default function TranslateWord({
         strategy: language.machineGlossStrategy,
         gloss: updatedGloss,
         machineSuggestion: word.suggestions[0],
-        googleSuggestion: machineSuggestion,
-        llmSuggestion: machineSuggestion,
+        googleSuggestion: word.machineSuggestion,
+        llmSuggestion: word.machineSuggestion,
       }),
     };
 
@@ -177,7 +177,7 @@ export default function TranslateWord({
         // The first 24 pixels accommodates the checkbox and link icon for phrases.
         // The extra 36 pixels accommodates the sticky note icon
         24 + (hasNote ? 36 : 0) + (ancientWordRef.current?.clientWidth ?? 0),
-        // The extra 24 pixels accommodates the google icon
+        // The extra 24 pixels accommodates the robot icon
         // The extra 48 pixels accommodates the approval button
         glossWidth + (editable ? (hasMachineSuggestion ? 24 : 0) + 44 : 0),
 
@@ -348,14 +348,7 @@ export default function TranslateWord({
                       {i === word.suggestions.length ?
                         <Icon
                           className={`absolute top-1 ${isHebrew ? "left-0" : "right-0"}`}
-                          icon={
-                            (
-                              language.machineGlossStrategy ===
-                              MachineGlossStrategy.Google
-                            ) ?
-                              "google"
-                            : "robot"
-                          }
+                          icon="robot"
                         />
                       : undefined}
                     </div>
@@ -434,14 +427,8 @@ export default function TranslateWord({
                 {hasMachineSuggestion && (
                   <Icon
                     className={`absolute top-1/2 -translate-y-1/2 ${isHebrew ? "left-3" : "right-3"}`}
-                    icon={
-                      (
-                        language.machineGlossStrategy ===
-                        MachineGlossStrategy.Google
-                      ) ?
-                        "google"
-                      : "robot"
-                    }
+                    icon="robot"
+                    size="xs"
                   />
                 )}
               </div>
