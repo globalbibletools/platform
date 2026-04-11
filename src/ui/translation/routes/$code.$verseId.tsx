@@ -8,6 +8,8 @@ import { getTranslator } from "@/shared/i18n/messages";
 import { updateTranslateNavigationCookie } from "@/shared/navigationCookies";
 import { useEffect } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import TranslationToolbar from "../components/TranslationToolbar";
+import { TranslationClientStateProvider } from "../components/TranslationClientState";
 
 function verseTranslationQuery(code: string, verseId: string) {
   return {
@@ -45,7 +47,9 @@ function TranslationRoutePending() {
 }
 
 function TranslationRoute() {
+  const { languages, currentLanguage } = Route.parentRoute.useLoaderData();
   const { code, verseId } = Route.useParams();
+  const { auth } = Route.useRouteContext();
 
   const { data } = useSuspenseQuery(verseTranslationQuery(code, verseId));
 
@@ -69,11 +73,18 @@ function TranslationRoute() {
   }, [code, verseId, router]);
 
   return (
-    <ClientTranslationView
-      verseId={verseId}
-      words={data.words}
-      phrases={data.phrases}
-      language={data.language}
-    />
+    <TranslationClientStateProvider>
+      <TranslationToolbar
+        languages={languages}
+        currentLanguage={currentLanguage}
+        userRoles={auth.systemRoles}
+      />
+      <ClientTranslationView
+        verseId={verseId}
+        words={data.words}
+        phrases={data.phrases}
+        language={data.language}
+      />
+    </TranslationClientStateProvider>
   );
 }

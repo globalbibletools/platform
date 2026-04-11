@@ -33,9 +33,10 @@ import AudioDialog from "@/modules/study/ui/AudioDialog";
 import { useElementDimensions } from "@/utils/measure-element";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
+import { LanguageReadModel } from "../readModels/getLanguagesReadModel";
 
 export interface TranslationToolbarProps {
-  languages: { englishName: string; localName: string; code: string }[];
+  languages: Array<LanguageReadModel>;
   currentLanguage: { isMember: boolean } | null;
   userRoles: string[];
 }
