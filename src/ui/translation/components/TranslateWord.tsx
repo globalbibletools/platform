@@ -275,11 +275,10 @@ export default function TranslateWord({
                 width: width + 26,
               }}
               dir={language.textDirection}
-              hebrew={isHebrew}
+              right={isHebrew}
               name="gloss"
               data-phrase={phrase.id}
               data-method={approvalMethod}
-              right={isHebrew}
               aria-describedby={`word-help-${word.id}`}
               aria-labelledby={`word-${word.id}`}
               options={

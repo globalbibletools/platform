@@ -21,7 +21,6 @@ export default function GlossAutocompleteInput({
   style,
   state: initialState,
   right,
-  hebrew,
   dir,
 
   ...props
@@ -38,7 +37,6 @@ export default function GlossAutocompleteInput({
 
   className?: string;
   style?: CSSProperties;
-  hebrew?: boolean;
   right?: boolean;
   dir?: string;
 } & Omit<ComponentProps<"input">, "onChange" | "value">) {
@@ -100,7 +98,7 @@ export default function GlossAutocompleteInput({
       className={`
         ${className}
         flex gap-2 items-center
-        ${hebrew ? "flex-row" : "flex-row-reverse"}
+        ${right ? "flex-row" : "flex-row-reverse"}
       `}
       style={style}
       dir={dir}
@@ -141,7 +139,7 @@ export default function GlossAutocompleteInput({
             border rounded shadow-inner focus-visible:outline-2 outline-green-300
             w-full px-3 h-9 bg-white
             dark:shadow-none dark:bg-gray-900
-            ${hebrew ? "text-right" : "text-left"}
+            ${right ? "text-right" : "text-left"}
             ${
               initial.state === GlossStateRaw.Approved ?
                 "border-green-600 dark:border-green-500"
@@ -162,23 +160,22 @@ export default function GlossAutocompleteInput({
             props.onKeyDown?.(e);
           }}
         />
-        {hasMachineSuggestion && (
-          <Icon
-            className={`
-              absolute top-1/2 -translate-y-1/2
-              ${hebrew ? "left-3" : "right-3"}
-            `}
-            icon="robot"
-            size="xs"
-          />
-        )}
+        {/* {hasMachineSuggestion && ( */}
+        {/*   <Icon */}
+        {/*     className={` */}
+        {/*       absolute top-1/2 -translate-y-1/2 */}
+        {/*       ${right ? "left-3" : "right-3"} */}
+        {/*     `} */}
+        {/*     icon="robot" */}
+        {/*     size="xs" */}
+        {/*   /> */}
+        {/* )} */}
         {optionsVisible && filteredOptions.length > 0 && (
           <ol
             className={`
             z-10 absolute min-w-full min-h-[24px] max-h-80 bg-white overflow-auto mt-1 rounded border border-gray-400 shadow
             dark:bg-gray-800 dark:border-gray-700
-            ${right ? "right-0" : "left-0"}
-            ${hebrew ? "text-right" : "text-left"}
+            ${right ? "right-0 text-right" : "left-0 text-left"}
           `}
           >
             {filteredOptions.map((option) => (
