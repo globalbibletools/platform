@@ -5,6 +5,8 @@ import { useTextWidth } from "@/utils/text-width";
 import { useTranslations } from "use-intl";
 import {
   MouseEvent,
+  ReactNode,
+  Ref,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -22,6 +24,7 @@ import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import { MachineGlossStrategy } from "@/modules/languages/model";
 import { useMutation } from "@tanstack/react-query";
 import GlossAutocompleteInput from "./GlossAutocompleteInput";
+import Gloss from "@/modules/translation/model/Gloss";
 
 export interface TranslateWordProps {
   verseId: string;
@@ -322,48 +325,83 @@ export default function TranslateWord({
               }}
             />
           )}
-          <div
+          <GlossDescription
             id={`word-help-${word.id}`}
-            className={`
-              text-sm    
-              ${phrase.gloss?.state === GlossStateRaw.Approved ? "text-green-600" : "text-slate-500"}
-              ${isHebrew ? "text-right" : "text-left"}
-            `}
-          >
-            {(() => {
-              if (saving) {
-                return (
-                  <>
-                    <Icon icon="arrows-rotate" className="me-1" />
-                    <span dir="ltr">Saving</span>
-                  </>
-                );
-              } else if (phrase.gloss?.state === GlossStateRaw.Approved) {
-                return (
-                  <>
-                    <Icon icon="check" className="me-1" />
-                    <span dir="ltr">Approved</span>
-                  </>
-                );
-              } else {
-                return null;
-              }
-            })()}
-          </div>
+            right={isHebrew}
+            glossState={phrase.gloss?.state ?? GlossStateRaw.Unapproved}
+            saving={saving}
+          />
         </>
       }
       {!!backtranslation && (
-        <div
-          className={`h-8 italic ${
-            isHebrew ? "text-right pr-3" : "text-left pl-3"
-          }`}
-          dir="ltr"
-        >
-          <span className="inline-block" ref={backtranslatedGlossRef}>
-            {backtranslation}
-          </span>
-        </div>
+        <BackTranslation right={isHebrew} ref={backtranslatedGlossRef}>
+          {backtranslation}
+        </BackTranslation>
       )}
     </li>
+  );
+}
+
+function BackTranslation({
+  ref,
+  right,
+  children,
+}: {
+  ref: Ref<HTMLSpanElement>;
+  right: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={`h-8 italic ${right ? "text-right pr-3" : "text-left pl-3"}`}
+      dir="ltr"
+    >
+      <span className="inline-block" ref={ref}>
+        {children}
+      </span>
+    </div>
+  );
+}
+
+function GlossDescription({
+  id,
+  glossState,
+  right,
+  saving,
+}: {
+  id: string;
+  glossState: GlossStateRaw;
+  right: boolean;
+  saving: boolean;
+}) {
+  return (
+    <div
+      id={id}
+      className={`
+        text-sm h-5
+        ${glossState === GlossStateRaw.Approved ? "text-green-600" : "text-slate-500"}
+        ${right ? "text-right" : "text-left"}
+      `}
+    >
+      {(() => {
+        if (saving) {
+          return (
+            <>
+              <Icon icon="arrows-rotate" className="me-1" />
+              <span dir="ltr">Saving</span>
+            </>
+          );
+        } else if (glossState === GlossStateRaw.Approved) {
+          return (
+            <>
+              <Icon icon="check" className="me-1" />
+              <span dir="ltr">Approved</span>
+            </>
+          );
+        } else {
+          return null;
+        }
+      })()}
+    </div>
   );
 }
