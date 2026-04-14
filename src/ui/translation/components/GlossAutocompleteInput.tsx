@@ -325,13 +325,16 @@ function autocompleteReducerInit({
 }): AutcompleteState {
   const options = createOptions({ suggestions, modelGlosses });
   const draft =
-    value?.text ? value : (
+    value?.text ?
       {
+        ...value,
+        source: GlossApprovalMethodRaw.UserInput,
+      }
+    : {
         text: options[0]?.text ?? "",
         source: options[0]?.source,
         state: GlossStateRaw.Unapproved,
-      }
-    );
+      };
 
   return {
     initial: value ?? { text: "", state: GlossStateRaw.Unapproved },
@@ -377,6 +380,7 @@ function autocompleteReducer(
               newState
             : state.draft.state,
           text,
+          source: GlossApprovalMethodRaw.UserInput,
         },
       };
     }
