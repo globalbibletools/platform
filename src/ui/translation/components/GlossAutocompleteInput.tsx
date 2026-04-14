@@ -94,6 +94,14 @@ export default function GlossAutocompleteInput({
         dispatch({ type: "confirm" });
         break;
       }
+      case "Tab": {
+        if (e.altKey || e.ctrlKey || e.metaKey) return;
+
+        dispatch({ type: "selectOption" });
+
+        // Don't prevent default for tab to not break tab controls.
+        return;
+      }
       default:
         return;
     }
@@ -260,6 +268,7 @@ type AutocompleteAction =
   | { type: "inputChange"; text: string }
   | { type: "toggleOptions"; visible?: boolean }
   | { type: "incrementOption"; direction: number }
+  | { type: "selectOption" }
   | { type: "confirm"; option?: AutocompleteOption }
   | { type: "revoke" }
   | { type: "blur" };
@@ -469,6 +478,29 @@ function autocompleteReducer(
           state: GlossStateRaw.Unapproved,
         },
         flushTimestamp: Date.now(),
+      };
+    }
+    case "selectOption": {
+      if (!state.selectedOption) {
+        return state;
+      }
+
+      const draft = {
+        text: state.selectedOption.text,
+        source: state.selectedOption.source,
+        state: state.draft.state,
+      };
+
+      const hasChanges =
+        state.initial.state !== draft.state ||
+        state.initial.text !== draft.text;
+
+      return {
+        ...state,
+        draft,
+        optionsVisible: false,
+        selectedOption: undefined,
+        flushTimestamp: hasChanges ? Date.now() : state.flushTimestamp,
       };
     }
     case "confirm": {
