@@ -1,6 +1,3 @@
-"use client";
-
-import AutocompleteInput from "@/components/AutocompleteInput";
 import Button from "@/components/Button";
 import Checkbox from "@/components/Checkbox";
 import { Icon } from "@/components/Icon";
@@ -16,10 +13,14 @@ import {
 import { updateGlossAction } from "@/modules/translation/actions/updateGloss";
 import { fontMap } from "@/fonts";
 import { useParams } from "@tanstack/react-router";
-import { GlossApprovalMethodRaw } from "@/modules/translation/types";
+import {
+  GlossApprovalMethodRaw,
+  GlossStateRaw,
+} from "@/modules/translation/types";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import { MachineGlossStrategy } from "@/modules/languages/model";
 import { useMutation } from "@tanstack/react-query";
+import GlossAutocompleteInput from "./GlossAutocompleteInput";
 
 export interface TranslateWordProps {
   verseId: string;
@@ -33,7 +34,7 @@ export interface TranslateWordProps {
   phrase: {
     id: number;
     wordIds: string[];
-    gloss?: { text: string; state: string };
+    gloss?: { text: string; state: GlossStateRaw };
     hasTranslatorNote: boolean;
     hasFootnote: boolean;
   };
@@ -115,18 +116,19 @@ export default function TranslateWord({
     llmSuggestion: word.machineSuggestion,
   });
 
-  const { mutate: saveGloss, isPending: saving } = useMutation({
-    mutationFn: async (state: "APPROVED" | "UNAPPROVED") => {
-      const updatedGloss = inputRef.current?.value ?? "";
-
+  const { mutate, isPending: saving } = useMutation({
+    mutationFn: async (gloss: {
+      text: string;
+      state: "APPROVED" | "UNAPPROVED";
+    }) => {
       const data = {
         languageCode: language.code,
         phraseId: phrase.id,
-        state: state,
-        gloss: updatedGloss,
+        state: gloss.state,
+        gloss: gloss.text,
         method: determineApprovalMethod({
           strategy: language.machineGlossStrategy,
-          gloss: updatedGloss,
+          gloss: gloss.text,
           machineSuggestion: word.suggestions[0],
           googleSuggestion: word.machineSuggestion,
           llmSuggestion: word.machineSuggestion,
@@ -134,9 +136,6 @@ export default function TranslateWord({
       };
 
       await updateGlossAction({ data });
-    },
-    onMutate() {
-      autosaveQueuedRef.current = false;
     },
     async onSuccess(_data, _variables, _result, { client }) {
       await client.invalidateQueries({
@@ -148,26 +147,7 @@ export default function TranslateWord({
     },
   });
 
-  const autosaveQueuedRef = useRef(false);
-  function autosave(gloss: string) {
-    console.log("autosave", gloss);
-    autosaveQueuedRef.current = true;
-    setTimeout(() => {
-      console.log(gloss, phrase.gloss?.text);
-      if (autosaveQueuedRef.current && gloss !== phrase.gloss?.text) {
-        saveGloss("UNAPPROVED");
-      }
-    }, 200);
-  }
-
   const { code } = useParams({ from: "/_main/translate/$code/$verseId" });
-
-  let status: "empty" | "saving" | "saved" | "approved" = "empty";
-  if (saving) {
-    status = "saving";
-  } else if (phrase?.gloss?.text) {
-    status = phrase?.gloss.state === "APPROVED" ? "approved" : "saved";
-  }
 
   const [width, setWidth] = useState(0);
   const glossWidth = useTextWidth({
@@ -287,168 +267,91 @@ export default function TranslateWord({
         </div>
       : <>
           {phrase.wordIds.indexOf(word.id) === 0 && (
-            <div
-              className={`
-                            min-w-[128px] flex gap-2 items-center
-                            ${isHebrew ? "flex-row" : "flex-row-reverse"}
-                        `}
-              // The extra 26 pixels give room for the padding and border.
+            <GlossAutocompleteInput
+              ref={inputRef}
+              className="min-w-[128px]"
               style={{
+                fontFamily: fontMap[language.font],
                 width: width + 26,
               }}
               dir={language.textDirection}
-            >
-              <div className="group-focus-within/word:block hidden">
-                {status !== "approved" && (
-                  <Button
-                    className="bg-green-600! w-9"
-                    tabIndex={-1}
-                    title={t("approve_tooltip") ?? ""}
-                    disabled={saving}
-                    onClick={(e: MouseEvent) => {
-                      e.stopPropagation();
-                      saveGloss("APPROVED");
-                      inputRef.current?.focus();
-                    }}
-                  >
-                    <Icon icon="check" />
-                  </Button>
-                )}
-                {status === "approved" && (
-                  <Button
-                    className="bg-red-600! w-9"
-                    tabIndex={-1}
-                    title={t("revoke_tooltip") ?? ""}
-                    disabled={saving}
-                    onClick={(e: MouseEvent) => {
-                      e.stopPropagation();
-                      saveGloss("UNAPPROVED");
-                      inputRef.current?.focus();
-                    }}
-                  >
-                    <Icon icon="arrow-rotate-left" />
-                  </Button>
-                )}
-              </div>
-              <div className="relative grow">
-                <AutocompleteInput
-                  className={`w-full ${isHebrew ? "text-right" : "text-left"}`}
-                  style={{
-                    fontFamily: fontMap[language.font],
-                  }}
-                  data-phrase={phrase.id}
-                  data-method={approvalMethod}
-                  inputClassName={isHebrew ? "text-right" : "text-left"}
-                  right={isHebrew}
-                  renderOption={(item, i) => (
-                    <div
-                      className={
-                        machineSuggestion ?
-                          `relative ${isHebrew ? "pl-5" : "pr-5"}`
-                        : ""
+              hebrew={isHebrew}
+              name="gloss"
+              data-phrase={phrase.id}
+              data-method={approvalMethod}
+              right={isHebrew}
+              aria-describedby={`word-help-${word.id}`}
+              aria-labelledby={`word-${word.id}`}
+              options={
+                machineSuggestion ?
+                  [
+                    ...word.suggestions.map((text) => ({ text })),
+                    { text: machineSuggestion, source: "model" },
+                  ]
+                : word.suggestions.map((text) => ({ text }))
+              }
+              value={glossValue ?? ""}
+              state={phrase.gloss?.state ?? GlossStateRaw.Unapproved}
+              saving={saving}
+              onChange={({ text, state }) => {
+                mutate({ text, state });
+              }}
+              onKeyDown={(e) => {
+                switch (e.key) {
+                  case "Enter": {
+                    if (e.altKey && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
+                      e.preventDefault();
+                      if (!isMultiWord && hasShortcutModifier(e)) {
+                        onSelect?.();
                       }
-                    >
-                      {item}
-                      {i === word.suggestions.length ?
-                        <Icon
-                          className={`absolute top-1 ${isHebrew ? "left-0" : "right-0"}`}
-                          icon="robot"
-                        />
-                      : undefined}
-                    </div>
-                  )}
-                  name="gloss"
-                  value={glossValue}
-                  state={status === "approved" ? "success" : undefined}
-                  aria-describedby={`word-help-${word.id}`}
-                  aria-labelledby={`word-${word.id}`}
-                  onChange={autosave}
-                  onSelect={() => {
-                    saveGloss("APPROVED");
-
-                    const nextRoot = rootRef.current?.nextElementSibling;
-                    const next =
-                      nextRoot?.querySelector("input:not([type])") ??
-                      nextRoot?.querySelector("button");
-                    if (next && next instanceof HTMLElement) {
-                      next.focus();
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.altKey) return;
-                    switch (e.key) {
-                      case "Enter": {
-                        e.preventDefault();
-                        if (e.shiftKey) {
-                          const prev = rootRef.current?.previousElementSibling;
-                          prev?.querySelector("input")?.focus();
-                        } else if (hasShortcutModifier(e)) {
-                          if (!isMultiWord) {
-                            onSelect?.();
-                          }
-                        } else {
-                          setTimeout(() => {
-                            saveGloss("APPROVED");
-                          });
-
-                          const nextRoot = rootRef.current?.nextElementSibling;
-                          const next =
-                            nextRoot?.querySelector("input:not([type])") ??
-                            nextRoot?.querySelector("button");
-                          if (next && next instanceof HTMLElement) {
-                            next.focus();
-                          }
+                    } else if (!e.altKey && !e.metaKey && !e.ctrlKey) {
+                      if (e.shiftKey) {
+                        const prevRoot =
+                          rootRef.current?.previousElementSibling;
+                        const prev =
+                          prevRoot?.querySelector("input:not([type])") ??
+                          prevRoot?.querySelector("button");
+                        if (prev && prev instanceof HTMLElement) {
+                          prev.focus();
                         }
-                        break;
-                      }
-                      case "Escape": {
-                        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
-                          return;
-
-                        saveGloss("UNAPPROVED");
-                        break;
+                      } else {
+                        const nextRoot = rootRef.current?.nextElementSibling;
+                        const next =
+                          nextRoot?.querySelector("input:not([type])") ??
+                          nextRoot?.querySelector("button");
+                        if (next && next instanceof HTMLElement) {
+                          next.focus();
+                        }
                       }
                     }
-                  }}
-                  onFocus={() => onFocus?.()}
-                  suggestions={
-                    machineSuggestion ?
-                      [...word.suggestions, machineSuggestion]
-                    : word.suggestions
+                    break;
                   }
-                  ref={inputRef}
-                />
-                {hasMachineSuggestion && (
-                  <Icon
-                    className={`absolute top-1/2 -translate-y-1/2 ${isHebrew ? "left-3" : "right-3"}`}
-                    icon="robot"
-                    size="xs"
-                  />
-                )}
-              </div>
-            </div>
+                }
+              }}
+              onFocus={() => onFocus?.()}
+            />
           )}
           <div
             id={`word-help-${word.id}`}
             className={`
-                        text-sm    
-                        ${status === "approved" ? "text-green-600" : "text-slate-500"}
-                        ${isHebrew ? "text-right" : "text-left"}
-                    `}
+              text-sm    
+              ${phrase.gloss?.state === GlossStateRaw.Approved ? "text-green-600" : "text-slate-500"}
+              ${isHebrew ? "text-right" : "text-left"}
+            `}
           >
             {(() => {
-              if (status === "saving") {
+              if (saving) {
                 return (
                   <>
                     <Icon icon="arrows-rotate" className="me-1" />
-                    <span dir="ltr">{t("saving")}</span>
+                    <span dir="ltr">Saving</span>
                   </>
                 );
-              } else if (status === "approved") {
+              } else if (phrase.gloss?.state === GlossStateRaw.Approved) {
                 return (
                   <>
                     <Icon icon="check" className="me-1" />
-                    <span dir="ltr">{t("approved")}</span>
+                    <span dir="ltr">Approved</span>
                   </>
                 );
               } else {
