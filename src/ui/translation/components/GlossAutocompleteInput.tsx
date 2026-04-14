@@ -1,6 +1,9 @@
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
-import { GlossStateRaw } from "@/modules/translation/types";
+import {
+  GlossApprovalMethodRaw,
+  GlossStateRaw,
+} from "@/modules/translation/types";
 import { mergeRefs } from "@/utils/merge-refs";
 import {
   ComponentProps,
@@ -12,7 +15,8 @@ import {
 } from "react";
 
 export default function GlossAutocompleteInput({
-  options,
+  suggestions,
+  modelGlosses,
   value,
   saving,
   onChange,
@@ -25,14 +29,15 @@ export default function GlossAutocompleteInput({
 
   ...props
 }: {
-  options: Array<AutocompleteOption>;
-  value: string;
+  suggestions: Array<string>;
+  modelGlosses: Partial<Record<"google" | "llm_import", string>>;
+  value?: string;
   state: GlossStateRaw;
   saving: boolean;
   onChange(change: {
     text: string;
     state: GlossStateRaw;
-    action?: "move-next" | "move-prev";
+    source?: GlossApprovalMethodRaw;
   }): void;
 
   className?: string;
@@ -50,11 +55,17 @@ export default function GlossAutocompleteInput({
     optionsVisible,
     dispatch,
   } = useAutocompleteState({
-    options,
+    suggestions,
+    modelGlosses,
     text: value,
     state: initialState ?? GlossStateRaw.Unapproved,
     onChange,
   });
+
+  const hasModelGloss =
+    (draft.source === GlossApprovalMethodRaw.GoogleSuggestion ||
+      draft.source === GlossApprovalMethodRaw.LLMSuggestion) &&
+    initial.state === GlossStateRaw.Unapproved;
 
   function onKeyDown(e: KeyboardEvent) {
     switch (e.key) {
@@ -102,6 +113,13 @@ export default function GlossAutocompleteInput({
       `}
       style={style}
       dir={dir}
+      onBlur={(e) => {
+        if (e.currentTarget.contains(e.relatedTarget)) {
+          return;
+        }
+
+        dispatch({ type: "blur" });
+      }}
     >
       <div className="group-focus-within/word:block hidden">
         {initial.state === GlossStateRaw.Unapproved ?
@@ -148,28 +166,25 @@ export default function GlossAutocompleteInput({
           `}
           value={draft.text}
           autoComplete="off"
+          data-method={draft.source}
           onChange={(e) => {
             dispatch({ type: "inputChange", text: e.target.value });
-          }}
-          onBlur={(e) => {
-            dispatch({ type: "blur" });
-            props.onBlur?.(e);
           }}
           onKeyDown={(e) => {
             onKeyDown(e);
             props.onKeyDown?.(e);
           }}
         />
-        {/* {hasMachineSuggestion && ( */}
-        {/*   <Icon */}
-        {/*     className={` */}
-        {/*       absolute top-1/2 -translate-y-1/2 */}
-        {/*       ${right ? "left-3" : "right-3"} */}
-        {/*     `} */}
-        {/*     icon="robot" */}
-        {/*     size="xs" */}
-        {/*   /> */}
-        {/* )} */}
+        {hasModelGloss && (
+          <Icon
+            className={`
+              absolute top-1/2 -translate-y-1/2
+              ${right ? "left-3" : "right-3"}
+            `}
+            icon="robot"
+            size="xs"
+          />
+        )}
         {optionsVisible && filteredOptions.length > 0 && (
           <ol
             className={`
@@ -199,10 +214,15 @@ export default function GlossAutocompleteInput({
                   : ""
                 }
               `}
-                onClick={() => dispatch({ type: "confirm", option })}
+                onClick={() => {
+                  dispatch({ type: "confirm", option });
+                }}
               >
                 <span className="flex-1">{option.text}</span>
-                {option.source === "model" ?
+                {(
+                  option.source === GlossApprovalMethodRaw.GoogleSuggestion ||
+                  option.source === GlossApprovalMethodRaw.LLMSuggestion
+                ) ?
                   <Icon icon="robot" size="xs" />
                 : undefined}
               </li>
@@ -216,12 +236,16 @@ export default function GlossAutocompleteInput({
 
 interface AutocompleteOption {
   text: string;
-  source?: "model";
+  source: GlossApprovalMethodRaw;
 }
 
 interface AutcompleteState {
   initial: { text: string; state: GlossStateRaw };
-  draft: { text: string; state: GlossStateRaw };
+  draft: {
+    text: string;
+    state: GlossStateRaw;
+    source?: GlossApprovalMethodRaw;
+  };
   options: Array<AutocompleteOption>;
   filteredOptions: Array<AutocompleteOption>;
   selectedOption?: AutocompleteOption;
@@ -234,7 +258,8 @@ type AutocompleteAction =
       type: "reset";
       text: string;
       state: GlossStateRaw;
-      options: Array<AutocompleteOption>;
+      suggestions: Array<string>;
+      modelGlosses: Partial<Record<"llm_import" | "google", string>>;
     }
   | { type: "inputChange"; text: string }
   | { type: "toggleOptions"; visible?: boolean }
@@ -244,182 +269,47 @@ type AutocompleteAction =
   | { type: "blur" };
 
 function useAutocompleteState({
-  text: initialValue,
+  text: initialText,
   state: initialState,
-  options,
+  suggestions,
+  modelGlosses,
   onChange,
 }: {
-  text: string;
+  text?: string;
   state: GlossStateRaw;
-  options: Array<AutocompleteOption>;
+  suggestions: Array<string>;
+  modelGlosses: Partial<Record<"llm_import" | "google", string>>;
   onChange(gloss: {
     text: string;
     state: GlossStateRaw;
-    action?: "move-next" | "move-prev";
+    source?: GlossApprovalMethodRaw;
   }): void;
 }) {
   const [state, dispatch] = useReducer(
-    (state: AutcompleteState, action: AutocompleteAction): AutcompleteState => {
-      switch (action.type) {
-        case "reset": {
-          const text =
-            state.initial.text === state.draft.text ?
-              action.text
-            : state.draft.text;
-          return {
-            ...state,
-            options: action.options,
-            filteredOptions: filterOptions(text, action.options),
-            initial: {
-              state: action.state,
-              text: action.text,
-            },
-            draft: {
-              state:
-                state.initial.state === state.draft.state ?
-                  action.state
-                : state.draft.state,
-              text,
-            },
-          };
-        }
-        case "inputChange": {
-          return {
-            ...state,
-            draft: {
-              text: action.text,
-              state: state.draft.state,
-            },
-            filteredOptions: filterOptions(action.text, state.options),
-          };
-        }
-        case "toggleOptions": {
-          return {
-            ...state,
-            optionsVisible:
-              typeof action.visible === "boolean" ?
-                action.visible
-              : !state.optionsVisible,
-          };
-        }
-        case "incrementOption": {
-          if (!state.optionsVisible) {
-            return {
-              ...state,
-              optionsVisible: true,
-            };
-          }
-
-          let newIndex: number;
-          if (state.selectedOption) {
-            const currentIndex = state.filteredOptions.findIndex(
-              (option) => option === state.selectedOption,
-            );
-            newIndex =
-              currentIndex + action.direction / Math.abs(action.direction);
-          } else if (action.direction > 0) {
-            newIndex = 0;
-          } else {
-            newIndex = state.filteredOptions.length - 1;
-          }
-
-          if (newIndex < 0) {
-            return { ...state, selectedOption: undefined };
-          } else if (newIndex >= state.filteredOptions.length) {
-            return { ...state, selectedOption: undefined };
-          } else {
-            return {
-              ...state,
-              selectedOption: state.filteredOptions[newIndex],
-            };
-          }
-        }
-        case "blur": {
-          return {
-            ...state,
-            optionsVisible: false,
-            selectedOption: undefined,
-            flushTimestamp: Date.now(),
-          };
-        }
-        case "revoke": {
-          if (state.draft.state === GlossStateRaw.Unapproved) {
-            return state;
-          }
-
-          return {
-            ...state,
-            draft: {
-              text: state.draft.text,
-              state: GlossStateRaw.Unapproved,
-            },
-            flushTimestamp: Date.now(),
-          };
-        }
-        case "confirm": {
-          const selectedOption = action.option ?? state.selectedOption;
-
-          if (!selectedOption) {
-            return {
-              ...state,
-              draft: {
-                text: state.draft.text,
-                state: GlossStateRaw.Approved,
-              },
-              optionsVisible: false,
-              selectedOption: undefined,
-              flushTimestamp: Date.now(),
-            };
-          }
-          return {
-            ...state,
-            draft: {
-              text: selectedOption.text,
-              state: GlossStateRaw.Approved,
-            },
-            optionsVisible: false,
-            selectedOption: undefined,
-            filteredOptions: filterOptions(selectedOption.text, state.options),
-            flushTimestamp: Date.now(),
-          };
-        }
-        default: {
-          return state;
-        }
-      }
-    },
+    autocompleteReducer,
     {
-      initial: {
-        text: initialValue,
-        state: initialState,
-      },
-      draft: {
-        text: initialValue,
-        state: initialState,
-      },
-      options,
-      filteredOptions: filterOptions(initialValue, options),
-      optionsVisible: false,
+      text: initialText,
+      state: initialState,
+      suggestions,
+      modelGlosses,
     },
+    autocompleteReducerInit,
   );
 
   useEffect(() => {
     dispatch({
       type: "reset",
-      text: initialValue,
+      text: initialText ?? "",
       state: initialState,
-      options,
+      suggestions,
+      modelGlosses,
     });
-  }, [initialValue, initialState, options]);
+  }, [initialText, initialState, suggestions, modelGlosses]);
 
   const flushRef = useRef<number | undefined>(undefined);
   useEffect(() => {
     const shouldFlush = flushRef.current !== state.flushTimestamp;
-    const hasChanges =
-      state.initial.state !== state.draft.state ||
-      state.initial.text !== state.draft.text;
-
-    if (shouldFlush && hasChanges) {
+    if (shouldFlush) {
       onChange(state.draft);
     }
 
@@ -429,9 +319,235 @@ function useAutocompleteState({
   return { ...state, dispatch };
 }
 
+function autocompleteReducerInit({
+  text,
+  state,
+  suggestions,
+  modelGlosses,
+}: {
+  text?: string;
+  state: GlossStateRaw;
+  suggestions: Array<string>;
+  modelGlosses: Partial<Record<"llm_import" | "google", string>>;
+}): AutcompleteState {
+  const options = createOptions({ suggestions, modelGlosses });
+  const draft =
+    text ?
+      { text, state }
+    : {
+        text: options[0]?.text ?? "",
+        source: options[0]?.source,
+        state: GlossStateRaw.Unapproved,
+      };
+
+  return {
+    initial: {
+      text: text ?? "",
+      state,
+    },
+    draft,
+    options,
+    filteredOptions: filterOptions(draft.text, options),
+    optionsVisible: false,
+  };
+}
+
+function autocompleteReducer(
+  state: AutcompleteState,
+  action: AutocompleteAction,
+): AutcompleteState {
+  switch (action.type) {
+    case "reset": {
+      const hasChanges =
+        state.initial.text !== action.text ||
+        state.initial.state !== action.state;
+      if (!hasChanges) {
+        return state;
+      }
+
+      const options = createOptions({
+        suggestions: action.suggestions,
+        modelGlosses: action.modelGlosses,
+      });
+      const text =
+        state.initial.text === state.draft.text ?
+          action.text
+        : state.draft.text;
+      return {
+        ...state,
+        options,
+        filteredOptions: filterOptions(text, options),
+        initial: {
+          text: action.text,
+          state: action.state,
+        },
+        draft: {
+          state:
+            state.initial.state === state.draft.state ?
+              action.state
+            : state.draft.state,
+          text,
+        },
+      };
+    }
+    case "inputChange": {
+      return {
+        ...state,
+        draft: {
+          text: action.text,
+          state: state.draft.state,
+          source: GlossApprovalMethodRaw.UserInput,
+        },
+        filteredOptions: filterOptions(action.text, state.options),
+      };
+    }
+    case "toggleOptions": {
+      return {
+        ...state,
+        optionsVisible:
+          typeof action.visible === "boolean" ?
+            action.visible
+          : !state.optionsVisible,
+      };
+    }
+    case "incrementOption": {
+      if (!state.optionsVisible) {
+        return {
+          ...state,
+          optionsVisible: true,
+        };
+      }
+
+      let newIndex: number;
+      if (state.selectedOption) {
+        const currentIndex = state.filteredOptions.findIndex(
+          (option) => option === state.selectedOption,
+        );
+        newIndex = currentIndex + action.direction / Math.abs(action.direction);
+      } else if (action.direction > 0) {
+        newIndex = 0;
+      } else {
+        newIndex = state.filteredOptions.length - 1;
+      }
+
+      if (newIndex < 0) {
+        return { ...state, selectedOption: undefined };
+      } else if (newIndex >= state.filteredOptions.length) {
+        return { ...state, selectedOption: undefined };
+      } else {
+        return {
+          ...state,
+          selectedOption: state.filteredOptions[newIndex],
+        };
+      }
+    }
+    case "blur": {
+      const hasChanges =
+        state.initial.state !== state.draft.state ||
+        state.initial.text !== state.draft.text;
+
+      // We don't want to save unapproved glosses not from user input,
+      // because the user hasn't actually done anything yet except to tab past the word.
+      const hasUnapprovedAutoGloss =
+        state.draft.source &&
+        state.draft.source !== GlossApprovalMethodRaw.UserInput &&
+        state.draft.state === GlossStateRaw.Unapproved;
+
+      return {
+        ...state,
+        optionsVisible: false,
+        selectedOption: undefined,
+        flushTimestamp:
+          hasChanges && !hasUnapprovedAutoGloss ?
+            Date.now()
+          : state.flushTimestamp,
+      };
+    }
+    case "revoke": {
+      if (state.draft.state === GlossStateRaw.Unapproved) {
+        return state;
+      }
+
+      return {
+        ...state,
+        draft: {
+          text: state.draft.text,
+          state: GlossStateRaw.Unapproved,
+        },
+        flushTimestamp: Date.now(),
+      };
+    }
+    case "confirm": {
+      const selectedOption = action.option ?? state.selectedOption;
+
+      let draft;
+      if (selectedOption) {
+        draft = {
+          text: selectedOption.text,
+          source: selectedOption.source,
+          state: GlossStateRaw.Approved,
+        };
+      } else {
+        draft = {
+          text: state.draft.text,
+          state: GlossStateRaw.Approved,
+          source: GlossApprovalMethodRaw.UserInput,
+        };
+      }
+
+      const hasChanges =
+        state.initial.state !== draft.state ||
+        state.initial.text !== draft.text;
+
+      return {
+        ...state,
+        draft,
+        optionsVisible: false,
+        selectedOption: undefined,
+        flushTimestamp: hasChanges ? Date.now() : state.flushTimestamp,
+      };
+    }
+    default: {
+      return state;
+    }
+  }
+}
+
 function normalize(word: string) {
   // From https://stackoverflow.com/a/37511463
   return word.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+}
+
+function createOptions({
+  suggestions,
+  modelGlosses,
+}: {
+  suggestions: Array<string>;
+  modelGlosses: Partial<Record<"llm_import" | "google", string>>;
+}): Array<AutocompleteOption> {
+  const options: Array<AutocompleteOption> = [];
+
+  if (modelGlosses.llm_import) {
+    options.push({
+      text: modelGlosses.llm_import,
+      source: GlossApprovalMethodRaw.LLMSuggestion,
+    });
+  }
+  if (modelGlosses.google) {
+    options.push({
+      text: modelGlosses.google,
+      source: GlossApprovalMethodRaw.GoogleSuggestion,
+    });
+  }
+
+  options.push(
+    ...suggestions.map((text) => ({
+      text,
+      source: GlossApprovalMethodRaw.MachineSuggestion,
+    })),
+  );
+
+  return options;
 }
 
 function filterOptions(input: string, options: Array<AutocompleteOption>) {

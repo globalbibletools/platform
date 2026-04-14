@@ -7,6 +7,7 @@ import {
   MouseEvent,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -108,31 +109,30 @@ export default function TranslateWord({
     phrase?.gloss?.text ||
     (isMultiWord ? undefined : word.suggestions[0] || machineSuggestion);
 
-  const approvalMethod = determineApprovalMethod({
-    strategy: language.machineGlossStrategy,
-    gloss: glossValue ?? "",
-    machineSuggestion: word.suggestions[0],
-    googleSuggestion: word.machineSuggestion,
-    llmSuggestion: word.machineSuggestion,
-  });
+  const modelGlosses = useMemo(() => {
+    if (isMultiWord) return {} as const;
+
+    if (language.machineGlossStrategy === MachineGlossStrategy.Google) {
+      return { google: word.machineSuggestion } as const;
+    } else if (language.machineGlossStrategy === MachineGlossStrategy.LLM) {
+      return { llm_import: word.machineSuggestion } as const;
+    } else {
+      return {} as const;
+    }
+  }, [language.machineGlossStrategy, word.machineSuggestion]);
 
   const { mutate, isPending: saving } = useMutation({
     mutationFn: async (gloss: {
       text: string;
-      state: "APPROVED" | "UNAPPROVED";
+      state: GlossStateRaw;
+      method?: GlossApprovalMethodRaw;
     }) => {
       const data = {
         languageCode: language.code,
         phraseId: phrase.id,
         state: gloss.state,
         gloss: gloss.text,
-        method: determineApprovalMethod({
-          strategy: language.machineGlossStrategy,
-          gloss: gloss.text,
-          machineSuggestion: word.suggestions[0],
-          googleSuggestion: word.machineSuggestion,
-          llmSuggestion: word.machineSuggestion,
-        }),
+        method: gloss.method,
       };
 
       await updateGlossAction({ data });
@@ -278,22 +278,15 @@ export default function TranslateWord({
               right={isHebrew}
               name="gloss"
               data-phrase={phrase.id}
-              data-method={approvalMethod}
               aria-describedby={`word-help-${word.id}`}
               aria-labelledby={`word-${word.id}`}
-              options={
-                machineSuggestion ?
-                  [
-                    ...word.suggestions.map((text) => ({ text })),
-                    { text: machineSuggestion, source: "model" },
-                  ]
-                : word.suggestions.map((text) => ({ text }))
-              }
-              value={glossValue ?? ""}
+              suggestions={word.suggestions}
+              modelGlosses={modelGlosses}
+              value={phrase?.gloss?.text}
               state={phrase.gloss?.state ?? GlossStateRaw.Unapproved}
               saving={saving}
-              onChange={({ text, state }) => {
-                mutate({ text, state });
+              onChange={({ text, state, source }) => {
+                mutate({ text, state, method: source });
               }}
               onKeyDown={(e) => {
                 switch (e.key) {
@@ -374,40 +367,4 @@ export default function TranslateWord({
       )}
     </li>
   );
-}
-
-function determineApprovalMethod({
-  strategy,
-  gloss,
-  machineSuggestion,
-  googleSuggestion,
-  llmSuggestion,
-}: {
-  strategy: MachineGlossStrategy;
-  gloss: string;
-  machineSuggestion?: string;
-  googleSuggestion?: string;
-  llmSuggestion?: string;
-}): GlossApprovalMethodRaw {
-  switch (strategy) {
-    case MachineGlossStrategy.Google: {
-      if (machineSuggestion && gloss === machineSuggestion) {
-        return GlossApprovalMethodRaw.MachineSuggestion;
-      } else if (googleSuggestion && gloss === googleSuggestion) {
-        return GlossApprovalMethodRaw.GoogleSuggestion;
-      }
-      return GlossApprovalMethodRaw.UserInput;
-    }
-    case MachineGlossStrategy.LLM: {
-      if (llmSuggestion && gloss === llmSuggestion) {
-        return GlossApprovalMethodRaw.LLMSuggestion;
-      } else if (machineSuggestion && gloss === machineSuggestion) {
-        return GlossApprovalMethodRaw.MachineSuggestion;
-      }
-      return GlossApprovalMethodRaw.UserInput;
-    }
-    default: {
-      return GlossApprovalMethodRaw.UserInput;
-    }
-  }
 }
