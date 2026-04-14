@@ -269,6 +269,10 @@ export default function TranslateWord({
           {phrase.wordIds.indexOf(word.id) === 0 && (
             <GlossAutocompleteInput
               ref={inputRef}
+              name="gloss"
+              aria-describedby={`word-help-${word.id}`}
+              aria-labelledby={`word-${word.id}`}
+              data-phrase={phrase.id}
               className="min-w-[128px]"
               style={{
                 fontFamily: fontMap[language.font],
@@ -276,18 +280,14 @@ export default function TranslateWord({
               }}
               dir={language.textDirection}
               right={isHebrew}
-              name="gloss"
-              data-phrase={phrase.id}
-              aria-describedby={`word-help-${word.id}`}
-              aria-labelledby={`word-${word.id}`}
               suggestions={word.suggestions}
               modelGlosses={modelGlosses}
-              value={phrase?.gloss?.text}
-              state={phrase.gloss?.state ?? GlossStateRaw.Unapproved}
+              value={phrase?.gloss}
               saving={saving}
               onChange={({ text, state, source }) => {
                 mutate({ text, state, method: source });
               }}
+              onFocus={() => onFocus?.()}
               onKeyDown={(e) => {
                 switch (e.key) {
                   case "Enter": {
@@ -320,7 +320,6 @@ export default function TranslateWord({
                   }
                 }
               }}
-              onFocus={() => onFocus?.()}
             />
           )}
           <div

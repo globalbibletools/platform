@@ -15,35 +15,33 @@ import {
 } from "react";
 
 export default function GlossAutocompleteInput({
+  className = "",
+  style,
+  right,
+  dir,
+
   suggestions,
   modelGlosses,
   value,
   saving,
   onChange,
 
-  className = "",
-  style,
-  state: initialState,
-  right,
-  dir,
-
   ...props
 }: {
+  className?: string;
+  style?: CSSProperties;
+  right?: boolean;
+  dir?: string;
+
   suggestions: Array<string>;
   modelGlosses: Partial<Record<"google" | "llm_import", string>>;
-  value?: string;
-  state: GlossStateRaw;
+  value?: { text: string; state: GlossStateRaw };
   saving: boolean;
   onChange(change: {
     text: string;
     state: GlossStateRaw;
     source?: GlossApprovalMethodRaw;
   }): void;
-
-  className?: string;
-  style?: CSSProperties;
-  right?: boolean;
-  dir?: string;
 } & Omit<ComponentProps<"input">, "onChange" | "value">) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -57,8 +55,7 @@ export default function GlossAutocompleteInput({
   } = useAutocompleteState({
     suggestions,
     modelGlosses,
-    text: value,
-    state: initialState ?? GlossStateRaw.Unapproved,
+    value,
     onChange,
   });
 
@@ -256,8 +253,7 @@ interface AutcompleteState {
 type AutocompleteAction =
   | {
       type: "reset";
-      text: string;
-      state: GlossStateRaw;
+      value?: { text: string; state: GlossStateRaw };
       suggestions: Array<string>;
       modelGlosses: Partial<Record<"llm_import" | "google", string>>;
     }
@@ -269,14 +265,12 @@ type AutocompleteAction =
   | { type: "blur" };
 
 function useAutocompleteState({
-  text: initialText,
-  state: initialState,
+  value,
   suggestions,
   modelGlosses,
   onChange,
 }: {
-  text?: string;
-  state: GlossStateRaw;
+  value?: { text: string; state: GlossStateRaw };
   suggestions: Array<string>;
   modelGlosses: Partial<Record<"llm_import" | "google", string>>;
   onChange(gloss: {
@@ -288,8 +282,7 @@ function useAutocompleteState({
   const [state, dispatch] = useReducer(
     autocompleteReducer,
     {
-      text: initialText,
-      state: initialState,
+      value,
       suggestions,
       modelGlosses,
     },
@@ -299,12 +292,11 @@ function useAutocompleteState({
   useEffect(() => {
     dispatch({
       type: "reset",
-      text: initialText ?? "",
-      state: initialState,
+      value,
       suggestions,
       modelGlosses,
     });
-  }, [initialText, initialState, suggestions, modelGlosses]);
+  }, [value, suggestions, modelGlosses]);
 
   const flushRef = useRef<number | undefined>(undefined);
   useEffect(() => {
@@ -320,31 +312,29 @@ function useAutocompleteState({
 }
 
 function autocompleteReducerInit({
-  text,
-  state,
+  value,
   suggestions,
   modelGlosses,
 }: {
-  text?: string;
-  state: GlossStateRaw;
+  value?: {
+    text: string;
+    state: GlossStateRaw;
+  };
   suggestions: Array<string>;
   modelGlosses: Partial<Record<"llm_import" | "google", string>>;
 }): AutcompleteState {
   const options = createOptions({ suggestions, modelGlosses });
   const draft =
-    text ?
-      { text, state }
-    : {
+    value?.text ? value : (
+      {
         text: options[0]?.text ?? "",
         source: options[0]?.source,
         state: GlossStateRaw.Unapproved,
-      };
+      }
+    );
 
   return {
-    initial: {
-      text: text ?? "",
-      state,
-    },
+    initial: value ?? { text: "", state: GlossStateRaw.Unapproved },
     draft,
     options,
     filteredOptions: filterOptions(draft.text, options),
@@ -358,9 +348,11 @@ function autocompleteReducer(
 ): AutcompleteState {
   switch (action.type) {
     case "reset": {
+      const newText = action.value?.text ?? "";
+      const newState = action.value?.state ?? GlossStateRaw.Unapproved;
+
       const hasChanges =
-        state.initial.text !== action.text ||
-        state.initial.state !== action.state;
+        state.initial.text !== newText || state.initial.state !== newState;
       if (!hasChanges) {
         return state;
       }
@@ -370,21 +362,19 @@ function autocompleteReducer(
         modelGlosses: action.modelGlosses,
       });
       const text =
-        state.initial.text === state.draft.text ?
-          action.text
-        : state.draft.text;
+        state.initial.text === state.draft.text ? newText : state.draft.text;
       return {
         ...state,
         options,
         filteredOptions: filterOptions(text, options),
         initial: {
-          text: action.text,
-          state: action.state,
+          text: newText,
+          state: newState,
         },
         draft: {
           state:
             state.initial.state === state.draft.state ?
-              action.state
+              newState
             : state.draft.state,
           text,
         },
