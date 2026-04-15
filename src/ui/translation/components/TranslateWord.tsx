@@ -2,10 +2,9 @@ import Button from "@/components/Button";
 import Checkbox from "@/components/Checkbox";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "use-intl";
-import { MouseEvent, ReactNode, Ref, useEffect, useMemo, useRef } from "react";
+import { MouseEvent, useEffect, useMemo, useRef } from "react";
 import { updateGlossAction } from "@/modules/translation/actions/updateGloss";
 import { fontMap } from "@/fonts";
-import { useParams } from "@tanstack/react-router";
 import {
   GlossApprovalMethodRaw,
   GlossStateRaw,
@@ -67,19 +66,8 @@ export default function TranslateWord({
   const rootRef = useRef<HTMLLIElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const editable = language.isMember;
-  const canViewTranslatorNotes = language.isMember;
-
-  useEffect(() => {
-    if (!phraseFocused || !inputRef.current) return;
-
-    if (inputRef.current !== document.activeElement) {
-      inputRef.current.focus();
-    }
-  }, [phraseFocused]);
-
   const hasNote =
-    phrase.hasFootnote || (phrase.hasTranslatorNote && canViewTranslatorNotes);
+    phrase.hasFootnote || (phrase.hasTranslatorNote && language.isMember);
   const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
 
   const modelGlosses = useMemo(() => {
@@ -93,6 +81,14 @@ export default function TranslateWord({
       return {} as const;
     }
   }, [language.machineGlossStrategy, word.machineSuggestion]);
+
+  useEffect(() => {
+    if (!phraseFocused || !inputRef.current) return;
+
+    if (inputRef.current !== document.activeElement) {
+      inputRef.current.focus();
+    }
+  }, [phraseFocused]);
 
   const { mutate, isPending: saving } = useMutation({
     mutationFn: async (gloss: {
@@ -112,15 +108,17 @@ export default function TranslateWord({
     },
     async onSuccess(_data, _variables, _result, { client }) {
       await client.invalidateQueries({
-        queryKey: ["book-progress", parseInt(word.id.slice(0, 2)), code],
+        queryKey: [
+          "book-progress",
+          parseInt(word.id.slice(0, 2)),
+          language.code,
+        ],
       });
       await client.invalidateQueries({
-        queryKey: ["verse-translation-data", code, verseId],
+        queryKey: ["verse-translation-data", language.code, verseId],
       });
     },
   });
-
-  const { code } = useParams({ from: "/_main/translate/$code/$verseId" });
 
   return (
     <li
@@ -138,7 +136,7 @@ export default function TranslateWord({
       `}
       style={{
         gridTemplateRows: createWordGrid({
-          editable,
+          editable: language.isMember,
           backtranslationEnabled: backtranslation.enabled,
         }),
       }}
@@ -155,7 +153,7 @@ export default function TranslateWord({
           row-start-1
           flex items-center gap-1.5
           text-start ps-3
-          ${editable ? "" : "pe-3"}
+          ${language.isMember ? "" : "pe-3"}
         `}
       >
         <span
@@ -177,7 +175,6 @@ export default function TranslateWord({
             onClick={(e: MouseEvent) => {
               if (e.altKey) return;
               onFocus?.();
-              onShowDetail?.();
               onOpenNotes?.();
             }}
           >
@@ -191,7 +188,7 @@ export default function TranslateWord({
             icon="link"
             className="text-gray-600 dark:text-gray-400"
           />
-        : editable && (
+        : language.isMember && (
             <Checkbox
               aria-label="word selected"
               tabIndex={-1}
@@ -209,7 +206,7 @@ export default function TranslateWord({
           {word.referenceGloss}
         </span>
       </div>
-      {!editable ?
+      {!language.isMember ?
         <div className={`row-start-3 text-start px-3`}>
           <span className="inline-block" dir={language.textDirection}>
             {phrase.gloss?.text}
@@ -271,29 +268,16 @@ export default function TranslateWord({
         </>
       }
       {backtranslation.enabled && (
-        <BackTranslation className="row-start-5" right={isHebrew}>
-          {backtranslation.gloss}
-        </BackTranslation>
+        <div
+          className={`
+            row-start-5 italic
+            ${isHebrew ? "text-right pr-3" : "text-left pl-3"}
+          `}
+        >
+          <span dir="ltr">{backtranslation.gloss}</span>
+        </div>
       )}
     </li>
-  );
-}
-
-function BackTranslation({
-  className = "",
-  right,
-  children,
-}: {
-  className?: string;
-  right: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <div
-      className={`${className} italic ${right ? "text-right pr-3" : "text-left pl-3"}`}
-    >
-      <span dir="ltr">{children}</span>
-    </div>
   );
 }
 

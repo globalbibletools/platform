@@ -4,7 +4,6 @@ import {
   GlossApprovalMethodRaw,
   GlossStateRaw,
 } from "@/modules/translation/types";
-import { mergeRefs } from "@/utils/merge-refs";
 import { useTextWidth } from "@/utils/text-width";
 import {
   ComponentProps,
@@ -41,6 +40,7 @@ export default function GlossAutocompleteInput({
   modelGlosses: Partial<Record<"google" | "llm_import", string>>;
   value?: { text: string; state: GlossStateRaw };
   saving: boolean;
+
   onChange(change: {
     text: string;
     state: GlossStateRaw;
@@ -48,21 +48,124 @@ export default function GlossAutocompleteInput({
   }): void;
 } & Omit<ComponentProps<"input">, "onChange" | "value">) {
   const cssId = useId();
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  const {
-    draft,
-    initial,
-    filteredOptions,
-    selectedOption,
-    optionsVisible,
-    dispatch,
-  } = useAutocompleteState({
+  const [state, dispatch] = useAutocompleteState({
     suggestions,
     modelGlosses,
     value,
     onChange,
   });
+
+  const { initial, filteredOptions, selectedOption, optionsVisible } = state;
+
+  return (
+    <div
+      className={`relative ${className}`}
+      style={style}
+      dir={dir}
+      onBlur={(e) => {
+        if (e.currentTarget.contains(e.relatedTarget)) {
+          return;
+        }
+
+        dispatch({ type: "blur" });
+      }}
+    >
+      <Input
+        {...props}
+        aria-describedby={`word-help-${cssId}`}
+        state={state}
+        dispatch={dispatch}
+        right={right}
+        font={font}
+        saving={saving}
+      />
+      {optionsVisible && filteredOptions.length > 0 && (
+        <ol
+          className={`
+            z-10 absolute min-w-full min-h-[24px] max-h-80 bg-white overflow-auto mt-1 rounded border border-gray-400 shadow
+            dark:bg-gray-800 dark:border-gray-700
+            ${right ? "right-0 text-right" : "left-0 text-left"}
+          `}
+        >
+          {filteredOptions.map((option) => (
+            <AutocompleteOption
+              key={`${option.text}-${option.source}`}
+              option={option}
+              selected={option === selectedOption}
+              dispatch={dispatch}
+            />
+          ))}
+        </ol>
+      )}
+      <GlossDescription
+        id={`word-help-${cssId}`}
+        className="row-start-4"
+        right={right}
+        glossState={initial.state}
+        saving={saving}
+      />
+    </div>
+  );
+}
+
+function AutocompleteOption({
+  option,
+  selected,
+  dispatch,
+}: {
+  option: AutocompleteOption;
+  selected: boolean;
+  dispatch: AutocompleteDispatch;
+}) {
+  return (
+    <li
+      tabIndex={-1}
+      ref={
+        selected ?
+          (el) => {
+            el?.scrollIntoView({
+              block: "nearest",
+            });
+          }
+        : undefined
+      }
+      className={`
+        px-3 py-1 whitespace-nowrap cursor-pointer flex items-center gap-2
+        ${selected ? "bg-green-200 dark:bg-green-400 dark:text-gray-900" : ""}
+      `}
+      onClick={() => {
+        dispatch({ type: "confirm", option });
+      }}
+    >
+      <span className="flex-1">{option.text}</span>
+      {(
+        option.source === GlossApprovalMethodRaw.GoogleSuggestion ||
+        option.source === GlossApprovalMethodRaw.LLMSuggestion
+      ) ?
+        <Icon icon="robot" size="xs" />
+      : undefined}
+    </li>
+  );
+}
+
+function Input({
+  right,
+  font,
+  saving,
+  state,
+  dispatch,
+  ...props
+}: {
+  right?: boolean;
+  font: string;
+  saving: boolean;
+  state: AutcompleteState;
+  dispatch: AutocompleteDispatch;
+} & ComponentProps<"input">) {
+  const { initial, draft } = state;
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const hasModelGloss =
     draft.source &&
@@ -92,7 +195,7 @@ export default function GlossAutocompleteInput({
       case "Escape": {
         if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey) return;
 
-        if (optionsVisible) {
+        if (state.optionsVisible) {
           dispatch({ type: "toggleOptions", visible: false });
         } else {
           dispatch({ type: "revoke" });
@@ -122,66 +225,53 @@ export default function GlossAutocompleteInput({
 
   return (
     <div
-      className={`relative ${className}`}
-      style={style}
-      dir={dir}
-      onBlur={(e) => {
-        if (e.currentTarget.contains(e.relatedTarget)) {
-          return;
-        }
-
-        dispatch({ type: "blur" });
-      }}
-    >
-      <div
-        className={`
+      className={`
           w-fit flex rounded focus-within:outline-2 outline-green-300
           ${right ? "flex-row-reverse" : "flex-row"}
         `}
-      >
-        <div className="relative">
-          <input
-            {...props}
-            ref={props.ref ? mergeRefs(props.ref, inputRef) : inputRef}
-            aria-describedby={`word-help-${cssId}`}
+    >
+      <div className="relative">
+        <input
+          {...props}
+          ref={inputRef}
+          className={`
+            border shadow-inner outline-0
+            px-3 h-[26px] bg-white
+            dark:shadow-none dark:bg-gray-900
+            box-content
+            ${hasModelGloss ? `${right ? "pl-8" : "pr-8"} min-w-15` : "min-w-20"}
+            ${right ? "text-right rounded-r border-l-0" : "text-left rounded-l border-r-0"}
+            ${
+              initial.state === GlossStateRaw.Approved ?
+                "border-green-600 dark:border-green-500"
+              : "border-gray-400 dark:border-gray-700"
+            }
+          `}
+          style={{ width: `${width}px`, fontFamily: font }}
+          value={draft.text}
+          autoComplete="off"
+          data-method={draft.source}
+          onChange={(e) => {
+            dispatch({ type: "inputChange", text: e.target.value });
+          }}
+          onKeyDown={(e) => {
+            onKeyDown(e);
+            props.onKeyDown?.(e);
+          }}
+        />
+        {hasModelGloss && (
+          <Icon
             className={`
-              border shadow-inner outline-0
-              px-3 h-[26px] bg-white
-              dark:shadow-none dark:bg-gray-900
-              box-content
-              ${hasModelGloss ? `${right ? "pl-8" : "pr-8"} min-w-15` : "min-w-20"}
-              ${right ? "text-right rounded-r border-l-0" : "text-left rounded-l border-r-0"}
-              ${
-                initial.state === GlossStateRaw.Approved ?
-                  "border-green-600 dark:border-green-500"
-                : "border-gray-400 dark:border-gray-700"
-              }
-            `}
-            style={{ width: `${width}px`, fontFamily: font }}
-            value={draft.text}
-            autoComplete="off"
-            data-method={draft.source}
-            onChange={(e) => {
-              dispatch({ type: "inputChange", text: e.target.value });
-            }}
-            onKeyDown={(e) => {
-              onKeyDown(e);
-              props.onKeyDown?.(e);
-            }}
-          />
-          {hasModelGloss && (
-            <Icon
-              className={`
               absolute top-1/2 -translate-y-1/2
               ${right ? "left-2" : "right-2"}
             `}
-              icon="robot"
-              size="xs"
-            />
-          )}
-        </div>
-        <button
-          className={`
+            icon="robot"
+            size="xs"
+          />
+        )}
+      </div>
+      <button
+        className={`
             h-7 px-2 inline-flex justify-center items-center outline-0 border bg-white
             disabled:opacity-50 dark:bg-gray-800
             ${right ? "rounded-l" : "rounded-r"}
@@ -191,81 +281,29 @@ export default function GlossAutocompleteInput({
               : "text-red-800 border-red-800"
             }
           `}
-          tabIndex={-1}
-          title={
-            initial.state === GlossStateRaw.Unapproved ? "Approve" : "Revoke"
+        tabIndex={-1}
+        title={
+          initial.state === GlossStateRaw.Unapproved ? "Approve" : "Revoke"
+        }
+        disabled={saving}
+        onClick={() => {
+          if (initial.state === GlossStateRaw.Unapproved) {
+            dispatch({ type: "confirm" });
+          } else {
+            dispatch({ type: "revoke" });
           }
-          disabled={saving}
-          onClick={() => {
-            if (initial.state === GlossStateRaw.Unapproved) {
-              dispatch({ type: "confirm" });
-            } else {
-              dispatch({ type: "revoke" });
-            }
-            inputRef.current?.focus();
-          }}
-        >
-          <Icon
-            icon={
-              initial.state === GlossStateRaw.Unapproved ?
-                "check"
-              : "arrow-rotate-left"
-            }
-            fixedWidth
-          />
-        </button>
-      </div>
-      {optionsVisible && filteredOptions.length > 0 && (
-        <ol
-          className={`
-            z-10 absolute min-w-full min-h-[24px] max-h-80 bg-white overflow-auto mt-1 rounded border border-gray-400 shadow
-            dark:bg-gray-800 dark:border-gray-700
-            ${right ? "right-0 text-right" : "left-0 text-left"}
-          `}
-        >
-          {filteredOptions.map((option) => (
-            <li
-              key={`${option.text}-${option.source}`}
-              tabIndex={-1}
-              ref={
-                option === selectedOption ?
-                  (el) => {
-                    el?.scrollIntoView({
-                      block: "nearest",
-                    });
-                  }
-                : undefined
-              }
-              className={`
-                px-3 py-1 whitespace-nowrap cursor-pointer flex items-center gap-2
-                ${
-                  option === selectedOption ?
-                    "bg-green-200 dark:bg-green-400 dark:text-gray-900"
-                  : ""
-                }
-              `}
-              onClick={() => {
-                dispatch({ type: "confirm", option });
-              }}
-            >
-              <span className="flex-1">{option.text}</span>
-              {(
-                option.source === GlossApprovalMethodRaw.GoogleSuggestion ||
-                option.source === GlossApprovalMethodRaw.LLMSuggestion
-              ) ?
-                <Icon icon="robot" size="xs" />
-              : undefined}
-            </li>
-          ))}
-        </ol>
-      )}
-      <GlossDescription
-        id={`word-help-${cssId}`}
-        className="row-start-4"
-        right={right}
-        glossState={initial.state}
-        saving={saving}
-      />
+          inputRef.current?.focus();
+        }}
+      >
+        <Icon
+          icon={
+            initial.state === GlossStateRaw.Unapproved ?
+              "check"
+            : "arrow-rotate-left"
+          }
+          fixedWidth
+        />
+      </button>
     </div>
   );
 }
@@ -348,6 +386,8 @@ type AutocompleteAction =
   | { type: "revoke" }
   | { type: "blur" };
 
+type AutocompleteDispatch = (action: AutocompleteAction) => void;
+
 function useAutocompleteState({
   value,
   suggestions,
@@ -392,7 +432,7 @@ function useAutocompleteState({
     flushRef.current = state.flushTimestamp;
   }, [state.flushTimestamp, state.initial, state.draft, onChange]);
 
-  return { ...state, dispatch };
+  return [state, dispatch] as const;
 }
 
 function autocompleteReducerInit({

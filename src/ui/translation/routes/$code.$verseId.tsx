@@ -240,9 +240,10 @@ function TranslationRoute() {
                     dispatch({ type: "focus-phrase", phraseId: phrase.id })
                   }
                   onShowDetail={() => setShowSidebar(true)}
-                  onOpenNotes={() =>
-                    setTimeout(() => sidebarRef.current?.openNotes(), 0)
-                  }
+                  onOpenNotes={() => {
+                    setShowSidebar(true);
+                    setTimeout(() => sidebarRef.current?.openNotes(), 0);
+                  }}
                   onSelect={() =>
                     dispatch({ type: "toggle-word", wordId: word.id })
                   }
