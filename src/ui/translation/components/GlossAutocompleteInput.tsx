@@ -238,8 +238,13 @@ function Input({
             border shadow-inner outline-0
             px-3 h-[26px] bg-white
             dark:shadow-none dark:bg-gray-900
-            box-content
-            ${hasModelGloss ? `${right ? "pl-8" : "pr-8"} min-w-15` : "min-w-20"}
+            box-content min-w-12
+            ${
+              hasModelGloss ?
+                right ? "pl-8"
+                : "pr-8"
+              : ""
+            }
             ${right ? "text-right rounded-r border-l-0" : "text-left rounded-l border-r-0"}
             ${
               initial.state === GlossStateRaw.Approved ?
