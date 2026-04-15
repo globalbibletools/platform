@@ -7,6 +7,7 @@ import { getCurrentLanguageReadModel } from "@/modules/languages/read-models/get
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
 import { getVerseWordsReadModel } from "../readModels/getVerseWordsReadModel";
+import { GlossStateRaw } from "@/modules/translation/types";
 
 const requestSchema = z.object({
   code: z.string(),
@@ -95,7 +96,7 @@ export const getTranslationVerseData = createServerFn({ method: "GET" })
 interface Phrase {
   id: number;
   wordIds: string[];
-  gloss?: { text: string; state: string };
+  gloss?: { text: string; state: GlossStateRaw };
   hasTranslatorNote: boolean;
   hasFootnote: boolean;
 }
