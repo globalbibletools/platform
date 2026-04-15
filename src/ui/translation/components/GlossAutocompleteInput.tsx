@@ -272,7 +272,7 @@ function Input({
       </div>
       <button
         className={`
-            h-7 px-2 inline-flex justify-center items-center outline-0 border bg-white
+            h-7 w-7 inline-flex justify-center items-center outline-0 border bg-white
             disabled:opacity-50 dark:bg-gray-800
             ${right ? "rounded-l" : "rounded-r"}
             ${
