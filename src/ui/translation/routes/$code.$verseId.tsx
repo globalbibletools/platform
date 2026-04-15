@@ -208,7 +208,10 @@ function TranslationRoute() {
         userRoles={auth.systemRoles}
       />
       <div className="flex flex-col grow w-full min-h-0 lg:flex-row">
-        <div className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-24 px-6">
+        <div
+          key={data.language.code}
+          className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-24 px-6"
+        >
           <TranslationReference verseId={verseId} language={data.language} />
           <ol
             className={`
