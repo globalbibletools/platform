@@ -1,18 +1,8 @@
 import Button from "@/components/Button";
 import Checkbox from "@/components/Checkbox";
 import { Icon } from "@/components/Icon";
-import { useTextWidth } from "@/utils/text-width";
 import { useTranslations } from "use-intl";
-import {
-  MouseEvent,
-  ReactNode,
-  Ref,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { MouseEvent, ReactNode, Ref, useEffect, useMemo, useRef } from "react";
 import { updateGlossAction } from "@/modules/translation/actions/updateGloss";
 import { fontMap } from "@/fonts";
 import { useParams } from "@tanstack/react-router";
@@ -24,7 +14,6 @@ import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import { MachineGlossStrategy } from "@/modules/languages/model";
 import { useMutation } from "@tanstack/react-query";
 import GlossAutocompleteInput from "./GlossAutocompleteInput";
-import Gloss from "@/modules/translation/model/Gloss";
 
 export interface TranslateWordProps {
   verseId: string;
@@ -42,7 +31,7 @@ export interface TranslateWordProps {
     hasTranslatorNote: boolean;
     hasFootnote: boolean;
   };
-  backtranslation?: string;
+  backtranslation: { enabled: boolean; gloss?: string };
   language: {
     code: string;
     font: string;
@@ -75,16 +64,11 @@ export default function TranslateWord({
 }: TranslateWordProps) {
   const t = useTranslations("TranslateWord");
 
+  const rootRef = useRef<HTMLLIElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const editable = language.isMember;
   const canViewTranslatorNotes = language.isMember;
-
-  const rootRef = useRef<HTMLLIElement>(null);
-  const ancientWordRef = useRef<HTMLSpanElement>(null);
-  const refGlossRef = useRef<HTMLSpanElement>(null);
-  const targetGlossRef = useRef<HTMLSpanElement>(null);
-  const backtranslatedGlossRef = useRef<HTMLSpanElement>(null);
-  const llmGlossRef = useRef<HTMLSpanElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!phraseFocused || !inputRef.current) return;
@@ -96,21 +80,7 @@ export default function TranslateWord({
 
   const hasNote =
     phrase.hasFootnote || (phrase.hasTranslatorNote && canViewTranslatorNotes);
-
   const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
-  const machineSuggestion =
-    language.machineGlossStrategy === MachineGlossStrategy.None ?
-      undefined
-    : word.machineSuggestion;
-  const hasMachineSuggestion =
-    !isMultiWord &&
-    !phrase.gloss?.text &&
-    (language.machineGlossStrategy === MachineGlossStrategy.LLM ||
-      word.suggestions.length === 0) &&
-    !!machineSuggestion;
-  const glossValue =
-    phrase?.gloss?.text ||
-    (isMultiWord ? undefined : word.suggestions[0] || machineSuggestion);
 
   const modelGlosses = useMemo(() => {
     if (isMultiWord) return {} as const;
@@ -152,44 +122,26 @@ export default function TranslateWord({
 
   const { code } = useParams({ from: "/_main/translate/$code/$verseId" });
 
-  const [width, setWidth] = useState(0);
-  const glossWidth = useTextWidth({
-    text: glossValue ?? "",
-    fontFamily: fontMap[language.font],
-    fontSize: "16px",
-  });
-  useLayoutEffect(() => {
-    setWidth(
-      Math.max(
-        // The first 24 pixels accommodates the checkbox and link icon for phrases.
-        // The extra 36 pixels accommodates the sticky note icon
-        24 + (hasNote ? 36 : 0) + (ancientWordRef.current?.clientWidth ?? 0),
-        // The extra 24 pixels accommodates the robot icon
-        // The extra 48 pixels accommodates the approval button
-        glossWidth + (editable ? (hasMachineSuggestion ? 24 : 0) + 44 : 0),
-
-        refGlossRef.current?.clientWidth ?? 0,
-        targetGlossRef.current?.clientWidth ?? 0,
-        backtranslatedGlossRef.current?.clientWidth ?? 0,
-        llmGlossRef.current?.clientWidth ?? 0,
-      ),
-    );
-  }, [hasNote, glossWidth, hasMachineSuggestion, isMultiWord, editable]);
-
   return (
     <li
       key={word.id}
       ref={rootRef}
       dir={isHebrew ? "rtl" : "ltr"}
       className={`
-          group/word relative p-2 rounded
-          ${phraseFocused && !wordSelected ? "bg-brown-50 dark:bg-gray-800" : ""}
-          ${
-            wordSelected ?
-              "shadow-inner dark:shadow-none bg-brown-100 dark:bg-gray-700"
-            : ""
-          }
-        `}
+        relative p-2 rounded grid items-center
+        ${phraseFocused && !wordSelected ? "bg-brown-50 dark:bg-gray-800" : ""}
+        ${
+          wordSelected ?
+            "shadow-inner dark:shadow-none bg-brown-100 dark:bg-gray-700"
+          : ""
+        }
+      `}
+      style={{
+        gridTemplateRows: createWordGrid({
+          editable,
+          backtranslationEnabled: backtranslation.enabled,
+        }),
+      }}
       onClick={(e) => {
         if (!e.altKey) return;
         if (!isMultiWord) {
@@ -200,13 +152,14 @@ export default function TranslateWord({
       <div
         id={`word-${word.id}`}
         className={`
-                flex items-center gap-1.5 h-8 cursor-pointer font-mixed
-                ${isHebrew ? "text-right pr-3" : "text-left pl-3"}
-            `}
+          row-start-1
+          flex items-center gap-1.5
+          text-start ps-3
+          ${editable ? "" : "pe-3"}
+        `}
       >
         <span
-          className="inline-block"
-          ref={ancientWordRef}
+          className="inline-block font-bold cursor-pointer font-mixed"
           tabIndex={-1}
           onClick={() => {
             onFocus?.();
@@ -251,20 +204,14 @@ export default function TranslateWord({
           )
         }
       </div>
-      <div
-        className={`h-8 ${isHebrew ? "text-right pr-3" : "text-left pl-3"}`}
-        dir="ltr"
-      >
-        <span className="inline-block" ref={refGlossRef}>
+      <div className={`row-start-2 text-start px-3`}>
+        <span className="inline-block" dir="ltr">
           {word.referenceGloss}
         </span>
       </div>
       {!editable ?
-        <div
-          className={`h-8 ${isHebrew ? "text-right pr-3" : "text-left pl-3"}`}
-          dir={language.textDirection}
-        >
-          <span className="inline-block" ref={targetGlossRef}>
+        <div className={`row-start-3 text-start px-3`}>
+          <span className="inline-block" dir={language.textDirection}>
             {phrase.gloss?.text}
           </span>
         </div>
@@ -273,14 +220,10 @@ export default function TranslateWord({
             <GlossAutocompleteInput
               ref={inputRef}
               name="gloss"
-              aria-describedby={`word-help-${word.id}`}
               aria-labelledby={`word-${word.id}`}
               data-phrase={phrase.id}
-              className="min-w-[128px]"
-              style={{
-                fontFamily: fontMap[language.font],
-                width: width + 26,
-              }}
+              className="-mx-px mt-0.5 place-self-start row-start-3 min-w-[128px]"
+              font={fontMap[language.font]}
               dir={language.textDirection}
               right={isHebrew}
               suggestions={word.suggestions}
@@ -325,17 +268,11 @@ export default function TranslateWord({
               }}
             />
           )}
-          <GlossDescription
-            id={`word-help-${word.id}`}
-            right={isHebrew}
-            glossState={phrase.gloss?.state ?? GlossStateRaw.Unapproved}
-            saving={saving}
-          />
         </>
       }
-      {!!backtranslation && (
-        <BackTranslation right={isHebrew} ref={backtranslatedGlossRef}>
-          {backtranslation}
+      {backtranslation.enabled && (
+        <BackTranslation className="row-start-5" right={isHebrew}>
+          {backtranslation.gloss}
         </BackTranslation>
       )}
     </li>
@@ -343,65 +280,34 @@ export default function TranslateWord({
 }
 
 function BackTranslation({
-  ref,
+  className = "",
   right,
   children,
 }: {
-  ref: Ref<HTMLSpanElement>;
+  className?: string;
   right: boolean;
   children: ReactNode;
 }) {
   return (
     <div
-      className={`h-8 italic ${right ? "text-right pr-3" : "text-left pl-3"}`}
-      dir="ltr"
+      className={`${className} italic ${right ? "text-right pr-3" : "text-left pl-3"}`}
     >
-      <span className="inline-block" ref={ref}>
-        {children}
-      </span>
+      <span dir="ltr">{children}</span>
     </div>
   );
 }
 
-function GlossDescription({
-  id,
-  glossState,
-  right,
-  saving,
+export function createWordGrid({
+  editable,
+  backtranslationEnabled,
 }: {
-  id: string;
-  glossState: GlossStateRaw;
-  right: boolean;
-  saving: boolean;
+  editable: boolean;
+  backtranslationEnabled: boolean;
 }) {
-  return (
-    <div
-      id={id}
-      className={`
-        text-sm h-5
-        ${glossState === GlossStateRaw.Approved ? "text-green-600" : "text-slate-500"}
-        ${right ? "text-right" : "text-left"}
-      `}
-    >
-      {(() => {
-        if (saving) {
-          return (
-            <>
-              <Icon icon="arrows-rotate" className="me-1" />
-              <span dir="ltr">Saving</span>
-            </>
-          );
-        } else if (glossState === GlossStateRaw.Approved) {
-          return (
-            <>
-              <Icon icon="check" className="me-1" />
-              <span dir="ltr">Approved</span>
-            </>
-          );
-        } else {
-          return null;
-        }
-      })()}
-    </div>
-  );
+  return [
+    "1.75rem",
+    "1.75rem",
+    ...(editable ? ["3.25rem"] : ["1.75rem"]),
+    ...(backtranslationEnabled ? ["1.75rem"] : []),
+  ].join(" ");
 }

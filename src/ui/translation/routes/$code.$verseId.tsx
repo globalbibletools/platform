@@ -16,7 +16,7 @@ import { Icon } from "@/components/Icon";
 import TranslationSidebar, {
   TranslationSidebarRef,
 } from "../components/TranslationSidebar";
-import TranslateWord from "../components/TranslateWord";
+import TranslateWord, { createWordGrid } from "../components/TranslateWord";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
 import { sanityCheck } from "@/modules/translation/actions/sanityCheck";
 import { approveAll } from "@/modules/translation/actions/approveAll";
@@ -212,7 +212,7 @@ function TranslationRoute() {
           <TranslationReference verseId={verseId} language={data.language} />
           <ol
             className={`
-                        flex h-fit content-start flex-wrap gap-x-2 gap-y-4
+                        flex h-fit content-start flex-wrap gap-x-1 gap-y-2
                         ${isHebrew ? "ltr:flex-row-reverse" : "rtl:flex-row-reverse"}
                     `}
           >
@@ -228,11 +228,12 @@ function TranslationRoute() {
                   wordSelected={selectedWordIds.includes(word.id)}
                   phrase={phrase}
                   phraseFocused={phrase.id === focusedPhraseId}
-                  backtranslation={
-                    backtranslations?.find(
+                  backtranslation={{
+                    enabled: Boolean(backtranslations),
+                    gloss: backtranslations?.find(
                       (translation) => translation.phraseId === phrase.id,
-                    )?.translation
-                  }
+                    )?.translation,
+                  }}
                   language={data.language}
                   isHebrew={isHebrew}
                   onFocus={() =>
@@ -248,25 +249,35 @@ function TranslationRoute() {
                 />
               );
             })}
-            {data.language.isMember && (
-              <li className="mx-2" dir={isHebrew ? "rtl" : "ltr"}>
-                <Button
-                  variant="tertiary"
-                  className="mt-[78px]"
-                  to="/translate/$code/$verseId"
-                  params={{
-                    code: data.language.code,
-                    verseId: incrementVerseId(verseId),
-                  }}
-                >
-                  Next
-                  <Icon
-                    icon={isHebrew ? "arrow-left" : "arrow-right"}
-                    className="ms-1"
-                  />
-                </Button>
-              </li>
-            )}
+            <li
+              className="p-2 grid"
+              style={{
+                gridTemplateRows: createWordGrid({
+                  editable: data.language.isMember,
+                  backtranslationEnabled: Boolean(backtranslations),
+                }),
+              }}
+            >
+              <Button
+                className={`
+                  row-start-3 place-self-start
+                  ${data.language.isMember ? "mt-[5px]" : ""}
+                `}
+                dir={isHebrew ? "rtl" : "ltr"}
+                variant="tertiary"
+                to="/translate/$code/$verseId"
+                params={{
+                  code: data.language.code,
+                  verseId: incrementVerseId(verseId),
+                }}
+              >
+                Next
+                <Icon
+                  icon={isHebrew ? "arrow-left" : "arrow-right"}
+                  className="ms-1"
+                />
+              </Button>
+            </li>
           </ol>
         </div>
         {showSidebar && (

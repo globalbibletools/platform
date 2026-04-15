@@ -1,15 +1,17 @@
-import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
+import { fontMap } from "@/fonts";
 import {
   GlossApprovalMethodRaw,
   GlossStateRaw,
 } from "@/modules/translation/types";
 import { mergeRefs } from "@/utils/merge-refs";
+import { useTextWidth } from "@/utils/text-width";
 import {
   ComponentProps,
   CSSProperties,
   KeyboardEvent,
   useEffect,
+  useId,
   useReducer,
   useRef,
 } from "react";
@@ -19,6 +21,7 @@ export default function GlossAutocompleteInput({
   style,
   right,
   dir,
+  font = fontMap["Noto Sans"],
 
   suggestions,
   modelGlosses,
@@ -32,6 +35,7 @@ export default function GlossAutocompleteInput({
   style?: CSSProperties;
   right?: boolean;
   dir?: string;
+  font?: string;
 
   suggestions: Array<string>;
   modelGlosses: Partial<Record<"google" | "llm_import", string>>;
@@ -43,6 +47,7 @@ export default function GlossAutocompleteInput({
     source?: GlossApprovalMethodRaw;
   }): void;
 } & Omit<ComponentProps<"input">, "onChange" | "value">) {
+  const cssId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -60,9 +65,15 @@ export default function GlossAutocompleteInput({
   });
 
   const hasModelGloss =
-    (draft.source === GlossApprovalMethodRaw.GoogleSuggestion ||
-      draft.source === GlossApprovalMethodRaw.LLMSuggestion) &&
+    draft.source &&
+    draft.source !== GlossApprovalMethodRaw.UserInput &&
     initial.state === GlossStateRaw.Unapproved;
+
+  const width = useTextWidth({
+    text: draft.text,
+    fontFamily: font,
+    fontSize: "1rem",
+  });
 
   function onKeyDown(e: KeyboardEvent) {
     switch (e.key) {
@@ -111,11 +122,7 @@ export default function GlossAutocompleteInput({
 
   return (
     <div
-      className={`
-        ${className}
-        flex gap-2 items-center
-        ${right ? "flex-row" : "flex-row-reverse"}
-      `}
+      className={`relative ${className}`}
       style={style}
       dir={dir}
       onBlur={(e) => {
@@ -126,92 +133,110 @@ export default function GlossAutocompleteInput({
         dispatch({ type: "blur" });
       }}
     >
-      <div className="group-focus-within/word:block hidden">
-        {initial.state === GlossStateRaw.Unapproved ?
-          <Button
-            className="bg-green-600! w-9"
-            tabIndex={-1}
-            title="Approve"
-            disabled={saving}
-            onClick={() => {
-              dispatch({ type: "confirm" });
-              inputRef.current?.focus();
+      <div
+        className={`
+          w-fit flex rounded focus-within:outline-2 outline-green-300
+          ${right ? "flex-row-reverse" : "flex-row"}
+        `}
+      >
+        <div className="relative">
+          <input
+            {...props}
+            ref={props.ref ? mergeRefs(props.ref, inputRef) : inputRef}
+            aria-describedby={`word-help-${cssId}`}
+            className={`
+              border shadow-inner outline-0
+              px-3 h-[26px] bg-white
+              dark:shadow-none dark:bg-gray-900
+              box-content
+              ${hasModelGloss ? `${right ? "pl-8" : "pr-8"} min-w-15` : "min-w-20"}
+              ${right ? "text-right rounded-r border-l-0" : "text-left rounded-l border-r-0"}
+              ${
+                initial.state === GlossStateRaw.Approved ?
+                  "border-green-600 dark:border-green-500"
+                : "border-gray-400 dark:border-gray-700"
+              }
+            `}
+            style={{ width: `${width}px`, fontFamily: font }}
+            value={draft.text}
+            autoComplete="off"
+            data-method={draft.source}
+            onChange={(e) => {
+              dispatch({ type: "inputChange", text: e.target.value });
             }}
-          >
-            <Icon icon="check" />
-          </Button>
-        : <Button
-            className="bg-red-600! w-9"
-            tabIndex={-1}
-            title="Revoke"
-            disabled={saving}
-            onClick={() => {
-              dispatch({ type: "revoke" });
-              inputRef.current?.focus();
+            onKeyDown={(e) => {
+              onKeyDown(e);
+              props.onKeyDown?.(e);
             }}
-          >
-            <Icon icon="arrow-rotate-left" />
-          </Button>
-        }
-      </div>
-      <div className="relative grow">
-        <input
-          {...props}
-          ref={props.ref ? mergeRefs(props.ref, inputRef) : inputRef}
+          />
+          {hasModelGloss && (
+            <Icon
+              className={`
+              absolute top-1/2 -translate-y-1/2
+              ${right ? "left-2" : "right-2"}
+            `}
+              icon="robot"
+              size="xs"
+            />
+          )}
+        </div>
+        <button
           className={`
-            border rounded shadow-inner focus-visible:outline-2 outline-green-300
-            w-full px-3 h-9 bg-white
-            dark:shadow-none dark:bg-gray-900
-            ${right ? "text-right" : "text-left"}
+            h-7 px-2 inline-flex justify-center items-center outline-0 border bg-white
+            disabled:opacity-50 dark:bg-gray-800
+            ${right ? "rounded-l" : "rounded-r"}
             ${
-              initial.state === GlossStateRaw.Approved ?
-                "border-green-600 dark:border-green-500"
-              : "border-gray-400 dark:border-gray-700"
+              initial.state === GlossStateRaw.Unapproved ?
+                "text-blue-800 dark:text-green-400 border-blue-800 dark:border-green-800"
+              : "text-red-800 border-red-800"
             }
           `}
-          value={draft.text}
-          autoComplete="off"
-          data-method={draft.source}
-          onChange={(e) => {
-            dispatch({ type: "inputChange", text: e.target.value });
+          tabIndex={-1}
+          title={
+            initial.state === GlossStateRaw.Unapproved ? "Approve" : "Revoke"
+          }
+          disabled={saving}
+          onClick={() => {
+            if (initial.state === GlossStateRaw.Unapproved) {
+              dispatch({ type: "confirm" });
+            } else {
+              dispatch({ type: "revoke" });
+            }
+            inputRef.current?.focus();
           }}
-          onKeyDown={(e) => {
-            onKeyDown(e);
-            props.onKeyDown?.(e);
-          }}
-        />
-        {hasModelGloss && (
+        >
           <Icon
-            className={`
-              absolute top-1/2 -translate-y-1/2
-              ${right ? "left-3" : "right-3"}
-            `}
-            icon="robot"
-            size="xs"
+            icon={
+              initial.state === GlossStateRaw.Unapproved ?
+                "check"
+              : "arrow-rotate-left"
+            }
+            fixedWidth
           />
-        )}
-        {optionsVisible && filteredOptions.length > 0 && (
-          <ol
-            className={`
+        </button>
+      </div>
+      {optionsVisible && filteredOptions.length > 0 && (
+        <ol
+          className={`
             z-10 absolute min-w-full min-h-[24px] max-h-80 bg-white overflow-auto mt-1 rounded border border-gray-400 shadow
             dark:bg-gray-800 dark:border-gray-700
             ${right ? "right-0 text-right" : "left-0 text-left"}
           `}
-          >
-            {filteredOptions.map((option) => (
-              <li
-                key={`${option.text}-${option.source}`}
-                tabIndex={-1}
-                ref={
-                  option === selectedOption ?
-                    (el) => {
-                      el?.scrollIntoView({
-                        block: "nearest",
-                      });
-                    }
-                  : undefined
-                }
-                className={`
+        >
+          {filteredOptions.map((option) => (
+            <li
+              key={`${option.text}-${option.source}`}
+              tabIndex={-1}
+              ref={
+                option === selectedOption ?
+                  (el) => {
+                    el?.scrollIntoView({
+                      block: "nearest",
+                    });
+                  }
+                : undefined
+              }
+              className={`
                 px-3 py-1 whitespace-nowrap cursor-pointer flex items-center gap-2
                 ${
                   option === selectedOption ?
@@ -219,22 +244,72 @@ export default function GlossAutocompleteInput({
                   : ""
                 }
               `}
-                onClick={() => {
-                  dispatch({ type: "confirm", option });
-                }}
-              >
-                <span className="flex-1">{option.text}</span>
-                {(
-                  option.source === GlossApprovalMethodRaw.GoogleSuggestion ||
-                  option.source === GlossApprovalMethodRaw.LLMSuggestion
-                ) ?
-                  <Icon icon="robot" size="xs" />
-                : undefined}
-              </li>
-            ))}
-          </ol>
-        )}
-      </div>
+              onClick={() => {
+                dispatch({ type: "confirm", option });
+              }}
+            >
+              <span className="flex-1">{option.text}</span>
+              {(
+                option.source === GlossApprovalMethodRaw.GoogleSuggestion ||
+                option.source === GlossApprovalMethodRaw.LLMSuggestion
+              ) ?
+                <Icon icon="robot" size="xs" />
+              : undefined}
+            </li>
+          ))}
+        </ol>
+      )}
+      <GlossDescription
+        id={`word-help-${cssId}`}
+        className="row-start-4"
+        right={right}
+        glossState={initial.state}
+        saving={saving}
+      />
+    </div>
+  );
+}
+
+function GlossDescription({
+  id,
+  className = "",
+  glossState,
+  saving,
+}: {
+  id: string;
+  className?: string;
+  glossState: GlossStateRaw;
+  right?: boolean;
+  saving: boolean;
+}) {
+  return (
+    <div
+      id={id}
+      className={`
+        ${className}
+        text-xs px-3 text-start
+        ${glossState === GlossStateRaw.Approved ? "text-green-600" : "text-slate-500"}
+      `}
+    >
+      {(() => {
+        if (saving) {
+          return (
+            <>
+              <Icon icon="arrows-rotate" className="me-1" />
+              <span dir="ltr">Saving</span>
+            </>
+          );
+        } else if (glossState === GlossStateRaw.Approved) {
+          return (
+            <>
+              <Icon icon="check" className="me-1" />
+              <span dir="ltr">Approved</span>
+            </>
+          );
+        } else {
+          return null;
+        }
+      })()}
     </div>
   );
 }

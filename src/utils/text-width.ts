@@ -38,7 +38,11 @@ export function useTextWidth(options: UseTextWidthOptions): number {
     if (measureElementRef.current) {
       measureElementRef.current.style.fontFamily = options.fontFamily;
       measureElementRef.current.style.fontSize = options.fontSize;
-      measureElementRef.current.innerText = options.text;
+      // Replace spaces with a non breaking space to ensure trailing spaces are measured
+      measureElementRef.current.innerText = options.text.replace(
+        / /g,
+        "\u00A0",
+      );
       setWidth(measureElementRef.current.clientWidth);
     }
   }, [options]);
