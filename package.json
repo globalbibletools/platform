@@ -81,7 +81,7 @@
     "nitro": "3.0.260311-beta",
     "nodemailer": "6.9.15",
     "patch-package": "8.0.1",
-    "pdf-lib": "^1.17.1",
+    "pdf-lib": "1.17.1",
     "pg": "8.12.0",
     "pg-copy-streams": "7.0.0",
     "pg-cursor": "2.15.3",
