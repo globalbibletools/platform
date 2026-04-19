@@ -686,7 +686,6 @@
     "status": {
       "title": "Status",
       "download": "Download PDF",
-      "expires": "Expires",
       "generating": "Generating PDF…",
       "failed": "Export failed. Please try again.",
       "labels": {

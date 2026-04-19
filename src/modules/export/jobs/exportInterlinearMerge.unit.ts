@@ -15,8 +15,6 @@ vi.mock("@/modules/export/data-access/ExportStorageRepository", () => {
     fetchBuffer: mockFetchBuffer,
     uploadPdf: mockUploadPdf,
     deleteObject: vi.fn(),
-    presignPdf: vi.fn(),
-    bucketName: vi.fn(),
   };
   return { __esModule: true, exportStorageRepository: repo, default: repo };
 });

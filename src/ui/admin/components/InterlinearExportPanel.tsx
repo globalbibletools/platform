@@ -81,12 +81,6 @@ export default function InterlinearExportPanel({
                           <Icon icon="download" className="me-1" />{" "}
                           {t("status.download")}
                         </Button>
-                        {job.data.expiresAt && (
-                          <span className="text-xs text-gray-500">
-                            {t("status.expires")}:{" "}
-                            {new Date(job.data.expiresAt).toLocaleString()}
-                          </span>
-                        )}
                       </div>
                     )}
                     {isFailed && (

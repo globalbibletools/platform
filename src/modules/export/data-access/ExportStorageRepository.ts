@@ -12,7 +12,7 @@ export interface ExportStorageOptions {
   environment: "prod" | "local";
 }
 
-function bucketName(environment: "prod" | "local"): string {
+function exportBucketName(environment: "prod" | "local"): string {
   return `${EXPORT_BUCKET_PREFIX}-${environment}`;
 }
 
@@ -34,7 +34,7 @@ export const exportStorageRepository = {
     key: string;
     stream: Readable;
   }): Promise<string> {
-    const bucket = bucketName(environment);
+    const bucket = exportBucketName(environment);
     const logger = createLogger({ bucket, key });
 
     const upload = new Upload({
@@ -57,7 +57,7 @@ export const exportStorageRepository = {
     environment,
     key,
   }: ExportStorageOptions & { key: string }): string {
-    const bucket = bucketName(environment);
+    const bucket = exportBucketName(environment);
     const encodedKey = encodeObjectKey(key);
 
     const publicBaseUrl = process.env.EXPORT_PUBLIC_BASE_URL;
@@ -82,7 +82,7 @@ export const exportStorageRepository = {
     environment,
     key,
   }: ExportStorageOptions & { key: string }): Promise<Uint8Array | undefined> {
-    const bucket = bucketName(environment);
+    const bucket = exportBucketName(environment);
     const res = await s3Client.send(
       new GetObjectCommand({ Bucket: bucket, Key: key }),
     );
@@ -93,7 +93,7 @@ export const exportStorageRepository = {
     environment,
     key,
   }: ExportStorageOptions & { key: string }): Promise<void> {
-    const bucket = bucketName(environment);
+    const bucket = exportBucketName(environment);
     await s3Client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
   },
 };
