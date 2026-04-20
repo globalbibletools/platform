@@ -1,5 +1,5 @@
 import ClientReadingView from "../components/ClientReadingView";
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { withDocumentTitle } from "@/documentTitle";
 import { getTranslator } from "@/shared/i18n/messages";
