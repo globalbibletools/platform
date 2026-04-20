@@ -18,7 +18,7 @@ services:
       - ./:/app
       - platform-node-modules:/app/node_modules
     ports:
-      - 3000:3000
+      - ${SERVER_PORT:-3000}:3000
     depends_on:
       db:
         condition: service_healthy
@@ -41,8 +41,6 @@ services:
     volumes:
       - ./:/app
       - job-worker-node-modules:/app/node_modules
-    ports:
-      - 9000:3000
     depends_on:
       db:
         condition: service_healthy
@@ -60,8 +58,6 @@ services:
     volumes:
       - ./localstack/data:/var/lib/localstack
       - ./localstack/init:/etc/localstack/init
-    ports:
-      - 4566:4566
     healthcheck:
       test: ["CMD", "bash", "-c", "awslocal s3 ls >/dev/null 2>&1"]
       interval: 10s
@@ -80,10 +76,8 @@ services:
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=asdfasdf
-    expose:
-      - 5432
     ports:
-      - 5434:5432
+      - ${DB_PORT:-6432}:5432
     healthcheck:
       test: ["CMD", "pg_isready"]
       interval: 10s
@@ -102,7 +96,7 @@ services:
     expose:
       - 5432
     ports:
-      - 5433:5432
+      - ${TEST_DB_PORT:-6433}:5432
     healthcheck:
       test: ["CMD", "pg_isready"]
       interval: 10s
@@ -117,7 +111,7 @@ services:
       - ./:/app
       - docs-node-modules:/app/docs/node_modules
     ports:
-      - 4000:3000
+      - ${DOCS_PORT:-4000}:3000
 volumes:
   db-data:
   platform-node-modules:
