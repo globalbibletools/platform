@@ -24,7 +24,7 @@ import {
 import TranslationProgressBar from "./TranslationProgressBar";
 import { useFlash } from "@/flash";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
-import AudioDialog from "@/modules/study/ui/AudioDialog";
+import AudioDialog from "@/ui/study/components/AudioDialog";
 import { useElementDimensions } from "@/utils/measure-element";
 import { useServerFn } from "@tanstack/react-start";
 import { LanguageReadModel } from "../readModels/getLanguagesReadModel";
