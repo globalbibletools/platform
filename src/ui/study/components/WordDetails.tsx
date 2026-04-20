@@ -27,8 +27,8 @@ export interface Word {
   text: string;
   lemma: string;
   grammar: string;
-  footnote?: string;
-  nativeLexicon?: string;
+  footnote: string | null;
+  nativeLexicon?: string | null;
 }
 
 export interface WordDetailsProps {

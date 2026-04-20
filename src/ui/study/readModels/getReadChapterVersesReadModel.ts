@@ -6,7 +6,7 @@ export interface ReadChapterWordReadModel {
   id: string;
   text: string;
   gloss: string | null;
-  linkedWords: string[] | null;
+  linkedWords: string[];
   lemma: string;
   grammar: string;
   footnote: string | null;
@@ -69,10 +69,7 @@ export async function getReadChapterVersesReadModel(
                 .whereRef("phw2.word_id", "!=", "w.id")
                 .select((wordEb) =>
                   wordEb.fn
-                    .coalesce(
-                      wordEb.fn.agg<string[]>("array_agg", ["phw2.word_id"]),
-                      wordEb.val<string[]>([]),
-                    )
+                    .agg<string[]>("array_agg", ["phw2.word_id"])
                     .as("linkedWords"),
                 )
                 .as("wds"),
@@ -84,7 +81,10 @@ export async function getReadChapterVersesReadModel(
             "w.id",
             "w.text",
             "g.gloss",
-            "wds.linkedWords",
+            (eb) =>
+              eb.fn
+                .coalesce("wds.linkedWords", eb.val<string[]>([]))
+                .as("linkedWords"),
             "lf.lemma_id as lemma",
             "lf.grammar",
             "fn.content as footnote",
@@ -94,9 +94,5 @@ export async function getReadChapterVersesReadModel(
     ])
     .execute();
 
-  return result.map((verse) => ({
-    id: verse.id,
-    number: verse.number,
-    words: verse.words ?? [],
-  }));
+  return result;
 }

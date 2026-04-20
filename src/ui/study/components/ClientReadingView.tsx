@@ -14,12 +14,12 @@ import AttributionDialog from "./AttributionDialog";
 interface VerseWord {
   id: string;
   text: string;
-  gloss?: string;
-  linkedWords?: string[];
+  gloss: string | null;
+  linkedWords: string[];
   lemma: string;
   grammar: string;
-  footnote?: string;
-  nativeLexicon?: string;
+  footnote: string | null;
+  nativeLexicon: string | null;
 }
 
 interface Verse {
