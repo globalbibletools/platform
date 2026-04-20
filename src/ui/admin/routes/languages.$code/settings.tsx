@@ -24,6 +24,7 @@ import { Suspense } from "react";
 import { useTranslations } from "use-intl";
 import { withDocumentTitle } from "@/documentTitle";
 import { loadLanguageSettings } from "@/ui/admin/serverFns/loadLanguageSettings";
+import { SystemRoleRaw } from "@/modules/users/types";
 
 const policy = new Policy({
   systemRoles: [Policy.SystemRole.Admin],
@@ -47,6 +48,8 @@ export const Route = createFileRoute("/_main/admin/languages/$code/settings")({
 function LanguageSettingsRoute() {
   const t = useTranslations("LanguageSettingsPage");
   const { languageSettings, languages, translations } = Route.useLoaderData();
+  const { auth } = Route.useRouteContext();
+  const isAdmin = auth.systemRoles.includes(SystemRoleRaw.Admin);
 
   return (
     <div className="px-8 py-6 w-fit">
@@ -281,8 +284,7 @@ function LanguageSettingsRoute() {
               )}
             </div>
           </div>
-          {languageSettings.machineGlossStrategy ===
-            MachineGlossStrategy.LLM && (
+          {isAdmin && (
             <div className="flex flex-col gap-4 lg:flex-row lg:gap-20 mt-4">
               <div className="grow">
                 <p className="text-sm">

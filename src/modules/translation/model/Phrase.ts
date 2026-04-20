@@ -79,7 +79,7 @@ export default class Phrase {
 
     this.props.gloss = new Gloss({
       gloss,
-      state,
+      state: !gloss ? GlossStateRaw.Unapproved : state,
       source: GlossSourceRaw.User,
       updatedAt: new Date(),
       updatedBy: userId,

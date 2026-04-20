@@ -30,7 +30,7 @@ export const linkWords = createServerFn({ method: "POST" })
       throw notFound();
     }
 
-    await kyselyTransaction(async (trx) => {
+    const phraseId = await kyselyTransaction(async (trx) => {
       const oldPhrases = await phraseRepository.findByWordIdsWithinLanguage({
         languageId: language.id,
         wordIds: data.wordIds,
@@ -48,5 +48,9 @@ export const linkWords = createServerFn({ method: "POST" })
         wordIds: data.wordIds,
       });
       await phraseRepository.commit(linkedPhrase, trx);
+
+      return linkedPhrase.id;
     });
+
+    return { phraseId };
   });
