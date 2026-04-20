@@ -43,12 +43,17 @@ export async function getReadChapterVersesReadModel(
           .selectFrom("word as w")
           .leftJoin("word_lexicon as wl", "wl.word_id", "w.id")
           .innerJoin("lemma_form as lf", "lf.id", "w.form_id")
-          .leftJoin("phrase_word as phw", "phw.word_id", "w.id")
-          .leftJoin("phrase as ph", (join) =>
-            join
-              .onRef("ph.id", "=", "phw.phrase_id")
-              .on("ph.deleted_at", "is", null)
-              .on("ph.language_id", "=", languageIdSubquery),
+          .leftJoinLateral(
+            (lateralEb) =>
+              lateralEb
+                .selectFrom("phrase_word as phw")
+                .innerJoin("phrase as ph", "ph.id", "phw.phrase_id")
+                .whereRef("phw.word_id", "=", "w.id")
+                .where("ph.deleted_at", "is", null)
+                .where("ph.language_id", "=", languageIdSubquery)
+                .select("ph.id")
+                .as("ph"),
+            (join) => join.onTrue(),
           )
           .leftJoin("gloss as g", (join) =>
             join
@@ -61,7 +66,7 @@ export async function getReadChapterVersesReadModel(
               lateralEb
                 .selectFrom("phrase_word as phw2")
                 .whereRef("phw2.phrase_id", "=", "ph.id")
-                .whereRef("phw2.word_id", "!=", "phw.word_id")
+                .whereRef("phw2.word_id", "!=", "w.id")
                 .select((wordEb) =>
                   wordEb.fn
                     .coalesce(
