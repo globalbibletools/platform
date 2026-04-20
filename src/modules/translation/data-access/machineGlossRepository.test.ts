@@ -110,6 +110,10 @@ describe("updateAllForLanguage", () => {
         wordId: "0100100103",
         gloss: "Three",
       },
+      {
+        wordId: "0100100199",
+        gloss: "Should be dropped",
+      },
     ];
 
     await machineGlossRepository.updateAllForLanguage({
@@ -125,7 +129,7 @@ describe("updateAllForLanguage", () => {
       .execute();
     expect(insertedGlosses).toEqual([
       { ...existingGloss, id: 1 },
-      ...newGlosses.map((g, i) => ({
+      ...newGlosses.slice(0, 3).map((g, i) => ({
         id: i + 3,
         word_id: g.wordId,
         gloss: g.gloss,
