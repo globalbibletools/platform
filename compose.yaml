@@ -38,6 +38,7 @@ services:
       AWS_ENDPOINT_URL_S3: http://localstack:4566
       AWS_S3_FORCE_PATH_STYLE: "true"
       EXPORT_PUBLIC_S3_ENDPOINT: http://localhost:4566
+      BIBLE_SYSTEMS_API_KEY: ${BIBLE_SYSTEMS_API_KEY}
     volumes:
       - ./:/app
       - job-worker-node-modules:/app/node_modules
