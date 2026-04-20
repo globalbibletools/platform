@@ -25,7 +25,6 @@ export const aiGlossImportService = {
       },
     );
     const rawData = await response.json();
-    console.log(rawData);
     return getLanguagesResponseSchema.parse(rawData);
   },
 
