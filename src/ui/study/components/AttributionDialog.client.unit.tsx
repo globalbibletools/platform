@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { IntlProvider } from "use-intl";
-import enMessages from "../../../messages/en.json";
+import enMessages from "@/messages/en.json";
 import AttributionDialog from "./AttributionDialog";
 import { ComponentProps } from "react";
 

@@ -17,7 +17,7 @@ import { VersesPreview } from "@/components/VersesPreview";
 import { isRichTextEmpty } from "@/components/RichTextInput";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useQuery } from "@tanstack/react-query";
-import { getLemmaResource } from "../actions/getLemmaResource";
+import { getReadLemmaResource } from "../serverFns/getReadLemmaResource";
 import { ClientOnly } from "@tanstack/react-router";
 
 const RichText = React.lazy(() => import("@/components/RichText"));
@@ -51,7 +51,7 @@ export default function WordDetails({
 
   const { data, isLoading } = useQuery({
     queryKey: ["lemma-resource", word.lemma],
-    queryFn: () => getLemmaResource({ data: { lemmaId: word.lemma } }),
+    queryFn: () => getReadLemmaResource({ data: { lemmaId: word.lemma } }),
   });
 
   const lexiconEntryRef = useRef<HTMLDivElement>(null);
