@@ -497,6 +497,12 @@
     }
   },
   "SettingsMenu": {
+    "ai_glosses": "اللمعات الذكية",
+    "ai_glosses_options": {
+      "none": "بدون",
+      "fallback": "احتياطي",
+      "prefer": "تفضيل"
+    },
     "text_size": "حجم النص",
     "language": "اللغة"
   },

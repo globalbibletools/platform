@@ -16,8 +16,10 @@ export interface SettingsMenuProps {
   languageCode: string;
   languages: { englishName: string; localName: string; code: string }[];
   mode: "immersive" | "standard";
+  aiGlosses: "none" | "fallback" | "prefer";
   onTextSizeChange?(textSize: number): void;
   onModeChange?(mode: "immersive" | "standard"): void;
+  onAiGlossesChange?(aiGlosses: "none" | "fallback" | "prefer"): void;
 }
 
 export default function SettingsMenu({
@@ -25,8 +27,10 @@ export default function SettingsMenu({
   languageCode,
   languages,
   mode,
+  aiGlosses,
   onTextSizeChange,
   onModeChange,
+  onAiGlossesChange,
 }: SettingsMenuProps) {
   const t = useTranslations("SettingsMenu");
 
@@ -73,6 +77,35 @@ export default function SettingsMenu({
             </ButtonSelectorOption>
             <ButtonSelectorOption value="immersive">
               Immersive
+            </ButtonSelectorOption>
+          </ButtonSelectorInput>
+        </div>
+        <div>
+          <FormLabel id="ai-glosses-label">{t("ai_glosses")}</FormLabel>
+          <ButtonSelectorInput
+            name="aiGlosses"
+            value={aiGlosses}
+            onChange={(value) => {
+              if (
+                value !== "none" &&
+                value !== "fallback" &&
+                value !== "prefer"
+              ) {
+                return;
+              }
+
+              onAiGlossesChange?.(value);
+            }}
+            aria-labelledby="ai-glosses-label"
+          >
+            <ButtonSelectorOption value="none">
+              {t("ai_glosses_options.none")}
+            </ButtonSelectorOption>
+            <ButtonSelectorOption value="fallback">
+              {t("ai_glosses_options.fallback")}
+            </ButtonSelectorOption>
+            <ButtonSelectorOption value="prefer">
+              {t("ai_glosses_options.prefer")}
             </ButtonSelectorOption>
           </ButtonSelectorInput>
         </div>

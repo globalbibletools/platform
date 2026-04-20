@@ -15,6 +15,7 @@ interface VerseWord {
   id: string;
   text: string;
   gloss: string | null;
+  aiGloss: string | null;
   linkedWords: string[];
   lemma: string;
   grammar: string;
@@ -65,9 +66,13 @@ export default function ReadingView({
   const t = useTranslations("ReadingView");
   const isOT = isOldTestament(chapterId + "001");
 
-  const { textSize, audioVerse, mode } = useReadingContext();
+  const { textSize, audioVerse, mode, aiGlosses } = useReadingContext();
 
   const popover = usePopover(mode !== "immersive");
+  const popoverGloss =
+    popover.selectedWord ?
+      getDisplayGloss(popover.selectedWord.word, aiGlosses)
+    : undefined;
   const linkedWords = popover.selectedWord?.word.linkedWords ?? [];
 
   const [showSidebar, setShowSidebar] = useState(false);
@@ -229,12 +234,36 @@ export default function ReadingView({
             ref={popover.refs.setFloating}
             style={popover.floatingStyles}
           >
-            {popover.selectedWord.word.gloss ?? "-"}
+            {popoverGloss?.source === "ai" && (
+              <Icon icon="robot" className="me-2" />
+            )}
+            {popoverGloss?.text ?? "-"}
           </div>,
           document.body,
         )}
     </>
   );
+}
+
+function getDisplayGloss(
+  word: VerseWord,
+  aiGlossMode: "none" | "fallback" | "prefer",
+): { text?: string; source: "standard" | "ai" } {
+  if (aiGlossMode === "none") {
+    return { text: word.gloss ?? undefined, source: "standard" };
+  }
+
+  if (aiGlossMode === "prefer") {
+    if (word.aiGloss) {
+      return { text: word.aiGloss, source: "ai" };
+    }
+    return { text: word.gloss ?? undefined, source: "standard" };
+  }
+
+  if (word.gloss) {
+    return { text: word.gloss, source: "standard" };
+  }
+  return { text: word.aiGloss ?? undefined, source: "ai" };
 }
 
 function usePopover(enabled: boolean) {

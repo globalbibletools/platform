@@ -6,6 +6,7 @@ export interface ReadChapterWordReadModel {
   id: string;
   text: string;
   gloss: string | null;
+  aiGloss: string | null;
   linkedWords: string[];
   lemma: string;
   grammar: string;
@@ -29,6 +30,11 @@ export async function getReadChapterVersesReadModel(
   const languageIdSubquery = db
     .selectFrom("language")
     .where("code", "=", code)
+    .select("id");
+
+  const llmImportModelIdSubquery = db
+    .selectFrom("machine_gloss_model")
+    .where("code", "=", "llm_import")
     .select("id");
 
   const result = await db
@@ -60,6 +66,12 @@ export async function getReadChapterVersesReadModel(
               .onRef("g.phrase_id", "=", "ph.id")
               .on("g.state", "=", GlossStateRaw.Approved),
           )
+          .leftJoin("machine_gloss as mg", (join) =>
+            join
+              .onRef("mg.word_id", "=", "w.id")
+              .on("mg.language_id", "=", languageIdSubquery)
+              .on("mg.model_id", "=", llmImportModelIdSubquery),
+          )
           .leftJoin("footnote as fn", "fn.phrase_id", "ph.id")
           .leftJoinLateral(
             (lateralEb) =>
@@ -81,6 +93,7 @@ export async function getReadChapterVersesReadModel(
             "w.id",
             "w.text",
             "g.gloss",
+            "mg.gloss as aiGloss",
             (eb) =>
               eb.fn
                 .coalesce("wds.linkedWords", eb.val<string[]>([]))
