@@ -27,6 +27,9 @@ export default function ReadingToolbar({
   const navigate = useNavigate();
   const [textSize, setTextSize] = useState(3);
   const [mode, setMode] = useState<"immersive" | "standard">("standard");
+  const [aiGlosses, setAiGlosses] = useState<"none" | "fallback" | "prefer">(
+    "fallback",
+  );
   const [audioVerse, setAudioVerse] = useState<string>();
 
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
@@ -89,12 +92,14 @@ export default function ReadingToolbar({
             languageCode={code}
             languages={languages}
             mode={mode}
+            aiGlosses={aiGlosses}
             onTextSizeChange={setTextSize}
             onModeChange={setMode}
+            onAiGlossesChange={setAiGlosses}
           />
         </div>
       </div>
-      <ReadingContext value={{ textSize, audioVerse, mode }}>
+      <ReadingContext value={{ textSize, audioVerse, mode, aiGlosses }}>
         {children}
       </ReadingContext>
       {showAudioPlayer && (
@@ -113,6 +118,7 @@ interface ReadingContextValue {
   textSize: number;
   audioVerse?: string;
   mode: "immersive" | "standard";
+  aiGlosses: "none" | "fallback" | "prefer";
 }
 
 const ReadingContext = createContext<ReadingContextValue | null>(null);

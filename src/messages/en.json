@@ -479,6 +479,12 @@
     }
   },
   "SettingsMenu": {
+    "ai_glosses": "AI Glosses",
+    "ai_glosses_options": {
+      "none": "None",
+      "fallback": "Fallback",
+      "prefer": "Prefer"
+    },
     "text_size": "Text Size",
     "language": "Language"
   },
