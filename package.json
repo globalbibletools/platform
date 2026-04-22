@@ -34,7 +34,6 @@
     "@google-cloud/translate": "9.3.0",
     "@gracious.tech/fetch-client": "0.8.9",
     "@headlessui/react": "2.2.9",
-    "@isaacs/ttlcache": "2.1.4",
     "@octokit/rest": "22.0.1",
     "@tailwindcss/vite": "4.2.0",
     "@tanstack/eslint-plugin-query": "5.91.5",
