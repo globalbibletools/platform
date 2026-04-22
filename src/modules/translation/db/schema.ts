@@ -65,6 +65,12 @@ export interface MachineGlossModelTable {
   code: string;
 }
 
+export interface AIGlossLanguageTable {
+  code: string;
+  name: string;
+  created_at: Generated<Date>;
+}
+
 export interface GlossEventTable {
   id: string;
   phrase_id: number;

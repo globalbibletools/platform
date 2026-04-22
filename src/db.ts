@@ -32,6 +32,7 @@ import {
   WordTable,
 } from "./modules/bible-core/db/schema";
 import {
+  AIGlossLanguageTable,
   FootnoteTable,
   GlossEventTable,
   GlossHistoryTable,
@@ -50,6 +51,7 @@ import {
 } from "./modules/reporting/db/schema";
 
 export interface Database {
+  ai_gloss_language: AIGlossLanguageTable;
   book: BookTable;
   book_completion_progress: BookCompletionProgressTable;
   book_word_map: BookWordMapView;

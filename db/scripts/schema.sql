@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict c94gLPI6ezO1vBMLBMfOfYjDbpargAbfZojWXlj17MycdwqgZaVDh4Fq687emKQ
+\restrict Vr7pCDALsHJAnIofCw21egcssPsjFyuBsjcQc8LqN2ef1IGjTc1lCERXabetfOh
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -408,6 +408,17 @@ $$;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: ai_gloss_language; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ai_gloss_language (
+    code text NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
 
 --
 -- Name: book; Type: TABLE; Schema: public; Owner: -
@@ -1122,6 +1133,14 @@ ALTER TABLE ONLY public.weekly_contribution_statistics ALTER COLUMN id SET DEFAU
 --
 
 ALTER TABLE ONLY public.weekly_gloss_statistics ALTER COLUMN id SET DEFAULT nextval('public.weekly_gloss_statistics_id_seq'::regclass);
+
+
+--
+-- Name: ai_gloss_language ai_gloss_language_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ai_gloss_language
+    ADD CONSTRAINT ai_gloss_language_pkey PRIMARY KEY (code);
 
 
 --
@@ -2036,5 +2055,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict c94gLPI6ezO1vBMLBMfOfYjDbpargAbfZojWXlj17MycdwqgZaVDh4Fq687emKQ
+\unrestrict Vr7pCDALsHJAnIofCw21egcssPsjFyuBsjcQc8LqN2ef1IGjTc1lCERXabetfOh
 

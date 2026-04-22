@@ -1,25 +1,16 @@
-import { TTLCache } from "@isaacs/ttlcache";
-import {
-  aiGlossImportService,
-  type Language,
-} from "@/modules/translation/data-access/aiGlossImportService";
+import { getDb } from "@/db";
 
-const CACHE_KEY = "ai-gloss-import-languages";
-const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
+export interface AIGlossImportLanguageReadModel {
+  code: string;
+  name: string;
+}
 
-const aiGlossImportLanguagesCache = new TTLCache<string, Array<Language>>({
-  ttl: THREE_HOURS_MS,
-});
-
-export async function getAIGlossImportLanguagesReadModel() {
-  const cachedLanguages = aiGlossImportLanguagesCache.get(CACHE_KEY, {
-    checkAgeOnGet: true,
-  });
-  if (cachedLanguages) {
-    return cachedLanguages;
-  }
-
-  const languages = await aiGlossImportService.getAvailableLanguages();
-  aiGlossImportLanguagesCache.set(CACHE_KEY, languages);
-  return languages;
+export async function getAIGlossImportLanguagesReadModel(): Promise<
+  Array<AIGlossImportLanguageReadModel>
+> {
+  return getDb()
+    .selectFrom("ai_gloss_language")
+    .select(["code", "name"])
+    .orderBy("name")
+    .execute();
 }

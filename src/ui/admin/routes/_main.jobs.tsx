@@ -17,6 +17,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { withDocumentTitle } from "@/documentTitle";
 import { getActiveJobs } from "@/ui/admin/serverFns/getActiveJobs";
+import { TRANSLATION_JOB_TYPES } from "@/modules/translation/jobs/jobType";
 
 export const Route = createFileRoute("/_main/admin/_main/jobs")({
   head: () => withDocumentTitle("Jobs | Admin"),
@@ -57,6 +58,14 @@ function AdminJobsView() {
           action={queueJobAction}
         >
           Recompute Language Progress
+        </ServerAction>
+        <ServerAction
+          actionData={{
+            type: TRANSLATION_JOB_TYPES.SYNC_AI_GLOSS_LANGUAGES,
+          }}
+          action={queueJobAction}
+        >
+          Sync AI Gloss Languages
         </ServerAction>
 
         <div className="mt-8 max-w-5xl">
