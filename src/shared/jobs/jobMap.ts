@@ -23,7 +23,7 @@ type JobMapEntry<Payload, Data = unknown> =
     }
   | JobHandler<Payload, Data>;
 
-const jobMap: Record<string, JobMapEntry<any>> = {
+const jobMap: Record<string, JobMapEntry<any, any>> = {
   send_email: {
     handler: sendEmailJob,
     timeout: 60 * 5, // 5 minutes

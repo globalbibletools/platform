@@ -1,18 +1,22 @@
 import { Icon } from "@/components/Icon";
 import { importAIGlosses } from "@/modules/translation/actions/importAIGlosses";
-import JobStatusPoller from "@/shared/jobs/ui/JobStatusPoller";
 import { JobStatus } from "@/shared/jobs/model";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import Button from "@/components/Button";
 import { getAIGlossesImportFormData } from "@/ui/admin/serverFns/getAIGlossesImportFormData";
+import bookKeys from "@/data/book-keys.json";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function AIGlossesImportForm({ code }: { code: string }) {
   const { data, refetch } = useSuspenseQuery({
     queryKey: ["ai-glosses-import-form", code],
     queryFn: () => getAIGlossesImportFormData({ data: { code } }),
+    refetchInterval: 15000,
   });
 
   const { job, languageAvailable } = data;
+  const currentBook =
+    typeof job?.bookId === "number" ? bookKeys[job.bookId - 1] : null;
 
   if (
     job?.status === JobStatus.Pending ||
@@ -20,8 +24,12 @@ export default function AIGlossesImportForm({ code }: { code: string }) {
   ) {
     return (
       <>
-        <p className="mb-2">AI gloss import running</p>
-        <JobStatusPoller jobId={job.id} onComplete={() => refetch()} />
+        <p className="mb-2 text-sm">
+          {currentBook ?
+            `Importing AI glosses for ${currentBook}`
+          : "Importing AI glosses"}
+        </p>
+        <LoadingSpinner className="w-fit" />
       </>
     );
   } else {

@@ -14,6 +14,12 @@ export interface AIGloss {
   gloss: string | undefined;
 }
 
+export interface AIGlossChapter {
+  bookId: number;
+  chapterNumber: number;
+  glosses: Array<AIGloss>;
+}
+
 export const aiGlossImportService = {
   async getAvailableLanguages(): Promise<Array<Language>> {
     const response = await fetch(
@@ -28,7 +34,7 @@ export const aiGlossImportService = {
     return getLanguagesResponseSchema.parse(rawData);
   },
 
-  async *streamGlosses(languageCode: string): AsyncGenerator<Array<AIGloss>> {
+  async *streamGlosses(languageCode: string): AsyncGenerator<AIGlossChapter> {
     for (let bookId = 0; bookId < verseCounts.length; bookId++) {
       const chapters = verseCounts[bookId];
       for (let chapter = 0; chapter < chapters.length; chapter++) {
@@ -41,7 +47,11 @@ export const aiGlossImportService = {
           },
         );
         const rawData = await response.json();
-        yield getChapterGlossesResponseSchema.parse(rawData);
+        yield {
+          bookId: bookId + 1,
+          chapterNumber: chapter + 1,
+          glosses: getChapterGlossesResponseSchema.parse(rawData),
+        };
       }
     }
   },
