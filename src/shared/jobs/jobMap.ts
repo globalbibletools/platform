@@ -10,6 +10,7 @@ import { exportGlossesChildJob } from "@/modules/export/jobs/exportGlossesChildJ
 import { exportGlossesFinalizeJob } from "@/modules/export/jobs/exportGlossesFinalizeJob";
 import { TRANSLATION_JOB_TYPES } from "@/modules/translation/jobs/jobType";
 import { importAIGlosses } from "@/modules/translation/jobs/importAIGlosses";
+import { syncAIGlossLanguages } from "@/modules/translation/jobs/syncAIGlossLanguages";
 
 export type JobHandler<Payload, Data = unknown> = (
   job: Job<Payload, Data>,
@@ -54,6 +55,10 @@ const jobMap: Record<string, JobMapEntry<any>> = {
   [TRANSLATION_JOB_TYPES.IMPORT_AI_GLOSSES]: {
     handler: importAIGlosses,
     timeout: 60 * 15, // 15 minutes
+  },
+  [TRANSLATION_JOB_TYPES.SYNC_AI_GLOSS_LANGUAGES]: {
+    handler: syncAIGlossLanguages,
+    timeout: 60 * 5, // 5 minutes
   },
 };
 
