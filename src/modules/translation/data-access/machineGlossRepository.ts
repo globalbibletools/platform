@@ -123,16 +123,3 @@ export function normalizeWordIdToNumber(wordId: string): number {
     return Number(wordId);
   }
 }
-
-function isAIGlossChapter(chunk: unknown): chunk is AIGlossChapter {
-  if (!chunk || typeof chunk !== "object") {
-    return false;
-  }
-
-  return (
-    "bookId" in chunk &&
-    "chapterNumber" in chunk &&
-    "glosses" in chunk &&
-    Array.isArray(chunk.glosses)
-  );
-}
