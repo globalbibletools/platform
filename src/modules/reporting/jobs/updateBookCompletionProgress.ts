@@ -32,7 +32,7 @@ export async function updateBookCompletionProgressJob(
   }
 
   const languageIds =
-    job.payload.allLanguages ?
+    job.payload?.allLanguages ?
       await findAllLanguages()
     : await findChangedLanguages();
 
