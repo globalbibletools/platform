@@ -49,7 +49,7 @@ test("fetches the first page", async () => {
         ntProgress: 0,
         aiGlosses: {
           status: "unavailable",
-          lastSyncedAt: undefined,
+          lastSyncedAt: null,
         },
       },
       {
@@ -60,7 +60,7 @@ test("fetches the first page", async () => {
         ntProgress: 0,
         aiGlosses: {
           status: "unavailable",
-          lastSyncedAt: undefined,
+          lastSyncedAt: null,
         },
       },
     ],
@@ -97,7 +97,7 @@ test("fetches the second page", async () => {
         ntProgress: 0,
         aiGlosses: {
           status: "unavailable",
-          lastSyncedAt: undefined,
+          lastSyncedAt: null,
         },
       },
     ],
@@ -202,7 +202,7 @@ test("includes AI glosses availability and sync metadata", async () => {
         ntProgress: 0,
         aiGlosses: {
           status: "in-progress",
-          lastSyncedAt: fraImportedAt,
+          lastSyncedAt: fraPendingAt,
         },
       },
       {
@@ -213,7 +213,7 @@ test("includes AI glosses availability and sync metadata", async () => {
         ntProgress: 0,
         aiGlosses: {
           status: "unavailable",
-          lastSyncedAt: undefined,
+          lastSyncedAt: null,
         },
       },
       {
@@ -224,7 +224,7 @@ test("includes AI glosses availability and sync metadata", async () => {
         ntProgress: 0,
         aiGlosses: {
           status: "available",
-          lastSyncedAt: undefined,
+          lastSyncedAt: null,
         },
       },
     ],
