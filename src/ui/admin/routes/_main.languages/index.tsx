@@ -60,6 +60,9 @@ function AdminLanguagesRoute() {
             <ListHeaderCell className="min-w-[120px]">
               NT Progress
             </ListHeaderCell>
+            <ListHeaderCell className="min-w-[120px]">
+              AI Glosses
+            </ListHeaderCell>
             <ListHeaderCell />
           </ListHeader>
           <ListBody>
@@ -79,6 +82,9 @@ function AdminLanguagesRoute() {
                 </ListCell>
                 <ListCell>{(100 * language.otProgress).toFixed(2)}%</ListCell>
                 <ListCell>{(100 * language.ntProgress).toFixed(2)}%</ListCell>
+                <ListCell className="pe-4">
+                  <AIGlossesStatus aiGlosses={language.aiGlosses} />
+                </ListCell>
                 <ListCell>
                   <Button
                     variant="tertiary"
@@ -97,4 +103,58 @@ function AdminLanguagesRoute() {
       </div>
     </div>
   );
+}
+
+function AIGlossesStatus({
+  aiGlosses,
+}: {
+  aiGlosses: {
+    status: "unavailable" | "available" | "in-progress" | "imported";
+    lastSyncedAt: Date | null;
+  };
+}) {
+  const status = formatAIGlossesStatus(aiGlosses);
+
+  return (
+    <span className="inline-flex items-center gap-1">
+      <Icon className={status.className} icon={status.icon} fixedWidth />
+      <span>{status.label}</span>
+    </span>
+  );
+}
+
+function formatAIGlossesStatus(aiGlosses: {
+  status: "unavailable" | "available" | "in-progress" | "imported";
+  lastSyncedAt: Date | null;
+}) {
+  switch (aiGlosses.status) {
+    case "unavailable":
+      return {
+        icon: "xmark" as const,
+        label: "None available",
+      };
+    case "in-progress":
+      return {
+        icon: "arrows-rotate" as const,
+        label: "Import in progress",
+      };
+    case "imported":
+      return {
+        icon: "check" as const,
+        label:
+          aiGlosses.lastSyncedAt ?
+            `Imported on ${aiGlosses.lastSyncedAt.toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}`
+          : "Available to import",
+      };
+    case "available":
+      return {
+        icon: "file-import" as const,
+        label: "Available to import",
+        className: "text-blue-800 dark:text-green-400",
+      };
+  }
 }
