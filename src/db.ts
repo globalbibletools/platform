@@ -139,20 +139,6 @@ export async function queryStream(
   return stream;
 }
 
-export async function copyStream(
-  table: string,
-  stream: Readable,
-): Promise<void> {
-  const client = await getPool().connect();
-
-  try {
-    const dbStream = client.query(copyFrom(`copy ${table} from stdin`));
-    await pipeline(stream, dbStream);
-  } finally {
-    client.release();
-  }
-}
-
 export async function transaction<T>(
   tx: (q: typeof query) => Promise<T>,
 ): Promise<T> {
@@ -196,7 +182,7 @@ export async function reconnect() {
   _pool = undefined;
 }
 
-export async function copyStreamV2<
+export async function copyStream<
   Record = unknown,
   Table extends keyof Database = keyof Database,
 >({

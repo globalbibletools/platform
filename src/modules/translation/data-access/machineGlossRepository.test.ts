@@ -1,9 +1,10 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { getDb } from "@/db";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { machineGlossRepository } from "./machineGlossRepository";
 import { Readable } from "stream";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
+import type { AIGlossChapter } from "./aiGlossImportService";
 
 initializeDatabase();
 
@@ -115,11 +116,23 @@ describe("updateAllForLanguage", () => {
         gloss: "Should be dropped",
       },
     ];
+    const chapters: Array<AIGlossChapter> = [
+      {
+        bookId: 1,
+        chapterNumber: 1,
+        glosses: newGlosses.slice(0, 2),
+      },
+      {
+        bookId: 1,
+        chapterNumber: 1,
+        glosses: newGlosses.slice(2),
+      },
+    ];
 
     await machineGlossRepository.updateAllForLanguage({
       languageId: spaLanguage.id,
       modelCode: "llm_import",
-      stream: Readable.from(newGlosses),
+      stream: Readable.from(chapters),
     });
 
     const insertedGlosses = await getDb()
@@ -136,6 +149,104 @@ describe("updateAllForLanguage", () => {
         language_id: spaLanguage.id,
         model_id: llmImportModel.id,
       })),
+    ]);
+  });
+
+  test("tracks progress when streaming AI gloss chapters", async () => {
+    const { language } = await languageFactory.build({
+      members: [],
+    });
+
+    const onProgress = vi.fn().mockResolvedValue(undefined);
+    const chapterStream: Array<AIGlossChapter> = [
+      {
+        bookId: 1,
+        chapterNumber: 1,
+        glosses: [{ wordId: "0100100101", gloss: "One" }],
+      },
+      {
+        bookId: 1,
+        chapterNumber: 2,
+        glosses: [{ wordId: "0100100102", gloss: "Two" }],
+      },
+      {
+        bookId: 2,
+        chapterNumber: 1,
+        glosses: [{ wordId: "0100100103", gloss: "Three" }],
+      },
+    ];
+
+    await machineGlossRepository.updateAllForLanguage({
+      languageId: language.id,
+      modelCode: "llm_import",
+      stream: Readable.from(chapterStream),
+      onProgress,
+    });
+
+    expect(onProgress).toHaveBeenCalledTimes(2);
+    expect(onProgress).toHaveBeenNthCalledWith(1, 1);
+    expect(onProgress).toHaveBeenNthCalledWith(2, 2);
+
+    const insertedGlosses = await getDb()
+      .selectFrom("machine_gloss")
+      .where("language_id", "=", language.id)
+      .orderBy("id")
+      .select(["word_id", "gloss"])
+      .execute();
+
+    expect(insertedGlosses).toEqual([
+      { word_id: "0100100101", gloss: "One" },
+      { word_id: "0100100102", gloss: "Two" },
+      { word_id: "0100100103", gloss: "Three" },
+    ]);
+  });
+
+  test("errors in tracks progress don't crash the stream", async () => {
+    const { language } = await languageFactory.build({
+      members: [],
+    });
+
+    const onProgress = vi.fn().mockRejectedValue(new Error("test error"));
+    const chapterStream: Array<AIGlossChapter> = [
+      {
+        bookId: 1,
+        chapterNumber: 1,
+        glosses: [{ wordId: "0100100101", gloss: "One" }],
+      },
+      {
+        bookId: 1,
+        chapterNumber: 2,
+        glosses: [{ wordId: "0100100102", gloss: "Two" }],
+      },
+      {
+        bookId: 2,
+        chapterNumber: 1,
+        glosses: [{ wordId: "0100100103", gloss: "Three" }],
+      },
+    ];
+
+    await machineGlossRepository.updateAllForLanguage({
+      languageId: language.id,
+      modelCode: "llm_import",
+      stream: Readable.from(chapterStream),
+      onProgress,
+    });
+
+    expect(onProgress).toHaveBeenCalledTimes(2);
+    expect(onProgress).toHaveBeenNthCalledWith(1, 1);
+    expect(onProgress).toHaveBeenNthCalledWith(2, 2);
+
+    const insertedGlosses = await getDb()
+      .selectFrom("machine_gloss")
+      .where("language_id", "=", language.id)
+      .orderBy("id")
+      .select(["word_id", "gloss"])
+      .execute();
+
+    expect(insertedGlosses).toEqual([
+      { word_id: "0100100101", gloss: "One" },
+      { word_id: "0100100102", gloss: "Two" },
+      { word_id: "0100100103", gloss: "Three" },
     ]);
   });
 });

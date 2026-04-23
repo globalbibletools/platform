@@ -1,11 +1,11 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { beforeEach, describe, expect, test } from "vitest";
-import { copyStreamV2, query } from "./db";
-import { Readable } from "stream";
+import { copyStream, query } from "./db";
+import { PassThrough, Readable } from "stream";
 
 initializeDatabase();
 
-describe("copyStreamV2", () => {
+describe("copyStream", () => {
   const sourceData: Array<{
     id: number;
     flag: boolean;
@@ -39,7 +39,7 @@ describe("copyStreamV2", () => {
   });
 
   test("can stream data into a table", async () => {
-    await copyStreamV2<any, any>({
+    await copyStream<any, any>({
       table: "test",
       stream: Readable.from(sourceData),
       fields: {
@@ -64,7 +64,7 @@ describe("copyStreamV2", () => {
   });
 
   test("can stream a subset of columns into a table", async () => {
-    await copyStreamV2<any, any>({
+    await copyStream<any, any>({
       table: "test",
       stream: Readable.from(sourceData),
       fields: {
@@ -91,7 +91,7 @@ describe("copyStreamV2", () => {
       chunks.push(sourceData.slice(10 * i, 10 * (i + 1)));
     }
 
-    await copyStreamV2<any, any>({
+    await copyStream<any, any>({
       table: "test",
       stream: Readable.from(chunks),
       fields: {
@@ -113,5 +113,45 @@ describe("copyStreamV2", () => {
         created_at: record.createdAt,
       })),
     );
+  });
+
+  test("errors in copy stream are handled", async () => {
+    const result = copyStream<any, any>({
+      table: "missing_table",
+      fields: {
+        id: (record: any) => record.id.toString(),
+        flag: (record: any) => record.flag.toString(),
+        content: (record: any) => record.content,
+        total: (record: any) => record.total.toString(),
+        created_at: (record: any) => record.createdAt.toISOString(),
+      },
+      stream: Readable.from(sourceData),
+    });
+
+    await expect(result).rejects.toThrowError();
+  });
+
+  test("errors in source stream are handled", async () => {
+    async function* testData() {
+      yield sourceData[0];
+      throw new Error("test error");
+    }
+
+    const result = copyStream<any, any>({
+      table: "missing_table",
+      fields: {
+        id: (record: any) => record.id.toString(),
+        flag: (record: any) => record.flag.toString(),
+        content: (record: any) => record.content,
+        total: (record: any) => record.total.toString(),
+        created_at: (record: any) => record.createdAt.toISOString(),
+      },
+      // This extra pass through ensures that we cover the case where the error is a stream not directly passed to the db function.
+      stream: Readable.from(testData()).compose(
+        new PassThrough({ objectMode: true }),
+      ),
+    });
+
+    await expect(result).rejects.toThrowError(new Error("test error"));
   });
 });

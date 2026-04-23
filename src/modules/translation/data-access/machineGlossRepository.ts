@@ -1,4 +1,5 @@
-import { copyStreamV2, getDb } from "@/db";
+import { copyStream, getDb } from "@/db";
+import type { AIGloss, AIGlossChapter } from "./aiGlossImportService";
 import { Readable, Transform } from "stream";
 
 export interface StreamedMachineGloss {
@@ -11,10 +12,12 @@ export const machineGlossRepository = {
     languageId,
     modelCode,
     stream,
+    onProgress,
   }: {
     languageId: string;
     modelCode: string;
     stream: Readable;
+    onProgress?: (bookId: number) => Promise<void>;
   }): Promise<void> {
     const words = await getDb().selectFrom("word").select("id").execute();
     const wordIdSet = buildWordIdsSet(words);
@@ -30,18 +33,49 @@ export const machineGlossRepository = {
       .where("language_id", "=", languageId)
       .execute();
 
-    await copyStreamV2<StreamedMachineGloss, "machine_gloss">({
+    const progressTransform = new TrackBookProgressTransform(onProgress);
+    const filterTransform = new FilterMissingWordsTransform(wordIdSet);
+
+    await copyStream<StreamedMachineGloss, "machine_gloss">({
       table: "machine_gloss",
-      stream: stream.pipe(new FilterMissingWordsTransform(wordIdSet)),
       fields: {
         word_id: (record) => record.wordId,
         language_id: () => languageId,
         model_id: () => model.id.toString(),
         gloss: (record) => record.gloss,
       },
+      stream: stream.compose(progressTransform).compose(filterTransform),
     });
   },
 };
+
+class TrackBookProgressTransform extends Transform {
+  private currentBookId: number | undefined;
+
+  constructor(private onBookIdChange?: (bookId: number) => Promise<void>) {
+    super({ writableObjectMode: true, readableObjectMode: true });
+  }
+
+  override _transform(
+    chapter: AIGlossChapter,
+    _encoding: BufferEncoding,
+    cb: (error?: Error | null, data?: Array<AIGloss>) => void,
+  ) {
+    if (chapter.bookId !== this.currentBookId) {
+      this.currentBookId = chapter.bookId;
+      // This is intentionally not awaited since we don't want to block the stream
+      if (this.onBookIdChange) {
+        this.onBookIdChange(chapter.bookId).catch((err) => {
+          console.error(
+            `Unhandled failure in TrackBookProgressTransform.onBookIdChange: ${err}`,
+          );
+        });
+      }
+    }
+
+    cb(null, chapter.glosses);
+  }
+}
 
 export class FilterMissingWordsTransform extends Transform {
   constructor(private readonly existingWordIds: ReadonlySet<number>) {
