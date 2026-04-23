@@ -1,11 +1,11 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { beforeEach, describe, expect, test } from "vitest";
-import { copyStreamV2, query } from "./db";
+import { copyStream, query } from "./db";
 import { Readable } from "stream";
 
 initializeDatabase();
 
-describe("copyStreamV2", () => {
+describe("copyStream", () => {
   const sourceData: Array<{
     id: number;
     flag: boolean;
@@ -39,7 +39,7 @@ describe("copyStreamV2", () => {
   });
 
   test("can stream data into a table", async () => {
-    await copyStreamV2<any, any>({
+    await copyStream<any, any>({
       table: "test",
       stream: Readable.from(sourceData),
       fields: {
@@ -64,7 +64,7 @@ describe("copyStreamV2", () => {
   });
 
   test("can stream a subset of columns into a table", async () => {
-    await copyStreamV2<any, any>({
+    await copyStream<any, any>({
       table: "test",
       stream: Readable.from(sourceData),
       fields: {
@@ -91,7 +91,7 @@ describe("copyStreamV2", () => {
       chunks.push(sourceData.slice(10 * i, 10 * (i + 1)));
     }
 
-    await copyStreamV2<any, any>({
+    await copyStream<any, any>({
       table: "test",
       stream: Readable.from(chunks),
       fields: {

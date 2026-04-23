@@ -1,4 +1,4 @@
-import { copyStreamV2, getDb } from "@/db";
+import { copyStream, getDb } from "@/db";
 import { Readable, Transform } from "stream";
 
 export interface StreamedMachineGloss {
@@ -30,7 +30,7 @@ export const machineGlossRepository = {
       .where("language_id", "=", languageId)
       .execute();
 
-    await copyStreamV2<StreamedMachineGloss, "machine_gloss">({
+    await copyStream<StreamedMachineGloss, "machine_gloss">({
       table: "machine_gloss",
       stream: stream.pipe(new FilterMissingWordsTransform(wordIdSet)),
       fields: {
