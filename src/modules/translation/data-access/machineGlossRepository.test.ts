@@ -157,7 +157,7 @@ describe("updateAllForLanguage", () => {
       members: [],
     });
 
-    const onBookIdChange = vi.fn().mockResolvedValue(undefined);
+    const onProgress = vi.fn().mockResolvedValue(undefined);
     const chapterStream: Array<AIGlossChapter> = [
       {
         bookId: 1,
@@ -180,12 +180,12 @@ describe("updateAllForLanguage", () => {
       languageId: language.id,
       modelCode: "llm_import",
       stream: Readable.from(chapterStream),
-      onBookIdChange,
+      onProgress,
     });
 
-    expect(onBookIdChange).toHaveBeenCalledTimes(2);
-    expect(onBookIdChange).toHaveBeenNthCalledWith(1, 1);
-    expect(onBookIdChange).toHaveBeenNthCalledWith(2, 2);
+    expect(onProgress).toHaveBeenCalledTimes(2);
+    expect(onProgress).toHaveBeenNthCalledWith(1, 1);
+    expect(onProgress).toHaveBeenNthCalledWith(2, 2);
 
     const insertedGlosses = await getDb()
       .selectFrom("machine_gloss")
@@ -206,7 +206,7 @@ describe("updateAllForLanguage", () => {
       members: [],
     });
 
-    const onBookIdChange = vi.fn().mockRejectedValue(new Error("test error"));
+    const onProgress = vi.fn().mockRejectedValue(new Error("test error"));
     const chapterStream: Array<AIGlossChapter> = [
       {
         bookId: 1,
@@ -229,12 +229,12 @@ describe("updateAllForLanguage", () => {
       languageId: language.id,
       modelCode: "llm_import",
       stream: Readable.from(chapterStream),
-      onBookIdChange,
+      onProgress,
     });
 
-    expect(onBookIdChange).toHaveBeenCalledTimes(2);
-    expect(onBookIdChange).toHaveBeenNthCalledWith(1, 1);
-    expect(onBookIdChange).toHaveBeenNthCalledWith(2, 2);
+    expect(onProgress).toHaveBeenCalledTimes(2);
+    expect(onProgress).toHaveBeenNthCalledWith(1, 1);
+    expect(onProgress).toHaveBeenNthCalledWith(2, 2);
 
     const insertedGlosses = await getDb()
       .selectFrom("machine_gloss")
