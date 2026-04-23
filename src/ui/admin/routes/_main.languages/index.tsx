@@ -60,6 +60,9 @@ function AdminLanguagesRoute() {
             <ListHeaderCell className="min-w-[120px]">
               NT Progress
             </ListHeaderCell>
+            <ListHeaderCell className="min-w-[220px]">
+              AI Glosses
+            </ListHeaderCell>
             <ListHeaderCell />
           </ListHeader>
           <ListBody>
@@ -79,6 +82,7 @@ function AdminLanguagesRoute() {
                 </ListCell>
                 <ListCell>{(100 * language.otProgress).toFixed(2)}%</ListCell>
                 <ListCell>{(100 * language.ntProgress).toFixed(2)}%</ListCell>
+                <ListCell>{formatAIGlossesStatus(language.aiGlosses)}</ListCell>
                 <ListCell>
                   <Button
                     variant="tertiary"
@@ -97,4 +101,26 @@ function AdminLanguagesRoute() {
       </div>
     </div>
   );
+}
+
+function formatAIGlossesStatus(aiGlosses: {
+  status: "unavailable" | "available" | "in-progress" | "imported";
+  lastSyncedAt?: Date;
+}) {
+  switch (aiGlosses.status) {
+    case "unavailable":
+      return "None available";
+    case "in-progress":
+      return "Import in progress";
+    case "imported":
+      return aiGlosses.lastSyncedAt ?
+          `Imported on ${aiGlosses.lastSyncedAt.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })}`
+        : "Available to import";
+    case "available":
+      return "Available to import";
+  }
 }
