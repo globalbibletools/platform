@@ -1,7 +1,7 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { beforeEach, describe, expect, test } from "vitest";
 import { copyStream, query } from "./db";
-import { Readable } from "stream";
+import { PassThrough, Readable } from "stream";
 
 initializeDatabase();
 
@@ -113,5 +113,45 @@ describe("copyStream", () => {
         created_at: record.createdAt,
       })),
     );
+  });
+
+  test("errors in copy stream are handled", async () => {
+    const result = copyStream<any, any>({
+      table: "missing_table",
+      fields: {
+        id: (record: any) => record.id.toString(),
+        flag: (record: any) => record.flag.toString(),
+        content: (record: any) => record.content,
+        total: (record: any) => record.total.toString(),
+        created_at: (record: any) => record.createdAt.toISOString(),
+      },
+      stream: Readable.from(sourceData),
+    });
+
+    await expect(result).rejects.toThrowError();
+  });
+
+  test("errors in source stream are handled", async () => {
+    async function* testData() {
+      yield sourceData[0];
+      throw new Error("test error");
+    }
+
+    const result = copyStream<any, any>({
+      table: "missing_table",
+      fields: {
+        id: (record: any) => record.id.toString(),
+        flag: (record: any) => record.flag.toString(),
+        content: (record: any) => record.content,
+        total: (record: any) => record.total.toString(),
+        created_at: (record: any) => record.createdAt.toISOString(),
+      },
+      // This extra pass through ensures that we cover the case where the error is a stream not directly passed to the db function.
+      stream: Readable.from(testData()).compose(
+        new PassThrough({ objectMode: true }),
+      ),
+    });
+
+    await expect(result).rejects.toThrowError(new Error("test error"));
   });
 });
