@@ -78,6 +78,33 @@ export function bookLastVerseId(bookId: number) {
 
 const REFERENCE_REGEX = /^(.+?)(?:[.]?\s*(\d+)(?:([:.,]|\s)(\d+))?)?[;.,]?$/;
 
+export function parseReferenceParts(
+  reference: string,
+): { bookToken?: string; chapterToken?: string } | undefined {
+  const trimmedReference = reference.trim();
+  const matches = trimmedReference.match(REFERENCE_REGEX);
+
+  if (!matches) {
+    return;
+  }
+
+  const bookToken = matches?.[1];
+  const chapterToken = matches?.[2];
+
+  return { bookToken, chapterToken };
+}
+
+export function findBookMatches<T extends { name: string }>(
+  input: string,
+  books: Array<T>,
+): Array<T> {
+  return fuzzysort
+    .go(input.toLowerCase(), books, {
+      key: "name",
+    })
+    .map((result) => result.obj);
+}
+
 export function parseReference(
   reference: string,
   bookNameList: string[],
