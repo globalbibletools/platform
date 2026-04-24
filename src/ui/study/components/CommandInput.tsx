@@ -1,8 +1,5 @@
-"use client";
-
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
-import TextInput from "@/components/TextInput";
 import { useEffect, useState } from "react";
 import { useTranslations } from "use-intl";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
@@ -11,10 +8,9 @@ import {
   bookLastChapterId,
   decrementChapterId,
   incrementChapterId,
-  parseReference,
 } from "@/verse-utils";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { useFlash } from "@/flash";
+import ChapterPickerDialog from "./ChapterPickerDialog";
 
 export default function CommandInput() {
   const { chapterId, code: languageCode } = useParams({
@@ -26,11 +22,9 @@ export default function CommandInput() {
 
   const bookId = parseInt(chapterId.slice(0, 2)) || 1;
   const chapter = parseInt(chapterId.slice(2, 5)) || 1;
+  const reference = t("verse_reference", { bookId, chapter });
 
-  const [reference, setReference] = useState("");
-  useEffect(() => {
-    setReference(t("verse_reference", { bookId, chapter }));
-  }, [bookId, chapter, t]);
+  const [openPicker, setOpenPicker] = useState(false);
 
   useEffect(() => {
     if (!chapterId) return;
@@ -81,71 +75,64 @@ export default function CommandInput() {
     return () => window.removeEventListener("keydown", keydownCallback);
   }, [navigate, chapterId, languageCode]);
 
-  const flash = useFlash();
-
   return (
-    <form
-      className="relative w-56 shrink"
-      onSubmit={(e) => {
-        e.preventDefault();
-
-        const referenceElement = e.target.elements.namedItem("reference");
-        if (!(referenceElement instanceof HTMLInputElement)) return;
-
-        const verseId = parseReference(
-          referenceElement.value,
-          t.raw("book_names"),
-        );
-        if (!verseId) {
-          flash.error(
-            t("invalid_reference", { reference: referenceElement.value }),
-          );
-          return;
-        }
-
-        navigate({
-          to: "/read/$code/$chapterId",
-          params: { code: languageCode, chapterId: verseId.slice(0, -3) },
-        });
-      }}
-    >
-      <input type="hidden" value={languageCode} name="language" />
-      <TextInput
-        id="chapter-reference"
-        className="pe-16 placeholder-current w-full"
-        value={reference}
-        onChange={(e) => setReference(e.target.value)}
-        name="reference"
-        autoComplete="off"
-        onFocus={(e) => e.target.select()}
-        aria-label={t("chapter")}
-      />
-      <Button
-        className="absolute end-8 top-1 w-7 h-7!"
-        variant="tertiary"
-        to={chapterId ? "/read/$code/$chapterId" : "."}
-        params={
-          chapterId ?
-            { code: languageCode, chapterId: decrementChapterId(chapterId) }
-          : undefined
-        }
-      >
-        <Icon icon="arrow-up" />
-        <span className="sr-only">{t("previous_chapter")}</span>
-      </Button>
-      <Button
-        className="absolute end-1 top-1 w-7 h-7!"
-        variant="tertiary"
-        to={chapterId ? "/read/$code/$chapterId" : "."}
-        params={
-          chapterId ?
-            { code: languageCode, chapterId: incrementChapterId(chapterId) }
-          : undefined
-        }
-      >
-        <Icon icon="arrow-down" />
-        <span className="sr-only">{t("next_chapter")}</span>
-      </Button>
-    </form>
+    <>
+      <div className="relative w-56 shrink">
+        <button
+          id="chapter-reference"
+          className="
+            pe-16 w-full
+            border rounded shadow-inner ps-3 h-9 bg-white
+            focus-visible:outline-2
+            dark:bg-gray-900 dark:shadow-none
+            border-gray-400 outline-green-300 dark:border-gray-700
+            text-start
+          "
+          value={reference}
+          onClick={() => setOpenPicker(true)}
+        >
+          {reference}
+        </button>
+        <Button
+          className="absolute inset-e-8 top-1 w-7 h-7!"
+          variant="tertiary"
+          to={chapterId ? "/read/$code/$chapterId" : "."}
+          params={
+            chapterId ?
+              { code: languageCode, chapterId: decrementChapterId(chapterId) }
+            : undefined
+          }
+        >
+          <Icon icon="arrow-up" />
+          <span className="sr-only">{t("previous_chapter")}</span>
+        </Button>
+        <Button
+          className="absolute inset-e-1 top-1 w-7 h-7!"
+          variant="tertiary"
+          to={chapterId ? "/read/$code/$chapterId" : "."}
+          params={
+            chapterId ?
+              { code: languageCode, chapterId: incrementChapterId(chapterId) }
+            : undefined
+          }
+        >
+          <Icon icon="arrow-down" />
+          <span className="sr-only">{t("next_chapter")}</span>
+        </Button>
+      </div>
+      {openPicker && (
+        <ChapterPickerDialog
+          chapterId={chapterId}
+          onCancel={() => setOpenPicker(false)}
+          onSubmit={async (nextChapterId) => {
+            await navigate({
+              to: "/read/$code/$chapterId",
+              params: { code: languageCode, chapterId: nextChapterId },
+            });
+            setOpenPicker(false);
+          }}
+        />
+      )}
+    </>
   );
 }
