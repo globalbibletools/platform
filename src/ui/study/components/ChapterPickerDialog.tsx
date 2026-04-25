@@ -162,7 +162,7 @@ export default function ChapterPickerDialog({
             </ol>
             <div className="flex-1" />
           </>
-        : <div className="relative flex-1 min-h-0 grid grid-cols-[auto_1fr] overflow-y-auto gap-x-4">
+        : <div className="relative min-h-0 grid grid-cols-[auto_1fr] overflow-y-auto gap-x-4">
             <div className="sticky z-10 top-0 bg-white dark:bg-gray-900 grid grid-cols-subgrid col-span-2 border-b-2 border-green-300">
               <div className="ps-3 uppercase font-bold text-sm">
                 {t("book_column")}
@@ -235,6 +235,8 @@ export default function ChapterPickerDialog({
           </div>
         }
 
+        <div className="grow" />
+
         <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={onCancel}>
             {t("cancel")}
@@ -276,9 +278,9 @@ function getChapterReferenceOptions(
     match.bookToken ? findBookMatches(match.bookToken, books) : books;
 
   if (filteredBooks.length === 0) {
-    return { books, invalid: true };
+    return { books: filteredBooks, invalid: true };
   } else if (filteredBooks.length > 1) {
-    return { books, invalid: false };
+    return { books: filteredBooks, invalid: false };
   }
 
   const book = filteredBooks[0];
@@ -286,7 +288,7 @@ function getChapterReferenceOptions(
   if (!match.chapterToken) {
     if (book.chapterCount === 1) {
       return {
-        books,
+        books: filteredBooks,
         book,
         chapterNumber: 1,
         chapterId: generateChapterId({
@@ -298,7 +300,7 @@ function getChapterReferenceOptions(
     }
 
     return {
-      books,
+      books: filteredBooks,
       book,
       invalid: false,
     };
