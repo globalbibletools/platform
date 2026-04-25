@@ -13,6 +13,7 @@ export interface InterlinearWord {
 
 export interface InterlinearVerse {
   id: string;
+  chapter: number;
   number: number;
   words: InterlinearWord[];
 }
@@ -22,6 +23,7 @@ export interface InterlinearChapterResult {
     id: string;
     code: string;
     name: string;
+    font: string;
     textDirection: TextDirectionRaw;
   };
   verses: InterlinearVerse[];
@@ -37,10 +39,11 @@ const interlinearQueryService = {
       id: string;
       code: string;
       name: string;
+      font: string;
       textDirection: TextDirectionRaw;
     }>(
       `
-        select id, code, local_name as name, text_direction as "textDirection"
+        select id, code, local_name as name, font, text_direction as "textDirection"
         from language
         where code = $1
       `,
@@ -56,6 +59,7 @@ const interlinearQueryService = {
       `
         SELECT
           v.id,
+          v.chapter,
           v.number,
           words.words
         FROM verse AS v

@@ -16,6 +16,7 @@ import { routerGuard } from "@/modules/access/routerGuard";
 import { createFileRoute } from "@tanstack/react-router";
 import { withDocumentTitle } from "@/documentTitle";
 import { loadAdminLanguagesPage } from "@/ui/admin/serverFns/loadAdminLanguagesPage";
+import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
 
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
@@ -63,6 +64,10 @@ function AdminLanguagesRoute() {
             <ListHeaderCell className="min-w-[120px]">
               AI Glosses
             </ListHeaderCell>
+            <FeatureFlagged
+              feature="ff-interlinear-pdf-export"
+              enabledChildren={<ListHeaderCell />}
+            />
             <ListHeaderCell />
           </ListHeader>
           <ListBody>
@@ -85,6 +90,20 @@ function AdminLanguagesRoute() {
                 <ListCell className="pe-4">
                   <AIGlossesStatus aiGlosses={language.aiGlosses} />
                 </ListCell>
+                <FeatureFlagged
+                  feature="ff-interlinear-pdf-export"
+                  enabledChildren={
+                    <ListCell className="pe-4">
+                      <Button
+                        variant="tertiary"
+                        to="/admin/languages/$code/exports"
+                        params={{ code: language.code }}
+                      >
+                        <Icon icon="file-export" />
+                      </Button>
+                    </ListCell>
+                  }
+                />
                 <ListCell>
                   <Button
                     variant="tertiary"

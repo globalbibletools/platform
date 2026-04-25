@@ -13,6 +13,36 @@ export interface PdfGeneratorOptions {
   header?: { title?: string; subtitle?: string };
   footer?: { generatedAt?: Date; pageOffset?: number; pageTotal?: number };
   sourceScript?: "hebrew" | "greek";
+  glossFontName?: string;
+}
+
+/**
+ * Maps language font names to TTF filenames in the fonts directory.
+ * "Noto Sans" is the default for most languages; the PDF generator
+ * will detect the gloss script and pick a more specific variant when needed.
+ */
+const pdfFontMap: Record<string, string> = {
+  "Noto Sans": "NotoSans-Regular.ttf",
+  "Noto Sans Arabic": "NotoSansArabic-Regular.ttf",
+  "Noto Sans Devanagari": "NotoSansDevanagari-Regular.ttf",
+};
+
+/** Maps Unicode ranges to Noto font variants for "Noto Sans" fallback. */
+const notoScriptVariants: { regex: RegExp; font: string }[] = [
+  { regex: /[\u0900-\u097F]/, font: "Noto Sans Devanagari" },
+  { regex: /[\u0600-\u06FF]/, font: "Noto Sans Arabic" },
+];
+
+/**
+ * Given a sample of gloss text and the language font name,
+ * resolves the best font name to use in the PDF.
+ */
+function resolveGlossFontName(fontName: string, glossSample: string): string {
+  if (fontName !== "Noto Sans") return fontName;
+  for (const variant of notoScriptVariants) {
+    if (variant.regex.test(glossSample)) return variant.font;
+  }
+  return fontName;
 }
 
 export interface GeneratedPdf {
@@ -30,7 +60,6 @@ export function generateInterlinearPdf(
   const fontCandidates = [
     "/var/task/fonts",
     path.join(process.cwd(), "fonts"),
-    path.join(__dirname, "fonts"),
     path.join(process.cwd(), "dist", "fonts"),
     path.join(process.cwd(), "src", "fonts"),
   ];
@@ -62,12 +91,34 @@ export function generateInterlinearPdf(
   const greekFont = fs.readFileSync(path.join(fontBase, "SBL_grk.ttf"));
   doc.registerFont("SBLHebrew", hebrewFont);
   doc.registerFont("SBLGreek", greekFont);
+
+  // Sample gloss text to detect script, then resolve the best font variant
+  const glossSample = chapter.verses
+    .flatMap((v) => v.words.map((w) => w.gloss ?? ""))
+    .join("");
+  const resolvedFontName = resolveGlossFontName(
+    options.glossFontName ?? "Noto Sans",
+    glossSample,
+  );
+  let glossFont = "Helvetica";
+  const glossFontFile = pdfFontMap[resolvedFontName];
+  if (glossFontFile) {
+    const glossFontPath = path.join(fontBase, glossFontFile);
+    if (!fs.existsSync(glossFontPath)) {
+      throw new Error(
+        `Gloss font ${resolvedFontName} not found. Expected at ${glossFontPath}`,
+      );
+    }
+    const fontData = fs.readFileSync(glossFontPath);
+    doc.registerFont(resolvedFontName, fontData);
+    glossFont = resolvedFontName;
+  }
+
   const primaryFont =
     options.sourceScript === "hebrew" ? "SBLHebrew"
     : options.sourceScript === "greek" ? "SBLGreek"
     : normalizedDirection === "rtl" ? "SBLHebrew"
     : "SBLGreek";
-  const glossFont = "Helvetica";
   const alignment =
     options.sourceScript === "hebrew" || normalizedDirection === "rtl" ?
       "right"
@@ -114,7 +165,7 @@ function renderVerse(
     .font(glossFont)
     .fontSize(10)
     .fillColor("#444")
-    .text(`Verse ${verse.number}`, {
+    .text(formatVerseLabel(verse), {
       continued: false,
       underline: true,
       align: alignment,
@@ -130,6 +181,10 @@ function renderVerse(
     alignment,
     contentWidth,
   );
+}
+
+export function formatVerseLabel(verse: InterlinearVerse): string {
+  return `${verse.chapter}:${verse.number}`;
 }
 
 function renderInterlinearLine(
@@ -260,6 +315,7 @@ function addFooter(
         `Page ${pageNumber} of ${footer.pageTotal}`
       : `Page ${pageNumber}`;
     doc
+      .font("Helvetica")
       .fontSize(8)
       .fillColor("#555")
       .text(pageLabel, doc.page.margins.left, y, {
@@ -300,11 +356,15 @@ function renderFooter(
   const previousX = doc.x;
   const previousY = doc.y;
 
-  doc.fontSize(8).fillColor("#555").text(pageLabel, doc.page.margins.left, y, {
-    width,
-    lineBreak: false,
-    align: "center",
-  });
+  doc
+    .font("Helvetica")
+    .fontSize(8)
+    .fillColor("#555")
+    .text(pageLabel, doc.page.margins.left, y, {
+      width,
+      lineBreak: false,
+      align: "center",
+    });
   if (footer?.generatedAt) {
     doc.text(
       `Generated: ${footer.generatedAt.toISOString()}`,

@@ -1,7 +1,10 @@
 import path from "path";
 import { describe, expect, it, beforeEach } from "vitest";
 import { PDFDocument } from "pdf-lib";
-import { generateInterlinearPdf } from "./InterlinearPdfGenerator";
+import {
+  formatVerseLabel,
+  generateInterlinearPdf,
+} from "./InterlinearPdfGenerator";
 import type { InterlinearChapterResult } from "../data-access/InterlinearQueryService";
 import { TextDirectionRaw } from "@/modules/languages/model";
 
@@ -36,11 +39,13 @@ function buildSampleChapter(): InterlinearChapterResult {
       id: "lang-1",
       code: "en",
       name: "Test Language",
+      font: "Noto Sans",
       textDirection: TextDirectionRaw.LTR,
     },
     verses: [
       {
         id: "verse-1",
+        chapter: 1,
         number: 1,
         words: [
           {
@@ -88,5 +93,61 @@ describe("generateInterlinearPdf", () => {
 
     const pdf = await PDFDocument.load(pdfBytes);
     expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
+  });
+
+  it("renders Devanagari glosses with NotoSansDevanagari font", async () => {
+    const chapter = buildSampleChapter();
+    chapter.verses[0].words[0].gloss = "आरम्भ";
+    chapter.verses[0].words[1].gloss = "परमेश्वर";
+
+    const { stream, pageCount } = generateInterlinearPdf(chapter, {
+      pageSize: "letter",
+      direction: "ltr",
+      header: { title: "Devanagari Test", subtitle: "Hindi glosses" },
+      footer: { generatedAt: new Date(), pageOffset: 0 },
+      glossFontName: "Noto Sans",
+    });
+
+    const pdfBytes = await streamToBuffer(stream);
+    expect(pdfBytes.byteLength).toBeGreaterThan(0);
+    expect(pageCount).toBeGreaterThanOrEqual(1);
+
+    const pdf = await PDFDocument.load(pdfBytes);
+    expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
+  });
+
+  it.each([
+    ["configured", "Noto Sans Arabic"],
+    ["detected", "Noto Sans"],
+  ])("renders Arabic glosses with %s font selection", async (_, fontName) => {
+    const chapter = buildSampleChapter();
+    chapter.verses[0].words[0].gloss = "كلمة";
+    chapter.verses[0].words[1].gloss = "الله";
+
+    const { stream, pageCount } = generateInterlinearPdf(chapter, {
+      pageSize: "letter",
+      direction: "ltr",
+      header: { title: "Arabic Test", subtitle: "Arabic glosses" },
+      footer: { generatedAt: new Date(), pageOffset: 0 },
+      glossFontName: fontName,
+    });
+
+    const pdfBytes = await streamToBuffer(stream);
+    expect(pdfBytes.byteLength).toBeGreaterThan(0);
+    expect(pageCount).toBeGreaterThanOrEqual(1);
+
+    const pdf = await PDFDocument.load(pdfBytes);
+    expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
+  });
+
+  it("formats verse labels as chapter and verse references", () => {
+    expect(
+      formatVerseLabel({
+        id: "verse-3-1",
+        chapter: 3,
+        number: 1,
+        words: [],
+      }),
+    ).toBe("3:1");
   });
 });

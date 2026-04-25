@@ -180,6 +180,9 @@
       "exports": "التصدير"
     }
   },
+  "LanguageExportsPage": {
+    "title": "التصدير"
+  },
   "LanguageSettingsPage": {
     "title": "الإعدادات",
     "form": {

@@ -162,6 +162,9 @@
       "exports": "Exports"
     }
   },
+  "LanguageExportsPage": {
+    "title": "Exports"
+  },
   "LanguageSettingsPage": {
     "title": "Settings",
     "form": {

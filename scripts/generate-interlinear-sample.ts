@@ -8,11 +8,13 @@ const sample: InterlinearChapterResult = {
     id: "lang",
     code: "hbo",
     name: "Hebrew",
+    font: "Noto Sans",
     textDirection: TextDirectionRaw.RTL,
   },
   verses: [
     {
       id: "v1",
+      chapter: 1,
       number: 1,
       words: [
         {
@@ -68,6 +70,7 @@ const sample: InterlinearChapterResult = {
     },
     {
       id: "v2",
+      chapter: 1,
       number: 2,
       words: [
         {

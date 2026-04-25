@@ -62,10 +62,7 @@ export async function exportInterlinearPdfJob(
 
       const bookName =
         booksById.get(selection.bookId) ?? `Book ${selection.bookId}`;
-      const chapterLabel =
-        chapters.length === 1 ?
-          `Chapter ${chapters[0]}`
-        : `Chapters ${chapters[0]}-${chapters[chapters.length - 1]}`;
+      const chapterLabel = formatChapterLabel(chapters);
 
       const chapterData = await interlinearQueryService.fetchChapters(
         selection.bookId,
@@ -87,6 +84,7 @@ export async function exportInterlinearPdfJob(
         pageSize: "letter",
         direction: chapterData.language.textDirection,
         sourceScript,
+        glossFontName: chapterData.language.font,
         header: {
           title: `${glossLanguageName}/${sourceLanguageLabel} Interlinear`,
           subtitle: `${bookName} - ${chapterLabel}`,
@@ -151,6 +149,33 @@ export default exportInterlinearPdfJob;
 function partKeyForBook(exportKey: string, bookId: number): string {
   const base = exportKey.replace(/\.pdf$/i, "");
   return `${base}-book-${bookId}.pdf`;
+}
+
+function formatChapterLabel(chapters: number[]): string {
+  const ranges: string[] = [];
+  let rangeStart = chapters[0];
+  let previous = chapters[0];
+
+  for (const chapter of chapters.slice(1)) {
+    if (chapter === previous + 1) {
+      previous = chapter;
+      continue;
+    }
+
+    ranges.push(formatChapterRange(rangeStart, previous));
+    rangeStart = chapter;
+    previous = chapter;
+  }
+
+  ranges.push(formatChapterRange(rangeStart, previous));
+
+  return chapters.length === 1 ?
+      `Chapter ${ranges[0]}`
+    : `Chapters ${ranges.join(", ")}`;
+}
+
+function formatChapterRange(start: number, end: number): string {
+  return start === end ? `${start}` : `${start}-${end}`;
 }
 
 async function cleanupParts(

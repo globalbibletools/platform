@@ -127,8 +127,8 @@ describe("exportInterlinearPdfJob", () => {
     mockFetchChapters.mockResolvedValue({
       language: { textDirection: "ltr", name: "Test Language" },
       verses: [
-        { number: 1, words: [{ text: "a", gloss: "a" }] },
-        { number: 1, words: [{ text: "b", gloss: "b" }] },
+        { chapter: 1, number: 1, words: [{ text: "a", gloss: "a" }] },
+        { chapter: 2, number: 1, words: [{ text: "b", gloss: "b" }] },
       ],
     });
     mockGenerateInterlinearPdf.mockImplementation(() => ({
@@ -171,6 +171,24 @@ describe("exportInterlinearPdfJob", () => {
       pages: 3,
     });
     expect(mockDeleteObject).toHaveBeenCalledTimes(uploadedKeys.length);
+  });
+
+  it("labels sparse chapter selections without implying a full range", async () => {
+    mockFindChaptersWithApprovedGlosses.mockResolvedValue([
+      { bookId: 1, chapters: [3, 1] },
+    ]);
+
+    await expect(exportInterlinearPdfJob(baseJob)).resolves.toBeUndefined();
+
+    expect(mockFetchChapters).toHaveBeenCalledExactlyOnceWith(1, [1, 3], "spa");
+    expect(mockGenerateInterlinearPdf).toHaveBeenCalledExactlyOnceWith(
+      expect.anything(),
+      expect.objectContaining({
+        header: expect.objectContaining({
+          subtitle: "Genesis - Chapters 1, 3",
+        }),
+      }),
+    );
   });
 
   it("cleans up parts on errors after upload", async () => {

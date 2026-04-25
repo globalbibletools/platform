@@ -58,7 +58,7 @@ function LanguageSettingsRoute() {
         className="max-w-[1000px]"
         invalidate
       >
-        <div className="flex items-baseline mb-4">
+        <div className="flex items-baseline gap-4 mb-4">
           <ViewTitle>{languageSettings.englishName} Settings</ViewTitle>
           <SavingIndicator
             labels={{
