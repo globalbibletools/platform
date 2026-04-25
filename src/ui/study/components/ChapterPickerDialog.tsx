@@ -11,11 +11,7 @@ import {
 } from "@/verse-utils";
 import { SubmitEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
-import {
-  BookProgressReadModel,
-  ProgressByBookIdReadModel,
-} from "../readModels/getReadBookProgressReadModel";
-import ProgressBar from "@/ui/admin/components/ProgressBar";
+import { ProgressByBookIdReadModel } from "../readModels/getReadBookProgressReadModel";
 
 interface ChapterPickerDialogProps {
   chapterId: string;
