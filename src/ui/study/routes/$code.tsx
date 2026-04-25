@@ -8,10 +8,10 @@ export const Route = createFileRoute("/_main/read/$code")({
 });
 
 function ReadingLayout() {
-  const { languages } = Route.useLoaderData();
+  const { languages, progressByBookId } = Route.useLoaderData();
 
   return (
-    <ReadingToolbar languages={languages}>
+    <ReadingToolbar languages={languages} progressByBookId={progressByBookId}>
       <Outlet />
     </ReadingToolbar>
   );

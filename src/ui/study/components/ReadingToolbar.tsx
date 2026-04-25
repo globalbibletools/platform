@@ -10,14 +10,17 @@ import SettingsMenu from "./SettingsMenu";
 import CommandInput from "./CommandInput";
 import { useFlash } from "@/flash";
 import { useNavigate, useParams } from "@tanstack/react-router";
+import { ProgressByBookIdReadModel } from "../readModels/getReadBookProgressReadModel";
 
 export interface TranslationToolbarProps {
   languages: { englishName: string; localName: string; code: string }[];
+  progressByBookId: ProgressByBookIdReadModel;
   children: ReactNode;
 }
 
 export default function ReadingToolbar({
   languages,
+  progressByBookId,
   children,
 }: TranslationToolbarProps) {
   const t = useTranslations("ReadingToolbar");
@@ -48,7 +51,7 @@ export default function ReadingToolbar({
           shadow-md dark:shadow-none dark:border-b dark:border-gray-700 bg-white dark:bg-gray-900
         "
       >
-        <CommandInput />
+        <CommandInput progressByBookId={progressByBookId} />
         <ComboboxInput
           id="target-language"
           items={languages.map((l) => ({

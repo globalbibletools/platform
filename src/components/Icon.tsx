@@ -1,5 +1,6 @@
 import { config } from "@fortawesome/fontawesome-svg-core";
 import * as FaSolid from "@fortawesome/free-solid-svg-icons";
+import * as FaRegular from "@fortawesome/free-regular-svg-icons";
 import * as FaBrands from "@fortawesome/free-brands-svg-icons";
 import {
   FontAwesomeIcon,
@@ -30,6 +31,8 @@ const iconMap = {
   "chevron-down": FaSolid.faChevronDown,
   "chevron-up": FaSolid.faChevronUp,
   "chart-line": FaSolid.faChartLine,
+  circle: FaSolid.faCircle,
+  "circle-hollow": FaRegular.faCircle,
   "circle-play": FaSolid.faCirclePlay,
   close: FaSolid.faXmark,
   database: FaSolid.faDatabase,
@@ -39,6 +42,7 @@ const iconMap = {
   "exclamation-circle": FaSolid.faCircleExclamation,
   "exclamation-triangle": FaSolid.faTriangleExclamation,
   "external-link": FaSolid.faUpRightFromSquare,
+  hourglass: FaSolid.faHourglass,
   maximize: FaSolid.faMaximize,
   feather: FaSolid.faFeather,
   "file-arrow-down": FaSolid.faFileArrowDown,

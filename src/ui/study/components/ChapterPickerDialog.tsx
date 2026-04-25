@@ -11,15 +11,22 @@ import {
 } from "@/verse-utils";
 import { SubmitEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "use-intl";
+import {
+  BookProgressReadModel,
+  ProgressByBookIdReadModel,
+} from "../readModels/getReadBookProgressReadModel";
+import ProgressBar from "@/ui/admin/components/ProgressBar";
 
 interface ChapterPickerDialogProps {
   chapterId: string;
+  progressByBookId: ProgressByBookIdReadModel;
   onCancel(): void;
   onSubmit(chapterId: string): void;
 }
 
 export default function ChapterPickerDialog({
   chapterId,
+  progressByBookId,
   onCancel,
   onSubmit,
 }: ChapterPickerDialogProps) {
@@ -159,24 +166,77 @@ export default function ChapterPickerDialog({
             </ol>
             <div className="flex-1" />
           </>
-        : <ol className="flex-1 min-h-0 overflow-y-auto px-3">
-            {options.books.map((book) => {
-              return (
-                <li key={book.id}>
-                  <Button
-                    variant="tertiary"
-                    className="w-full h-9 justify-start"
-                    tabIndex={-1}
-                    onClick={() => {
-                      setReference(book.name);
-                    }}
+        : <div className="relative flex-1 min-h-0 grid grid-cols-[auto_1fr] overflow-y-auto gap-x-4">
+            <div className="sticky z-10 top-0 bg-white dark:bg-gray-900 grid grid-cols-subgrid col-span-2 border-b-2 border-green-300">
+              <div className="ps-3 uppercase font-bold text-sm">
+                {t("book_column")}
+              </div>
+              <div className="pe-3 uppercase font-bold text-sm">
+                {t("glosses_column")}
+              </div>
+            </div>
+            <ol className="grid grid-cols-subgrid col-span-2 px-3">
+              {options.books.map((book) => {
+                const progress = progressByBookId[book.id.toString()];
+
+                return (
+                  <li
+                    key={book.id}
+                    className="grid grid-cols-subgrid col-span-2 items-baseline py-0.5"
                   >
-                    {book.name}
-                  </Button>
-                </li>
-              );
-            })}
-          </ol>
+                    <Button
+                      variant="tertiary"
+                      className="justify-start"
+                      tabIndex={-1}
+                      onClick={() => {
+                        setReference(book.name);
+                      }}
+                    >
+                      {book.name}
+                    </Button>
+                    <div className="text-sm">
+                      {progress.approvedWords === progress.totalWords ?
+                        <>
+                          <Icon
+                            icon="check-circle"
+                            className="mt-1 text-green-500 me-1"
+                            fixedWidth
+                          />
+                          {t("status_complete")}
+                        </>
+                      : progress.approvedWords === 0 ?
+                        <>
+                          <Icon
+                            icon="xmark"
+                            className="mt-1 text-red-500 me-1"
+                            fixedWidth
+                          />
+                          {t("status_none")}
+                        </>
+                      : progress.approvedWords / progress.totalWords > 0.8 ?
+                        <>
+                          <Icon
+                            icon="circle"
+                            className="mt-1 text-brown-500 me-1"
+                            fixedWidth
+                          />
+                          {t("status_many")}
+                        </>
+                      : <>
+                          <Icon
+                            icon="circle-hollow"
+                            className="mt-1 text-brown-500 me-1"
+                            fixedWidth
+                          />
+                          {t("status_some")}
+                        </>
+                      }
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
         }
 
         <div className="flex justify-end gap-2">
