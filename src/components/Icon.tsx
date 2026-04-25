@@ -42,7 +42,6 @@ const iconMap = {
   "exclamation-circle": FaSolid.faCircleExclamation,
   "exclamation-triangle": FaSolid.faTriangleExclamation,
   "external-link": FaSolid.faUpRightFromSquare,
-  hourglass: FaSolid.faHourglass,
   maximize: FaSolid.faMaximize,
   feather: FaSolid.faFeather,
   "file-arrow-down": FaSolid.faFileArrowDown,
