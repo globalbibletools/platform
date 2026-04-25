@@ -11,8 +11,13 @@ import {
 } from "@/verse-utils";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import ChapterPickerDialog from "./ChapterPickerDialog";
+import { ProgressByBookIdReadModel } from "../readModels/getReadBookProgressReadModel";
 
-export default function CommandInput() {
+export default function CommandInput({
+  progressByBookId,
+}: {
+  progressByBookId: ProgressByBookIdReadModel;
+}) {
   const { chapterId, code: languageCode } = useParams({
     from: "/_main/read/$code/$chapterId",
   });
@@ -123,6 +128,7 @@ export default function CommandInput() {
       {openPicker && (
         <ChapterPickerDialog
           chapterId={chapterId}
+          progressByBookId={progressByBookId}
           onCancel={() => setOpenPicker(false)}
           onSubmit={async (nextChapterId) => {
             await navigate({
