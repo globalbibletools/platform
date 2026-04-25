@@ -64,7 +64,7 @@ export default function TextInput({
         ${
           hasErrors ?
             "border-red-700 shadow-red-100 outline-red-700"
-          : "border-gray-400 outline-green-300 dark:border-gray-700"
+          : "border-gray-400 outline-green-300 dark:border-gray-600"
         }
         ${className}
       `}

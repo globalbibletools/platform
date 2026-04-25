@@ -49,8 +49,8 @@ function buttonClasses(
       return `${sharedClasses} ${sizeClasses} ${
         destructive ?
           "text-red-800 dark:text-red-700 border-red-800 outline-red-300"
-        : "text-blue-800 dark:text-green-400 border-blue-800 dark:border-green-800 outline-green-300"
-      } border-2 bg-white shadow-md`;
+        : "text-blue-800 dark:text-green-400 border-blue-800 dark:border-green-500 outline-green-300"
+      } border-2 bg-white dark:bg-gray-900 shadow-md`;
     }
     case "tertiary": {
       return `

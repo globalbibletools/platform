@@ -80,6 +80,7 @@ export default function ChapterPickerDialog({
       className="
         fixed w-[calc(100%-2rem)] max-w-[480px] h-[calc(100%-2rem)] max-h-[600px] m-auto
         rounded-lg shadow-md border border-gray-201 bg-white p-4 sm:p-6
+        dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300
         backdrop:overscroll-contain
         flex flex-col overflow-hidden
       "
