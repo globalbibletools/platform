@@ -153,13 +153,13 @@ function AutocompleteOption({
       {separator && (
         <div className="absolute top-0 w-[calc(100%-1rem)] border-t border-gray-300 -mx-1" />
       )}
-      {(
-        option.source === GlossApprovalMethodRaw.GoogleSuggestion ||
-        option.source === GlossApprovalMethodRaw.LLMSuggestion
-      ) ?
+      <span className="flex-1">{option.text}</span>
+      {option.source === GlossApprovalMethodRaw.LLMSuggestion ?
         <Icon icon="robot" size="xs" />
       : undefined}
-      <span className="flex-1">{option.text}</span>
+      {option.source === GlossApprovalMethodRaw.GoogleSuggestion ?
+        <Icon icon="google" size="xs" />
+      : undefined}
     </li>
   );
 }
