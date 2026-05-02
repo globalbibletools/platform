@@ -209,7 +209,6 @@ export default function TranslateWord({
               data-phrase={phrase.id}
               className="-mx-px mt-0.5 place-self-start row-start-3"
               font={fontMap[language.font]}
-              dir={language.textDirection}
               right={isHebrew}
               suggestions={word.suggestions}
               modelGlosses={word.modelGlosses}

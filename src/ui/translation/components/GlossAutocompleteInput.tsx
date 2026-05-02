@@ -242,7 +242,6 @@ function Input({
     <div
       className={`
           w-fit flex rounded focus-within:outline-2 outline-green-300
-          ${right ? "flex-row-reverse" : "flex-row"}
         `}
     >
       <div className="relative">
