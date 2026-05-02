@@ -34,11 +34,7 @@ export const getTranslationVerseData = createServerFn({ method: "GET" })
         getVerseWordsReadModel(data.verseId, data.code),
         fetchPhrases(data.verseId, data.code, context.session.user.id),
         fetchSuggestions(data.verseId, data.code),
-        fetchMachineSuggestions(
-          data.verseId,
-          data.code,
-          language.machineGlossStrategy,
-        ),
+        fetchMachineSuggestions(data.verseId, data.code),
       ],
     );
 
@@ -48,6 +44,17 @@ export const getTranslationVerseData = createServerFn({ method: "GET" })
 
     const verseWords = verse.words;
 
+    const getMachineGlosses = (wordId: string) => ({
+      llm_import: machineSuggestions.find(
+        (suggestion) =>
+          suggestion.wordId === wordId && suggestion.modelCode === "llm_import",
+      )?.gloss,
+      google: machineSuggestions.find(
+        (suggestion) =>
+          suggestion.wordId === wordId && suggestion.modelCode === "google",
+      )?.gloss,
+    });
+
     const wordsToTranslate = Array.from(
       new Set(
         verseWords
@@ -55,7 +62,7 @@ export const getTranslationVerseData = createServerFn({ method: "GET" })
             (w) =>
               phrases.find((ph) => ph.wordIds.includes(w.id))?.gloss?.state !==
                 "APPROVED" &&
-              machineSuggestions.every((s) => s.wordId !== w.id) &&
+              !getMachineGlosses(w.id).google &&
               !suggestions.find((s) => s.formId === w.formId)?.suggestions
                 .length &&
               !!w.referenceGloss?.match(CHAR_REGEX),
@@ -65,26 +72,29 @@ export const getTranslationVerseData = createServerFn({ method: "GET" })
     );
 
     const newMachineSuggestions =
-      (
-        language.isMember &&
-        language.referenceLanguage &&
-        language.machineGlossStrategy === MachineGlossStrategy.Google
-      ) ?
+      language.isMember ?
         await machineTranslate(
           wordsToTranslate,
           data.code,
-          language.referenceLanguage,
+          language.referenceLanguage ?? "eng",
         )
       : {};
 
-    const words = verseWords.map((w) => ({
-      ...w,
-      suggestions:
-        suggestions.find((s) => s.formId === w.formId)?.suggestions ?? [],
-      machineSuggestion:
-        machineSuggestions.find((s) => s.wordId === w.id)?.gloss ??
-        newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? ""],
-    }));
+    const words = verseWords.map((w) => {
+      const machineGlosses = getMachineGlosses(w.id);
+
+      return {
+        ...w,
+        suggestions:
+          suggestions.find((s) => s.formId === w.formId)?.suggestions ?? [],
+        modelGlosses: {
+          llm_import: machineGlosses.llm_import,
+          google:
+            machineGlosses.google ??
+            newMachineSuggestions[w.referenceGloss?.toLowerCase() ?? ""],
+        } as { llm_import?: string; google?: string },
+      };
+    });
 
     return {
       language,
@@ -172,33 +182,27 @@ async function fetchPhrases(
 interface MachineSuggestion {
   wordId: string;
   gloss: string;
+  modelCode: "google" | "llm_import";
 }
 
 async function fetchMachineSuggestions(
   verseId: string,
   languageCode: string,
-  machineGlossStrategy: MachineGlossStrategy,
 ): Promise<MachineSuggestion[]> {
-  const modelCode =
-    machineGlossStrategy === "google" ? "google"
-    : machineGlossStrategy === "llm" ? "llm_import"
-    : undefined;
-  if (!modelCode) {
-    return [];
-  }
-
   const result = await query<MachineSuggestion>(
     `
         SELECT
           w.id AS "wordId",
-          mg.gloss
+          mg.gloss,
+          mgm.code AS "modelCode"
         FROM word AS w
         JOIN machine_gloss AS mg ON mg.word_id = w.id
+        JOIN machine_gloss_model AS mgm ON mgm.id = mg.model_id
         WHERE w.verse_id = $1
 			AND mg.language_id = (SELECT id FROM language WHERE code = $2)
-            AND mg.model_id = (SELECT id FROM machine_gloss_model WHERE code = $3)
+            AND mgm.code IN ('google', 'llm_import')
         `,
-    [verseId, languageCode, modelCode],
+    [verseId, languageCode],
   );
 
   return result.rows;

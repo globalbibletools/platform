@@ -2,7 +2,7 @@ import Button from "@/components/Button";
 import Checkbox from "@/components/Checkbox";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "use-intl";
-import { MouseEvent, useEffect, useMemo, useRef } from "react";
+import { MouseEvent, useEffect, useRef } from "react";
 import { updateGlossAction } from "@/modules/translation/actions/updateGloss";
 import { fontMap } from "@/fonts";
 import {
@@ -21,7 +21,7 @@ export interface TranslateWordProps {
     text: string;
     referenceGloss: string | null;
     suggestions: string[];
-    machineSuggestion?: string;
+    modelGlosses: Partial<Record<"google" | "llm_import", string>>;
   };
   phrase: {
     id: number;
@@ -69,18 +69,6 @@ export default function TranslateWord({
   const hasNote =
     phrase.hasFootnote || (phrase.hasTranslatorNote && language.isMember);
   const isMultiWord = (phrase?.wordIds.length ?? 0) > 1;
-
-  const modelGlosses = useMemo(() => {
-    if (isMultiWord) return {} as const;
-
-    if (language.machineGlossStrategy === MachineGlossStrategy.Google) {
-      return { google: word.machineSuggestion } as const;
-    } else if (language.machineGlossStrategy === MachineGlossStrategy.LLM) {
-      return { llm_import: word.machineSuggestion } as const;
-    } else {
-      return {} as const;
-    }
-  }, [language.machineGlossStrategy, word.machineSuggestion]);
 
   useEffect(() => {
     if (!phraseFocused || !inputRef.current) return;
@@ -221,10 +209,9 @@ export default function TranslateWord({
               data-phrase={phrase.id}
               className="-mx-px mt-0.5 place-self-start row-start-3"
               font={fontMap[language.font]}
-              dir={language.textDirection}
               right={isHebrew}
               suggestions={word.suggestions}
-              modelGlosses={modelGlosses}
+              modelGlosses={word.modelGlosses}
               value={phrase?.gloss}
               saving={saving}
               onChange={({ text, state, source }) => {

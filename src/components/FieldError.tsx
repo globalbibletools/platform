@@ -6,19 +6,31 @@ export interface FieldErrorProps {
   id?: string;
   name: string;
   messages?: Record<string, string>;
+  error?: string;
 }
 
-export default function FieldError({ id, name, messages }: FieldErrorProps) {
+export default function FieldError({
+  id,
+  name,
+  messages,
+  error,
+}: FieldErrorProps) {
   const formContext = useFormContext();
   const errors =
     formContext?.state === "error" ? formContext.validation?.[name] : undefined;
 
-  if (!errors || errors.length === 0) return null;
+  let errorMessage;
+  if (error) {
+    errorMessage = error;
+  } else if (errors?.[0]) {
+    errorMessage = messages?.[errors[0]] ?? "Invalid";
+  }
 
-  const errorMessage = messages?.[errors[0]] ?? "Invalid";
+  if (!errorMessage) return null;
+
   return (
     <div id={id} className="text-red-700 text-sm">
-      {errorMessage}
+      {error ?? errorMessage}
     </div>
   );
 }
