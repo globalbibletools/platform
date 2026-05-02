@@ -29,7 +29,7 @@ export default function InterlinearExportPanel({
   };
 
   return (
-    <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 pb-8 px-10 border-b border-b-green-300 dark:border-b-blue-800">
+    <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 py-8 border-t border-t-green-300 dark:border-t-blue-800">
       <div className="grow">
         <h3 className="font-bold text-lg mb-2 flex items-start gap-2">
           <Icon icon="file-arrow-down" className="mt-1" />
@@ -81,12 +81,6 @@ export default function InterlinearExportPanel({
                           <Icon icon="download" className="me-1" />{" "}
                           {t("status.download")}
                         </Button>
-                        {job.data.expiresAt && (
-                          <span className="text-xs text-gray-500">
-                            {t("status.expires")}:{" "}
-                            {new Date(job.data.expiresAt).toLocaleString()}
-                          </span>
-                        )}
                       </div>
                     )}
                     {isFailed && (

@@ -7,7 +7,6 @@ export interface ExportInterlinearPdfJobPayload {
 export interface ExportInterlinearPdfJobData {
   exportKey?: string;
   downloadUrl?: string;
-  expiresAt?: string;
   pages?: number;
 }
 

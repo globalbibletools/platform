@@ -180,6 +180,9 @@
       "exports": "التصدير"
     }
   },
+  "LanguageExportsPage": {
+    "title": "التصدير"
+  },
   "LanguageSettingsPage": {
     "title": "الإعدادات",
     "form": {
@@ -788,7 +791,6 @@
     "status": {
       "title": "الحالة",
       "download": "تنزيل PDF",
-      "expires": "ينتهي",
       "generating": "جارٍ إنشاء PDF…",
       "failed": "فشل التصدير. حاول مرة أخرى.",
       "labels": {

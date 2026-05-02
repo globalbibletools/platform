@@ -162,6 +162,9 @@
       "exports": "Exports"
     }
   },
+  "LanguageExportsPage": {
+    "title": "Exports"
+  },
   "LanguageSettingsPage": {
     "title": "Settings",
     "form": {
@@ -770,7 +773,6 @@
     "status": {
       "title": "Status",
       "download": "Download PDF",
-      "expires": "Expires",
       "generating": "Generating PDF…",
       "failed": "Export failed. Please try again.",
       "labels": {

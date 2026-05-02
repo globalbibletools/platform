@@ -6,11 +6,19 @@ COPY package*.json .
 COPY patches/ ./patches/
 RUN npm ci
 COPY . .
-RUN npm run build:job-worker
- 
+RUN npm run build:job-worker \
+  && mkdir -p /app/dist/fonts \
+  && cp src/fonts/SBL_*.ttf /app/dist/fonts/ \
+  && cp node_modules/@fontsource/noto-sans/files/noto-sans-latin-400-normal.woff /app/dist/fonts/ \
+  && cp node_modules/@fontsource/noto-sans/files/noto-sans-devanagari-400-normal.woff /app/dist/fonts/ \
+  && cp node_modules/@fontsource/noto-sans-arabic/files/noto-sans-arabic-arabic-400-normal.woff /app/dist/fonts/
+
 FROM public.ecr.aws/lambda/nodejs:22 AS runner
 ENV NODE_ENV=production
+ENV PDFKIT_DATA_DIR=/var/task/data
 COPY --from=build /app/dist/job-worker.js ${LAMBDA_TASK_ROOT}
+COPY --from=build /app/node_modules/pdfkit/js/data /var/task/data
+COPY --from=build /app/dist/fonts /var/task/fonts
 CMD ["job-worker.handler"]
 
 FROM node:22-slim AS dev
@@ -20,4 +28,3 @@ ENV PORT=3000
 ENV NODE_ENV=development
 EXPOSE 3000
 CMD npm ci && npm run dev:job-worker
-
