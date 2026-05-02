@@ -2,7 +2,6 @@ import { query } from "@/db";
 import { translateClient } from "@/google-translate";
 import { logger } from "@/logging";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
-import { MachineGlossStrategy } from "@/modules/languages/model";
 import { getCurrentLanguageReadModel } from "@/modules/languages/read-models/getCurrentLanguageReadModel";
 import { createServerFn } from "@tanstack/react-start";
 import * as z from "zod";
