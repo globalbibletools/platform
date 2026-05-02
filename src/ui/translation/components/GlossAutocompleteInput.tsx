@@ -138,13 +138,13 @@ function AutocompleteOption({
         dispatch({ type: "confirm", option });
       }}
     >
-      <span className="flex-1">{option.text}</span>
       {(
         option.source === GlossApprovalMethodRaw.GoogleSuggestion ||
         option.source === GlossApprovalMethodRaw.LLMSuggestion
       ) ?
         <Icon icon="robot" size="xs" />
       : undefined}
+      <span className="flex-1">{option.text}</span>
     </li>
   );
 }
@@ -369,6 +369,7 @@ interface AutcompleteState {
     state: GlossStateRaw;
     source?: GlossApprovalMethodRaw;
   };
+  modelOptions: Array<AutocompleteOption>;
   options: Array<AutocompleteOption>;
   filteredOptions: Array<AutocompleteOption>;
   selectedOption?: AutocompleteOption;
@@ -452,7 +453,16 @@ function autocompleteReducerInit({
   suggestions: Array<string>;
   modelGlosses: Partial<Record<"llm_import" | "google", string>>;
 }): AutcompleteState {
-  const options = createOptions({ suggestions, modelGlosses });
+  const modelOptions = createModelOptions(modelGlosses);
+  const options = createOptions(suggestions);
+  const defaultOption =
+    modelOptions.find(
+      (option) => option.source === GlossApprovalMethodRaw.LLMSuggestion,
+    ) ??
+    options[0] ??
+    modelOptions.find(
+      (option) => option.source === GlossApprovalMethodRaw.GoogleSuggestion,
+    );
   const draft =
     value?.text ?
       {
@@ -460,16 +470,17 @@ function autocompleteReducerInit({
         source: GlossApprovalMethodRaw.UserInput,
       }
     : {
-        text: options[0]?.text ?? "",
-        source: options[0]?.source,
+        text: defaultOption?.text ?? "",
+        source: defaultOption?.source,
         state: GlossStateRaw.Unapproved,
       };
 
   return {
     initial: value ?? { text: "", state: GlossStateRaw.Unapproved },
     draft,
+    modelOptions,
     options,
-    filteredOptions: filterOptions(draft.text, options),
+    filteredOptions: filterOptions(draft.text, options, modelOptions),
     optionsVisible: false,
   };
 }
@@ -489,16 +500,15 @@ function autocompleteReducer(
         return state;
       }
 
-      const options = createOptions({
-        suggestions: action.suggestions,
-        modelGlosses: action.modelGlosses,
-      });
+      const modelOptions = createModelOptions(action.modelGlosses);
+      const options = createOptions(action.suggestions);
       const text =
         state.initial.text === state.draft.text ? newText : state.draft.text;
       return {
         ...state,
+        modelOptions,
         options,
-        filteredOptions: filterOptions(text, options),
+        filteredOptions: filterOptions(text, options, modelOptions),
         initial: {
           text: newText,
           state: newState,
@@ -521,7 +531,11 @@ function autocompleteReducer(
           state: state.draft.state,
           source: GlossApprovalMethodRaw.UserInput,
         },
-        filteredOptions: filterOptions(action.text, state.options),
+        filteredOptions: filterOptions(
+          action.text,
+          state.options,
+          state.modelOptions,
+        ),
       };
     }
     case "toggleOptions": {
@@ -664,13 +678,9 @@ function normalize(word: string) {
   return word.normalize("NFD").replace(/\p{Diacritic}/gu, "");
 }
 
-function createOptions({
-  suggestions,
-  modelGlosses,
-}: {
-  suggestions: Array<string>;
-  modelGlosses: Partial<Record<"llm_import" | "google", string>>;
-}): Array<AutocompleteOption> {
+function createModelOptions(
+  modelGlosses: Partial<Record<"llm_import" | "google", string>>,
+): Array<AutocompleteOption> {
   const options: Array<AutocompleteOption> = [];
 
   if (modelGlosses.llm_import) {
@@ -686,21 +696,28 @@ function createOptions({
     });
   }
 
-  options.push(
-    ...suggestions.map((text) => ({
-      text,
-      source: GlossApprovalMethodRaw.MachineSuggestion,
-    })),
-  );
-
   return options;
 }
 
-function filterOptions(input: string, options: Array<AutocompleteOption>) {
+function createOptions(suggestions: Array<string>): Array<AutocompleteOption> {
+  return suggestions.map((text) => ({
+    text,
+    source: GlossApprovalMethodRaw.MachineSuggestion,
+  }));
+}
+
+function filterOptions(
+  input: string,
+  options: Array<AutocompleteOption>,
+  modelOptions: Array<AutocompleteOption>,
+) {
   const normalizedInput = normalize(input);
-  return input ?
+  const filteredOptions =
+    input ?
       options.filter((option) =>
         normalize(option.text).includes(normalizedInput),
       )
     : options;
+
+  return [...modelOptions, ...filteredOptions];
 }
