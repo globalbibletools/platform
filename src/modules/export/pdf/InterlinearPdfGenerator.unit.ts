@@ -4,6 +4,7 @@ import { PDFDocument } from "pdf-lib";
 import {
   formatVerseLabel,
   generateInterlinearPdf,
+  generateInterlinearPdfDocument,
 } from "./InterlinearPdfGenerator";
 import type { InterlinearChapterResult } from "../data-access/InterlinearQueryService";
 import { TextDirectionRaw } from "@/modules/languages/model";
@@ -79,7 +80,7 @@ describe("generateInterlinearPdf", () => {
     );
   });
 
-  it("creates a readable PDF with Helvetica gloss and SBL body fonts", async () => {
+  it("creates a readable PDF with Noto gloss and SBL body fonts", async () => {
     const { stream, pageCount } = generateInterlinearPdf(buildSampleChapter(), {
       pageSize: "letter",
       direction: "ltr",
@@ -95,7 +96,42 @@ describe("generateInterlinearPdf", () => {
     expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
   });
 
-  it("renders Devanagari glosses with NotoSansDevanagari font", async () => {
+  it("creates one PDF across multiple sections", async () => {
+    const firstSection = buildSampleChapter();
+    const secondSection = buildSampleChapter();
+    secondSection.verses[0].chapter = 2;
+
+    const { stream, pageCount } = generateInterlinearPdfDocument(
+      [
+        {
+          chapter: firstSection,
+          direction: "ltr",
+          header: { title: "Test Header", subtitle: "Genesis" },
+          sourceScript: "greek",
+          glossFontName: "Noto Sans",
+        },
+        {
+          chapter: secondSection,
+          direction: "ltr",
+          header: { title: "Test Header", subtitle: "Exodus" },
+          sourceScript: "greek",
+          glossFontName: "Noto Sans",
+        },
+      ],
+      {
+        pageSize: "letter",
+        footer: { generatedAt: new Date(), pageOffset: 0 },
+      },
+    );
+
+    const pdfBytes = await streamToBuffer(stream);
+    expect(pageCount).toBeGreaterThanOrEqual(2);
+
+    const pdf = await PDFDocument.load(pdfBytes);
+    expect(pdf.getPageCount()).toBeGreaterThanOrEqual(2);
+  });
+
+  it("renders Devanagari glosses with the Noto Sans Devanagari asset", async () => {
     const chapter = buildSampleChapter();
     chapter.verses[0].words[0].gloss = "आरम्भ";
     chapter.verses[0].words[1].gloss = "परमेश्वर";
@@ -114,6 +150,31 @@ describe("generateInterlinearPdf", () => {
 
     const pdf = await PDFDocument.load(pdfBytes);
     expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
+  });
+
+  it("renders Latin metadata labels outside script-specific gloss fonts", async () => {
+    const chapter = buildSampleChapter();
+    chapter.language.name = "Hindi";
+    chapter.verses[0].words[0].text = "בְּרֵאשִׁית";
+    chapter.verses[0].words[0].gloss = "आदि में";
+    chapter.verses[0].words[1].text = "בָּרָא";
+    chapter.verses[0].words[1].gloss = "उसने बनाया";
+
+    const { stream } = generateInterlinearPdf(chapter, {
+      pageSize: "letter",
+      direction: "ltr",
+      header: {
+        title: "Hindi/Hebrew Interlinear",
+        subtitle: "Genesis - Chapter 1",
+      },
+      sourceScript: "hebrew",
+      glossFontName: "Noto Sans",
+    });
+
+    const pdfBytes = await streamToBuffer(stream);
+    const pdfText = Buffer.from(pdfBytes).toString("latin1");
+
+    expect(pdfText).toContain("/BaseFont /Helvetica");
   });
 
   it.each([

@@ -3,17 +3,16 @@ import { Job } from "@/shared/jobs/model";
 import jobRepository from "@/shared/jobs/data-access/jobRepository";
 import { getStorageEnvironment } from "@/shared/storageEnvironment";
 import exportStorageRepository from "../data-access/ExportStorageRepository";
-import type { Logger } from "pino";
 import { detectScript } from "@/shared/scriptDetection";
-import bookQueryService from "../data-access/BookQueryService";
-import interlinearCoverageQueryService from "../data-access/InterlinearCoverageQueryService";
 import interlinearQueryService from "../data-access/InterlinearQueryService";
 import type {
   ExportInterlinearPdfJobData,
   ExportInterlinearPdfJobPayload,
 } from "../model";
-import { generateInterlinearPdf } from "../pdf/InterlinearPdfGenerator";
-import mergePdfs from "./exportInterlinearMerge";
+import {
+  generateInterlinearPdfDocument,
+  type InterlinearPdfSection,
+} from "../pdf/InterlinearPdfGenerator";
 import { EXPORT_JOB_TYPES } from "./jobTypes";
 
 export async function exportInterlinearPdfJob(
@@ -36,87 +35,51 @@ export async function exportInterlinearPdfJob(
 
   const exportKey = `interlinear/${languageCode}/${job.id}.pdf`;
 
-  const coverage =
-    await interlinearCoverageQueryService.findChaptersWithApprovedGlosses(
-      languageId,
-    );
-
-  const partKeys: string[] = [];
   try {
-    if (coverage.length === 0) {
+    const books =
+      await interlinearQueryService.fetchBooksWithApprovedGlossChapters(
+        languageId,
+      );
+
+    if (books.length === 0) {
       throw new Error("No chapters with approved glosses found for export");
     }
 
-    const booksById = new Map(
-      (await bookQueryService.findAll()).map((book) => [book.id, book.name]),
-    );
-
-    let pageOffset = 0;
-    for (const selection of coverage) {
-      if (!selection.chapters.length) continue;
-
-      const chapters = Array.from(new Set(selection.chapters)).sort(
-        (a, b) => a - b,
-      );
-      if (!chapters.length) continue;
-
-      const bookName =
-        booksById.get(selection.bookId) ?? `Book ${selection.bookId}`;
-      const chapterLabel = formatChapterLabel(chapters);
-
-      const chapterData = await interlinearQueryService.fetchChapters(
-        selection.bookId,
-        chapters,
-        languageCode,
-      );
-
+    const sections: InterlinearPdfSection[] = books.map((book) => {
       const sampleText =
-        chapterData.verses?.[0]?.words?.[0]?.text ??
-        chapterData.verses?.[0]?.words?.[0]?.gloss ??
+        book.verses?.[0]?.words?.[0]?.text ??
+        book.verses?.[0]?.words?.[0]?.gloss ??
         "";
       const sourceScript = detectScript(sampleText);
 
-      const glossLanguageName = chapterData.language.name;
+      const glossLanguageName = book.language.name;
       const sourceLanguageLabel =
         sourceScript === "hebrew" ? "Hebrew" : "Greek";
 
-      const { stream, pageCount } = generateInterlinearPdf(chapterData, {
-        pageSize: "letter",
-        direction: chapterData.language.textDirection,
+      return {
+        chapter: book,
+        direction: book.language.textDirection,
         sourceScript,
-        glossFontName: chapterData.language.font,
+        glossFontName: book.language.font,
         header: {
           title: `${glossLanguageName}/${sourceLanguageLabel} Interlinear`,
-          subtitle: `${bookName} - ${chapterLabel}`,
+          subtitle: `${book.bookName} - ${formatChapterLabel(book.chapters)}`,
         },
-        footer: {
-          generatedAt: job.createdAt ?? new Date(),
-          pageOffset,
-        },
-      });
-
-      const partKey = partKeyForBook(exportKey, selection.bookId);
-      await exportStorageRepository.uploadPdf({
-        environment,
-        key: partKey,
-        stream,
-      });
-      partKeys.push(partKey);
-      pageOffset += pageCount;
-    }
-
-    if (partKeys.length === 0) {
-      throw new Error("No chapters with approved glosses found for export");
-    }
-
-    const mergeResult = await mergePdfs({
-      environment,
-      partKeys,
-      targetKey: exportKey,
+      };
     });
-    if (!mergeResult.uploaded) {
-      throw new Error("No PDF parts available to merge");
-    }
+
+    const { stream, pageCount } = generateInterlinearPdfDocument(sections, {
+      pageSize: "letter",
+      footer: {
+        generatedAt: job.createdAt ?? new Date(),
+      },
+    });
+
+    await exportStorageRepository.uploadPdf({
+      environment,
+      key: exportKey,
+      stream,
+    });
 
     const downloadUrl = exportStorageRepository.publicPdfUrl({
       environment,
@@ -126,30 +89,21 @@ export async function exportInterlinearPdfJob(
     const data: ExportInterlinearPdfJobData = {
       exportKey,
       downloadUrl,
-      pages: mergeResult.pages,
+      pages: pageCount,
     };
     await jobRepository.updateData(job.id, data);
 
     jobLogger.info(
-      { exportKey, pages: mergeResult.pages },
+      { exportKey, pages: pageCount },
       "Interlinear PDF export complete",
     );
   } catch (error) {
     jobLogger.error({ err: error }, "Interlinear export job failed");
     throw error;
-  } finally {
-    if (partKeys.length > 0) {
-      await cleanupParts(partKeys, environment, jobLogger);
-    }
   }
 }
 
 export default exportInterlinearPdfJob;
-
-function partKeyForBook(exportKey: string, bookId: number): string {
-  const base = exportKey.replace(/\.pdf$/i, "");
-  return `${base}-book-${bookId}.pdf`;
-}
 
 function formatChapterLabel(chapters: number[]): string {
   const ranges: string[] = [];
@@ -176,23 +130,4 @@ function formatChapterLabel(chapters: number[]): string {
 
 function formatChapterRange(start: number, end: number): string {
   return start === end ? `${start}` : `${start}-${end}`;
-}
-
-async function cleanupParts(
-  partKeys: string[],
-  environment: "prod" | "local",
-  jobLogger: Logger,
-) {
-  await Promise.all(
-    partKeys.map(async (key) => {
-      try {
-        await exportStorageRepository.deleteObject({ environment, key });
-      } catch (error) {
-        jobLogger.warn(
-          { err: error, key },
-          "Failed to delete part after merge",
-        );
-      }
-    }),
-  );
 }

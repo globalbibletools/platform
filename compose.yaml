@@ -37,7 +37,7 @@ services:
       AWS_SECRET_ACCESS_KEY: test
       AWS_ENDPOINT_URL_S3: http://localstack:4566
       AWS_S3_FORCE_PATH_STYLE: "true"
-      EXPORT_PUBLIC_S3_ENDPOINT: http://localhost:4566
+      EXPORT_PUBLIC_S3_ENDPOINT: http://localhost:${LOCALSTACK_PORT:-4566}
       BIBLE_SYSTEMS_API_KEY: ${BIBLE_SYSTEMS_API_KEY}
     volumes:
       - ./:/app
@@ -57,7 +57,7 @@ services:
       - DEFAULT_REGION=us-east-1
       - LS_LOG=warn
     ports:
-      - "4566:4566"
+      - ${LOCALSTACK_PORT:-4566}:4566
     volumes:
       - ./localstack/data:/var/lib/localstack
       - ./localstack/init:/etc/localstack/init

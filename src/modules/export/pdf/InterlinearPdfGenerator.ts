@@ -16,15 +16,47 @@ export interface PdfGeneratorOptions {
   glossFontName?: string;
 }
 
+export interface InterlinearPdfSection {
+  chapter: InterlinearChapterResult;
+  direction?: "ltr" | "rtl";
+  header?: { title?: string; subtitle?: string };
+  sourceScript?: "hebrew" | "greek";
+  glossFontName?: string;
+}
+
 /**
- * Maps language font names to TTF filenames in the fonts directory.
+ * Maps language font names to PDF-safe fontsource asset filenames.
  * "Noto Sans" is the default for most languages; the PDF generator
  * will detect the gloss script and pick a more specific variant when needed.
  */
 const pdfFontMap: Record<string, string> = {
-  "Noto Sans": "NotoSans-Regular.ttf",
-  "Noto Sans Arabic": "NotoSansArabic-Regular.ttf",
-  "Noto Sans Devanagari": "NotoSansDevanagari-Regular.ttf",
+  "Noto Sans": "noto-sans-latin-400-normal.woff",
+  "Noto Sans Arabic": "noto-sans-arabic-arabic-400-normal.woff",
+  "Noto Sans Devanagari": "noto-sans-devanagari-400-normal.woff",
+};
+
+const fontsourceCandidates: Record<string, string> = {
+  "noto-sans-latin-400-normal.woff": path.join(
+    "node_modules",
+    "@fontsource",
+    "noto-sans",
+    "files",
+    "noto-sans-latin-400-normal.woff",
+  ),
+  "noto-sans-arabic-arabic-400-normal.woff": path.join(
+    "node_modules",
+    "@fontsource",
+    "noto-sans-arabic",
+    "files",
+    "noto-sans-arabic-arabic-400-normal.woff",
+  ),
+  "noto-sans-devanagari-400-normal.woff": path.join(
+    "node_modules",
+    "@fontsource",
+    "noto-sans",
+    "files",
+    "noto-sans-devanagari-400-normal.woff",
+  ),
 };
 
 /** Maps Unicode ranges to Noto font variants for "Noto Sans" fallback. */
@@ -32,6 +64,8 @@ const notoScriptVariants: { regex: RegExp; font: string }[] = [
   { regex: /[\u0900-\u097F]/, font: "Noto Sans Devanagari" },
   { regex: /[\u0600-\u06FF]/, font: "Noto Sans Arabic" },
 ];
+
+const metadataFont = "Helvetica";
 
 /**
  * Given a sample of gloss text and the language font name,
@@ -54,29 +88,27 @@ export function generateInterlinearPdf(
   chapter: InterlinearChapterResult,
   options: PdfGeneratorOptions,
 ): GeneratedPdf {
-  const normalizedDirection =
-    (options.direction ?? "ltr").toLowerCase() === "rtl" ? "rtl" : "ltr";
-  // Resolve fonts packaged with the worker bundle; fallback to local src/fonts for dev
-  const fontCandidates = [
-    "/var/task/fonts",
-    path.join(process.cwd(), "fonts"),
-    path.join(process.cwd(), "dist", "fonts"),
-    path.join(process.cwd(), "src", "fonts"),
-  ];
-  const fontBase = fontCandidates.find((p) => fs.existsSync(p));
-  if (!fontBase) {
-    throw new Error(
-      `Font directory not found. Tried: ${fontCandidates.join(", ")}`,
-    );
-  }
-  const hebrewFontPath = path.join(fontBase, "SBL_Hbrw.ttf");
-  const greekFontPath = path.join(fontBase, "SBL_grk.ttf");
-  if (!fs.existsSync(hebrewFontPath) || !fs.existsSync(greekFontPath)) {
-    throw new Error(
-      `SBL fonts not found. Expected at ${hebrewFontPath} and ${greekFontPath}`,
-    );
-  }
+  return generateInterlinearPdfDocument(
+    [
+      {
+        chapter,
+        direction: options.direction,
+        header: options.header,
+        sourceScript: options.sourceScript,
+        glossFontName: options.glossFontName,
+      },
+    ],
+    {
+      pageSize: options.pageSize,
+      footer: options.footer,
+    },
+  );
+}
 
+export function generateInterlinearPdfDocument(
+  sections: readonly InterlinearPdfSection[],
+  options: Pick<PdfGeneratorOptions, "pageSize" | "footer">,
+): GeneratedPdf {
   const needsBufferedPages =
     typeof options.footer?.pageTotal === "number" &&
     Number.isFinite(options.footer.pageTotal);
@@ -87,42 +119,11 @@ export function generateInterlinearPdf(
     bufferPages: needsBufferedPages,
   });
 
-  const hebrewFont = fs.readFileSync(path.join(fontBase, "SBL_Hbrw.ttf"));
-  const greekFont = fs.readFileSync(path.join(fontBase, "SBL_grk.ttf"));
+  const hebrewFont = fs.readFileSync(resolveRequiredFontFile("SBL_Hbrw.ttf"));
+  const greekFont = fs.readFileSync(resolveRequiredFontFile("SBL_grk.ttf"));
   doc.registerFont("SBLHebrew", hebrewFont);
   doc.registerFont("SBLGreek", greekFont);
-
-  // Sample gloss text to detect script, then resolve the best font variant
-  const glossSample = chapter.verses
-    .flatMap((v) => v.words.map((w) => w.gloss ?? ""))
-    .join("");
-  const resolvedFontName = resolveGlossFontName(
-    options.glossFontName ?? "Noto Sans",
-    glossSample,
-  );
-  let glossFont = "Helvetica";
-  const glossFontFile = pdfFontMap[resolvedFontName];
-  if (glossFontFile) {
-    const glossFontPath = path.join(fontBase, glossFontFile);
-    if (!fs.existsSync(glossFontPath)) {
-      throw new Error(
-        `Gloss font ${resolvedFontName} not found. Expected at ${glossFontPath}`,
-      );
-    }
-    const fontData = fs.readFileSync(glossFontPath);
-    doc.registerFont(resolvedFontName, fontData);
-    glossFont = resolvedFontName;
-  }
-
-  const primaryFont =
-    options.sourceScript === "hebrew" ? "SBLHebrew"
-    : options.sourceScript === "greek" ? "SBLGreek"
-    : normalizedDirection === "rtl" ? "SBLHebrew"
-    : "SBLGreek";
-  const alignment =
-    options.sourceScript === "hebrew" || normalizedDirection === "rtl" ?
-      "right"
-    : "left";
+  const registeredFonts = new Set(["SBLHebrew", "SBLGreek"]);
   const stream = doc as unknown as Readable;
 
   let pageCount = 1;
@@ -134,23 +135,102 @@ export function generateInterlinearPdf(
     });
   }
 
-  renderHeader(doc, primaryFont, glossFont, options.header, alignment);
-
-  const contentWidth =
-    doc.page.width - doc.page.margins.left - doc.page.margins.right;
-  const verseSpacing = 0.5;
-
-  for (const verse of chapter.verses) {
-    ensureSpace(doc, 40);
-    renderVerse(doc, verse, primaryFont, glossFont, alignment, contentWidth);
-    doc.moveDown(verseSpacing);
-  }
+  sections.forEach((section, index) => {
+    if (index > 0) {
+      doc.addPage();
+    }
+    renderSection(doc, section, registeredFonts);
+  });
 
   if (needsBufferedPages) {
     pageCount = addFooter(doc, options.footer);
   }
   doc.end();
   return { stream, pageCount };
+}
+
+function renderSection(
+  doc: PDFKit.PDFDocument,
+  section: InterlinearPdfSection,
+  registeredFonts: Set<string>,
+) {
+  const normalizedDirection =
+    (section.direction ?? "ltr").toLowerCase() === "rtl" ? "rtl" : "ltr";
+  const glossFont = registerGlossFont(
+    doc,
+    section.chapter,
+    section.glossFontName ?? "Noto Sans",
+    registeredFonts,
+  );
+  const primaryFont =
+    section.sourceScript === "hebrew" ? "SBLHebrew"
+    : section.sourceScript === "greek" ? "SBLGreek"
+    : normalizedDirection === "rtl" ? "SBLHebrew"
+    : "SBLGreek";
+  const alignment =
+    section.sourceScript === "hebrew" || normalizedDirection === "rtl" ?
+      "right"
+    : "left";
+
+  renderHeader(doc, section.header, alignment);
+
+  const contentWidth =
+    doc.page.width - doc.page.margins.left - doc.page.margins.right;
+  const verseSpacing = 0.5;
+
+  for (const verse of section.chapter.verses) {
+    ensureSpace(doc, 40);
+    renderVerse(doc, verse, primaryFont, glossFont, alignment, contentWidth);
+    doc.moveDown(verseSpacing);
+  }
+}
+
+function registerGlossFont(
+  doc: PDFKit.PDFDocument,
+  chapter: InterlinearChapterResult,
+  configuredFontName: string,
+  registeredFonts: Set<string>,
+) {
+  const glossSample = chapter.verses
+    .flatMap((v) => v.words.map((w) => w.gloss ?? ""))
+    .join("");
+  const resolvedFontName = resolveGlossFontName(
+    configuredFontName,
+    glossSample,
+  );
+  const glossFontFile = pdfFontMap[resolvedFontName];
+  if (!glossFontFile) return "Helvetica";
+
+  if (!registeredFonts.has(resolvedFontName)) {
+    const fontData = fs.readFileSync(resolveRequiredFontFile(glossFontFile));
+    doc.registerFont(resolvedFontName, fontData);
+    registeredFonts.add(resolvedFontName);
+  }
+
+  return resolvedFontName;
+}
+
+function resolveRequiredFontFile(filename: string): string {
+  const candidates = [
+    "/var/task/fonts",
+    path.join(process.cwd(), "fonts"),
+    path.join(process.cwd(), "dist", "fonts"),
+    path.join(process.cwd(), "src", "fonts"),
+  ].map((fontBase) => path.join(fontBase, filename));
+
+  const fontsourcePath = fontsourceCandidates[filename];
+  if (fontsourcePath) {
+    candidates.push(path.join(process.cwd(), fontsourcePath));
+  }
+
+  const fontPath = candidates.find((candidate) => fs.existsSync(candidate));
+  if (!fontPath) {
+    throw new Error(
+      `Font ${filename} not found. Tried: ${candidates.join(", ")}`,
+    );
+  }
+
+  return fontPath;
 }
 
 function renderVerse(
@@ -162,7 +242,7 @@ function renderVerse(
   contentWidth: number,
 ) {
   doc
-    .font(glossFont)
+    .font(metadataFont)
     .fontSize(10)
     .fillColor("#444")
     .text(formatVerseLabel(verse), {
@@ -385,17 +465,15 @@ function renderFooter(
 
 function renderHeader(
   doc: PDFKit.PDFDocument,
-  primaryFont: string,
-  glossFont: string,
   header: PdfGeneratorOptions["header"],
   alignment: "left" | "right",
 ) {
   const headerTitle = header?.title ?? "Interlinear export";
   const headerSubtitle = header?.subtitle ?? "";
-  doc.font(primaryFont).fontSize(14).text(headerTitle, { align: "center" });
+  doc.font(metadataFont).fontSize(14).text(headerTitle, { align: "center" });
   if (headerSubtitle) {
     doc
-      .font(glossFont)
+      .font(metadataFont)
       .fontSize(10)
       .fillColor("#555")
       .text(headerSubtitle, { align: alignment })
