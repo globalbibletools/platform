@@ -88,14 +88,24 @@ export default function GlossAutocompleteInput({
             ${right ? "right-0 text-right" : "left-0 text-left"}
           `}
         >
-          {filteredOptions.map((option) => (
-            <AutocompleteOption
-              key={`${option.text}-${option.source}`}
-              option={option}
-              selected={option === selectedOption}
-              dispatch={dispatch}
-            />
-          ))}
+          {filteredOptions.map((option, i, options) => {
+            const prevOption = options[i - 1];
+
+            const separator =
+              option.source === GlossApprovalMethodRaw.MachineSuggestion &&
+              prevOption &&
+              prevOption.source !== GlossApprovalMethodRaw.MachineSuggestion;
+
+            return (
+              <AutocompleteOption
+                key={`${option.text}-${option.source}`}
+                option={option}
+                selected={option === selectedOption}
+                separator={separator}
+                dispatch={dispatch}
+              />
+            );
+          })}
         </ol>
       )}
       <GlossDescription
@@ -113,10 +123,12 @@ function AutocompleteOption({
   option,
   selected,
   dispatch,
+  separator = false,
 }: {
   option: AutocompleteOption;
   selected: boolean;
   dispatch: AutocompleteDispatch;
+  separator?: boolean;
 }) {
   return (
     <li
@@ -131,13 +143,16 @@ function AutocompleteOption({
         : undefined
       }
       className={`
-        px-3 py-1 whitespace-nowrap cursor-pointer flex items-center gap-2
+        px-3 py-1 whitespace-nowrap cursor-pointer flex items-center gap-2 relative
         ${selected ? "bg-green-200 dark:bg-green-400 dark:text-gray-900" : ""}
       `}
       onClick={() => {
         dispatch({ type: "confirm", option });
       }}
     >
+      {separator && (
+        <div className="absolute top-0 w-[calc(100%-1rem)] border-t border-gray-300 -mx-1" />
+      )}
       {(
         option.source === GlossApprovalMethodRaw.GoogleSuggestion ||
         option.source === GlossApprovalMethodRaw.LLMSuggestion
