@@ -72,15 +72,11 @@ export const getTranslationVerseData = createServerFn({ method: "GET" })
     );
 
     const newMachineSuggestions =
-      (
-        language.isMember &&
-        language.referenceLanguage &&
-        language.machineGlossStrategy === MachineGlossStrategy.Google
-      ) ?
+      language.isMember ?
         await machineTranslate(
           wordsToTranslate,
           data.code,
-          language.referenceLanguage,
+          language.referenceLanguage ?? "eng",
         )
       : {};
 
