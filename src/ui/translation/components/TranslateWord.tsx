@@ -210,6 +210,7 @@ export default function TranslateWord({
               className="-mx-px mt-0.5 place-self-start row-start-3"
               font={fontMap[language.font]}
               right={isHebrew}
+              dir={language.textDirection}
               suggestions={word.suggestions}
               modelGlosses={word.modelGlosses}
               value={phrase?.gloss}
