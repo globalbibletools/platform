@@ -2,6 +2,9 @@ import { useMemo } from "react";
 import { type ActivityChartRange } from "./ActivityChart";
 import ActivityChart from "./ActivityChart";
 import ContributionBar from "./ContributionBar";
+import ServerAction from "@/components/ServerAction";
+import { Icon } from "@/components/Icon";
+import { disableUser } from "@/modules/users/actions/disableUser";
 import {
   DashboardCard,
   DashboardCardEmptyState,
@@ -117,6 +120,20 @@ export default function PlatformUsersDashboardCard({
                     <h3 className="text-sm font-bold text-nowrap text-ellipsis">
                       {user.name ?? user.email}
                     </h3>
+                    <div className="flex grow justify-end gap-3">
+                      <ServerAction
+                        variant="tertiary"
+                        destructive
+                        actionData={{ userId: user.id }}
+                        action={disableUser}
+                        successMessage="User disabled"
+                        invalidate
+                        confirm="Are you sure you want to disable this user?"
+                      >
+                        <Icon icon="trash" size="sm" />
+                        <span className="sr-only">Disable</span>
+                      </ServerAction>
+                    </div>
                   </div>
                   <div className="min-w-0 self-end">
                     <ContributionBar
