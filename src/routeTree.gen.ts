@@ -30,6 +30,7 @@ import { Route as mainAdminDotDotDotDotDotDotUiAdminRoutesMainRouteImport } from
 import { Route as mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRouteImport } from "./ui/translation/routes/$code.$verseId";
 import { Route as mainReadDotDotDotDotDotDotUiStudyRoutesCodeDotchapterIdRouteImport } from "./ui/study/routes/$code.$chapterId";
 import { Route as mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRouteImport } from "./ui/admin/routes/_main.jobs";
+import { Route as mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotdashboardRouteImport } from "./ui/admin/routes/_main.dashboard";
 import { Route as mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeRouteRouteImport } from "./ui/admin/routes/languages.$code/route";
 import { Route as mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeIndexRouteImport } from "./ui/admin/routes/languages.$code/index";
 import { Route as mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotusersIndexRouteImport } from "./ui/admin/routes/_main.users/index";
@@ -155,6 +156,12 @@ const mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRoute =
     path: "/jobs",
     getParentRoute: () => mainAdminDotDotDotDotDotDotUiAdminRoutesMainRoute,
   } as any);
+const mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotdashboardRoute =
+  mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotdashboardRouteImport.update({
+    id: "/dashboard",
+    path: "/dashboard",
+    getParentRoute: () => mainAdminDotDotDotDotDotDotUiAdminRoutesMainRoute,
+  } as any);
 const mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeRouteRoute =
   mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeRouteRouteImport.update(
     {
@@ -246,6 +253,7 @@ export interface FileRoutesByFullPath {
   "/read/$code": typeof mainReadDotDotDotDotDotDotUiStudyRoutesCodeRouteWithChildren;
   "/translate/$code": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteWithChildren;
   "/admin/languages/$code": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeRouteRouteWithChildren;
+  "/admin/dashboard": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotdashboardRoute;
   "/admin/jobs": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRoute;
   "/read/$code/$chapterId": typeof mainReadDotDotDotDotDotDotUiStudyRoutesCodeDotchapterIdRoute;
   "/translate/$code/$verseId": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRoute;
@@ -275,6 +283,7 @@ export interface FileRoutesByTo {
   "/p/$": typeof MainPSplatRoute;
   "/read/$code": typeof mainReadDotDotDotDotDotDotUiStudyRoutesCodeRouteWithChildren;
   "/translate/$code": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteWithChildren;
+  "/admin/dashboard": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotdashboardRoute;
   "/admin/jobs": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRoute;
   "/read/$code/$chapterId": typeof mainReadDotDotDotDotDotDotUiStudyRoutesCodeDotchapterIdRoute;
   "/translate/$code/$verseId": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRoute;
@@ -308,6 +317,7 @@ export interface FileRoutesById {
   "/_main/read/$code": typeof mainReadDotDotDotDotDotDotUiStudyRoutesCodeRouteWithChildren;
   "/_main/translate/$code": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteWithChildren;
   "/_main/admin/languages/$code": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeRouteRouteWithChildren;
+  "/_main/admin/_main/dashboard": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotdashboardRoute;
   "/_main/admin/_main/jobs": typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRoute;
   "/_main/read/$code/$chapterId": typeof mainReadDotDotDotDotDotDotUiStudyRoutesCodeDotchapterIdRoute;
   "/_main/translate/$code/$verseId": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeDotverseIdRoute;
@@ -340,6 +350,7 @@ export interface FileRouteTypes {
     | "/read/$code"
     | "/translate/$code"
     | "/admin/languages/$code"
+    | "/admin/dashboard"
     | "/admin/jobs"
     | "/read/$code/$chapterId"
     | "/translate/$code/$verseId"
@@ -369,6 +380,7 @@ export interface FileRouteTypes {
     | "/p/$"
     | "/read/$code"
     | "/translate/$code"
+    | "/admin/dashboard"
     | "/admin/jobs"
     | "/read/$code/$chapterId"
     | "/translate/$code/$verseId"
@@ -401,6 +413,7 @@ export interface FileRouteTypes {
     | "/_main/read/$code"
     | "/_main/translate/$code"
     | "/_main/admin/languages/$code"
+    | "/_main/admin/_main/dashboard"
     | "/_main/admin/_main/jobs"
     | "/_main/read/$code/$chapterId"
     | "/_main/translate/$code/$verseId"
@@ -570,6 +583,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRouteImport;
       parentRoute: typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainRoute;
     };
+    "/_main/admin/_main/dashboard": {
+      id: "/_main/admin/_main/dashboard";
+      path: "/dashboard";
+      fullPath: "/admin/dashboard";
+      preLoaderRoute: typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotdashboardRouteImport;
+      parentRoute: typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainRoute;
+    };
     "/_main/admin/languages/$code": {
       id: "/_main/admin/languages/$code";
       path: "/admin/languages/$code";
@@ -697,6 +717,7 @@ const mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteWithChildren =
   );
 
 interface mainAdminDotDotDotDotDotDotUiAdminRoutesMainRouteChildren {
+  mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotdashboardRoute: typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotdashboardRoute;
   mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRoute: typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRoute;
   mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotlanguagesNewRoute: typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotlanguagesNewRoute;
   mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotusersInviteRoute: typeof mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotusersInviteRoute;
@@ -706,6 +727,8 @@ interface mainAdminDotDotDotDotDotDotUiAdminRoutesMainRouteChildren {
 
 const mainAdminDotDotDotDotDotDotUiAdminRoutesMainRouteChildren: mainAdminDotDotDotDotDotDotUiAdminRoutesMainRouteChildren =
   {
+    mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotdashboardRoute:
+      mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotdashboardRoute,
     mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRoute:
       mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotjobsRoute,
     mainAdminDotDotDotDotDotDotUiAdminRoutesMainDotlanguagesNewRoute:
