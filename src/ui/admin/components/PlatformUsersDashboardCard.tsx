@@ -10,6 +10,7 @@ import {
   DashboardCardEmptyState,
   DashboardCardHeader,
 } from "./DashboardCard";
+import StatusBadge from "./StatusBadge";
 import { type PlatformDashboardUserReadModel } from "@/ui/admin/readModels/getPlatformDashboardUsersReadModel";
 import { type PlatformDashboardContributionReadModel } from "@/ui/admin/readModels/getPlatformDashboardContributionsReadModel";
 import { type PlatformDashboardActivityEntryReadModel } from "@/ui/admin/readModels/getPlatformDashboardActivityReadModel";
@@ -120,6 +121,9 @@ export default function PlatformUsersDashboardCard({
                     <h3 className="text-sm font-bold text-nowrap text-ellipsis">
                       {user.name ?? user.email}
                     </h3>
+                    {user.status === "invited" && (
+                      <StatusBadge color="brown">Invited</StatusBadge>
+                    )}
                     <div className="flex grow justify-end gap-3">
                       <ServerAction
                         variant="tertiary"
