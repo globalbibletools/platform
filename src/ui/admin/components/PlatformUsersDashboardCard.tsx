@@ -5,83 +5,42 @@ import ContributionBar from "./ContributionBar";
 import ServerAction from "@/components/ServerAction";
 import { Icon } from "@/components/Icon";
 import { disableUser } from "@/modules/users/actions/disableUser";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import {
   DashboardCard,
   DashboardCardEmptyState,
   DashboardCardHeader,
 } from "./DashboardCard";
 import StatusBadge from "./StatusBadge";
-import { type PlatformDashboardUserReadModel } from "@/ui/admin/readModels/getPlatformDashboardUsersReadModel";
-import { type PlatformDashboardContributionReadModel } from "@/ui/admin/readModels/getPlatformDashboardContributionsReadModel";
-import { type PlatformDashboardActivityEntryReadModel } from "@/ui/admin/readModels/getPlatformDashboardActivityReadModel";
+import { getPlatformDashboardContributors } from "@/ui/admin/serverFns/getPlatformDashboardContributors";
+import InfiniteFetchTrigger from "@/components/InfiniteFetchTrigger";
 
 export default function PlatformUsersDashboardCard({
   className = "",
-  users,
-  contributions,
-  activity,
   range,
 }: {
   className?: string;
-  users: PlatformDashboardUserReadModel[];
-  contributions: PlatformDashboardContributionReadModel[];
-  activity: PlatformDashboardActivityEntryReadModel[];
   range: ActivityChartRange;
 }) {
-  const fullUsers = useMemo(() => {
-    const contributionByUserId = new Map<string, number>();
-    for (const contribution of contributions) {
-      contributionByUserId.set(
-        contribution.userId,
-        contribution.approvedGlossCount,
-      );
-    }
-
-    const activityByUserId = new Map<
-      string,
-      {
-        total: number;
-        entries: Map<number, { date: Date; net: number }>;
-      }
-    >();
-
-    for (const activityEntry of activity) {
-      let userEntry = activityByUserId.get(activityEntry.userId);
-      if (!userEntry) {
-        userEntry = {
-          total: 0,
-          entries: new Map(),
-        };
-        activityByUserId.set(activityEntry.userId, userEntry);
-      }
-
-      const dateKey = activityEntry.date.valueOf();
-      let dateEntry = userEntry.entries.get(dateKey);
-      if (!dateEntry) {
-        dateEntry = { date: activityEntry.date, net: 0 };
-        userEntry.entries.set(dateKey, dateEntry);
-      }
-
-      dateEntry.net += activityEntry.net;
-      userEntry.total += activityEntry.net;
-    }
-
-    const rows = users.map((user) => {
-      const activity = activityByUserId.get(user.id);
-      const contributedGlosses = contributionByUserId.get(user.id) ?? 0;
-
-      return {
-        ...user,
-        contributedGlosses,
-        activity: Array.from(activity?.entries.values() ?? []),
-        activityTotal: activity?.total ?? 0,
-      };
+  const { data, isPending, isFetchingNextPage, fetchNextPage, hasNextPage } =
+    useInfiniteQuery({
+      queryKey: ["platformDashboardContributors", range],
+      initialPageParam: undefined as string | undefined,
+      queryFn: ({ pageParam }) =>
+        getPlatformDashboardContributors({
+          data: {
+            range,
+            limit: 10,
+            cursor: pageParam,
+          },
+        }),
+      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     });
 
-    rows.sort((a, b) => b.contributedGlosses - a.contributedGlosses);
-
-    return rows;
-  }, [users, contributions, activity]);
+  const fullUsers = useMemo(
+    () => data?.pages.flatMap((page) => page.items) ?? [],
+    [data],
+  );
 
   const yMin = fullUsers.reduce(
     (min, user) =>
@@ -108,7 +67,11 @@ export default function PlatformUsersDashboardCard({
     <DashboardCard className={className}>
       <DashboardCardHeader title="Contributors" />
       <div className="flex-1 overflow-auto relative">
-        {users.length === 0 ?
+        {isPending ?
+          <DashboardCardEmptyState>
+            Loading contributors...
+          </DashboardCardEmptyState>
+        : fullUsers.length === 0 ?
           <DashboardCardEmptyState>No users found.</DashboardCardEmptyState>
         : <div className="divide-y divide-gray-200 dark:divide-gray-700 grid grid-cols-[1fr_1fr]">
             {fullUsers.map((user) => {
@@ -161,6 +124,17 @@ export default function PlatformUsersDashboardCard({
                 </div>
               );
             })}
+
+            <InfiniteFetchTrigger
+              hasMore={hasNextPage ?? false}
+              loading={isFetchingNextPage}
+              className="col-span-2 px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
+              onTrigger={() => {
+                void fetchNextPage();
+              }}
+            >
+              Loading more contributors...
+            </InfiniteFetchTrigger>
           </div>
         }
       </div>
