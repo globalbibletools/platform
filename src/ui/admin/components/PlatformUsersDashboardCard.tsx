@@ -5,7 +5,7 @@ import ContributionBar from "./ContributionBar";
 import ServerAction from "@/components/ServerAction";
 import { Icon } from "@/components/Icon";
 import { disableUser } from "@/modules/users/actions/disableUser";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { infiniteQueryOptions, useInfiniteQuery } from "@tanstack/react-query";
 import {
   DashboardCard,
   DashboardCardEmptyState,
@@ -15,6 +15,26 @@ import StatusBadge from "./StatusBadge";
 import { getPlatformDashboardContributors } from "@/ui/admin/serverFns/getPlatformDashboardContributors";
 import InfiniteFetchTrigger from "@/components/InfiniteFetchTrigger";
 
+const PAGE_SIZE = 10;
+
+export function platformDashboardContributorsInfiniteQueryOptions(
+  range: ActivityChartRange,
+) {
+  return infiniteQueryOptions({
+    queryKey: ["platformDashboardContributors", range],
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) =>
+      getPlatformDashboardContributors({
+        data: {
+          range,
+          limit: PAGE_SIZE,
+          cursor: pageParam,
+        },
+      }),
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  });
+}
+
 export default function PlatformUsersDashboardCard({
   className = "",
   range,
@@ -22,20 +42,8 @@ export default function PlatformUsersDashboardCard({
   className?: string;
   range: ActivityChartRange;
 }) {
-  const { data, isPending, isFetchingNextPage, fetchNextPage, hasNextPage } =
-    useInfiniteQuery({
-      queryKey: ["platformDashboardContributors", range],
-      initialPageParam: undefined as string | undefined,
-      queryFn: ({ pageParam }) =>
-        getPlatformDashboardContributors({
-          data: {
-            range,
-            limit: 10,
-            cursor: pageParam,
-          },
-        }),
-      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    });
+  const { data, isFetchingNextPage, fetchNextPage, hasNextPage } =
+    useInfiniteQuery(platformDashboardContributorsInfiniteQueryOptions(range));
 
   const fullUsers = useMemo(
     () => data?.pages.flatMap((page) => page.items) ?? [],
@@ -67,11 +75,7 @@ export default function PlatformUsersDashboardCard({
     <DashboardCard className={className}>
       <DashboardCardHeader title="Contributors" />
       <div className="flex-1 overflow-auto relative">
-        {isPending ?
-          <DashboardCardEmptyState>
-            Loading contributors...
-          </DashboardCardEmptyState>
-        : fullUsers.length === 0 ?
+        {fullUsers.length === 0 ?
           <DashboardCardEmptyState>No users found.</DashboardCardEmptyState>
         : <div className="divide-y divide-gray-200 dark:divide-gray-700 grid grid-cols-[1fr_1fr]">
             {fullUsers.map((user) => {
