@@ -42,6 +42,12 @@ function AdminLayout() {
         </div>
         <ul>
           <li>
+            <SidebarLink to="/admin/dashboard">
+              <Icon icon="chart-line" className="w-4 me-2" />
+              {t("links.dashboard")}
+            </SidebarLink>
+          </li>
+          <li>
             <SidebarLink to="/admin/languages">
               <Icon icon="language" className="w-4 me-2" />
               {t("links.languages")}
