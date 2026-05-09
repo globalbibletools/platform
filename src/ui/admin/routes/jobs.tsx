@@ -18,8 +18,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { withDocumentTitle } from "@/documentTitle";
 import { getActiveJobs } from "@/ui/admin/serverFns/getActiveJobs";
 import { TRANSLATION_JOB_TYPES } from "@/modules/translation/jobs/jobType";
+import { Policy } from "@/modules/access";
+import { routerGuard } from "@/modules/access/routerGuard";
 
-export const Route = createFileRoute("/_main/admin/_main/jobs")({
+const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
+
+export const Route = createFileRoute("/_main/admin/jobs")({
+  beforeLoad: ({ context }) => {
+    routerGuard({ context: context.auth, policy });
+  },
   head: () => withDocumentTitle("Jobs | Admin"),
   component: AdminJobsView,
 });

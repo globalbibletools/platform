@@ -1,6 +1,8 @@
 import * as z from "zod";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { Policy } from "@/modules/access";
+import { routerGuard } from "@/modules/access/routerGuard";
 import { withDocumentTitle } from "@/documentTitle";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
@@ -19,8 +21,13 @@ const searchSchema = z.object({
   range: z.enum(["30d", "6m"]).optional(),
 });
 
-export const Route = createFileRoute("/_main/admin/_main/dashboard")({
+const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
+
+export const Route = createFileRoute("/_main/admin/")({
   validateSearch: searchSchema,
+  beforeLoad: ({ context }) => {
+    routerGuard({ context: context.auth, policy });
+  },
   loader: async ({ context, location }) => {
     const parsedSearch = searchSchema.safeParse(location.search);
     const range =

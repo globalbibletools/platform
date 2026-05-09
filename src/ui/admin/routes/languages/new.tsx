@@ -13,7 +13,7 @@ import { withDocumentTitle } from "@/documentTitle";
 
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
-export const Route = createFileRoute("/_main/admin/_main/languages/new")({
+export const Route = createFileRoute("/_main/admin/languages/new")({
   beforeLoad: ({ context }) => {
     routerGuard({ context: context.auth, policy });
   },
@@ -27,7 +27,7 @@ function NewLanguageRoute() {
   return (
     <div className="px-8 py-6">
       <ViewTitle>{t("title")}</ViewTitle>
-      <Form action={createLanguage} redirect={{ to: "/admin/languages" }}>
+      <Form action={createLanguage} redirect={{ to: "/admin" }}>
         <div className="mb-4">
           <FormLabel htmlFor="english_name">{t("form.english_name")}</FormLabel>
           <TextInput

@@ -61,9 +61,7 @@ export default function PrimaryNavigation() {
         {(isAdmin || canTranslate) && (
           <HeaderLink to="/translate">{t("links.translate")}</HeaderLink>
         )}
-        {isAdmin && (
-          <HeaderLink to="/admin/languages">{t("links.admin")}</HeaderLink>
-        )}
+        {isAdmin && <HeaderLink to="/admin">{t("links.admin")}</HeaderLink>}
         <HeaderLink
           className={`hidden ${isLoggedIn ? "lg:block" : "sm:block"}`}
           href="https://globalbibletools.tawk.help"
@@ -131,7 +129,7 @@ export default function PrimaryNavigation() {
             <Icon icon="feather" className="me-2" fixedWidth />
             <span className="font-bold">{t("links.translate")}</span>
           </HeaderMenuItem>
-          <HeaderMenuItem to="/admin/languages">
+          <HeaderMenuItem to="/admin">
             <Icon icon="sliders" className="me-2" fixedWidth />
             <span className="font-bold">{t("links.admin")}</span>
           </HeaderMenuItem>

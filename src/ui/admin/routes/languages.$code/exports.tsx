@@ -5,8 +5,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useTranslations } from "use-intl";
 import { Suspense } from "react";
 import { withDocumentTitle } from "@/documentTitle";
+import { Policy } from "@/modules/access";
+import { routerGuard } from "@/modules/access/routerGuard";
+
+const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
 export const Route = createFileRoute("/_main/admin/languages/$code/exports")({
+  beforeLoad: ({ context }) => {
+    routerGuard({ context: context.auth, policy });
+  },
   loader: async ({ parentMatchPromise }) => {
     const parent = await parentMatchPromise;
 
