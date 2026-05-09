@@ -22,7 +22,7 @@ export default function Pagination({
   const navigate = useNavigate();
   const search = useSearch({ strict: false });
 
-  const page = search.page ?? 1;
+  const page = "page" in search ? (search.page ?? 1) : 1;
   const maxPages = Math.ceil(total / limit);
 
   function navigateToPage(page: number) {

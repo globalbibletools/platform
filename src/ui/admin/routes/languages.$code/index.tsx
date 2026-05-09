@@ -5,6 +5,8 @@ import LanguageBookProgressDashboardCard from "@/ui/admin/components/LanguageBoo
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import * as z from "zod";
 import { withDocumentTitle } from "@/documentTitle";
+import { Policy } from "@/modules/access";
+import { routerGuard } from "@/modules/access/routerGuard";
 import LanguageUsersDashboardCard from "@/ui/admin/components/LanguageUsersDashboardCard";
 import RangeToggle from "@/ui/admin/components/RangeToggle";
 import { ActivityChartProvider } from "@/ui/admin/components/ActivityChart";
@@ -17,8 +19,13 @@ const searchSchema = z.object({
   range: z.enum(["30d", "6m"]).optional(),
 });
 
+const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
+
 export const Route = createFileRoute("/_main/admin/languages/$code/")({
   validateSearch: searchSchema,
+  beforeLoad: ({ context }) => {
+    routerGuard({ context: context.auth, policy });
+  },
   loader: async ({ params }) => {
     const [languageData, baseData, range30dData, range6mData] =
       await Promise.all([
