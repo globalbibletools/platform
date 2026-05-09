@@ -9,6 +9,9 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import PlatformUsersDashboardCard, {
   platformDashboardContributorsInfiniteQueryOptions,
 } from "@/ui/admin/components/PlatformUsersDashboardCard";
+import PlatformLanguagesDashboardCard, {
+  platformDashboardLanguagesInfiniteQueryOptions,
+} from "@/ui/admin/components/PlatformLanguagesDashboardCard";
 
 const searchSchema = z.object({
   range: z.enum(["30d", "6m"]).optional(),
@@ -21,9 +24,14 @@ export const Route = createFileRoute("/_main/admin/_main/dashboard")({
     const range =
       parsedSearch.success ? (parsedSearch.data.range ?? "30d") : "30d";
 
-    await context.queryClient.ensureInfiniteQueryData(
-      platformDashboardContributorsInfiniteQueryOptions(range),
-    );
+    await Promise.all([
+      context.queryClient.ensureInfiniteQueryData(
+        platformDashboardContributorsInfiniteQueryOptions(range),
+      ),
+      context.queryClient.ensureInfiniteQueryData(
+        platformDashboardLanguagesInfiniteQueryOptions(range),
+      ),
+    ]);
   },
   head: () => withDocumentTitle("Dashboard | Admin"),
   pendingComponent: AdminDashboardRoutePending,
@@ -54,6 +62,9 @@ function AdminDashboardRoute() {
             await queryClient.ensureInfiniteQueryData(
               platformDashboardContributorsInfiniteQueryOptions(nextRange),
             );
+            await queryClient.ensureInfiniteQueryData(
+              platformDashboardLanguagesInfiniteQueryOptions(nextRange),
+            );
 
             navigate({
               to: ".",
@@ -68,8 +79,9 @@ function AdminDashboardRoute() {
       </div>
 
       <ActivityChartProvider>
-        <div className="grid grid-cols-1 auto-rows-[50vh] gap-4 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 auto-rows-[50vh] gap-4 mb-8">
           <PlatformUsersDashboardCard range={range} />
+          <PlatformLanguagesDashboardCard range={range} />
         </div>
       </ActivityChartProvider>
     </div>
