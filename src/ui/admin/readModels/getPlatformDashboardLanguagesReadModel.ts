@@ -25,10 +25,12 @@ export interface PlatformDashboardLanguagesReadModel {
 
 export async function getPlatformDashboardLanguagesReadModel({
   range,
+  query,
   limit,
   cursor,
 }: {
   range: "30d" | "6m";
+  query: string;
   limit: number;
   cursor?: string;
 }): Promise<PlatformDashboardLanguagesReadModel> {
@@ -40,6 +42,7 @@ export async function getPlatformDashboardLanguagesReadModel({
   const parsedCursor = cursor ? decodeCursor(cursor) : null;
 
   const { languages, hasNextPage } = await queryLanguagePageRows({
+    nameFilter: query,
     limit,
     cursor: parsedCursor,
   });
@@ -82,12 +85,15 @@ export async function getPlatformDashboardLanguagesReadModel({
 }
 
 async function queryLanguagePageRows({
+  nameFilter,
   limit,
   cursor,
 }: {
+  nameFilter: string;
   limit: number;
   cursor: CursorData | null;
 }) {
+  const normalizedQuery = nameFilter.trim().toLocaleLowerCase();
   const totalProgressExpr = sql<number>`coalesce(p.ot_progress, 0) + coalesce(p.nt_progress, 0)`;
 
   let query = getDb()
@@ -106,6 +112,30 @@ async function queryLanguagePageRows({
     .orderBy((eb) => eb.fn.coalesce("l.english_name", sql.lit("")))
     .orderBy("l.code")
     .limit(limit + 1);
+
+  if (normalizedQuery !== "") {
+    query = query.where((eb) =>
+      eb.or([
+        eb(
+          eb.fn<string>("lower", [
+            eb.fn.coalesce("l.english_name", sql.lit("")),
+          ]),
+          "like",
+          `%${normalizedQuery}%`,
+        ),
+        eb(
+          eb.fn<string>("lower", [eb.fn.coalesce("l.local_name", sql.lit(""))]),
+          "like",
+          `%${normalizedQuery}%`,
+        ),
+        eb(
+          eb.fn<string>("lower", [eb.ref("l.code")]),
+          "like",
+          `%${normalizedQuery}%`,
+        ),
+      ]),
+    );
+  }
 
   if (cursor) {
     query = query.where((eb) =>

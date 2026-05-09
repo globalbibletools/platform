@@ -1,5 +1,9 @@
-import { useMemo } from "react";
-import { infiniteQueryOptions, useInfiniteQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import {
+  infiniteQueryOptions,
+  keepPreviousData,
+  useInfiniteQuery,
+} from "@tanstack/react-query";
 import {
   DashboardCard,
   DashboardCardEmptyState,
@@ -12,23 +16,28 @@ import InfiniteFetchTrigger from "@/components/InfiniteFetchTrigger";
 import { getPlatformDashboardLanguages } from "@/ui/admin/serverFns/getPlatformDashboardLanguages";
 import { type ActivityChartRange } from "./ActivityChart";
 import ActivityChart from "./ActivityChart";
+import TextInput from "@/components/TextInput";
+import debounce from "@/components/debounce";
 
 const PAGE_SIZE = 10;
 
 export function platformDashboardLanguagesInfiniteQueryOptions(
   range: ActivityChartRange,
+  query: string,
 ) {
   return infiniteQueryOptions({
-    queryKey: ["platformDashboardLanguages", range],
+    queryKey: ["platformDashboardLanguages", range, query],
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
       getPlatformDashboardLanguages({
         data: {
           range,
+          query,
           limit: PAGE_SIZE,
           cursor: pageParam,
         },
       }),
+    placeholderData: keepPreviousData,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
 }
@@ -40,8 +49,20 @@ export default function PlatformLanguagesDashboardCard({
   className?: string;
   range: ActivityChartRange;
 }) {
+  const [query, setQuery] = useState("");
+
+  const setQueryDebounced = useMemo(
+    () =>
+      debounce((nextQuery: string) => {
+        setQuery(nextQuery.trim());
+      }, 250),
+    [],
+  );
+
   const { data, isFetchingNextPage, fetchNextPage, hasNextPage } =
-    useInfiniteQuery(platformDashboardLanguagesInfiniteQueryOptions(range));
+    useInfiniteQuery(
+      platformDashboardLanguagesInfiniteQueryOptions(range, query),
+    );
 
   const languages = useMemo(
     () => data?.pages.flatMap((page) => page.items) ?? [],
@@ -67,7 +88,26 @@ export default function PlatformLanguagesDashboardCard({
 
   return (
     <DashboardCard className={className}>
-      <DashboardCardHeader title="Languages" />
+      <DashboardCardHeader
+        title="Languages"
+        actions={
+          <div className="relative -my-2">
+            <Icon
+              icon="magnifying-glass"
+              size="xs"
+              className="pointer-events-none absolute inset-s-3 top-1/2 -translate-y-1/2"
+            />
+            <TextInput
+              onChange={(event) => {
+                setQueryDebounced(event.target.value);
+              }}
+              placeholder="Search languages"
+              aria-label="Search languages"
+              className="w-64 ps-8"
+            />
+          </div>
+        }
+      />
       <div className="flex-1 overflow-auto relative">
         {languages.length === 0 ?
           <DashboardCardEmptyState>No languages found.</DashboardCardEmptyState>

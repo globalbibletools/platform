@@ -38,7 +38,7 @@ export const Route = createFileRoute("/_main/admin/")({
         platformDashboardContributorsInfiniteQueryOptions(range, ""),
       ),
       context.queryClient.ensureInfiniteQueryData(
-        platformDashboardLanguagesInfiniteQueryOptions(range),
+        platformDashboardLanguagesInfiniteQueryOptions(range, ""),
       ),
     ]);
   },
@@ -80,7 +80,7 @@ function AdminDashboardRoute() {
               platformDashboardContributorsInfiniteQueryOptions(nextRange, ""),
             );
             await queryClient.ensureInfiniteQueryData(
-              platformDashboardLanguagesInfiniteQueryOptions(nextRange),
+              platformDashboardLanguagesInfiniteQueryOptions(nextRange, ""),
             );
 
             navigate({
