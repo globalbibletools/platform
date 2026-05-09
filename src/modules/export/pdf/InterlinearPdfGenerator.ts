@@ -32,37 +32,32 @@ export interface InterlinearPdfSection {
 const pdfFontMap: Record<string, string> = {
   "Noto Sans": "noto-sans-latin-400-normal.woff",
   "Noto Sans Arabic": "noto-sans-arabic-arabic-400-normal.woff",
+  "Noto Sans Cyrillic": "noto-sans-cyrillic-400-normal.woff",
+  "Noto Sans Cyrillic Extended": "noto-sans-cyrillic-ext-400-normal.woff",
   "Noto Sans Devanagari": "noto-sans-devanagari-400-normal.woff",
-};
-
-const fontsourceCandidates: Record<string, string> = {
-  "noto-sans-latin-400-normal.woff": path.join(
-    "node_modules",
-    "@fontsource",
-    "noto-sans",
-    "files",
-    "noto-sans-latin-400-normal.woff",
-  ),
-  "noto-sans-arabic-arabic-400-normal.woff": path.join(
-    "node_modules",
-    "@fontsource",
-    "noto-sans-arabic",
-    "files",
-    "noto-sans-arabic-arabic-400-normal.woff",
-  ),
-  "noto-sans-devanagari-400-normal.woff": path.join(
-    "node_modules",
-    "@fontsource",
-    "noto-sans",
-    "files",
-    "noto-sans-devanagari-400-normal.woff",
-  ),
+  "Noto Sans Greek": "noto-sans-greek-400-normal.woff",
+  "Noto Sans Greek Extended": "noto-sans-greek-ext-400-normal.woff",
+  "Noto Sans Latin Extended": "noto-sans-latin-ext-400-normal.woff",
+  "Noto Sans Vietnamese": "noto-sans-vietnamese-400-normal.woff",
 };
 
 /** Maps Unicode ranges to Noto font variants for "Noto Sans" fallback. */
 const notoScriptVariants: { regex: RegExp; font: string }[] = [
   { regex: /[\u0900-\u097F]/, font: "Noto Sans Devanagari" },
   { regex: /[\u0600-\u06FF]/, font: "Noto Sans Arabic" },
+  {
+    regex:
+      /[\u0102-\u0103\u0110-\u0111\u0128-\u0129\u0168-\u0169\u01A0-\u01A1\u01AF-\u01B0\u1EA0-\u1EF9]/,
+    font: "Noto Sans Vietnamese",
+  },
+  {
+    regex: /[\u0460-\u052F\u1C80-\u1C8F\uA640-\uA69F]/,
+    font: "Noto Sans Cyrillic Extended",
+  },
+  { regex: /[\u0400-\u045F]/, font: "Noto Sans Cyrillic" },
+  { regex: /[\u1F00-\u1FFF]/, font: "Noto Sans Greek Extended" },
+  { regex: /[\u0370-\u03FF]/, font: "Noto Sans Greek" },
+  { regex: /[\u0100-\u024F]/, font: "Noto Sans Latin Extended" },
 ];
 
 const metadataFont = "Helvetica";
@@ -71,7 +66,10 @@ const metadataFont = "Helvetica";
  * Given a sample of gloss text and the language font name,
  * resolves the best font name to use in the PDF.
  */
-function resolveGlossFontName(fontName: string, glossSample: string): string {
+export function resolveGlossFontName(
+  fontName: string,
+  glossSample: string,
+): string {
   if (fontName !== "Noto Sans") return fontName;
   for (const variant of notoScriptVariants) {
     if (variant.regex.test(glossSample)) return variant.font;
@@ -218,9 +216,9 @@ function resolveRequiredFontFile(filename: string): string {
     path.join(process.cwd(), "src", "fonts"),
   ].map((fontBase) => path.join(fontBase, filename));
 
-  const fontsourcePath = fontsourceCandidates[filename];
+  const fontsourcePath = resolveFontsourcePackagePath(filename);
   if (fontsourcePath) {
-    candidates.push(path.join(process.cwd(), fontsourcePath));
+    candidates.push(fontsourcePath);
   }
 
   const fontPath = candidates.find((candidate) => fs.existsSync(candidate));
@@ -231,6 +229,24 @@ function resolveRequiredFontFile(filename: string): string {
   }
 
   return fontPath;
+}
+
+function resolveFontsourcePackagePath(filename: string): string | undefined {
+  const packageName =
+    filename.startsWith("noto-sans-arabic-") ? "noto-sans-arabic"
+    : filename.startsWith("noto-sans-") ? "noto-sans"
+    : undefined;
+
+  if (!packageName) return undefined;
+
+  return path.join(
+    process.cwd(),
+    "node_modules",
+    "@fontsource",
+    packageName,
+    "files",
+    filename,
+  );
 }
 
 function renderVerse(

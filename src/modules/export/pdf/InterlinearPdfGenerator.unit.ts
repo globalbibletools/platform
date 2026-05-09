@@ -5,6 +5,7 @@ import {
   formatVerseLabel,
   generateInterlinearPdf,
   generateInterlinearPdfDocument,
+  resolveGlossFontName,
 } from "./InterlinearPdfGenerator";
 import type { InterlinearChapterResult } from "../data-access/InterlinearQueryService";
 import { TextDirectionRaw } from "@/modules/languages/model";
@@ -95,6 +96,52 @@ describe("generateInterlinearPdf", () => {
     const pdf = await PDFDocument.load(pdfBytes);
     expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
   });
+
+  it.each([
+    ["Vietnamese", "lời hạ", "Noto Sans Vietnamese"],
+    ["Cyrillic", "Жизнь", "Noto Sans Cyrillic"],
+    ["Latin Extended", "Łaska", "Noto Sans Latin Extended"],
+  ])(
+    "resolves default Noto Sans glosses to the %s fontsource subset",
+    (_, glossSample, expectedFontName) => {
+      expect(resolveGlossFontName("Noto Sans", glossSample)).toBe(
+        expectedFontName,
+      );
+    },
+  );
+
+  it("prefers the configured language font when it is mapped", () => {
+    expect(resolveGlossFontName("Noto Sans Arabic", "Жизнь")).toBe(
+      "Noto Sans Arabic",
+    );
+  });
+
+  it.each([
+    ["Vietnamese", "lời", "hạ"],
+    ["Cyrillic", "Жизнь", "Бог"],
+  ])(
+    "renders %s glosses with configured Noto Sans",
+    async (_, first, second) => {
+      const chapter = buildSampleChapter();
+      chapter.verses[0].words[0].gloss = first;
+      chapter.verses[0].words[1].gloss = second;
+
+      const { stream, pageCount } = generateInterlinearPdf(chapter, {
+        pageSize: "letter",
+        direction: "ltr",
+        header: { title: "Subset Test", subtitle: "Noto Sans glosses" },
+        footer: { generatedAt: new Date(), pageOffset: 0 },
+        glossFontName: "Noto Sans",
+      });
+
+      const pdfBytes = await streamToBuffer(stream);
+      expect(pdfBytes.byteLength).toBeGreaterThan(0);
+      expect(pageCount).toBeGreaterThanOrEqual(1);
+
+      const pdf = await PDFDocument.load(pdfBytes);
+      expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
+    },
+  );
 
   it("creates one PDF across multiple sections", async () => {
     const firstSection = buildSampleChapter();

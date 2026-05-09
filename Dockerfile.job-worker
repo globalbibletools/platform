@@ -9,9 +9,8 @@ COPY . .
 RUN npm run build:job-worker \
   && mkdir -p /app/dist/fonts \
   && cp src/fonts/SBL_*.ttf /app/dist/fonts/ \
-  && cp node_modules/@fontsource/noto-sans/files/noto-sans-latin-400-normal.woff /app/dist/fonts/ \
-  && cp node_modules/@fontsource/noto-sans/files/noto-sans-devanagari-400-normal.woff /app/dist/fonts/ \
-  && cp node_modules/@fontsource/noto-sans-arabic/files/noto-sans-arabic-arabic-400-normal.woff /app/dist/fonts/
+  && cp node_modules/@fontsource/noto-sans/files/*-400-normal.woff /app/dist/fonts/ \
+  && cp node_modules/@fontsource/noto-sans-arabic/files/*-400-normal.woff /app/dist/fonts/
 
 FROM public.ecr.aws/lambda/nodejs:22 AS runner
 ENV NODE_ENV=production
