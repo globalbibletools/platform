@@ -25,10 +25,12 @@ export interface PlatformDashboardContributorsReadModel {
 
 export async function getPlatformDashboardContributorsReadModel({
   range,
+  query,
   limit,
   cursor,
 }: {
   range: "30d" | "6m";
+  query: string;
   limit: number;
   cursor?: string;
 }): Promise<PlatformDashboardContributorsReadModel> {
@@ -40,6 +42,7 @@ export async function getPlatformDashboardContributorsReadModel({
   const parsedCursor = cursor ? decodeCursor(cursor) : null;
 
   const { users, hasNextPage } = await queryContributorPageRows({
+    nameFilter: query,
     limit,
     cursor: parsedCursor,
   });
@@ -81,12 +84,16 @@ export async function getPlatformDashboardContributorsReadModel({
 }
 
 async function queryContributorPageRows({
+  nameFilter,
   limit,
   cursor,
 }: {
+  nameFilter: string;
   limit: number;
   cursor: CursorData | null;
 }) {
+  const normalizedQuery = nameFilter.trim().toLocaleLowerCase();
+
   let query = getDb()
     .with("invited_user", (db) =>
       db.selectFrom("user_invitation").select("user_id").distinct(),
@@ -133,6 +140,16 @@ async function queryContributorPageRows({
     .orderBy((eb) => eb.fn.coalesce("users.name", sql.lit("")))
     .orderBy("users.id")
     .limit(limit + 1);
+
+  if (normalizedQuery !== "") {
+    query = query.where((eb) =>
+      eb(
+        eb.fn<string>("lower", [eb.fn.coalesce("users.name", sql.lit(""))]),
+        "like",
+        `%${normalizedQuery}%`,
+      ),
+    );
+  }
 
   if (cursor) {
     query = query.where((eb) =>

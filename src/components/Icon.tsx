@@ -43,6 +43,7 @@ const iconMap = {
   "exclamation-triangle": FaSolid.faTriangleExclamation,
   "external-link": FaSolid.faUpRightFromSquare,
   maximize: FaSolid.faMaximize,
+  "magnifying-glass": FaSolid.faMagnifyingGlass,
   feather: FaSolid.faFeather,
   "file-arrow-down": FaSolid.faFileArrowDown,
   "file-import": FaSolid.faFileImport,
