@@ -2,6 +2,8 @@ import * as z from "zod";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { withDocumentTitle } from "@/documentTitle";
+import Button from "@/components/Button";
+import { Icon } from "@/components/Icon";
 import ViewTitle from "@/components/ViewTitle";
 import RangeToggle from "@/ui/admin/components/RangeToggle";
 import { ActivityChartProvider } from "@/ui/admin/components/ActivityChart";
@@ -56,6 +58,14 @@ function AdminDashboardRoute() {
       <div className="mb-4 flex items-center gap-4">
         <ViewTitle>Dashboard</ViewTitle>
         <div className="grow" />
+        <Button variant="tertiary" to="/admin/languages/new">
+          <Icon icon="plus" className="me-1" />
+          Add Language
+        </Button>
+        <Button variant="tertiary" to="/admin/users/invite">
+          <Icon icon="envelope" className="me-1" />
+          Invite User
+        </Button>
         <RangeToggle
           range={range}
           onChange={async (nextRange) => {
