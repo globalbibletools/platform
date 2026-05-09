@@ -1,11 +1,15 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { type ActivityChartRange } from "./ActivityChart";
 import ActivityChart from "./ActivityChart";
 import ContributionBar from "./ContributionBar";
 import ServerAction from "@/components/ServerAction";
 import { Icon } from "@/components/Icon";
 import { disableUser } from "@/modules/users/actions/disableUser";
-import { infiniteQueryOptions, useInfiniteQuery } from "@tanstack/react-query";
+import {
+  infiniteQueryOptions,
+  keepPreviousData,
+  useInfiniteQuery,
+} from "@tanstack/react-query";
 import {
   DashboardCard,
   DashboardCardEmptyState,
@@ -14,23 +18,28 @@ import {
 import StatusBadge from "./StatusBadge";
 import { getPlatformDashboardContributors } from "@/ui/admin/serverFns/getPlatformDashboardContributors";
 import InfiniteFetchTrigger from "@/components/InfiniteFetchTrigger";
+import TextInput from "@/components/TextInput";
+import debounce from "@/components/debounce";
 
 const PAGE_SIZE = 10;
 
 export function platformDashboardContributorsInfiniteQueryOptions(
   range: ActivityChartRange,
+  query: string,
 ) {
   return infiniteQueryOptions({
-    queryKey: ["platformDashboardContributors", range],
+    queryKey: ["platformDashboardContributors", range, query],
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
       getPlatformDashboardContributors({
         data: {
           range,
+          query,
           limit: PAGE_SIZE,
           cursor: pageParam,
         },
       }),
+    placeholderData: keepPreviousData,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
 }
@@ -42,8 +51,20 @@ export default function PlatformUsersDashboardCard({
   className?: string;
   range: ActivityChartRange;
 }) {
+  const [query, setQuery] = useState("");
+
+  const setQueryDebounced = useMemo(
+    () =>
+      debounce((nextQuery: string) => {
+        setQuery(nextQuery.trim());
+      }, 250),
+    [],
+  );
+
   const { data, isFetchingNextPage, fetchNextPage, hasNextPage } =
-    useInfiniteQuery(platformDashboardContributorsInfiniteQueryOptions(range));
+    useInfiniteQuery(
+      platformDashboardContributorsInfiniteQueryOptions(range, query),
+    );
 
   const fullUsers = useMemo(
     () => data?.pages.flatMap((page) => page.items) ?? [],
@@ -73,7 +94,26 @@ export default function PlatformUsersDashboardCard({
 
   return (
     <DashboardCard className={className}>
-      <DashboardCardHeader title="Contributors" />
+      <DashboardCardHeader
+        title="Contributors"
+        actions={
+          <div className="relative -my-2">
+            <Icon
+              icon="magnifying-glass"
+              size="xs"
+              className="pointer-events-none absolute inset-s-3 top-1/2 -translate-y-1/2"
+            />
+            <TextInput
+              onChange={(event) => {
+                setQueryDebounced(event.target.value);
+              }}
+              placeholder="Search contributors"
+              aria-label="Search contributors"
+              className="w-64 ps-8"
+            />
+          </div>
+        }
+      />
       <div className="flex-1 overflow-auto relative">
         {fullUsers.length === 0 ?
           <DashboardCardEmptyState>No users found.</DashboardCardEmptyState>

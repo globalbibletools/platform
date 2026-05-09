@@ -9,6 +9,7 @@ const policy = new Policy({
 
 const requestSchema = z.object({
   range: z.enum(["30d", "6m"]),
+  query: z.string().default(""),
   cursor: z.string().optional(),
   limit: z.coerce.number().int().positive().default(20),
 });
@@ -19,6 +20,7 @@ export const getPlatformDashboardContributors = createServerFn()
   .handler(async ({ data }) => {
     return getPlatformDashboardContributorsReadModel({
       range: data.range,
+      query: data.query,
       limit: data.limit,
       cursor: data.cursor,
     });

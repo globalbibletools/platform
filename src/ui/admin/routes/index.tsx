@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_main/admin/")({
 
     await Promise.all([
       context.queryClient.ensureInfiniteQueryData(
-        platformDashboardContributorsInfiniteQueryOptions(range),
+        platformDashboardContributorsInfiniteQueryOptions(range, ""),
       ),
       context.queryClient.ensureInfiniteQueryData(
         platformDashboardLanguagesInfiniteQueryOptions(range),
@@ -77,7 +77,7 @@ function AdminDashboardRoute() {
           range={range}
           onChange={async (nextRange) => {
             await queryClient.ensureInfiniteQueryData(
-              platformDashboardContributorsInfiniteQueryOptions(nextRange),
+              platformDashboardContributorsInfiniteQueryOptions(nextRange, ""),
             );
             await queryClient.ensureInfiniteQueryData(
               platformDashboardLanguagesInfiniteQueryOptions(nextRange),
