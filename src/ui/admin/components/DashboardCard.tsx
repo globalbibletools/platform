@@ -20,12 +20,19 @@ export function DashboardCard({
   );
 }
 
-export function DashboardCardHeader({ title }: { title: string }) {
+export function DashboardCardHeader({
+  title,
+  actions,
+}: {
+  title: string;
+  actions?: ReactNode;
+}) {
   return (
-    <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-700">
+    <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-700 flex items-center gap-3">
       <h2 className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-300">
         {title}
       </h2>
+      {actions && <div className="ms-auto">{actions}</div>}
     </div>
   );
 }

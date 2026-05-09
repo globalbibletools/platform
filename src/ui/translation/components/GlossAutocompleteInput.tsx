@@ -62,7 +62,6 @@ export default function GlossAutocompleteInput({
     <div
       className={`relative ${className}`}
       style={style}
-      dir={dir}
       onBlur={(e) => {
         if (e.currentTarget.contains(e.relatedTarget)) {
           return;
@@ -79,6 +78,7 @@ export default function GlossAutocompleteInput({
         right={right}
         font={font}
         saving={saving}
+        dir={dir}
       />
       {optionsVisible && filteredOptions.length > 0 && (
         <ol
@@ -103,6 +103,7 @@ export default function GlossAutocompleteInput({
                 selected={option === selectedOption}
                 separator={separator}
                 dispatch={dispatch}
+                dir={dir}
               />
             );
           })}
@@ -124,11 +125,13 @@ function AutocompleteOption({
   selected,
   dispatch,
   separator = false,
+  dir,
 }: {
   option: AutocompleteOption;
   selected: boolean;
   dispatch: AutocompleteDispatch;
   separator?: boolean;
+  dir?: string;
 }) {
   return (
     <li
@@ -153,7 +156,9 @@ function AutocompleteOption({
       {separator && (
         <div className="absolute top-0 w-[calc(100%-1rem)] border-t border-gray-300 -mx-1" />
       )}
-      <span className="flex-1">{option.text}</span>
+      <span className="flex-1" dir={dir}>
+        {option.text}
+      </span>
       {option.source === GlossApprovalMethodRaw.LLMSuggestion ?
         <Icon icon="robot" size="xs" />
       : undefined}
@@ -169,6 +174,7 @@ function Input({
   font,
   saving,
   state,
+  dir,
   dispatch,
   ...props
 }: {
@@ -177,6 +183,7 @@ function Input({
   saving: boolean;
   state: AutcompleteState;
   dispatch: AutocompleteDispatch;
+  dir?: string;
 } & ComponentProps<"input">) {
   const { initial, draft } = state;
 
@@ -248,6 +255,7 @@ function Input({
         <input
           {...props}
           ref={inputRef}
+          dir={dir}
           className={`
             border shadow-inner outline-0
             px-3 h-[26px] bg-white
