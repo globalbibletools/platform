@@ -45,6 +45,7 @@ export async function getPlatformDashboardLanguagesReadModel({
     nameFilter: query,
     limit,
     cursor: parsedCursor,
+    rangeDays,
   });
 
   if (languages.length === 0) {
@@ -54,7 +55,7 @@ export async function getPlatformDashboardLanguagesReadModel({
     };
   }
 
-  const { activityMap, activityTotalMap } = await queryLanguageActivityRows({
+  const activityMap = await queryLanguageActivityRows({
     languageIds: languages.map((row) => row.id),
     rangeDays,
     granularity,
@@ -64,6 +65,7 @@ export async function getPlatformDashboardLanguagesReadModel({
   const nextCursor =
     hasNextPage && lastRow ?
       encodeCursor({
+        activityTotal: Math.abs(lastRow.activityTotal),
         totalProgress: lastRow.totalProgress,
         languageName: lastRow.englishName,
       })
@@ -78,7 +80,7 @@ export async function getPlatformDashboardLanguagesReadModel({
       otProgress: row.otProgress,
       ntProgress: row.ntProgress,
       activity: activityMap.get(row.id) ?? [],
-      activityTotal: activityTotalMap.get(row.id) ?? 0,
+      activityTotal: row.activityTotal,
     })),
     nextCursor,
   };
@@ -88,48 +90,101 @@ async function queryLanguagePageRows({
   nameFilter,
   limit,
   cursor,
+  rangeDays,
 }: {
   nameFilter: string;
   limit: number;
   cursor: CursorData | null;
+  rangeDays: number;
 }) {
   const normalizedQuery = nameFilter.trim().toLocaleLowerCase();
-  const totalProgressExpr = sql<number>`coalesce(p.ot_progress, 0) + coalesce(p.nt_progress, 0)`;
 
   let query = getDb()
-    .selectFrom("language as l")
-    .leftJoin("language_progress as p", "p.code", "l.code")
+    .with("at", (db) =>
+      db
+        .selectFrom("gloss_event")
+        .whereRef("prev_state", "<>", "new_state")
+        .where(
+          "timestamp",
+          ">=",
+          sql<Date>`now() - (${rangeDays} || ' days')::INTERVAL`,
+        )
+        .groupBy("language_id")
+        .select([
+          "language_id",
+          (eb) =>
+            eb.fn
+              .sum<number>(
+                eb
+                  .case()
+                  .when(eb.ref("new_state"), "=", GlossStateRaw.Approved)
+                  .then(1)
+                  .else(-1)
+                  .end(),
+              )
+              .as("activity_total"),
+        ]),
+    )
+    .with("base", (db) =>
+      db
+        .selectFrom("language as l")
+        .leftJoin("at", "at.language_id", "l.id")
+        .leftJoin("language_progress as p", "p.code", "l.code")
+        .select([
+          "l.id",
+          "l.code",
+          "l.english_name as englishName",
+          "l.local_name as localName",
+          (eb) => eb.fn.coalesce("p.ot_progress", eb.lit(0)).as("otProgress"),
+          (eb) => eb.fn.coalesce("p.nt_progress", eb.lit(0)).as("ntProgress"),
+          (eb) =>
+            eb(
+              eb.fn.coalesce("p.ot_progress", eb.lit(0)),
+              "+",
+              eb.fn.coalesce("p.nt_progress", eb.lit(0)),
+            ).as("totalProgress"),
+          (eb) =>
+            eb.fn.coalesce("at.activity_total", eb.lit(0)).as("activityTotal"),
+          (eb) =>
+            eb
+              .fn<number>("abs", [
+                eb.fn.coalesce("at.activity_total", eb.lit(0)),
+              ])
+              .as("activityMagnitude"),
+        ]),
+    )
+    .selectFrom("base")
     .select([
-      "l.id",
-      "l.code",
-      "l.english_name as englishName",
-      "l.local_name as localName",
-      (eb) => eb.fn.coalesce("p.ot_progress", eb.lit(0)).as("otProgress"),
-      (eb) => eb.fn.coalesce("p.nt_progress", eb.lit(0)).as("ntProgress"),
-      totalProgressExpr.as("totalProgress"),
+      "id",
+      "code",
+      "englishName",
+      "localName",
+      "otProgress",
+      "ntProgress",
+      "totalProgress",
+      "activityTotal",
+      "activityMagnitude",
     ])
-    .orderBy(totalProgressExpr, "desc")
-    .orderBy((eb) => eb.fn.coalesce("l.english_name", sql.lit("")))
-    .orderBy("l.code")
+    .orderBy("activityMagnitude", "desc")
+    .orderBy("totalProgress", "desc")
+    .orderBy("englishName")
     .limit(limit + 1);
 
   if (normalizedQuery !== "") {
     query = query.where((eb) =>
       eb.or([
         eb(
-          eb.fn<string>("lower", [
-            eb.fn.coalesce("l.english_name", sql.lit("")),
-          ]),
+          eb.fn<string>("lower", [eb.ref("englishName")]),
           "like",
           `%${normalizedQuery}%`,
         ),
         eb(
-          eb.fn<string>("lower", [eb.fn.coalesce("l.local_name", sql.lit(""))]),
+          eb.fn<string>("lower", [eb.ref("localName")]),
           "like",
           `%${normalizedQuery}%`,
         ),
         eb(
-          eb.fn<string>("lower", [eb.ref("l.code")]),
+          eb.fn<string>("lower", [eb.ref("code")]),
           "like",
           `%${normalizedQuery}%`,
         ),
@@ -140,14 +195,15 @@ async function queryLanguagePageRows({
   if (cursor) {
     query = query.where((eb) =>
       eb.or([
-        eb(totalProgressExpr, "<", cursor.totalProgress),
+        eb("activityMagnitude", "<", cursor.activityTotal),
         eb.and([
-          eb(totalProgressExpr, "=", cursor.totalProgress),
-          eb(
-            eb.fn.coalesce("l.english_name", sql.lit("")),
-            ">",
-            cursor.languageName,
-          ),
+          eb("activityMagnitude", "=", cursor.activityTotal),
+          eb("totalProgress", "<", cursor.totalProgress),
+        ]),
+        eb.and([
+          eb("activityMagnitude", "=", cursor.activityTotal),
+          eb("totalProgress", "=", cursor.totalProgress),
+          eb("englishName", ">", cursor.languageName),
         ]),
       ]),
     );
@@ -218,51 +274,54 @@ async function queryLanguageActivityRows({
     string,
     PlatformDashboardLanguageActivityEntryReadModel[]
   >();
-  const activityTotalMap = new Map<string, number>();
 
   for (const activityRow of activityRows) {
     const currentActivity = activityMap.get(activityRow.languageId) ?? [];
     currentActivity.push({ date: activityRow.date, net: activityRow.net });
     activityMap.set(activityRow.languageId, currentActivity);
-
-    const currentTotal = activityTotalMap.get(activityRow.languageId) ?? 0;
-    activityTotalMap.set(
-      activityRow.languageId,
-      currentTotal + activityRow.net,
-    );
   }
 
-  return { activityMap, activityTotalMap };
+  return activityMap;
 }
 
 interface CursorData {
+  activityTotal: number;
   totalProgress: number;
   languageName: string;
 }
 
 function encodeCursor(cursor: CursorData): string {
-  return Buffer.from(`${cursor.totalProgress}:${cursor.languageName}`).toString(
-    "base64url",
-  );
+  return Buffer.from(
+    `${cursor.activityTotal}:${cursor.totalProgress}:${cursor.languageName}`,
+  ).toString("base64url");
 }
 
 function decodeCursor(cursor: string): CursorData | null {
   const cursorString = Buffer.from(cursor, "base64url").toString();
-  const separatorIndex = cursorString.indexOf(":");
-  if (separatorIndex === -1) {
+  const firstSeparator = cursorString.indexOf(":");
+  if (firstSeparator === -1) {
     return null;
   }
 
-  const totalProgress = Number.parseFloat(
-    cursorString.slice(0, separatorIndex),
-  );
-  const languageName = cursorString.slice(separatorIndex + 1);
+  const secondSeparator = cursorString.indexOf(":", firstSeparator + 1);
+  if (secondSeparator === -1) {
+    return null;
+  }
 
-  if (!Number.isFinite(totalProgress)) {
+  const activityTotal = Number.parseFloat(
+    cursorString.slice(0, firstSeparator),
+  );
+  const totalProgress = Number.parseFloat(
+    cursorString.slice(firstSeparator + 1, secondSeparator),
+  );
+  const languageName = cursorString.slice(secondSeparator + 1);
+
+  if (!Number.isFinite(activityTotal) || !Number.isFinite(totalProgress)) {
     return null;
   }
 
   return {
+    activityTotal,
     totalProgress,
     languageName,
   };

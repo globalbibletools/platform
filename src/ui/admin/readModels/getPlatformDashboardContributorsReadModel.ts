@@ -43,6 +43,7 @@ export async function getPlatformDashboardContributorsReadModel({
 
   const { users, hasNextPage } = await queryContributorPageRows({
     nameFilter: query,
+    rangeDays,
     limit,
     cursor: parsedCursor,
   });
@@ -54,7 +55,7 @@ export async function getPlatformDashboardContributorsReadModel({
     };
   }
 
-  const { activityMap, activityTotalMap } = await queryContributorActivityRows({
+  const activityMap = await queryContributorActivityRows({
     userIds: users.map((row) => row.id),
     rangeDays,
     granularity,
@@ -64,6 +65,7 @@ export async function getPlatformDashboardContributorsReadModel({
   const nextCursor =
     hasNextPage && lastRow ?
       encodeCursor({
+        activityTotal: Math.abs(lastRow.activityTotal),
         contributedGlosses: lastRow.contributedGlosses,
         userName: lastRow.name ?? "",
       })
@@ -77,7 +79,7 @@ export async function getPlatformDashboardContributorsReadModel({
       status: row.status,
       contributedGlosses: row.contributedGlosses,
       activity: activityMap.get(row.id) ?? [],
-      activityTotal: activityTotalMap.get(row.id) ?? 0,
+      activityTotal: row.activityTotal,
     })),
     nextCursor,
   };
@@ -85,10 +87,12 @@ export async function getPlatformDashboardContributorsReadModel({
 
 async function queryContributorPageRows({
   nameFilter,
+  rangeDays,
   limit,
   cursor,
 }: {
   nameFilter: string;
+  rangeDays: number;
   limit: number;
   cursor: CursorData | null;
 }) {
@@ -112,39 +116,83 @@ async function queryContributorPageRows({
               .as("approvedGlossCount"),
         ]),
     )
-    .selectFrom("users")
-    .leftJoin("invited_user", "invited_user.user_id", "users.id")
-    .leftJoin("contribution", "contribution.userId", "users.id")
-    .where("users.status", "<>", UserStatusRaw.Disabled)
-    .select([
-      "users.id",
-      "users.name",
-      "users.email",
-      (eb) =>
-        eb
-          .case()
-          .when("invited_user.user_id", "is not", null)
-          .then<"active" | "invited">("invited")
-          .else<"active" | "invited">("active")
-          .end()
-          .as("status"),
-      (eb) =>
-        eb.fn
-          .coalesce("contribution.approvedGlossCount", eb.lit(0))
-          .as("contributedGlosses"),
-    ])
-    .orderBy(
-      (eb) => eb.fn.coalesce("contribution.approvedGlossCount", eb.lit(0)),
-      "desc",
+    .with("activity_total", (db) =>
+      db
+        .selectFrom("gloss_event")
+        .whereRef("prev_state", "<>", "new_state")
+        .where(
+          "timestamp",
+          ">=",
+          sql<Date>`now() - (${rangeDays} || ' days')::INTERVAL`,
+        )
+        .groupBy("gloss_event.user_id")
+        .select([
+          "gloss_event.user_id as userId",
+          (eb) =>
+            eb.fn
+              .sum<number>(
+                eb
+                  .case()
+                  .when(eb.ref("new_state"), "=", GlossStateRaw.Approved)
+                  .then(1)
+                  .else(-1)
+                  .end(),
+              )
+              .as("net"),
+        ]),
     )
-    .orderBy((eb) => eb.fn.coalesce("users.name", sql.lit("")))
-    .orderBy("users.id")
+    .with("base", (db) =>
+      db
+        .selectFrom("users")
+        .leftJoin("invited_user", "invited_user.user_id", "users.id")
+        .leftJoin("contribution", "contribution.userId", "users.id")
+        .leftJoin("activity_total", "activity_total.userId", "users.id")
+        .where("users.status", "<>", UserStatusRaw.Disabled)
+        .select([
+          "users.id",
+          "users.name",
+          "users.email",
+          (eb) =>
+            eb
+              .case()
+              .when("invited_user.user_id", "is not", null)
+              .then<"active" | "invited">("invited")
+              .else<"active" | "invited">("active")
+              .end()
+              .as("status"),
+          (eb) =>
+            eb.fn
+              .coalesce("contribution.approvedGlossCount", eb.lit(0))
+              .as("contributedGlosses"),
+          (eb) =>
+            eb.fn.coalesce("activity_total.net", eb.lit(0)).as("activityTotal"),
+          (eb) =>
+            eb
+              .fn<number>("abs", [
+                eb.fn.coalesce("activity_total.net", eb.lit(0)),
+              ])
+              .as("activityMagnitude"),
+        ]),
+    )
+    .selectFrom("base")
+    .select([
+      "id",
+      "name",
+      "email",
+      "status",
+      "contributedGlosses",
+      "activityTotal",
+      "activityMagnitude",
+    ])
+    .orderBy("activityMagnitude", "desc")
+    .orderBy("contributedGlosses", "desc")
+    .orderBy("name")
     .limit(limit + 1);
 
   if (normalizedQuery !== "") {
     query = query.where((eb) =>
       eb(
-        eb.fn<string>("lower", [eb.fn.coalesce("users.name", sql.lit(""))]),
+        eb.fn<string>("lower", [eb.ref("name")]),
         "like",
         `%${normalizedQuery}%`,
       ),
@@ -154,18 +202,15 @@ async function queryContributorPageRows({
   if (cursor) {
     query = query.where((eb) =>
       eb.or([
-        eb(
-          eb.fn.coalesce("contribution.approvedGlossCount", eb.lit(0)),
-          "<",
-          cursor.contributedGlosses,
-        ),
+        eb("activityMagnitude", "<", cursor.activityTotal),
         eb.and([
-          eb(
-            eb.fn.coalesce("contribution.approvedGlossCount", eb.lit(0)),
-            "=",
-            cursor.contributedGlosses,
-          ),
-          eb(eb.fn.coalesce("users.name", sql.lit("")), ">", cursor.userName),
+          eb("activityMagnitude", "=", cursor.activityTotal),
+          eb("contributedGlosses", "<", cursor.contributedGlosses),
+        ]),
+        eb.and([
+          eb("activityMagnitude", "=", cursor.activityTotal),
+          eb("contributedGlosses", "=", cursor.contributedGlosses),
+          eb("name", ">", cursor.userName),
         ]),
       ]),
     );
@@ -236,46 +281,54 @@ async function queryContributorActivityRows({
     string,
     PlatformDashboardContributorActivityEntryReadModel[]
   >();
-  const activityTotalMap = new Map<string, number>();
 
   for (const activityRow of activityRows) {
     const currentActivity = activityMap.get(activityRow.userId) ?? [];
     currentActivity.push({ date: activityRow.date, net: activityRow.net });
     activityMap.set(activityRow.userId, currentActivity);
-
-    const currentTotal = activityTotalMap.get(activityRow.userId) ?? 0;
-    activityTotalMap.set(activityRow.userId, currentTotal + activityRow.net);
   }
 
-  return { activityMap, activityTotalMap };
+  return activityMap;
 }
 
 interface CursorData {
+  activityTotal: number;
   contributedGlosses: number;
   userName: string;
 }
 
 function encodeCursor(cursor: CursorData): string {
   return Buffer.from(
-    `${cursor.contributedGlosses}:${cursor.userName}`,
+    `${cursor.activityTotal}:${cursor.contributedGlosses}:${cursor.userName}`,
   ).toString("base64url");
 }
 
 function decodeCursor(cursor: string): CursorData | null {
   const cursorString = Buffer.from(cursor, "base64url").toString();
-  const separatorIndex = cursorString.indexOf(":");
-  if (separatorIndex === -1) {
+  const firstSeparator = cursorString.indexOf(":");
+  if (firstSeparator === -1) {
     return null;
   }
 
-  const contributedGlosses = parseInt(cursorString.slice(0, separatorIndex));
-  const userName = cursorString.slice(separatorIndex + 1);
+  const secondSeparator = cursorString.indexOf(":", firstSeparator + 1);
+  if (secondSeparator === -1) {
+    return null;
+  }
 
-  if (Number.isNaN(contributedGlosses)) {
+  const activityTotal = Number.parseFloat(
+    cursorString.slice(0, firstSeparator),
+  );
+  const contributedGlosses = Number.parseFloat(
+    cursorString.slice(firstSeparator + 1, secondSeparator),
+  );
+  const userName = cursorString.slice(secondSeparator + 1);
+
+  if (!Number.isFinite(activityTotal) || !Number.isFinite(contributedGlosses)) {
     return null;
   }
 
   return {
+    activityTotal,
     contributedGlosses,
     userName,
   };
