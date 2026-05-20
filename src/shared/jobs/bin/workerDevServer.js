@@ -1,8 +1,15 @@
 import esbuild from "esbuild";
+import fs from "fs";
 import { createServer } from "http";
 import path from "path";
 import url from "url";
 import { Worker } from "worker_threads";
+
+const pdfkitDataSource = path.resolve("node_modules/pdfkit/js/data");
+const pdfkitDataTarget = path.resolve("dist/data");
+
+fs.mkdirSync(path.dirname(pdfkitDataTarget), { recursive: true });
+fs.cpSync(pdfkitDataSource, pdfkitDataTarget, { recursive: true });
 
 const ctx = await esbuild.context({
   entryPoints: ["src/shared/jobs/bin/worker.ts"],

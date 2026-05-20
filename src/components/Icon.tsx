@@ -46,6 +46,7 @@ const iconMap = {
   "magnifying-glass": FaSolid.faMagnifyingGlass,
   feather: FaSolid.faFeather,
   "file-arrow-down": FaSolid.faFileArrowDown,
+  "file-export": FaSolid.faFileExport,
   "file-import": FaSolid.faFileImport,
   "forward-step": FaSolid.faForwardStep,
   gear: FaSolid.faGear,

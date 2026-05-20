@@ -14,6 +14,7 @@ import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import LanguageGlossApprovalDashboardCard from "@/ui/admin/components/LanguageGlossApprovalDashboardCard";
 import { getAdminLanguageByCode } from "@/ui/admin/serverFns/getAdminLanguageByCode";
+import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
 const searchSchema = z.object({
   bookDetails: z.coerce.number().int().positive().optional(),
   range: z.enum(["30d", "6m"]).optional(),
@@ -75,6 +76,19 @@ function LanguageDashboardRoute() {
               <Icon icon="envelope" className="me-1" />
               Invite
             </Button>
+            <FeatureFlagged
+              feature="ff-interlinear-pdf-export"
+              enabledChildren={
+                <Button
+                  variant="tertiary"
+                  to="/admin/languages/$code/exports"
+                  params={{ code }}
+                >
+                  <Icon icon="file-arrow-down" className="me-1" />
+                  Exports
+                </Button>
+              }
+            />
             <Button
               variant="tertiary"
               to="/admin/languages/$code/settings"

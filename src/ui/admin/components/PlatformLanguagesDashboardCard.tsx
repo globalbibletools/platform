@@ -18,6 +18,7 @@ import { type ActivityChartRange } from "./ActivityChart";
 import ActivityChart from "./ActivityChart";
 import TextInput from "@/components/TextInput";
 import debounce from "@/components/debounce";
+import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
 
 const PAGE_SIZE = 10;
 
@@ -130,6 +131,19 @@ export default function PlatformLanguagesDashboardCard({
                     {language.code}
                   </span>
                   <div className="flex grow justify-end gap-3">
+                    <FeatureFlagged
+                      feature="ff-interlinear-pdf-export"
+                      enabledChildren={
+                        <Button
+                          variant="tertiary"
+                          to="/admin/languages/$code/exports"
+                          params={{ code: language.code }}
+                        >
+                          <Icon icon="file-export" size="sm" />
+                          <span className="sr-only">Exports</span>
+                        </Button>
+                      }
+                    />
                     <Button
                       variant="tertiary"
                       to="/admin/languages/$code/settings"
