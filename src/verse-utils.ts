@@ -173,6 +173,15 @@ export function parseChapterPermalinkReference(reference: string) {
   return `${bookId.toString().padStart(2, "0")}${chapterNumber.toString().padStart(3, "0")}`;
 }
 
+export function generateChapterPermalinkReference(chapterId: string) {
+  const { bookId, chapterNumber } = parseVerseId(chapterId);
+  const bookKey = bookKeys[bookId - 1];
+  if (!bookKey) {
+    throw new Error(`Invalid bookId ${bookId} in chapterId "${chapterId}"`);
+  }
+  return `${bookKey}.${chapterNumber}`;
+}
+
 export function parseVerseId(verseId: string): VerseInfo {
   const bookId = parseInt(verseId.slice(0, 2));
   const chapterNumber = parseInt(verseId.slice(2, 5));

@@ -11,6 +11,7 @@ import CommandInput from "./CommandInput";
 import { useFlash } from "@/flash";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { ProgressByBookIdReadModel } from "../readModels/getReadBookProgressReadModel";
+import { generateChapterPermalinkUrl } from "@/modules/study/route-handlers/resolvePermalink";
 
 export interface TranslationToolbarProps {
   languages: { englishName: string; localName: string; code: string }[];
@@ -70,7 +71,13 @@ export default function ReadingToolbar({
           aria-label={t("language")}
         />
         <div className="flex gap-4 items-center">
-          <Button variant="tertiary" onClick={() => copyToClipboard("asdf")}>
+          <Button
+            variant="tertiary"
+            onClick={() => {
+              const url = generateChapterPermalinkUrl(chapterId);
+              copyToClipboard(url);
+            }}
+          >
             <Icon icon="share-from-square" size="xl" />
             <span className="sr-only">{t("share")}</span>
           </Button>

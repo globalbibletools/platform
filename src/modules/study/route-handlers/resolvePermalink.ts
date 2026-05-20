@@ -1,7 +1,15 @@
-import { parseChapterPermalinkReference } from "@/verse-utils";
+import {
+  parseChapterPermalinkReference,
+  generateChapterPermalinkReference,
+} from "@/verse-utils";
 import { notFound, ParsedLocation, redirect } from "@tanstack/react-router";
 
 const PERMALINK_PATHNAME_REGEX = /^\/p\/(\w+)\/(.+)$/;
+
+export function generateChapterPermalinkUrl(chapterId: string) {
+  const reference = generateChapterPermalinkReference(chapterId);
+  return `${window.location.origin}/p/ref/${reference}`;
+}
 
 export function resolvePermalink(location: ParsedLocation): never {
   const match = PERMALINK_PATHNAME_REGEX.exec(location.pathname);
