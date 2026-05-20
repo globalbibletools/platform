@@ -212,7 +212,19 @@ function TranslationRoute() {
           key={data.language.code}
           className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-24 px-6"
         >
-          <TranslationReference verseId={verseId} language={data.language} />
+          <div className="w-full max-w-[1200px] flex gap-4 md:grid-cols-2 mx-2 self-center">
+            <p
+              className="grow text-base font-mixed"
+              dir={isHebrew ? "rtl" : "ltr"}
+            >
+              {concatVerseWords(data.words)}
+            </p>
+            <TranslationReference
+              className="grow"
+              verseId={verseId}
+              language={data.language}
+            />
+          </div>
           <ol
             className={`
                         flex h-fit content-start flex-wrap gap-x-1 gap-y-2
@@ -304,6 +316,16 @@ function TranslationRoute() {
       </div>
     </>
   );
+}
+
+function concatVerseWords(words: Array<{ text: string }>) {
+  return words
+    .map((word) => word.text)
+    .reduce((sentence, word) => {
+      if (!sentence) return word;
+      if (sentence.endsWith("־")) return `${sentence}${word}`;
+      return `${sentence} ${word}`;
+    }, "");
 }
 
 function useSanityCheck({ code, verseId }: { code: string; verseId: string }) {

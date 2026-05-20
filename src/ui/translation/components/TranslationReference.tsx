@@ -5,6 +5,7 @@ import { BibleClient } from "@gracious.tech/fetch-client";
 import { useQuery } from "@tanstack/react-query";
 
 export interface TranslationReferenceProps {
+  className?: string;
   verseId: string;
   language: { textDirection: string; font: string; translationIds: string[] };
 }
@@ -12,6 +13,7 @@ export interface TranslationReferenceProps {
 const client = new BibleClient();
 
 export default function TranslationReference({
+  className = "",
   verseId,
   language,
 }: TranslationReferenceProps) {
@@ -23,7 +25,7 @@ export default function TranslationReference({
 
   return (
     <p
-      className="mx-2 text-base"
+      className={`text-base ${className}`}
       dir={data.direction}
       style={{
         fontFamily: fontMap[language.font],
