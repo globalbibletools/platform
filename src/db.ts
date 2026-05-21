@@ -37,6 +37,7 @@ import {
   GlossEventTable,
   GlossHistoryTable,
   GlossTable,
+  MachineGlossCountTable,
   MachineGlossModelTable,
   MachineGlossTable,
   PhraseTable,
@@ -67,6 +68,7 @@ export interface Database {
   lemma_form: LemmaFormTable;
   lemma_resource: LemmaResourceTable;
   machine_gloss: MachineGlossTable;
+  machine_gloss_count: MachineGlossCountTable;
   machine_gloss_model: MachineGlossModelTable;
   phrase: PhraseTable;
   phrase_word: PhraseWordTable;
