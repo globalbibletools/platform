@@ -23,7 +23,6 @@ export const machineGlossCountRepository = {
       .expression((eb) =>
         eb
           .selectFrom("book as b")
-          .crossJoin("machine_gloss_model as mgm")
           .leftJoin("counts as c", "c.book_id", "b.id")
           .select([
             sql.lit(languageId).as("language_id"),
