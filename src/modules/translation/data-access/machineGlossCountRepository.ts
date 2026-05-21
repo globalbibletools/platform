@@ -3,23 +3,19 @@ import { sql } from "kysely";
 
 export const machineGlossCountRepository = {
   async refreshForLanguage(languageId: string): Promise<void> {
+    const modelIdSubquery = getDb()
+      .selectFrom("machine_gloss_model as model")
+      .where("model.code", "=", sql.lit("llm_import"))
+      .select("model.id");
+
     await getDb()
       .with("counts", (db) =>
         db
           .selectFrom("machine_gloss as mg")
           .innerJoin("book_word_map as bwm", "bwm.word_id", "mg.word_id")
-          .select([
-            "bwm.book_id",
-            "mg.model_id",
-            (eb) => eb.fn.countAll<number>().as("count"),
-          ])
+          .select(["bwm.book_id", (eb) => eb.fn.countAll<number>().as("count")])
           .where("mg.language_id", "=", languageId)
-          .where("mg.model_id", "=", (eb) =>
-            eb
-              .selectFrom("machine_gloss_model as model")
-              .where("model.code", "=", sql.lit("llm_import"))
-              .select("model.id"),
-          )
+          .where("mg.model_id", "=", modelIdSubquery)
           .groupBy("bwm.book_id"),
       )
       .insertInto("machine_gloss_count")
@@ -32,7 +28,7 @@ export const machineGlossCountRepository = {
           .select([
             sql.lit(languageId).as("language_id"),
             "b.id as book_id",
-            "mgm.id as model_id",
+            modelIdSubquery.as("model_id"),
             (eb) => eb.fn.coalesce(eb.ref("c.count"), eb.lit(0)).as("count"),
             (eb) => eb.fn<Date>("now", []).as("refreshed_at"),
           ]),
