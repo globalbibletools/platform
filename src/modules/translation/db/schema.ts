@@ -71,6 +71,15 @@ export interface AIGlossLanguageTable {
   created_at: Generated<Date>;
 }
 
+export interface MachineGlossCountTable {
+  id: Generated<number>;
+  language_id: string;
+  book_id: number;
+  model_id: number;
+  count: number;
+  refreshed_at: Date;
+}
+
 export interface GlossEventTable {
   id: string;
   phrase_id: number;

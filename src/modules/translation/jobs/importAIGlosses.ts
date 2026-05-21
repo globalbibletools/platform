@@ -4,6 +4,7 @@ import jobRepository from "@/shared/jobs/data-access/jobRepository";
 import { TRANSLATION_JOB_TYPES } from "./jobType";
 import { aiGlossImportService } from "../data-access/aiGlossImportService";
 import { machineGlossRepository } from "../data-access/machineGlossRepository";
+import { machineGlossCountRepository } from "../data-access/machineGlossCountRepository";
 import { resolveLanguageByCode } from "@/modules/languages";
 import { Readable } from "stream";
 
@@ -58,6 +59,8 @@ export async function importAIGlosses(job: ImportAIGlossesJob) {
       await jobRepository.updateData(job.id, { bookId });
     },
   });
+
+  await machineGlossCountRepository.refreshForLanguage(language.id);
 
   jobLogger.info(
     `Imported AI glosses for language ${job.payload.languageCode}`,

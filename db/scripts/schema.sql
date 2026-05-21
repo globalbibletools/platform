@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict Vr7pCDALsHJAnIofCw21egcssPsjFyuBsjcQc8LqN2ef1IGjTc1lCERXabetfOh
+\restrict eQZD9ZVdqBj0kmYv80c2B1VplFgU4sSO0rxmtWQugi3YFgEnexC0wPDruwLt5Po
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -769,6 +769,34 @@ CREATE TABLE public.machine_gloss (
 
 
 --
+-- Name: machine_gloss_count; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.machine_gloss_count (
+    id integer NOT NULL,
+    language_id uuid NOT NULL,
+    book_id integer NOT NULL,
+    model_id integer NOT NULL,
+    count integer NOT NULL,
+    refreshed_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: machine_gloss_count_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.machine_gloss_count ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.machine_gloss_count_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: machine_gloss_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -1264,6 +1292,14 @@ ALTER TABLE ONLY public.lemma_resource
 
 
 --
+-- Name: machine_gloss_count machine_gloss_count_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss_count
+    ADD CONSTRAINT machine_gloss_count_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: machine_gloss_model machine_gloss_model_code_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1548,6 +1584,13 @@ CREATE INDEX lemma_resource_lemma_id_idx ON public.lemma_resource USING btree (l
 
 
 --
+-- Name: machine_gloss_count_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX machine_gloss_count_unique ON public.machine_gloss_count USING btree (language_id, book_id, model_id);
+
+
+--
 -- Name: phrase_language_id_deleted_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1828,6 +1871,30 @@ ALTER TABLE ONLY public.lemma_form_suggestion
 
 
 --
+-- Name: machine_gloss_count machine_gloss_count_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss_count
+    ADD CONSTRAINT machine_gloss_count_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.book(id);
+
+
+--
+-- Name: machine_gloss_count machine_gloss_count_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss_count
+    ADD CONSTRAINT machine_gloss_count_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id);
+
+
+--
+-- Name: machine_gloss_count machine_gloss_count_model_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.machine_gloss_count
+    ADD CONSTRAINT machine_gloss_count_model_id_fkey FOREIGN KEY (model_id) REFERENCES public.machine_gloss_model(id);
+
+
+--
 -- Name: machine_gloss machine_gloss_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2055,5 +2122,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict Vr7pCDALsHJAnIofCw21egcssPsjFyuBsjcQc8LqN2ef1IGjTc1lCERXabetfOh
+\unrestrict eQZD9ZVdqBj0kmYv80c2B1VplFgU4sSO0rxmtWQugi3YFgEnexC0wPDruwLt5Po
 
