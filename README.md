@@ -16,7 +16,7 @@ This work is in progress and more details can be found in the [GitHub project](h
 
 #### Study App
 
-We are working on a [Flutter study app](https://github.com/globalbibletools/study-app) to make the translated glosses vailable.
+We are working on a [Flutter study app](https://github.com/globalbibletools/study-app) to make the translated glosses available.
 
 ### Future Work
 
