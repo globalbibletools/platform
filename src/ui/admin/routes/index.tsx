@@ -16,6 +16,9 @@ import PlatformUsersDashboardCard, {
 import PlatformLanguagesDashboardCard, {
   platformDashboardLanguagesInfiniteQueryOptions,
 } from "@/ui/admin/components/PlatformLanguagesDashboardCard";
+import PlatformAILanguagesDashboardCard, {
+  platformDashboardAILanguagesInfiniteQueryOptions,
+} from "@/ui/admin/components/PlatformAILanguagesDashboardCard";
 
 const searchSchema = z.object({
   range: z.enum(["30d", "6m"]).optional(),
@@ -39,6 +42,9 @@ export const Route = createFileRoute("/_main/admin/")({
       ),
       context.queryClient.ensureInfiniteQueryData(
         platformDashboardLanguagesInfiniteQueryOptions(range, ""),
+      ),
+      context.queryClient.ensureInfiniteQueryData(
+        platformDashboardAILanguagesInfiniteQueryOptions(range, ""),
       ),
     ]);
   },
@@ -82,6 +88,9 @@ function AdminDashboardRoute() {
             await queryClient.ensureInfiniteQueryData(
               platformDashboardLanguagesInfiniteQueryOptions(nextRange, ""),
             );
+            await queryClient.ensureInfiniteQueryData(
+              platformDashboardAILanguagesInfiniteQueryOptions(nextRange, ""),
+            );
 
             navigate({
               to: ".",
@@ -99,6 +108,7 @@ function AdminDashboardRoute() {
         <div className="grid grid-cols-1 lg:grid-cols-2 auto-rows-[50vh] gap-4 mb-8">
           <PlatformUsersDashboardCard range={range} />
           <PlatformLanguagesDashboardCard range={range} />
+          <PlatformAILanguagesDashboardCard range={range} />
         </div>
       </ActivityChartProvider>
     </div>

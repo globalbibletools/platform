@@ -28,9 +28,8 @@ interface ActivityChartContextValue {
   setCursor: (date: UTCDate | null) => void;
 }
 
-const ActivityChartContext = createContext<ActivityChartContextValue | null>(
-  null,
-);
+export const ActivityChartContext =
+  createContext<ActivityChartContextValue | null>(null);
 
 export function ActivityChartProvider({
   children,
@@ -130,9 +129,9 @@ export default function ActivityChart({
   );
 }
 const COLOR = {
-  positive: "var(--color-blue-800)",
-  negative: "var(--color-red-800)",
-  neutral: "var(--color-gray-400)",
+  positive: "#066f74",
+  negative: "#991b1b",
+  neutral: "#a8a29e",
 } as const;
 
 const GRADIENT_OPACITY_MIN = 0;
@@ -288,7 +287,7 @@ function ActivityChartSVG({
       .append("line")
       .attr("y1", 0)
       .attr("y2", size.blockSize)
-      .attr("stroke", "var(--color-gray-400)")
+      .style("stroke", "var(--color-gray-400)")
       .attr("stroke-width", 2)
       .attr("stroke-dasharray", "3 2")
       .attr("pointer-events", "none")
