@@ -214,7 +214,7 @@
     }
   },
   "LoginPage": {
-    "title": "Log In",
+    "title": "Translator Login",
     "form": {
       "email": "Email",
       "password": "Password",
@@ -225,7 +225,7 @@
       "password_required": "Please enter your password."
     },
     "forgot_password": "Forgot Password?",
-    "headTitle": "Log In"
+    "headTitle": "Translator Login"
   },
   "ModalView": {
     "app_name": "Global Bible Tools"

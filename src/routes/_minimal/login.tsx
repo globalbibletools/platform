@@ -74,12 +74,19 @@ export default function LoginRoute() {
             messages={{ too_small: t("errors.password_required") }}
           />
         </div>
-        <Button type="submit" className="w-full mb-2">
+        <Button type="submit" className="w-full mb-3">
           {t("form.submit")}
         </Button>
-        <div className="text-center">
+        <div className="text-center flex flex-col items-center gap-2">
           <Button variant="tertiary" to="/forgot-password">
             {t("forgot_password")}
+          </Button>
+          <Button
+            href="https://docs.google.com/forms/d/e/1FAIpQLSer70LItS-738tlwL3bDuku1qRpoWTmQBNfFd9b3NbPIH3G9w/viewform"
+            newTab
+            variant="tertiary"
+          >
+            Apply to Translate
           </Button>
         </div>
       </Form>
