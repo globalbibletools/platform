@@ -87,7 +87,7 @@ export default function ReadingView({
   return (
     <>
       <div className="flex flex-col grow lg:justify-center w-full min-h-0 lg:flex-row">
-        <div className="max-h-full min-h-0 pt-3 pb-24 px-4 lg:px-8 max-w-[960px]">
+        <div className="max-h-full min-h-0 pt-3 pb-48 px-4 lg:px-8 max-w-[960px]">
           <div
             className={`
               font-mixed leading-loose
