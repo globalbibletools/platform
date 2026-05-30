@@ -12,13 +12,6 @@
     --read-nav-h: 4rem;
     --translate-nav-h: 4rem;
   }
-
-  .locale-en {
-    --font-sans: var(--font-noto-sans);
-  }
-  .locale-ar {
-    --font-sans: var(--font-noto-sans-arabic), var(--font-noto-sans);
-  }
 }
 
 @utility rich-text {
