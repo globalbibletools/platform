@@ -10,6 +10,7 @@ import { Icon } from "@/components/Icon";
 import { useTranslations } from "use-intl";
 import VerseDetails from "./VerseDetails";
 import AttributionDialog from "./AttributionDialog";
+import { fontMap } from "@/fonts";
 
 interface VerseWord {
   id: string;
@@ -232,7 +233,10 @@ export default function ReadingView({
             `}
             dir={language.textDirection}
             ref={popover.refs.setFloating}
-            style={popover.floatingStyles}
+            style={{
+              ...popover.floatingStyles,
+              fontFamily: fontMap[language.font],
+            }}
           >
             {popoverGloss?.source === "ai" && (
               <Icon
