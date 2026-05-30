@@ -1,5 +1,4 @@
 @import "tailwindcss" source("./");
-@import "@fortawesome/fontawesome-svg-core/styles.css" layer(components);
 @import "@fontsource/noto-sans/400.css";
 @import "@fontsource/noto-sans/700.css";
 @import "@fontsource/noto-sans-arabic/400.css";
@@ -165,4 +164,10 @@
 
   --shadow-left: -1px 0 3px 0 rgb(0 0 0 / 0.1), -1px 0 2px -1px rgb(0 0 0 / 0.1);
   --shadow-right: 1px 0 3px 0 rgb(0 0 0 / 0.1), 1px 0 2px -1px rgb(0 0 0 / 0.1);
+}
+
+@layer components {
+  .icon {
+    @apply inline-block overflow-hidden fill-current align-[-.125em];
+  }
 }

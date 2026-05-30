@@ -6,6 +6,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
 import { visualizer } from "rollup-plugin-visualizer";
+import { svgSpritePlugin } from "./vite-plugin-svg-sprite";
 
 export default defineConfig({
   server: {
@@ -56,6 +57,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    svgSpritePlugin(),
     tailwindcss(),
     tsconfigPaths({ projectDiscovery: "lazy" }),
     tanstackStart({
