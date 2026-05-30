@@ -160,10 +160,10 @@ function AutocompleteOption({
         {option.text}
       </span>
       {option.source === GlossApprovalMethodRaw.LLMSuggestion ?
-        <Icon icon="robot" size="xs" />
+        <Icon icon="sparkle" size="xs" className="text-green-500" />
       : undefined}
       {option.source === GlossApprovalMethodRaw.GoogleSuggestion ?
-        <Icon icon="google" size="xs" />
+        <Icon icon="google" size="xs" className="text-green-500" />
       : undefined}
     </li>
   );
@@ -289,10 +289,15 @@ function Input({
         {hasModelGloss && (
           <Icon
             className={`
-              absolute top-1/2 -translate-y-1/2
+              absolute top-1/2 -translate-y-1/2 text-green-500
               ${right ? "left-2" : "right-2"}
             `}
-            icon="robot"
+            icon={
+              draft.source === "LLM_SUGGESTION" ? "sparkle"
+              : draft.source === "GOOGLE_SUGGESTION" ?
+                "google"
+              : "robot"
+            }
             size="xs"
           />
         )}

@@ -59,6 +59,7 @@ const iconNames = [
   "save",
   "share-from-square",
   "sliders",
+  "sparkle",
   "sticky-note",
   "strikethrough",
   "trash",

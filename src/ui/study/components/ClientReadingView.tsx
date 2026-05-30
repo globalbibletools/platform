@@ -235,7 +235,10 @@ export default function ReadingView({
             style={popover.floatingStyles}
           >
             {popoverGloss?.source === "ai" && (
-              <Icon icon="robot" className="me-2" />
+              <Icon
+                icon="sparkle"
+                className="me-1 text-green-500 dark:text-green-400"
+              />
             )}
             {popoverGloss?.text ?? "-"}
           </div>,
