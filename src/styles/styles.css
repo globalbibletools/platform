@@ -1,28 +1,5 @@
-@import "tailwindcss" source("./");
-@import "@fontsource/noto-sans/400.css";
-@import "@fontsource/noto-sans/700.css";
-@import "@fontsource/noto-sans-arabic/400.css";
-@import "@fontsource/noto-sans-arabic/700.css";
-
-@font-face {
-  font-family: "SBL Hebrew";
-  src: url("./fonts/SBL_Hbrw.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  unicode-range: U+0590-05FF;
-  size-adjust: 140%;
-}
-
-@font-face {
-  font-family: "SBL Greek";
-  src: url("./fonts/SBL_grk.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  unicode-range: U+0370-03FF, U+1F00-1FFF;
-  size-adjust: 112%;
-}
+@import "tailwindcss" source("../");
+@import "./fonts.css";
 
 @layer base {
   :root {

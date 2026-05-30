@@ -4,7 +4,7 @@ import {
   Scripts,
   createRootRouteWithContext,
 } from "@tanstack/react-router";
-import appCss from "@/styles.css?url";
+import appCss from "@/styles/styles.css?url";
 import {
   getClientTimezone,
   TimezoneTracker,
