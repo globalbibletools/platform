@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from "fs";
 import { resolve, join } from "path";
-import type { Plugin } from "vite";
+import type { Plugin, ViteDevServer } from "vite";
 import { createHash } from "crypto";
 
 const ICONS_DIR = resolve(__dirname, "src/assets/icons");
