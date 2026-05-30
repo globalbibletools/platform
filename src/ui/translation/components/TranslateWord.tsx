@@ -196,7 +196,11 @@ export default function TranslateWord({
       </div>
       {!language.isMember ?
         <div className={`row-start-3 text-start px-3`}>
-          <span className="inline-block" dir={language.textDirection}>
+          <span
+            className="inline-block"
+            dir={language.textDirection}
+            style={{ fontFamily: fontMap[language.font] }}
+          >
             {phrase.gloss?.text}
           </span>
         </div>
