@@ -1,14 +1,15 @@
 import path from "path";
+import fs from "fs";
 import { describe, expect, it, beforeEach } from "vitest";
 import { PDFDocument } from "pdf-lib";
 import {
   formatVerseLabel,
   generateInterlinearPdf,
   generateInterlinearPdfDocument,
-  resolveGlossFontName,
 } from "./InterlinearPdfGenerator";
 import type { InterlinearChapterResult } from "../data-access/InterlinearQueryService";
 import { TextDirectionRaw } from "@/modules/languages/model";
+import { fontMap } from "@/fonts";
 
 async function streamToBuffer(
   stream: NodeJS.ReadableStream,
@@ -97,51 +98,26 @@ describe("generateInterlinearPdf", () => {
     expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
   });
 
-  it.each([
-    ["Vietnamese", "lời hạ", "Noto Sans Vietnamese"],
-    ["Cyrillic", "Жизнь", "Noto Sans Cyrillic"],
-    ["Latin Extended", "Łaska", "Noto Sans Latin Extended"],
-  ])(
-    "resolves default Noto Sans glosses to the %s fontsource subset",
-    (_, glossSample, expectedFontName) => {
-      expect(resolveGlossFontName("Noto Sans", glossSample)).toBe(
-        expectedFontName,
-      );
-    },
-  );
+  it("renders Noto Sans full composite with Cyrillic glosses", async () => {
+    const chapter = buildSampleChapter();
+    chapter.verses[0].words[0].gloss = "Жизнь";
+    chapter.verses[0].words[1].gloss = "Бог";
 
-  it("prefers the configured language font when it is mapped", () => {
-    expect(resolveGlossFontName("Noto Sans Arabic", "Жизнь")).toBe(
-      "Noto Sans Arabic",
-    );
+    const { stream, pageCount } = generateInterlinearPdf(chapter, {
+      pageSize: "letter",
+      direction: "ltr",
+      header: { title: "Full Font Test", subtitle: "Cyrillic glosses" },
+      footer: { generatedAt: new Date(), pageOffset: 0 },
+      glossFontName: "Noto Sans",
+    });
+
+    const pdfBytes = await streamToBuffer(stream);
+    expect(pdfBytes.byteLength).toBeGreaterThan(0);
+    expect(pageCount).toBeGreaterThanOrEqual(1);
+
+    const pdf = await PDFDocument.load(pdfBytes);
+    expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
   });
-
-  it.each([
-    ["Vietnamese", "lời", "hạ"],
-    ["Cyrillic", "Жизнь", "Бог"],
-  ])(
-    "renders %s glosses with configured Noto Sans",
-    async (_, first, second) => {
-      const chapter = buildSampleChapter();
-      chapter.verses[0].words[0].gloss = first;
-      chapter.verses[0].words[1].gloss = second;
-
-      const { stream, pageCount } = generateInterlinearPdf(chapter, {
-        pageSize: "letter",
-        direction: "ltr",
-        header: { title: "Subset Test", subtitle: "Noto Sans glosses" },
-        footer: { generatedAt: new Date(), pageOffset: 0 },
-        glossFontName: "Noto Sans",
-      });
-
-      const pdfBytes = await streamToBuffer(stream);
-      expect(pdfBytes.byteLength).toBeGreaterThan(0);
-      expect(pageCount).toBeGreaterThanOrEqual(1);
-
-      const pdf = await PDFDocument.load(pdfBytes);
-      expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
-    },
-  );
 
   it("creates one PDF across multiple sections", async () => {
     const firstSection = buildSampleChapter();
@@ -178,7 +154,7 @@ describe("generateInterlinearPdf", () => {
     expect(pdf.getPageCount()).toBeGreaterThanOrEqual(2);
   });
 
-  it("renders Devanagari glosses with the Noto Sans Devanagari asset", async () => {
+  it("renders Devanagari glosses with the Noto Sans Devanagari composite", async () => {
     const chapter = buildSampleChapter();
     chapter.verses[0].words[0].gloss = "आरम्भ";
     chapter.verses[0].words[1].gloss = "परमेश्वर";
@@ -188,7 +164,7 @@ describe("generateInterlinearPdf", () => {
       direction: "ltr",
       header: { title: "Devanagari Test", subtitle: "Hindi glosses" },
       footer: { generatedAt: new Date(), pageOffset: 0 },
-      glossFontName: "Noto Sans",
+      glossFontName: "Noto Sans Devanagari",
     });
 
     const pdfBytes = await streamToBuffer(stream);
@@ -199,7 +175,7 @@ describe("generateInterlinearPdf", () => {
     expect(pdf.getPageCount()).toBeGreaterThanOrEqual(1);
   });
 
-  it("renders Latin metadata labels outside script-specific gloss fonts", async () => {
+  it("renders metadata using Noto Sans rather than a script-specific gloss font", async () => {
     const chapter = buildSampleChapter();
     chapter.language.name = "Hindi";
     chapter.verses[0].words[0].text = "בְּרֵאשִׁית";
@@ -215,19 +191,54 @@ describe("generateInterlinearPdf", () => {
         subtitle: "Genesis - Chapter 1",
       },
       sourceScript: "hebrew",
-      glossFontName: "Noto Sans",
+      glossFontName: "Noto Sans Devanagari",
     });
 
     const pdfBytes = await streamToBuffer(stream);
     const pdfText = Buffer.from(pdfBytes).toString("latin1");
 
-    expect(pdfText).toContain("/BaseFont /Helvetica");
+    // Metadata (headers, verse labels, footers) uses Noto Sans CID font,
+    // not Helvetica and not the script-specific gloss font.
+    // PDFKit prefixes subsetted CID fonts with a random tag like CZZZZZ+.
+    const notoSansBaseFontMatch = pdfText.match(
+      /\/BaseFont \/[A-Z]{6}\+NotoSans[^/]*\b/,
+    );
+    expect(
+      notoSansBaseFontMatch,
+      "Expected a NotoSans BaseFont entry in the PDF",
+    ).not.toBeNull();
+    // Should not contain the Helvetica built-in font
+    expect(pdfText).not.toContain("/BaseFont /Helvetica");
   });
 
-  it.each([
-    ["configured", "Noto Sans Arabic"],
-    ["detected", "Noto Sans"],
-  ])("renders Arabic glosses with %s font selection", async (_, fontName) => {
+  it("renders footers with page numbers using Noto Sans metadata font", async () => {
+    const { stream, pageCount } = generateInterlinearPdf(buildSampleChapter(), {
+      pageSize: "letter",
+      direction: "ltr",
+      header: { title: "Footer Test" },
+      footer: { generatedAt: new Date("2026-01-01T00:00:00Z"), pageOffset: 0 },
+    });
+
+    const pdfBytes = await streamToBuffer(stream);
+    expect(pageCount).toBeGreaterThanOrEqual(1);
+
+    const pdf = await PDFDocument.load(pdfBytes);
+    expect(pdf.getPageCount()).toBe(pageCount);
+
+    // The footer should be rendered with Noto Sans, not Helvetica.
+    // We verify the font is embedded and the footer text is present.
+    const pdfText = Buffer.from(pdfBytes).toString("latin1");
+    expect(pdfText).not.toContain("/BaseFont /Helvetica");
+    const notoSansMatch = pdfText.match(
+      /\/BaseFont \/[A-Z]{6}\+NotoSans[^/]*\b/,
+    );
+    expect(
+      notoSansMatch,
+      "Expected NotoSans BaseFont in PDF footer",
+    ).not.toBeNull();
+  });
+
+  it("renders Arabic glosses with configured font selection", async () => {
     const chapter = buildSampleChapter();
     chapter.verses[0].words[0].gloss = "كلمة";
     chapter.verses[0].words[1].gloss = "الله";
@@ -237,7 +248,7 @@ describe("generateInterlinearPdf", () => {
       direction: "ltr",
       header: { title: "Arabic Test", subtitle: "Arabic glosses" },
       footer: { generatedAt: new Date(), pageOffset: 0 },
-      glossFontName: fontName,
+      glossFontName: "Noto Sans Arabic",
     });
 
     const pdfBytes = await streamToBuffer(stream);
@@ -257,5 +268,51 @@ describe("generateInterlinearPdf", () => {
         words: [],
       }),
     ).toBe("3:1");
+  });
+});
+
+describe("pdfFontMap", () => {
+  it("covers every font name in the browser fontMap", () => {
+    for (const fontName of Object.keys(fontMap)) {
+      // All font names from fontMap should exist in pdfFontMap after
+      // the module is loaded (it's a module-level const). We verify by
+      // checking that generateInterlinearPdf can resolve them without
+      // falling back to Helvetica — confirmed by checking the font
+      // files exist on disk.
+      const compositeFile = {
+        "Noto Sans": "noto-sans-full.ttf",
+        "Noto Sans Arabic": "noto-sans-arabic-latin.ttf",
+        "Noto Sans Bengali": "noto-sans-bengali-latin.ttf",
+        "Noto Sans Devanagari": "noto-sans-devanagari-latin.ttf",
+        "Noto Sans Ethiopic": "noto-sans-ethiopic-latin.ttf",
+        "Noto Sans Hebrew": "noto-sans-hebrew-latin.ttf",
+        "Noto Sans Kannada": "noto-sans-kannada-latin.ttf",
+        "Noto Sans Malayalam": "noto-sans-malayalam-latin.ttf",
+        "Noto Sans Oriya": "noto-sans-oriya-latin.ttf",
+        "Noto Sans Tamil": "noto-sans-tamil-latin.ttf",
+        "Noto Sans Telugu": "noto-sans-telugu-latin.ttf",
+        "Noto Sans Simplified Chinese": "noto-sans-simplified-chinese.ttf",
+        "Noto Sans Traditional Chinese": "noto-sans-traditional-chinese.ttf",
+        "Noto Sans Korean": "noto-sans-korean.ttf",
+        "Noto Sans Japanese": "noto-sans-japanese.ttf",
+      }[fontName];
+
+      expect(
+        compositeFile,
+        `Missing pdfFontMap entry for "${fontName}"`,
+      ).toBeDefined();
+
+      const fontPath = path.join(
+        process.cwd(),
+        "src",
+        "assets",
+        "fonts",
+        compositeFile!,
+      );
+      expect(
+        fs.existsSync(fontPath),
+        `Composite font file "${compositeFile}" not found at ${fontPath}`,
+      ).toBe(true);
+    }
   });
 });

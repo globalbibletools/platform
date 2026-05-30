@@ -24,58 +24,25 @@ export interface InterlinearPdfSection {
   glossFontName?: string;
 }
 
-/**
- * Maps language font names to PDF-safe fontsource asset filenames.
- * "Noto Sans" is the default for most languages; the PDF generator
- * will detect the gloss script and pick a more specific variant when needed.
- */
 const pdfFontMap: Record<string, string> = {
-  "Noto Sans": "noto-sans-latin-400-normal.woff",
-  "Noto Sans Arabic": "noto-sans-arabic-arabic-400-normal.woff",
-  "Noto Sans Cyrillic": "noto-sans-cyrillic-400-normal.woff",
-  "Noto Sans Cyrillic Extended": "noto-sans-cyrillic-ext-400-normal.woff",
-  "Noto Sans Devanagari": "noto-sans-devanagari-400-normal.woff",
-  "Noto Sans Greek": "noto-sans-greek-400-normal.woff",
-  "Noto Sans Greek Extended": "noto-sans-greek-ext-400-normal.woff",
-  "Noto Sans Latin Extended": "noto-sans-latin-ext-400-normal.woff",
-  "Noto Sans Vietnamese": "noto-sans-vietnamese-400-normal.woff",
+  "Noto Sans": "noto-sans-full.ttf",
+  "Noto Sans Arabic": "noto-sans-arabic-latin.ttf",
+  "Noto Sans Bengali": "noto-sans-bengali-latin.ttf",
+  "Noto Sans Devanagari": "noto-sans-devanagari-latin.ttf",
+  "Noto Sans Ethiopic": "noto-sans-ethiopic-latin.ttf",
+  "Noto Sans Hebrew": "noto-sans-hebrew-latin.ttf",
+  "Noto Sans Kannada": "noto-sans-kannada-latin.ttf",
+  "Noto Sans Malayalam": "noto-sans-malayalam-latin.ttf",
+  "Noto Sans Oriya": "noto-sans-oriya-latin.ttf",
+  "Noto Sans Tamil": "noto-sans-tamil-latin.ttf",
+  "Noto Sans Telugu": "noto-sans-telugu-latin.ttf",
+  "Noto Sans Simplified Chinese": "noto-sans-simplified-chinese.ttf",
+  "Noto Sans Traditional Chinese": "noto-sans-traditional-chinese.ttf",
+  "Noto Sans Korean": "noto-sans-korean.ttf",
+  "Noto Sans Japanese": "noto-sans-japanese.ttf",
 };
 
-/** Maps Unicode ranges to Noto font variants for "Noto Sans" fallback. */
-const notoScriptVariants: { regex: RegExp; font: string }[] = [
-  { regex: /[\u0900-\u097F]/, font: "Noto Sans Devanagari" },
-  { regex: /[\u0600-\u06FF]/, font: "Noto Sans Arabic" },
-  {
-    regex:
-      /[\u0102-\u0103\u0110-\u0111\u0128-\u0129\u0168-\u0169\u01A0-\u01A1\u01AF-\u01B0\u1EA0-\u1EF9]/,
-    font: "Noto Sans Vietnamese",
-  },
-  {
-    regex: /[\u0460-\u052F\u1C80-\u1C8F\uA640-\uA69F]/,
-    font: "Noto Sans Cyrillic Extended",
-  },
-  { regex: /[\u0400-\u045F]/, font: "Noto Sans Cyrillic" },
-  { regex: /[\u1F00-\u1FFF]/, font: "Noto Sans Greek Extended" },
-  { regex: /[\u0370-\u03FF]/, font: "Noto Sans Greek" },
-  { regex: /[\u0100-\u024F]/, font: "Noto Sans Latin Extended" },
-];
-
-const metadataFont = "Helvetica";
-
-/**
- * Given a sample of gloss text and the language font name,
- * resolves the best font name to use in the PDF.
- */
-export function resolveGlossFontName(
-  fontName: string,
-  glossSample: string,
-): string {
-  if (fontName !== "Noto Sans") return fontName;
-  for (const variant of notoScriptVariants) {
-    if (variant.regex.test(glossSample)) return variant.font;
-  }
-  return fontName;
-}
+const metadataFont = "Noto Sans";
 
 export interface GeneratedPdf {
   stream: Readable;
@@ -107,31 +74,25 @@ export function generateInterlinearPdfDocument(
   sections: readonly InterlinearPdfSection[],
   options: Pick<PdfGeneratorOptions, "pageSize" | "footer">,
 ): GeneratedPdf {
-  const needsBufferedPages =
-    typeof options.footer?.pageTotal === "number" &&
-    Number.isFinite(options.footer.pageTotal);
-
+  // Always buffer pages so footers are rendered in a separate pass.
+  // This avoids infinite recursion when using embedded CID fonts,
+  // since rendering a footer during the pageAdded event can trigger
+  // continueOnNewPage in PDFKit.
   const doc = new PDFDocument({
     size: options.pageSize ?? "letter",
     margin: 56,
-    bufferPages: needsBufferedPages,
+    bufferPages: true,
   });
 
   const hebrewFont = fs.readFileSync(resolveRequiredFontFile("SBL_Hbrw.ttf"));
   const greekFont = fs.readFileSync(resolveRequiredFontFile("SBL_grk.ttf"));
+  const notoSansFont = fs.readFileSync(
+    resolveRequiredFontFile(pdfFontMap["Noto Sans"]!),
+  );
   doc.registerFont("SBLHebrew", hebrewFont);
   doc.registerFont("SBLGreek", greekFont);
-  const registeredFonts = new Set(["SBLHebrew", "SBLGreek"]);
-  const stream = doc as unknown as Readable;
-
-  let pageCount = 1;
-  if (!needsBufferedPages) {
-    renderFooter(doc, 1, options.footer);
-    doc.on("pageAdded", () => {
-      pageCount += 1;
-      renderFooter(doc, pageCount, options.footer);
-    });
-  }
+  doc.registerFont(metadataFont, notoSansFont);
+  const registeredFonts = new Set(["SBLHebrew", "SBLGreek", metadataFont]);
 
   sections.forEach((section, index) => {
     if (index > 0) {
@@ -140,11 +101,9 @@ export function generateInterlinearPdfDocument(
     renderSection(doc, section, registeredFonts);
   });
 
-  if (needsBufferedPages) {
-    pageCount = addFooter(doc, options.footer);
-  }
+  const pageCount = addFooter(doc, options.footer);
   doc.end();
-  return { stream, pageCount };
+  return { stream: doc as unknown as Readable, pageCount };
 }
 
 function renderSection(
@@ -156,7 +115,6 @@ function renderSection(
     (section.direction ?? "ltr").toLowerCase() === "rtl" ? "rtl" : "ltr";
   const glossFont = registerGlossFont(
     doc,
-    section.chapter,
     section.glossFontName ?? "Noto Sans",
     registeredFonts,
   );
@@ -185,41 +143,26 @@ function renderSection(
 
 function registerGlossFont(
   doc: PDFKit.PDFDocument,
-  chapter: InterlinearChapterResult,
   configuredFontName: string,
   registeredFonts: Set<string>,
 ) {
-  const glossSample = chapter.verses
-    .flatMap((v) => v.words.map((w) => w.gloss ?? ""))
-    .join("");
-  const resolvedFontName = resolveGlossFontName(
-    configuredFontName,
-    glossSample,
-  );
-  const glossFontFile = pdfFontMap[resolvedFontName];
+  const glossFontFile = pdfFontMap[configuredFontName];
   if (!glossFontFile) return "Helvetica";
 
-  if (!registeredFonts.has(resolvedFontName)) {
+  if (!registeredFonts.has(configuredFontName)) {
     const fontData = fs.readFileSync(resolveRequiredFontFile(glossFontFile));
-    doc.registerFont(resolvedFontName, fontData);
-    registeredFonts.add(resolvedFontName);
+    doc.registerFont(configuredFontName, fontData);
+    registeredFonts.add(configuredFontName);
   }
 
-  return resolvedFontName;
+  return configuredFontName;
 }
 
 function resolveRequiredFontFile(filename: string): string {
   const candidates = [
     "/var/task/fonts",
-    path.join(process.cwd(), "fonts"),
-    path.join(process.cwd(), "dist", "fonts"),
-    path.join(process.cwd(), "src", "fonts"),
+    path.join(process.cwd(), "src", "assets", "fonts"),
   ].map((fontBase) => path.join(fontBase, filename));
-
-  const fontsourcePath = resolveFontsourcePackagePath(filename);
-  if (fontsourcePath) {
-    candidates.push(fontsourcePath);
-  }
 
   const fontPath = candidates.find((candidate) => fs.existsSync(candidate));
   if (!fontPath) {
@@ -229,24 +172,6 @@ function resolveRequiredFontFile(filename: string): string {
   }
 
   return fontPath;
-}
-
-function resolveFontsourcePackagePath(filename: string): string | undefined {
-  const packageName =
-    filename.startsWith("noto-sans-arabic-") ? "noto-sans-arabic"
-    : filename.startsWith("noto-sans-") ? "noto-sans"
-    : undefined;
-
-  if (!packageName) return undefined;
-
-  return path.join(
-    process.cwd(),
-    "node_modules",
-    "@fontsource",
-    packageName,
-    "files",
-    filename,
-  );
 }
 
 function renderVerse(
@@ -402,6 +327,10 @@ function addFooter(
   const pageOffset = footer?.pageOffset ?? 0;
   for (let i = 0; i < pageRange.count; i++) {
     doc.switchToPage(i);
+    // Reset the y cursor to prevent PDFKit from thinking we're past
+    // the bottom margin, which would trigger a page break when rendering
+    // footer text with an embedded CID font.
+    doc.y = doc.page.margins.top;
     const y = doc.page.height - doc.page.margins.bottom - 10;
     const width =
       doc.page.width - doc.page.margins.left - doc.page.margins.right;
@@ -411,13 +340,14 @@ function addFooter(
         `Page ${pageNumber} of ${footer.pageTotal}`
       : `Page ${pageNumber}`;
     doc
-      .font("Helvetica")
+      .font(metadataFont)
       .fontSize(8)
       .fillColor("#555")
       .text(pageLabel, doc.page.margins.left, y, {
         width,
         lineBreak: false,
         align: "center",
+        height: 10,
       });
     if (footer?.generatedAt) {
       doc.text(
@@ -428,55 +358,13 @@ function addFooter(
           width,
           lineBreak: false,
           align: "right",
+          height: 10,
         },
       );
     }
     doc.fillColor("#000");
   }
   return pageRange.count;
-}
-
-function renderFooter(
-  doc: PDFKit.PDFDocument,
-  pageNumber: number,
-  footer?: { generatedAt?: Date; pageOffset?: number; pageTotal?: number },
-) {
-  const pageOffset = footer?.pageOffset ?? 0;
-  const pageLabel =
-    footer?.pageTotal ?
-      `Page ${pageOffset + pageNumber} of ${footer.pageTotal}`
-    : `Page ${pageOffset + pageNumber}`;
-  const y = doc.page.height - doc.page.margins.bottom - 10;
-  const width = doc.page.width - doc.page.margins.left - doc.page.margins.right;
-
-  const previousX = doc.x;
-  const previousY = doc.y;
-
-  doc
-    .font("Helvetica")
-    .fontSize(8)
-    .fillColor("#555")
-    .text(pageLabel, doc.page.margins.left, y, {
-      width,
-      lineBreak: false,
-      align: "center",
-    });
-  if (footer?.generatedAt) {
-    doc.text(
-      `Generated: ${footer.generatedAt.toISOString()}`,
-      doc.page.margins.left,
-      y,
-      {
-        width,
-        lineBreak: false,
-        align: "right",
-      },
-    );
-  }
-  doc.fillColor("#000");
-
-  doc.x = previousX;
-  doc.y = previousY;
 }
 
 function renderHeader(
