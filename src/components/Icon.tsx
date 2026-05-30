@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { SPRITE_URL } from "virtual:icon-sprite-url";
 
 const iconNames = [
