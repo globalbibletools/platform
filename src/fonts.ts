@@ -12,4 +12,10 @@ export const fontMap: Record<string, string> = {
   "Noto Sans Oriya": "var(--font-noto-sans-oriya), var(--font-noto-sans)",
   "Noto Sans Ethiopic": "var(--font-noto-sans-ethiopic), var(--font-noto-sans)",
   "Noto Sans Hebrew": "var(--font-noto-sans-hebrew), var(--font-noto-sans)",
+  "Noto Sans Simplified Chinese":
+    "var(--font-noto-sans-simplified-chinese), var(--font-noto-sans)",
+  "Noto Sans Traditional Chinese":
+    "var(--font-noto-sans-traditional-chinese), var(--font-noto-sans)",
+  "Noto Sans Korean": "var(--font-noto-sans-korean), var(--font-noto-sans)",
+  "Noto Sans Japanese": "var(--font-noto-sans-japanese), var(--font-noto-sans)",
 };

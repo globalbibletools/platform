@@ -11,6 +11,10 @@
     --font-noto-sans-oriya: "Noto Sans Oriya";
     --font-noto-sans-ethiopic: "Noto Sans Ethiopic";
     --font-noto-sans-hebrew: "Noto Sans Hebrew";
+    --font-noto-sans-simplified-chinese: "Noto Sans Simplified Chinese";
+    --font-noto-sans-traditional-chinese: "Noto Sans Traditional Chinese";
+    --font-noto-sans-korean: "Noto Sans Korean";
+    --font-noto-sans-japanese: "Noto Sans Japanese";
     --font-sbl-hebrew: "SBL Hebrew";
     --font-sbl-greek: "SBL Greek";
 
@@ -216,6 +220,39 @@
   src: url("../assets/fonts/noto-sans-hebrew.woff2") format("woff2");
   unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC,
     U+FB1D-FB4F;
+}
+
+@font-face {
+  font-family: "Noto Sans Simplified Chinese";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/noto-sans-simplified-chinese.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Sans Traditional Chinese";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/noto-sans-traditional-chinese.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Sans Korean";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/noto-sans-korean.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Sans Japanese";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/noto-sans-japanese.woff2") format("woff2");
 }
 
 @font-face {

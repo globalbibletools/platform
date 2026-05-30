@@ -36,6 +36,10 @@ const pdfFontMap: Record<string, string> = {
   "Noto Sans Oriya": "noto-sans-oriya-latin.ttf",
   "Noto Sans Tamil": "noto-sans-tamil-latin.ttf",
   "Noto Sans Telugu": "noto-sans-telugu-latin.ttf",
+  "Noto Sans Simplified Chinese": "noto-sans-simplified-chinese.ttf",
+  "Noto Sans Traditional Chinese": "noto-sans-traditional-chinese.ttf",
+  "Noto Sans Korean": "noto-sans-korean.ttf",
+  "Noto Sans Japanese": "noto-sans-japanese.ttf",
 };
 
 const metadataFont = "Noto Sans";
