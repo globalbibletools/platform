@@ -295,6 +295,7 @@ describe("pdfFontMap", () => {
         "Noto Sans Traditional Chinese": "noto-sans-traditional-chinese.ttf",
         "Noto Sans Korean": "noto-sans-korean.ttf",
         "Noto Sans Japanese": "noto-sans-japanese.ttf",
+        "Noto Nastaliq Urdu": "noto-nastaliq-urdu-latin.ttf",
       }[fontName];
 
       expect(

@@ -40,6 +40,7 @@ const pdfFontMap: Record<string, string> = {
   "Noto Sans Traditional Chinese": "noto-sans-traditional-chinese.ttf",
   "Noto Sans Korean": "noto-sans-korean.ttf",
   "Noto Sans Japanese": "noto-sans-japanese.ttf",
+  "Noto Nastaliq Urdu": "noto-nastaliq-urdu-latin.ttf",
 };
 
 const metadataFont = "Noto Sans";

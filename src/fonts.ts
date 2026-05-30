@@ -18,4 +18,5 @@ export const fontMap: Record<string, string> = {
     "var(--font-noto-sans-traditional-chinese), var(--font-noto-sans)",
   "Noto Sans Korean": "var(--font-noto-sans-korean), var(--font-noto-sans)",
   "Noto Sans Japanese": "var(--font-noto-sans-japanese), var(--font-noto-sans)",
+  "Noto Nastaliq Urdu": "var(--font-noto-nastaliq-urdu), var(--font-noto-sans)",
 };
