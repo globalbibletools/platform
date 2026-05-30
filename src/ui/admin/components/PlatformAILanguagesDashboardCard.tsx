@@ -130,7 +130,7 @@ export default function PlatformAILanguagesDashboardCard({
               return (
                 <div
                   key={language.code}
-                  className="grid grid-cols-subgrid col-span-2 gap-y-1 gap-x-4 py-3 px-4 items-stretch"
+                  className="grid grid-cols-subgrid col-span-2 gap-y-1 gap-x-4 py-3 px-4 items-stretch grid-rows-[auto_1fr]"
                 >
                   <div className="min-w-0 flex items-baseline gap-1">
                     <Button
@@ -146,7 +146,7 @@ export default function PlatformAILanguagesDashboardCard({
                     </span>
                   </div>
 
-                  <div className="min-w-0 self-end col-start-1">
+                  <div className="min-w-0 col-start-1">
                     <div className="text-xs font-bold uppercase text-gray-600 dark:text-gray-300">
                       LLM Glosses
                     </div>

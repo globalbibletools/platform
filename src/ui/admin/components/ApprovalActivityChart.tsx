@@ -65,16 +65,16 @@ export default function ApprovalActivityChart({
   }, [countsByTime, cursor, range]);
 
   return (
-    <div className={`flex flex-col gap-1 h-14 ${className}`}>
+    <div className={`flex flex-col gap-1 ${className}`}>
       <ApprovalActivityChartSVG
-        className="flex-1 relative min-h-0"
+        className="relative h-10"
         data={data}
         yMax={yMax}
         range={range}
         cursor={cursor}
         onCursorChange={setCursor}
       />
-      <div className="flex shrink-0 items-center gap-3 text-xs tabular-nums text-gray-600 dark:text-gray-400">
+      <div className="flex flex-wrap shrink-0 items-center gap-x-3 gap-y-1 text-xs tabular-nums text-gray-600 dark:text-gray-400">
         {APPROVAL_METHOD_KEYS.map((method) => (
           <span key={method} className="flex items-center gap-1">
             <span
@@ -250,7 +250,7 @@ function ApprovalActivityChartSVG({
   }, [cursor, range]);
 
   return (
-    <div ref={elementRef} className={className}>
+    <div ref={elementRef} className={`relative ${className}`}>
       <svg
         className="absolute inset-0 cursor-crosshair"
         ref={svgRef}
