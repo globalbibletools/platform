@@ -1,5 +1,5 @@
-// Injected by the vite svg plugin
-declare const __ICON_SPRITE_URL__: string;
+import { useState, useEffect } from "react";
+import { SPRITE_URL } from "virtual:icon-sprite-url";
 
 const iconNames = [
   "add",
@@ -69,7 +69,7 @@ const iconNames = [
   "xmark",
 ] as const;
 
-type IconType = (typeof iconNames)[number];
+export type IconType = (typeof iconNames)[number];
 
 const fallbackIcon: IconType = "question-circle";
 
@@ -104,9 +104,7 @@ export function Icon({ icon, size, fixedWidth, className, title }: IconProps) {
       role={title ? "img" : undefined}
       aria-label={title || undefined}
     >
-      <use href={`${__ICON_SPRITE_URL__}#${iconName}`} />
+      <use href={`${SPRITE_URL}#${iconName}`} />
     </svg>
   );
 }
-
-export type { IconType };
