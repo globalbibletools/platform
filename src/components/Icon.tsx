@@ -1,87 +1,112 @@
-import { config } from "@fortawesome/fontawesome-svg-core";
-import * as FaSolid from "@fortawesome/free-solid-svg-icons";
-import * as FaRegular from "@fortawesome/free-regular-svg-icons";
-import * as FaBrands from "@fortawesome/free-brands-svg-icons";
-import {
-  FontAwesomeIcon,
-  type FontAwesomeIconProps,
-} from "@fortawesome/react-fontawesome";
+// Injected by the vite svg plugin
+declare const __ICON_SPRITE_URL__: string;
 
-config.autoAddCss = false;
+const iconNames = [
+  "add",
+  "align-left",
+  "align-right",
+  "arrow-down",
+  "arrow-left",
+  "arrow-right",
+  "arrow-rotate-left",
+  "arrows-rotate",
+  "arrow-up",
+  "backward-step",
+  "bars",
+  "bold",
+  "book-open",
+  "caret-down",
+  "caret-up",
+  "check",
+  "check-circle",
+  "clipboard-check",
+  "chevron-down",
+  "chevron-up",
+  "chart-line",
+  "circle",
+  "circle-hollow",
+  "circle-play",
+  "close",
+  "database",
+  "download",
+  "ellipsis",
+  "envelope",
+  "exclamation-circle",
+  "exclamation-triangle",
+  "external-link",
+  "maximize",
+  "magnifying-glass",
+  "feather",
+  "file-arrow-down",
+  "file-export",
+  "file-import",
+  "forward-step",
+  "gear",
+  "github",
+  "google",
+  "indent",
+  "italic",
+  "language",
+  "link",
+  "list-ol",
+  "list-ul",
+  "outdent",
+  "pause",
+  "play",
+  "plus",
+  "question-circle",
+  "right-from-bracket",
+  "robot",
+  "save",
+  "share-from-square",
+  "sliders",
+  "sticky-note",
+  "strikethrough",
+  "trash",
+  "triangle-exclamation",
+  "unlink",
+  "user",
+  "xmark",
+] as const;
 
-const iconMap = {
-  add: FaSolid.faPlus,
-  "align-left": FaSolid.faAlignLeft,
-  "align-right": FaSolid.faAlignRight,
-  "arrow-down": FaSolid.faArrowDown,
-  "arrow-left": FaSolid.faArrowLeft,
-  "arrow-right": FaSolid.faArrowRight,
-  "arrow-rotate-left": FaSolid.faArrowRotateLeft,
-  "arrows-rotate": FaSolid.faArrowsRotate,
-  "arrow-up": FaSolid.faArrowUp,
-  "backward-step": FaSolid.faBackwardStep,
-  bars: FaSolid.faBars,
-  bold: FaSolid.faBold,
-  "book-open": FaSolid.faBookOpen,
-  "caret-down": FaSolid.faCaretDown,
-  "caret-up": FaSolid.faCaretUp,
-  check: FaSolid.faCheck,
-  "check-circle": FaSolid.faCheckCircle,
-  "clipboard-check": FaSolid.faClipboardCheck,
-  "chevron-down": FaSolid.faChevronDown,
-  "chevron-up": FaSolid.faChevronUp,
-  "chart-line": FaSolid.faChartLine,
-  circle: FaSolid.faCircle,
-  "circle-hollow": FaRegular.faCircle,
-  "circle-play": FaSolid.faCirclePlay,
-  close: FaSolid.faXmark,
-  database: FaSolid.faDatabase,
-  download: FaSolid.faDownload,
-  ellipsis: FaSolid.faEllipsis,
-  envelope: FaSolid.faEnvelope,
-  "exclamation-circle": FaSolid.faCircleExclamation,
-  "exclamation-triangle": FaSolid.faTriangleExclamation,
-  "external-link": FaSolid.faUpRightFromSquare,
-  maximize: FaSolid.faMaximize,
-  "magnifying-glass": FaSolid.faMagnifyingGlass,
-  feather: FaSolid.faFeather,
-  "file-arrow-down": FaSolid.faFileArrowDown,
-  "file-export": FaSolid.faFileExport,
-  "file-import": FaSolid.faFileImport,
-  "forward-step": FaSolid.faForwardStep,
-  gear: FaSolid.faGear,
-  github: FaBrands.faGithub,
-  google: FaBrands.faGoogle,
-  indent: FaSolid.faIndent,
-  italic: FaSolid.faItalic,
-  language: FaSolid.faLanguage,
-  link: FaSolid.faLink,
-  "list-ol": FaSolid.faListOl,
-  "list-ul": FaSolid.faListUl,
-  outdent: FaSolid.faOutdent,
-  pause: FaSolid.faPause,
-  play: FaSolid.faPlay,
-  plus: FaSolid.faPlus,
-  "question-circle": FaSolid.faCircleQuestion,
-  "right-from-bracket": FaSolid.faRightFromBracket,
-  robot: FaSolid.faRobot,
-  save: FaSolid.faFloppyDisk,
-  "share-from-square": FaSolid.faShareFromSquare,
-  sliders: FaSolid.faSliders,
-  "sticky-note": FaSolid.faNoteSticky,
-  strikethrough: FaSolid.faStrikethrough,
-  trash: FaSolid.faTrash,
-  "triangle-exclamation": FaSolid.faTriangleExclamation,
-  unlink: FaSolid.faLinkSlash,
-  user: FaSolid.faUser,
-  xmark: FaSolid.faXmark,
-} as const;
-const fallbackIcon = FaSolid.faCircleQuestion;
+type IconType = (typeof iconNames)[number];
 
-type IconType = keyof typeof iconMap;
+const fallbackIcon: IconType = "question-circle";
 
-type IconProps = Omit<FontAwesomeIconProps, "icon"> & { icon: IconType };
+const sizeMap: Record<string, string> = {
+  xs: "0.75em",
+  sm: "0.875em",
+  lg: "1.25em",
+  xl: "1.5em",
+  "2xl": "2em",
+};
 
-export function Icon({ icon, ...props }: IconProps) {
-  return <FontAwesomeIcon {...props} icon={iconMap[icon] ?? fallbackIcon} />;
+interface IconProps {
+  icon: IconType;
+  size?: "1x" | "xs" | "sm" | "lg" | "xl" | "2xl";
+  fixedWidth?: boolean;
+  className?: string;
+  title?: string;
 }
+
+export function Icon({ icon, size, fixedWidth, className, title }: IconProps) {
+  const iconName = iconNames.includes(icon) ? icon : fallbackIcon;
+  const emSize = size ? (sizeMap[size] ?? size) : "1em";
+
+  return (
+    <svg
+      className={`icon ${className}`}
+      style={{
+        width: fixedWidth ? "1.25em" : emSize,
+        height: emSize,
+      }}
+      aria-hidden={title ? undefined : true}
+      role={title ? "img" : undefined}
+      aria-label={title || undefined}
+    >
+      <use href={`${__ICON_SPRITE_URL__}#${iconName}`} />
+    </svg>
+  );
+}
+
+export type { IconType };
