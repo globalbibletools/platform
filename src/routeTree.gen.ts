@@ -23,6 +23,7 @@ import { Route as MainFeaturesRouteImport } from "./routes/_main/features";
 import { Route as MainDashboardRouteImport } from "./routes/_main/dashboard";
 import { Route as mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteImport } from "./ui/translation/routes/route";
 import { Route as mainReadDotDotDotDotDotDotUiStudyRoutesRouteRouteImport } from "./ui/study/routes/route";
+import { Route as mainDownloadsDotDotDotDotDotDotUiDownloadsRoutesRouteRouteImport } from "./ui/downloads/routes/route";
 import { Route as mainAdminDotDotDotDotDotDotUiAdminRoutesIndexRouteImport } from "./ui/admin/routes/index";
 import { Route as mainTranslateDotDotDotDotDotDotUiTranslationRoutesCodeRouteImport } from "./ui/translation/routes/$code";
 import { Route as mainReadDotDotDotDotDotDotUiStudyRoutesCodeRouteImport } from "./ui/study/routes/$code";
@@ -106,6 +107,12 @@ const mainReadDotDotDotDotDotDotUiStudyRoutesRouteRoute =
   mainReadDotDotDotDotDotDotUiStudyRoutesRouteRouteImport.update({
     id: "/read",
     path: "/read",
+    getParentRoute: () => MainRouteRoute,
+  } as any);
+const mainDownloadsDotDotDotDotDotDotUiDownloadsRoutesRouteRoute =
+  mainDownloadsDotDotDotDotDotDotUiDownloadsRoutesRouteRouteImport.update({
+    id: "/downloads",
+    path: "/downloads",
     getParentRoute: () => MainRouteRoute,
   } as any);
 const mainAdminDotDotDotDotDotDotUiAdminRoutesIndexRoute =
@@ -212,6 +219,7 @@ const mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeExportsRoute =
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
+  "/downloads": typeof mainDownloadsDotDotDotDotDotDotUiDownloadsRoutesRouteRoute;
   "/read": typeof mainReadDotDotDotDotDotDotUiStudyRoutesRouteRouteWithChildren;
   "/translate": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteWithChildren;
   "/dashboard": typeof MainDashboardRoute;
@@ -240,6 +248,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
+  "/downloads": typeof mainDownloadsDotDotDotDotDotDotUiDownloadsRoutesRouteRoute;
   "/read": typeof mainReadDotDotDotDotDotDotUiStudyRoutesRouteRouteWithChildren;
   "/translate": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteWithChildren;
   "/dashboard": typeof MainDashboardRoute;
@@ -270,6 +279,7 @@ export interface FileRoutesById {
   "/": typeof IndexRoute;
   "/_main": typeof MainRouteRouteWithChildren;
   "/_minimal": typeof MinimalRouteRouteWithChildren;
+  "/_main/downloads": typeof mainDownloadsDotDotDotDotDotDotUiDownloadsRoutesRouteRoute;
   "/_main/read": typeof mainReadDotDotDotDotDotDotUiStudyRoutesRouteRouteWithChildren;
   "/_main/translate": typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteWithChildren;
   "/_main/dashboard": typeof MainDashboardRoute;
@@ -300,6 +310,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | "/"
+    | "/downloads"
     | "/read"
     | "/translate"
     | "/dashboard"
@@ -328,6 +339,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/"
+    | "/downloads"
     | "/read"
     | "/translate"
     | "/dashboard"
@@ -357,6 +369,7 @@ export interface FileRouteTypes {
     | "/"
     | "/_main"
     | "/_minimal"
+    | "/_main/downloads"
     | "/_main/read"
     | "/_main/translate"
     | "/_main/dashboard"
@@ -489,6 +502,13 @@ declare module "@tanstack/react-router" {
       path: "/read";
       fullPath: "/read";
       preLoaderRoute: typeof mainReadDotDotDotDotDotDotUiStudyRoutesRouteRouteImport;
+      parentRoute: typeof MainRouteRoute;
+    };
+    "/_main/downloads": {
+      id: "/_main/downloads";
+      path: "/downloads";
+      fullPath: "/downloads";
+      preLoaderRoute: typeof mainDownloadsDotDotDotDotDotDotUiDownloadsRoutesRouteRouteImport;
       parentRoute: typeof MainRouteRoute;
     };
     "/_main/admin/": {
@@ -677,6 +697,7 @@ const mainAdminDotDotDotDotDotDotUiAdminRoutesLanguagesDotcodeRouteRouteWithChil
   );
 
 interface MainRouteRouteChildren {
+  mainDownloadsDotDotDotDotDotDotUiDownloadsRoutesRouteRoute: typeof mainDownloadsDotDotDotDotDotDotUiDownloadsRoutesRouteRoute;
   mainReadDotDotDotDotDotDotUiStudyRoutesRouteRoute: typeof mainReadDotDotDotDotDotDotUiStudyRoutesRouteRouteWithChildren;
   mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRoute: typeof mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRouteWithChildren;
   MainDashboardRoute: typeof MainDashboardRoute;
@@ -691,6 +712,8 @@ interface MainRouteRouteChildren {
 }
 
 const MainRouteRouteChildren: MainRouteRouteChildren = {
+  mainDownloadsDotDotDotDotDotDotUiDownloadsRoutesRouteRoute:
+    mainDownloadsDotDotDotDotDotDotUiDownloadsRoutesRouteRoute,
   mainReadDotDotDotDotDotDotUiStudyRoutesRouteRoute:
     mainReadDotDotDotDotDotDotUiStudyRoutesRouteRouteWithChildren,
   mainTranslateDotDotDotDotDotDotUiTranslationRoutesRouteRoute:

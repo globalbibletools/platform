@@ -22,6 +22,7 @@ function FeaturesRoute() {
           feature="ff-interlinear-pdf-export"
           label="Interlinear PDF Export"
         />
+        <FeatureSwitch feature="ff-downloads" label="Downloads" />
       </div>
     </div>
   );

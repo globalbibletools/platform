@@ -259,8 +259,12 @@
       "profile": "Profile",
       "log_out": "Log Out",
       "log_in": "Log In",
-      "help": "Help"
+      "help": "Help",
+      "downloads": "Downloads"
     }
+  },
+  "DownloadsRoute": {
+    "title": "Downloads"
   },
   "ProfileView": {
     "form": {

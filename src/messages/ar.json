@@ -277,8 +277,12 @@
       "profile": "الملف الشخصي",
       "log_out": "تسجيل الخروج",
       "log_in": "تسجيل الدخول",
-      "help": "مساعدة"
+      "help": "مساعدة",
+      "downloads": "التنزيلات"
     }
+  },
+  "DownloadsRoute": {
+    "title": "التنزيلات"
   },
   "ProfileView": {
     "form": {

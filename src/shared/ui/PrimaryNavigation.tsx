@@ -10,6 +10,7 @@ import {
 } from "./HeaderLink";
 import { useTranslations } from "use-intl";
 import { Link, useRouteContext, useRouter } from "@tanstack/react-router";
+import FeatureFlagged from "@/shared/feature-flags/FeatureFlagged";
 import { SystemRoleRaw } from "@/modules/users/types";
 import { logout } from "@/modules/users/actions/logout";
 import { useServerFn } from "@tanstack/react-start";
@@ -62,6 +63,12 @@ export default function PrimaryNavigation() {
           <HeaderLink to="/translate">{t("links.translate")}</HeaderLink>
         )}
         {isAdmin && <HeaderLink to="/admin">{t("links.admin")}</HeaderLink>}
+        <FeatureFlagged
+          feature="ff-downloads"
+          enabledChildren={
+            <HeaderLink to="/downloads">{t("links.downloads")}</HeaderLink>
+          }
+        />
         <HeaderLink
           className={`hidden ${isLoggedIn ? "lg:block" : "sm:block"}`}
           href="https://globalbibletools.tawk.help"
@@ -133,6 +140,15 @@ export default function PrimaryNavigation() {
             <Icon icon="sliders" className="me-2" fixedWidth />
             <span className="font-bold">{t("links.admin")}</span>
           </HeaderMenuItem>
+          <FeatureFlagged
+            feature="ff-downloads"
+            enabledChildren={
+              <HeaderMenuItem to="/downloads">
+                <Icon icon="download" className="me-2" fixedWidth />
+                <span className="font-bold">{t("links.downloads")}</span>
+              </HeaderMenuItem>
+            }
+          />
           <HeaderMenuItem
             className="lg:hidden"
             href="https://globalbibletools.tawk.help"

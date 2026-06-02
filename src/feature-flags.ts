@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { readCookie, setClientCookie } from "@/shared/cookies";
 
-export type Feature = "ff-interlinear-pdf-export"; // string union of available flags
+export type Feature = "ff-interlinear-pdf-export" | "ff-downloads"; // string union of available flags
 
 const FEATURE_FLAGS_COOKIE = "features";
 const COOKIE_AGE = 365 * 24 * 60 * 60;
