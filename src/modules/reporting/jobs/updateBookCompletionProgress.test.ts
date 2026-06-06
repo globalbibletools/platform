@@ -276,7 +276,6 @@ test("processes all languages when allLanguages is true", async () => {
   });
 
   await updateBookCompletionProgressJob(makeJob());
-  const firstProgressRows = await findProgress();
 
   // Run again without new events — normally this language would be skipped,
   // but allLanguages: true forces it to be reprocessed.
