@@ -47,6 +47,7 @@ import {
 import { JobTable } from "./shared/jobs/db/schema";
 import {
   BookCompletionProgressTable,
+  BookCompletionTable,
   BookWordMapView,
   TrackingEventTable,
 } from "./modules/reporting/db/schema";
@@ -54,6 +55,7 @@ import {
 export interface Database {
   ai_gloss_language: AIGlossLanguageTable;
   book: BookTable;
+  book_completion: BookCompletionTable;
   book_completion_progress: BookCompletionProgressTable;
   book_word_map: BookWordMapView;
   footnote: FootnoteTable;

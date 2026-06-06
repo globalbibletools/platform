@@ -13,7 +13,10 @@ import {
   UpdateBookCompletionProgressJob,
   UpdateBookCompletionProgressPayload,
 } from "./updateBookCompletionProgress";
-import type { BookCompletionProgressTable } from "../db/schema";
+import type {
+  BookCompletionProgressTable,
+  BookCompletionTable,
+} from "../db/schema";
 import { ulid } from "@/shared/ulid";
 import { faker } from "@faker-js/faker/locale/en";
 import {
@@ -47,6 +50,17 @@ async function findProgress(): Promise<
     .orderBy("language_id")
     .orderBy("book_id")
     .orderBy("user_id")
+    .execute();
+}
+
+async function findBookCompletions(): Promise<
+  Selectable<BookCompletionTable>[]
+> {
+  return getDb()
+    .selectFrom("book_completion")
+    .selectAll()
+    .orderBy("language_id")
+    .orderBy("book_id")
     .execute();
 }
 
@@ -112,6 +126,26 @@ test("aggregates book progress for all languages", async () => {
       refreshed_at: expect.toBeNow(),
     },
   ]);
+
+  const bookCompletions = await findBookCompletions();
+  expect(bookCompletions).toEqual([
+    {
+      id: expect.any(Number),
+      language_id: language1.id,
+      book_id: HAGGAI_BOOK_ID,
+      refreshed_at: expect.toBeNow(),
+      updated_at: expect.any(Date),
+      completed_at: null,
+    },
+    {
+      id: expect.any(Number),
+      language_id: language2.id,
+      book_id: HAGGAI_BOOK_ID,
+      refreshed_at: expect.toBeNow(),
+      updated_at: expect.any(Date),
+      completed_at: null,
+    },
+  ]);
 });
 
 test("counts each word of a multi-word phrase", async () => {
@@ -140,6 +174,18 @@ test("counts each word of a multi-word phrase", async () => {
       refreshed_at: expect.toBeNow(),
     },
   ]);
+
+  const bookCompletions = await findBookCompletions();
+  expect(bookCompletions).toEqual([
+    {
+      id: expect.any(Number),
+      language_id: language.id,
+      book_id: HAGGAI_BOOK_ID,
+      refreshed_at: expect.toBeNow(),
+      updated_at: expect.any(Date),
+      completed_at: null,
+    },
+  ]);
 });
 
 test("doesn't update a language if no events have occurred", async () => {
@@ -162,13 +208,17 @@ test("doesn't update a language if no events have occurred", async () => {
 
   const progressRows = await findProgress();
   expect(progressRows).toEqual(existingProgressRows);
+
+  const bookCompletions = await findBookCompletions();
+  expect(bookCompletions).toEqual([]);
 });
 
 test("replaces previous progress entries", async () => {
   const { user } = await userFactory.build();
   const { language } = await languageFactory.build({ members: [user.id] });
 
-  // This is for a different book and should be removed when the job runs.
+  // Progress for a different book — unchanged books are left intact when
+  // only specific books have changed.
   await getDb().insertInto("book").values({ id: 1, name: "Gen" }).execute();
   await getDb()
     .insertInto("book_completion_progress")
@@ -196,10 +246,30 @@ test("replaces previous progress entries", async () => {
     {
       id: expect.any(Number),
       language_id: language.id,
+      book_id: 1,
+      user_id: null,
+      word_count: 5,
+      refreshed_at: new Date(0),
+    },
+    {
+      id: expect.any(Number),
+      language_id: language.id,
       book_id: HAGGAI_BOOK_ID,
       user_id: user.id,
       word_count: 1,
       refreshed_at: expect.toBeNow(),
+    },
+  ]);
+
+  const bookCompletions = await findBookCompletions();
+  expect(bookCompletions).toEqual([
+    {
+      id: expect.any(Number),
+      language_id: language.id,
+      book_id: HAGGAI_BOOK_ID,
+      refreshed_at: expect.toBeNow(),
+      updated_at: expect.any(Date),
+      completed_at: null,
     },
   ]);
 });
@@ -238,4 +308,16 @@ test("processes all languages when allLanguages is true", async () => {
   expect(progressRows[0].refreshed_at).not.toEqual(
     firstProgressRows[0].refreshed_at,
   );
+
+  const bookCompletions = await findBookCompletions();
+  expect(bookCompletions).toEqual([
+    {
+      id: expect.any(Number),
+      language_id: language.id,
+      book_id: HAGGAI_BOOK_ID,
+      refreshed_at: expect.toBeNow(),
+      updated_at: expect.any(Date),
+      completed_at: null,
+    },
+  ]);
 });

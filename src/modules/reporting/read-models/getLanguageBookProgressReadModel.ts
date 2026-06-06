@@ -13,6 +13,8 @@ export interface BookProgressRow {
   totalWords: number;
   approvedWords: number;
   progress: number;
+  completedAt: Date | null;
+  updatedAt: Date | null;
   contributors: BookProgressContributor[];
 }
 
@@ -52,9 +54,20 @@ export async function getLanguageBookProgressReadModel(
               .as("contributors"),
         ]),
     )
+    .with("book_completion", (eb) =>
+      eb
+        .selectFrom("book_completion")
+        .where("language_id", "=", languageId)
+        .select(["book_id", "completed_at", "updated_at"]),
+    )
     .selectFrom("book_progress")
     .innerJoin("book_total", "book_total.book_id", "book_progress.book_id")
     .innerJoin("book", "book.id", "book_progress.book_id")
+    .leftJoin(
+      "book_completion",
+      "book_completion.book_id",
+      "book_progress.book_id",
+    )
     .select([
       "book.id as bookId",
       "name",
@@ -72,6 +85,8 @@ export async function getLanguageBookProgressReadModel(
           )
           .$castTo<number>()
           .as("progress"),
+      "book_completion.completed_at as completedAt",
+      "book_completion.updated_at as updatedAt",
       "contributors",
     ])
     .orderBy("progress", "desc")

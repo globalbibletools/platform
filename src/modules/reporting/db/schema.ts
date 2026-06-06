@@ -22,3 +22,12 @@ export interface BookCompletionProgressTable {
   word_count: number;
   refreshed_at: Date;
 }
+
+export interface BookCompletionTable {
+  id: Generated<number>;
+  language_id: string;
+  book_id: number;
+  refreshed_at: Date;
+  updated_at: Date;
+  completed_at: Date | null;
+}

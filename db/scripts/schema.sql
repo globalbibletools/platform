@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict eQZD9ZVdqBj0kmYv80c2B1VplFgU4sSO0rxmtWQugi3YFgEnexC0wPDruwLt5Po
+\restrict qekRZmTnecb3ksUFwiVrCKKc7GE1TONp8NTax9ihEpEuQmhcAhEqK2gNVgHgo8Q
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -427,6 +427,34 @@ CREATE TABLE public.ai_gloss_language (
 CREATE TABLE public.book (
     id integer NOT NULL,
     name text NOT NULL
+);
+
+
+--
+-- Name: book_completion; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.book_completion (
+    id integer NOT NULL,
+    language_id uuid NOT NULL,
+    book_id integer NOT NULL,
+    refreshed_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    completed_at timestamp with time zone
+);
+
+
+--
+-- Name: book_completion_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.book_completion ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.book_completion_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
 );
 
 
@@ -1172,6 +1200,14 @@ ALTER TABLE ONLY public.ai_gloss_language
 
 
 --
+-- Name: book_completion book_completion_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.book_completion
+    ADD CONSTRAINT book_completion_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: book_completion_progress book_completion_progress_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1514,6 +1550,13 @@ CREATE UNIQUE INDEX book_completion_progress_unique_with_user ON public.book_com
 
 
 --
+-- Name: book_completion_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX book_completion_unique ON public.book_completion USING btree (language_id, book_id);
+
+
+--
 -- Name: book_name_key; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1700,6 +1743,22 @@ CREATE TRIGGER gloss_audit AFTER DELETE OR UPDATE ON public.gloss FOR EACH ROW E
 --
 
 CREATE TRIGGER increment_suggestion AFTER INSERT OR UPDATE OF gloss, state ON public.gloss FOR EACH ROW EXECUTE FUNCTION public.increment_suggestion();
+
+
+--
+-- Name: book_completion book_completion_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.book_completion
+    ADD CONSTRAINT book_completion_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.book(id);
+
+
+--
+-- Name: book_completion book_completion_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.book_completion
+    ADD CONSTRAINT book_completion_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id);
 
 
 --
@@ -2122,5 +2181,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict eQZD9ZVdqBj0kmYv80c2B1VplFgU4sSO0rxmtWQugi3YFgEnexC0wPDruwLt5Po
+\unrestrict qekRZmTnecb3ksUFwiVrCKKc7GE1TONp8NTax9ihEpEuQmhcAhEqK2gNVgHgo8Q
 
