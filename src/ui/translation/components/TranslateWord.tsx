@@ -64,7 +64,7 @@ export default function TranslateWord({
   const t = useTranslations("TranslateWord");
 
   const rootRef = useRef<HTMLLIElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const hasNote =
     phrase.hasFootnote || (phrase.hasTranslatorNote && language.isMember);
