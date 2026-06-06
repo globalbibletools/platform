@@ -212,7 +212,7 @@ export default function TranslateWord({
               aria-labelledby={`word-${word.id}`}
               data-phrase={phrase.id}
               className="-mx-px mt-0.5 place-self-start row-start-3"
-              font={fontMap[language.font]}
+              font={language.font}
               right={isHebrew}
               dir={language.textDirection}
               suggestions={word.suggestions}

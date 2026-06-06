@@ -20,7 +20,7 @@ export default function GlossAutocompleteInput({
   style,
   right,
   dir,
-  font = fontMap["Noto Sans"],
+  font = "Noto Sans",
 
   suggestions,
   modelGlosses,
@@ -196,7 +196,7 @@ function Input({
 
   const width = useTextWidth({
     text: draft.text,
-    fontFamily: font,
+    fontFamily: fontMap[font],
     fontSize: "1rem",
   });
 
@@ -258,9 +258,10 @@ function Input({
           dir={dir}
           className={`
             border shadow-inner outline-0
-            px-3 h-[26px] bg-white
+            px-3 bg-white
             dark:shadow-none dark:bg-gray-900
             box-content min-w-12
+            ${font == "Noto Nastaliq Urdu" ? "h-[30px] leading-2" : "h-[26px]"}
             ${
               hasModelGloss ?
                 right ? "pl-8"
@@ -274,7 +275,7 @@ function Input({
               : "border-gray-400 dark:border-gray-700"
             }
           `}
-          style={{ width: `${width}px`, fontFamily: font }}
+          style={{ width: `${width}px`, fontFamily: fontMap[font] }}
           value={draft.text}
           autoComplete="off"
           data-method={draft.source}
@@ -304,9 +305,10 @@ function Input({
       </div>
       <button
         className={`
-            h-7 w-7 inline-flex justify-center items-center outline-0 border bg-white
+            w-7 inline-flex justify-center items-center outline-0 border bg-white
             disabled:opacity-50 dark:bg-gray-800
             ${right ? "rounded-l" : "rounded-r"}
+            ${font === "Noto Nastaliq Urdu" ? "h-8" : "h-7"}
             ${
               initial.state === GlossStateRaw.Unapproved ?
                 "text-blue-800 dark:text-green-400 border-blue-800 dark:border-green-800"
