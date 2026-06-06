@@ -20,7 +20,6 @@ export interface BookCompletionProgressTable {
   book_id: number;
   user_id: string | null;
   word_count: number;
-  refreshed_at: Date;
 }
 
 export interface BookCompletionTable {

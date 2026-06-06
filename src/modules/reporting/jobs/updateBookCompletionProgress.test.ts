@@ -18,7 +18,6 @@ import type {
   BookCompletionTable,
 } from "../db/schema";
 import { ulid } from "@/shared/ulid";
-import { faker } from "@faker-js/faker/locale/en";
 import {
   bibleFactory,
   HAGGAI_BOOK_ID,
@@ -107,7 +106,6 @@ test("aggregates book progress for all languages", async () => {
       book_id: HAGGAI_BOOK_ID,
       user_id: user1.id,
       word_count: 2,
-      refreshed_at: expect.toBeNow(),
     },
     {
       id: expect.any(Number),
@@ -115,7 +113,6 @@ test("aggregates book progress for all languages", async () => {
       book_id: HAGGAI_BOOK_ID,
       user_id: user2.id,
       word_count: 1,
-      refreshed_at: expect.toBeNow(),
     },
     {
       id: expect.any(Number),
@@ -123,7 +120,6 @@ test("aggregates book progress for all languages", async () => {
       book_id: HAGGAI_BOOK_ID,
       user_id: user1.id,
       word_count: 3,
-      refreshed_at: expect.toBeNow(),
     },
   ]);
 
@@ -171,7 +167,6 @@ test("counts each word of a multi-word phrase", async () => {
       book_id: HAGGAI_BOOK_ID,
       user_id: user.id,
       word_count: 3,
-      refreshed_at: expect.toBeNow(),
     },
   ]);
 
@@ -198,7 +193,6 @@ test("doesn't update a language if no events have occurred", async () => {
       book_id: HAGGAI_BOOK_ID,
       user_id: null,
       word_count: 5,
-      refreshed_at: faker.date.recent(),
     })
     .returningAll()
     .execute();
@@ -227,7 +221,6 @@ test("replaces previous progress entries", async () => {
       book_id: 1,
       user_id: null,
       word_count: 5,
-      refreshed_at: new Date(0),
     })
     .returningAll()
     .execute();
@@ -249,7 +242,6 @@ test("replaces previous progress entries", async () => {
       book_id: 1,
       user_id: null,
       word_count: 5,
-      refreshed_at: new Date(0),
     },
     {
       id: expect.any(Number),
@@ -257,7 +249,6 @@ test("replaces previous progress entries", async () => {
       book_id: HAGGAI_BOOK_ID,
       user_id: user.id,
       word_count: 1,
-      refreshed_at: expect.toBeNow(),
     },
   ]);
 
@@ -302,12 +293,8 @@ test("processes all languages when allLanguages is true", async () => {
       book_id: HAGGAI_BOOK_ID,
       user_id: user.id,
       word_count: 1,
-      refreshed_at: expect.toBeNow(),
     },
   ]);
-  expect(progressRows[0].refreshed_at).not.toEqual(
-    firstProgressRows[0].refreshed_at,
-  );
 
   const bookCompletions = await findBookCompletions();
   expect(bookCompletions).toEqual([

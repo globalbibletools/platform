@@ -23,14 +23,12 @@ test("collects book progress and contributors for single language", async () => 
         book_id: HAGGAI_BOOK_ID,
         user_id: user1.id,
         word_count: 3,
-        refreshed_at: new Date(),
       },
       {
         language_id: language.id,
         book_id: HAGGAI_BOOK_ID,
         user_id: user2.id,
         word_count: 1,
-        refreshed_at: new Date(),
       },
     ])
     .execute();
@@ -78,7 +76,6 @@ test("includes completed_at when book is completed", async () => {
       book_id: HAGGAI_BOOK_ID,
       user_id: user1.id,
       word_count: 608,
-      refreshed_at: new Date(),
     })
     .execute();
 
@@ -124,7 +121,6 @@ test("returns null for completed_at and updatedAt when no book_completion row ex
       book_id: HAGGAI_BOOK_ID,
       user_id: user1.id,
       word_count: 3,
-      refreshed_at: new Date(),
     })
     .execute();
 

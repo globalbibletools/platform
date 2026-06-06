@@ -86,7 +86,6 @@ async function updateLanguageProgress(
             "v.book_id",
             (eb) => eb.ref("g.updated_by").as("user_id"),
             (eb) => eb.fn.count("pw.word_id").as("word_count"),
-            sql<Date>`now()`.as("refreshed_at"),
             (eb) => eb.fn.max("g.updated_at").as("updated_at"),
           ])
           .where("g.state", "=", GlossStateRaw.Approved)
@@ -171,23 +170,11 @@ async function updateLanguageProgress(
           ),
       )
       .insertInto("book_completion_progress")
-      .columns([
-        "language_id",
-        "book_id",
-        "user_id",
-        "word_count",
-        "refreshed_at",
-      ])
+      .columns(["language_id", "book_id", "user_id", "word_count"])
       .expression((db) =>
         db
           .selectFrom("user_word_count")
-          .select([
-            "language_id",
-            "book_id",
-            "user_id",
-            "word_count",
-            "refreshed_at",
-          ]),
+          .select(["language_id", "book_id", "user_id", "word_count"]),
       )
       .execute();
   });
@@ -208,27 +195,21 @@ async function findChangedBooks(): Promise<
   Array<{ languageId: string; books: Array<number> }>
 > {
   const changedBooks = await getDb()
-    .with("snap", (db) =>
-      db
-        .selectFrom("book_completion_progress")
-        .select([
-          "language_id",
-          "book_id",
-          (eb) => eb.fn.max("refreshed_at").as("refreshed_at"),
-        ])
-        .groupBy(["language_id", "book_id"]),
-    )
     .selectFrom("gloss_event")
     .innerJoin("book_word_map", "book_word_map.word_id", "gloss_event.word_id")
-    .leftJoin("snap", (jb) =>
+    .leftJoin("book_completion", (jb) =>
       jb
-        .onRef("snap.language_id", "=", "gloss_event.language_id")
-        .onRef("snap.book_id", "=", "book_word_map.book_id"),
+        .onRef("book_completion.language_id", "=", "gloss_event.language_id")
+        .onRef("book_completion.book_id", "=", "book_word_map.book_id"),
     )
     .where((eb) =>
       eb.or([
-        eb("snap.refreshed_at", "is", null),
-        eb("gloss_event.timestamp", ">", eb.ref("snap.refreshed_at")),
+        eb("book_completion.refreshed_at", "is", null),
+        eb(
+          "gloss_event.timestamp",
+          ">",
+          eb.ref("book_completion.refreshed_at"),
+        ),
       ]),
     )
     .groupBy("gloss_event.language_id")

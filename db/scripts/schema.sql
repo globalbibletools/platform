@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict qekRZmTnecb3ksUFwiVrCKKc7GE1TONp8NTax9ihEpEuQmhcAhEqK2gNVgHgo8Q
+\restrict VmAKqS3l6tx4cR0kYi8HOp8nm1ZzVETf7oXflgLrqrPDjXcViV3mRz1axCj2F1h
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -467,8 +467,7 @@ CREATE TABLE public.book_completion_progress (
     language_id uuid NOT NULL,
     book_id integer NOT NULL,
     user_id uuid,
-    word_count integer NOT NULL,
-    refreshed_at timestamp with time zone NOT NULL
+    word_count integer NOT NULL
 );
 
 
@@ -2181,5 +2180,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict qekRZmTnecb3ksUFwiVrCKKc7GE1TONp8NTax9ihEpEuQmhcAhEqK2gNVgHgo8Q
+\unrestrict VmAKqS3l6tx4cR0kYi8HOp8nm1ZzVETf7oXflgLrqrPDjXcViV3mRz1axCj2F1h
 
