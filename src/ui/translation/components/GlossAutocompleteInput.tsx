@@ -46,7 +46,7 @@ export default function GlossAutocompleteInput({
     state: GlossStateRaw;
     source?: GlossApprovalMethodRaw;
   }): void;
-} & Omit<ComponentProps<"input">, "onChange" | "value">) {
+} & Omit<ComponentProps<"textarea">, "onChange" | "value">) {
   const cssId = useId();
 
   const [state, dispatch] = useAutocompleteState({
@@ -184,10 +184,10 @@ function Input({
   state: AutcompleteState;
   dispatch: AutocompleteDispatch;
   dir?: string;
-} & ComponentProps<"input">) {
+} & ComponentProps<"textarea">) {
   const { initial, draft } = state;
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const hasModelGloss =
     draft.source &&
@@ -252,7 +252,7 @@ function Input({
         `}
     >
       <div className="relative">
-        <input
+        <textarea
           {...props}
           ref={inputRef}
           dir={dir}
@@ -261,6 +261,8 @@ function Input({
             px-3 bg-white
             dark:shadow-none dark:bg-gray-900
             box-content min-w-12
+            overflow-hidden resize-none
+            block
             ${font == "Noto Nastaliq Urdu" ? "h-[30px] leading-8" : "h-[26px]"}
             ${
               hasModelGloss ?
@@ -280,7 +282,10 @@ function Input({
           autoComplete="off"
           data-method={draft.source}
           onChange={(e) => {
-            dispatch({ type: "inputChange", text: e.target.value });
+            dispatch({
+              type: "inputChange",
+              text: e.target.value.replaceAll("\n", " "),
+            });
           }}
           onKeyDown={(e) => {
             onKeyDown(e);
