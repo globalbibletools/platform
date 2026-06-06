@@ -261,7 +261,7 @@ function Input({
             px-3 bg-white
             dark:shadow-none dark:bg-gray-900
             box-content min-w-12
-            ${font == "Noto Nastaliq Urdu" ? "h-[30px] leading-2" : "h-[26px]"}
+            ${font == "Noto Nastaliq Urdu" ? "h-[30px] leading-8" : "h-[26px]"}
             ${
               hasModelGloss ?
                 right ? "pl-8"
