@@ -88,7 +88,7 @@ export function ButtonSelectorOption({
   return (
     <label
       className={`
-        inline-flex items-center justify-center px-3 font-bold h-9 bg-white border border-l-0
+        inline-flex items-center justify-center px-3 font-bold h-8 bg-white border border-l-0
         first:ltr:rounded-l-lg first:ltr:border-l last:ltr:rounded-r-lg
         last:rtl:rounded-l-lg last:rtl:border-l first:rtl:rounded-r-lg
         text-blue-800 has-[:not(:checked)]:shadow-inner

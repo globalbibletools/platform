@@ -1,6 +1,5 @@
-"use client";
-
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { format } from "date-fns";
 import ProgressBar from "@/ui/admin/components/ProgressBar";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
@@ -17,6 +16,10 @@ import { type LanguageDashboardActivityEntryReadModel } from "@/ui/admin/readMod
 import { type LanguageDashboardContributionReadModel } from "@/ui/admin/readModels/getLanguageDashboardContributionsReadModel";
 import { type LanguageDashboardMemberReadModel } from "@/ui/admin/readModels/getLanguageDashboardMembersReadModel";
 import { type LanguageDashboardBookReadModel } from "@/ui/admin/readModels/getLanguageDashboardBooksReadModel";
+import {
+  ButtonSelectorInput,
+  ButtonSelectorOption,
+} from "@/components/ButtonSelectorInput";
 
 interface LanguageBookProgressDashboardCardProps {
   className?: string;
@@ -104,6 +107,7 @@ export default function LanguageBookProgressDashboardCard({
           progress: book.totalWords > 0 ? approvedWords / book.totalWords : 0,
           contributors,
           activity: activityByBook.get(book.bookId) ?? [],
+          completedAt: book.completedAt,
         };
 
         return [book.bookId, details];
@@ -111,12 +115,25 @@ export default function LanguageBookProgressDashboardCard({
     );
   }, [activity, books, contributions, memberNameById]);
 
-  const inProgressBooks = useMemo(
+  const [filter, setFilter] = useState("in-progress");
+  const filteredBooks = useMemo(
     () =>
       Object.values(detailsByBookId)
-        .filter((book) => book.progress < 1)
-        .sort((left, right) => right.progress - left.progress),
-    [detailsByBookId],
+        .filter(
+          filter === "in-progress" ?
+            (book) => book.progress < 1
+          : (book) => book.progress === 1,
+        )
+        .sort((left, right) => {
+          const progressDiff = right.progress - left.progress;
+          if (progressDiff !== 0) return progressDiff;
+
+          return (
+            (right.completedAt?.valueOf() ?? 0) -
+            (left.completedAt?.valueOf() ?? 0)
+          );
+        }),
+    [detailsByBookId, filter],
   );
 
   const selectedDetails =
@@ -124,14 +141,31 @@ export default function LanguageBookProgressDashboardCard({
 
   return (
     <DashboardCard className={className}>
-      <DashboardCardHeader title="Progress" />
+      <DashboardCardHeader
+        title="Books"
+        actions={
+          <ButtonSelectorInput
+            className="-my-2"
+            name="book-filter"
+            value={filter}
+            onChange={(value) => setFilter(value)}
+          >
+            <ButtonSelectorOption value="in-progress">
+              In Progress
+            </ButtonSelectorOption>
+            <ButtonSelectorOption value="completed">
+              Completed
+            </ButtonSelectorOption>
+          </ButtonSelectorInput>
+        }
+      />
       <div className="flex-1 overflow-auto relative">
-        {inProgressBooks.length === 0 ?
+        {filteredBooks.length === 0 ?
           <DashboardCardEmptyState>
             No books are currently in progress.
           </DashboardCardEmptyState>
         : <div className="divide-y divide-gray-200 dark:divide-gray-700 grid grid-cols-[auto_1fr_auto]">
-            {inProgressBooks.map((book) => (
+            {filteredBooks.map((book) => (
               <div
                 key={book.bookId}
                 className="grid grid-cols-subgrid col-span-3 items-start gap-3 py-2 px-3"
@@ -144,7 +178,14 @@ export default function LanguageBookProgressDashboardCard({
                       {(book.totalWords - book.approvedWords).toLocaleString()}{" "}
                       words remaining
                     </span>
-                    <span>{(book.progress * 100).toFixed(2)}%</span>
+                    {book.progress === 1 ?
+                      <span>
+                        Completed{" "}
+                        {book.completedAt ?
+                          format(book.completedAt, "MMM d, yyy")
+                        : ""}
+                      </span>
+                    : <span>{(book.progress * 100).toFixed(2)}%</span>}
                   </div>
                 </div>
                 <div>

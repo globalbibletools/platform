@@ -43,7 +43,7 @@ export const getLanguageDashboardBaseData = createServerFn()
     }
 
     const [books, members, contributions] = await Promise.all([
-      getLanguageDashboardBooksReadModel(),
+      getLanguageDashboardBooksReadModel(language.id),
       getLanguageDashboardMembersReadModel(language.id),
       getLanguageDashboardContributionsReadModel(language.id),
     ]);

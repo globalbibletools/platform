@@ -17,6 +17,7 @@ export interface BookProgressDetails {
   totalWords: number;
   approvedWords: number;
   progress: number;
+  completedAt: Date | null;
   contributors: {
     userId: string | null;
     name: string | null;
