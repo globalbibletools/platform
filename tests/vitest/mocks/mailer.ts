@@ -1,7 +1,7 @@
-import { EmailOptions } from "@/mailer";
+import { EmailOptions } from "@/shared/email";
 import { vi } from "vitest";
 
-vi.mock("@/mailer", () => {
+vi.mock("@/shared/email", () => {
   return {
     default: {
       sendEmail(args: EmailOptions) {

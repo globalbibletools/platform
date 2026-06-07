@@ -1,6 +1,6 @@
 import { createTransport, SendMailOptions } from "nodemailer";
 import { query } from "@/db";
-import { logger } from "./logging";
+import { logger } from "@/logging";
 
 const transporter =
   process.env["EMAIL_SERVER"] ?

@@ -1,6 +1,6 @@
 import { NotFoundError } from "@/shared/errors";
 import userRepository from "../data-access/userRepository";
-import mailer from "@/mailer";
+import mailer from "@/shared/email";
 
 export interface ResetPasswordRequest {
   token: string;

@@ -7,7 +7,7 @@ import { exportAnalyticsHandler } from "@/modules/reporting/jobs/exportAnalytics
 import { updateBookCompletionProgressHandler } from "@/modules/reporting/jobs/updateBookCompletionProgressHandler";
 import { importAIGlossesHandler } from "@/modules/translation/jobs/importAIGlossesHandler";
 import { syncAIGlossLanguagesHandler } from "@/modules/translation/jobs/syncAIGlossLanguagesHandler";
-import { sendEmailHandler } from "@/mailer/jobs/sendEmailHandler";
+import { sendEmailHandler } from "@/shared/email/jobs/sendEmailHandler";
 
 export type JobHandlerRegistry = {
   [Type in JobType]: {

@@ -1,4 +1,4 @@
-import mailer from "@/mailer";
+import mailer from "@/shared/email";
 import userRepository from "../data-access/userRepository";
 import User from "../model/User";
 

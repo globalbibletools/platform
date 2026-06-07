@@ -1,5 +1,5 @@
 import { createJobModel } from "./model";
-import { SendEmailJob } from "@/mailer/jobs/SendEmailJob";
+import { SendEmailJob } from "@/shared/email/jobs/SendEmailJob";
 import { ExportAnalyticsJob } from "@/modules/reporting/jobs/ExportAnalyticsJob";
 import { UpdateBookCompletionProgressJob } from "@/modules/reporting/jobs/UpdateBookCompletionProgressJob";
 import { ExportInterlinearPdfJob } from "@/modules/export/jobs/ExportInterlinearPdfJob";
