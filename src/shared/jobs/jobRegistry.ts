@@ -1,40 +1,37 @@
-import { JobDefinition } from "./JobDefinition";
-import { sendEmailJob } from "@/mailer";
-import { exportAnalyticsJob } from "@/modules/reporting/jobs/exportAnalyticsJob";
-import { updateBookCompletionProgressJob } from "@/modules/reporting/jobs/updateBookCompletionProgress";
-import { exportInterlinearPdfJob } from "@/modules/export/jobs/exportInterlinearPdfJob";
-import { exportGlossesJob } from "@/modules/export/jobs/exportGlossesJob";
-import { exportGlossesChildJob } from "@/modules/export/jobs/exportGlossesChildJob";
-import { exportGlossesFinalizeJob } from "@/modules/export/jobs/exportGlossesFinalizeJob";
-import { importAIGlossesJob } from "@/modules/translation/jobs/importAIGlosses";
-import { syncAIGlossLanguagesJob } from "@/modules/translation/jobs/syncAIGlossLanguages";
-import * as z from "zod";
+import { createJobModel } from "./model";
+import { SendEmailJob } from "@/mailer/jobs/SendEmailJob";
+import { ExportAnalyticsJob } from "@/modules/reporting/jobs/ExportAnalyticsJob";
+import { UpdateBookCompletionProgressJob } from "@/modules/reporting/jobs/UpdateBookCompletionProgressJob";
+import { ExportInterlinearPdfJob } from "@/modules/export/jobs/ExportInterlinearPdfJob";
+import { ExportGlossesJob } from "@/modules/export/jobs/ExportGlossesJob";
+import { ExportGlossesChildJob } from "@/modules/export/jobs/ExportGlossesChildJob";
+import { ExportGlossesFinalizeJob } from "@/modules/export/jobs/ExportGlossesFinalizeJob";
+import { ImportAIGlossesJob } from "@/modules/translation/jobs/ImportAIGlossesJob";
+import { SyncAIGlossLanguagesJob } from "@/modules/translation/jobs/SyncAIGlossLanguagesJob";
 
 export const jobRegistry = {
-  [sendEmailJob.type]: sendEmailJob,
-  [exportAnalyticsJob.type]: exportAnalyticsJob,
-  [updateBookCompletionProgressJob.type]: updateBookCompletionProgressJob,
-  [exportInterlinearPdfJob.type]: exportInterlinearPdfJob,
-  [exportGlossesJob.type]: exportGlossesJob,
-  [exportGlossesChildJob.type]: exportGlossesChildJob,
-  [exportGlossesFinalizeJob.type]: exportGlossesFinalizeJob,
-  [importAIGlossesJob.type]: importAIGlossesJob,
-  [syncAIGlossLanguagesJob.type]: syncAIGlossLanguagesJob,
-} satisfies Record<string, JobDefinition<any, any, any, any>>;
+  [SendEmailJob.type]: SendEmailJob,
+  [ExportAnalyticsJob.type]: ExportAnalyticsJob,
+  [UpdateBookCompletionProgressJob.type]: UpdateBookCompletionProgressJob,
+  [ExportInterlinearPdfJob.type]: ExportInterlinearPdfJob,
+  [ExportGlossesJob.type]: ExportGlossesJob,
+  [ExportGlossesChildJob.type]: ExportGlossesChildJob,
+  [ExportGlossesFinalizeJob.type]: ExportGlossesFinalizeJob,
+  [ImportAIGlossesJob.type]: ImportAIGlossesJob,
+  [SyncAIGlossLanguagesJob.type]: SyncAIGlossLanguagesJob,
+} satisfies Record<
+  string,
+  ReturnType<typeof createJobModel<any, any, any, any>>
+>;
 
 export type JobRegistry = typeof jobRegistry;
 export type JobType = keyof JobRegistry;
+export type Job = InstanceType<JobRegistry[JobType]>;
 
-export type JobPayload<T extends JobType> = z.output<
-  JobRegistry[T]["payloadSchema"]
->;
-export type JobPayloadInput<T extends JobType> = z.input<
-  JobRegistry[T]["payloadSchema"]
->;
+export type JobPayload<T extends JobType> =
+  JobRegistry[T] extends { "~types"?: { Payload: infer Payload } } ? Payload
+  : never;
+export type JobPayloadInput<T extends JobType> =
+  JobRegistry[T] extends { "~types"?: { Input: infer Input } } ? Input : never;
 export type JobData<T extends JobType> =
-  JobRegistry[T] extends { dataSchema: z.ZodType<infer D> } ? D : undefined;
-
-export type IsChildJob<T extends JobType> =
-  JobRegistry[T] extends { isChildJob: true } ? true : false;
-export type HasVoidPayload<T extends JobType> =
-  JobPayload<T> extends void ? true : false;
+  JobRegistry[T] extends { "~types"?: { Data: infer Data } } ? Data : never;
