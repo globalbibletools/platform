@@ -1,33 +1,36 @@
 import { logger } from "@/logging";
 import { ulid } from "../ulid";
 import { Job, JobStatus } from "./model";
+import type {
+  HasVoidPayload,
+  IsChildJob,
+  JobPayload,
+  JobType,
+} from "./jobRegistry";
 import jobRepo from "./data-access/jobRepository";
 import queue from "./queue";
 
-export async function enqueueJob(type: string): Promise<Job<void>>;
-export async function enqueueJob<Payload>(
-  type: string,
-  payload: Payload,
-): Promise<Job<Payload>>;
-export async function enqueueJob<Payload>(
-  type: string,
-  payload: Payload,
-  options: { parentJobId?: string },
-): Promise<Job<Payload>>;
-export async function enqueueJob<Payload>(
-  type: string,
-  payload?: Payload,
-  options?: { parentJobId?: string },
-): Promise<Job<Payload | void>> {
+export type EnqueueOptions<T extends JobType> = {
+  type: T;
+} & (HasVoidPayload<T> extends true ? {} : { payload: JobPayload<T> }) &
+  (IsChildJob<T> extends true ? { parentJobId: string } : {});
+
+export async function enqueueJob<T extends JobType>(
+  options: EnqueueOptions<T>,
+): Promise<Job<string, any, any>> {
   const jobLogger = logger.child({});
 
+  const rawPayload = "payload" in options ? options.payload : undefined;
+  const parentJobId =
+    "parentJobId" in options ? options.parentJobId : undefined;
+
   const date = new Date();
-  const job: Job<Payload | void> = {
+  const job = {
     id: ulid(),
-    parentJobId: options?.parentJobId,
-    type,
+    parentJobId,
+    type: options.type,
     status: JobStatus.Pending,
-    payload,
+    payload: rawPayload,
     createdAt: date,
     updatedAt: date,
   };
@@ -41,12 +44,7 @@ export async function enqueueJob<Payload>(
 
   try {
     await jobRepo.create(job);
-    await queue.add({
-      id: job.id,
-      parentJobId: job.parentJobId ?? undefined,
-      type: job.type,
-      payload: job.payload,
-    });
+    await queue.add({ id: job.id });
     jobLogger.info("Queued job");
   } catch (error) {
     jobLogger.info({ err: error }, "Queuing job failed");

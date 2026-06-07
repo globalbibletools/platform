@@ -2,78 +2,70 @@ import { getDb } from "@/db";
 import { subDays } from "date-fns";
 import { logger } from "@/logging";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
-import { Job } from "@/shared/jobs/model";
-import { EXPORT_JOB_TYPES } from "./jobTypes";
-import type {
-  ExportLanguageBlobsJobPayload,
-  QueueGithubExportRunJobPayload,
-} from "../model";
+import { defineJob } from "@/shared/jobs/JobDefinition";
+import * as z from "zod";
+
+const ExportGlossesPayloadSchema = z.object({
+  windowDays: z.number().optional(),
+});
 
 const DEFAULT_WINDOW_DAYS = 8;
 
-export async function exportGlossesJob(
-  job: Job<QueueGithubExportRunJobPayload>,
-): Promise<void> {
-  const jobLogger = logger.child({
-    job: {
-      id: job.id,
-      type: job.type,
-    },
-  });
+export const exportGlossesJob = defineJob({
+  type: "export_glosses",
+  payloadSchema: ExportGlossesPayloadSchema,
+  async handler(job) {
+    const jobLogger = logger.child({
+      job: {
+        id: job.id,
+        type: job.type,
+      },
+    });
 
-  if (job.type !== EXPORT_JOB_TYPES.EXPORT_GLOSSES) {
-    jobLogger.error(
-      `received job type ${job.type}, expected ${EXPORT_JOB_TYPES.EXPORT_GLOSSES}`,
+    const windowDays = job.payload.windowDays ?? DEFAULT_WINDOW_DAYS;
+
+    let languageCodes = await getUpdatedLanguageCodes({ windowDays });
+    // Filter out English glosses for now until Allan Bunning's Greek glosses are in an open license
+    languageCodes = languageCodes.filter((code) => code !== "eng");
+
+    if (languageCodes.length === 0) {
+      jobLogger.info(
+        {
+          windowDays,
+          languageCount: languageCodes.length,
+        },
+        "No languages have changes to export",
+      );
+      return;
+    }
+
+    const batchSize = 5;
+    const batchCount = Math.ceil(languageCodes.length / batchSize);
+
+    const batches = Array.from({ length: batchCount }, (_, i) =>
+      languageCodes.slice(5 * i, 5 * (i + 1)),
     );
-    throw new Error(
-      `Expected job type ${EXPORT_JOB_TYPES.EXPORT_GLOSSES}, but received ${job.type}`,
+
+    await Promise.all(
+      batches.map((languageCodes) => {
+        return enqueueJob({
+          type: "export_glosses_child",
+          parentJobId: job.id,
+          payload: { languageCodes },
+        });
+      }),
     );
-  }
 
-  const windowDays = job.payload?.windowDays ?? DEFAULT_WINDOW_DAYS;
-
-  let languageCodes = await getUpdatedLanguageCodes({ windowDays });
-  // Filter out English glosses for now until Allan Bunning's Greek glosses are in an open license
-  languageCodes = languageCodes.filter((code) => code !== "eng");
-
-  if (languageCodes.length === 0) {
     jobLogger.info(
       {
         windowDays,
         languageCount: languageCodes.length,
       },
-      "No languages have changes to export",
+      "Queued GitHub export language jobs",
     );
-    return;
-  }
-
-  const batchSize = 5;
-  const batchCount = Math.ceil(languageCodes.length / batchSize);
-
-  const batches = Array.from({ length: batchCount }, (_, i) =>
-    languageCodes.slice(5 * i, 5 * (i + 1)),
-  );
-
-  await Promise.all(
-    batches.map((languageCodes) => {
-      const payload: ExportLanguageBlobsJobPayload = {
-        languageCodes,
-      };
-
-      return enqueueJob(EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD, payload, {
-        parentJobId: job.id,
-      });
-    }),
-  );
-
-  jobLogger.info(
-    {
-      windowDays,
-      languageCount: languageCodes.length,
-    },
-    "Queued GitHub export language jobs",
-  );
-}
+  },
+  timeout: 60 * 15,
+});
 
 async function getUpdatedLanguageCodes({
   windowDays,

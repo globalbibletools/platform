@@ -1,5 +1,4 @@
 import { getDb } from "@/db";
-import { TRANSLATION_JOB_TYPES } from "@/modules/translation/jobs/jobType";
 import { JobStatus } from "@/shared/jobs/model";
 import { sql } from "kysely";
 
@@ -15,7 +14,7 @@ export async function getAIGlossImportJobReadModel(
 ): Promise<AIGlossImportJobReadModel | undefined> {
   const job = await getDb()
     .selectFrom("job")
-    .where("type", "=", TRANSLATION_JOB_TYPES.IMPORT_AI_GLOSSES)
+    .where("type", "=", "import_ai_glosses")
     .where("payload", "@>", { languageCode: code })
     .orderBy("created_at", "desc")
     .limit(1)

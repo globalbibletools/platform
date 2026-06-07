@@ -1,94 +1,100 @@
 import { SQSRecord } from "aws-lambda";
 import { JobStatus } from "./model";
 import jobRepo from "./data-access/jobRepository";
-import jobMap from "./jobMap";
-import queue, { QueuedJob } from "./queue";
+import { jobRegistry } from "./jobRegistry";
+import queue, { QueuedJob, queuedJobSchema } from "./queue";
 import { logger } from "@/logging";
 import { ulid } from "../ulid";
 
 export async function processJob(message: SQSRecord) {
   const jobLogger = logger.child({});
 
-  let queuedJob: QueuedJob<any>;
+  let jobId: string | undefined;
   try {
-    queuedJob = JSON.parse(message.body);
-    jobLogger.debug({ parsedJob: queuedJob }, "Job parsed");
-  } catch (error) {
-    jobLogger.error({ err: error }, "Job failed to parse");
-    throw error;
-  }
-
-  try {
-    jobLogger.setBindings({
-      job: {
-        id: queuedJob.id,
-        type: queuedJob.type,
-      },
-    });
-
-    // SQS delivers a message at least once, this prevents the same message from being processed twice.
-    let job =
-      typeof queuedJob.id === "string" ?
-        await jobRepo.getById(queuedJob.id)
-      : undefined;
-    if (job && job.status !== JobStatus.Pending) {
-      jobLogger.error("Job already executed");
-      return;
+    let parsed: QueuedJob;
+    try {
+      parsed = queuedJobSchema.parse(JSON.parse(message.body));
+      jobLogger.debug({ parsedJob: parsed }, "Job parsed");
+    } catch (error) {
+      jobLogger.error({ err: error }, "Job failed to parse");
+      throw error;
     }
 
-    jobLogger.info("Job starting");
-    if (job) {
+    let job, jobDefinition;
+    if ("id" in parsed) {
+      jobId = parsed.id;
+
+      job = await jobRepo.getById(parsed.id);
+      if (!job) {
+        jobLogger.error("Job not found", { jobId: parsed.id });
+        return;
+      }
+
+      // There is a minor chance of a race condition by doing this check here
+      // instead of the database when setting to in progress.
+      if (job.status !== JobStatus.Pending) {
+        jobLogger.error("Job already executed");
+        return;
+      }
+
       await jobRepo.update(job.id, JobStatus.InProgress);
       jobLogger.debug("Update job status to in progress");
-    }
-    // Jobs can be pushed on to the queue without creating a job record in the db.
-    // This supports scheduled events through Event Bridge Scheduler.
-    // In this case we need to generate an ID and create the job in the DB for reporting.
-    else {
+
+      jobDefinition = jobRegistry[job.type];
+      if (!jobDefinition) {
+        throw new Error(`Missing job definition for ${job.type} jobs`);
+      }
+    } else {
+      jobDefinition = jobRegistry[parsed.type];
+      if (!jobDefinition) {
+        throw new Error(`Missing job definition for ${parsed.type} jobs`);
+      }
+
+      jobId = ulid();
       job = {
-        id: ulid(),
-        ...queuedJob,
+        id: jobId,
+        type: parsed.type,
         status: JobStatus.InProgress,
+        payload: jobDefinition.payloadSchema.parse(parsed.payload),
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      jobLogger.setBindings({
-        job: {
-          id: queuedJob.id,
-          type: queuedJob.type,
-        },
-      });
 
       await jobRepo.create(job);
       jobLogger.debug("Created missing job");
     }
 
-    const handlerOrEntry = jobMap[queuedJob.type];
-    if (!handlerOrEntry) {
-      jobLogger.error("Job handler not found");
-      throw new Error(`Job handler for ${queuedJob.type} not found.`);
+    jobLogger.setBindings({
+      job: {
+        id: job.id,
+        type: job.type,
+      },
+    });
+
+    jobLogger.info("Job starting");
+
+    if (jobDefinition.timeout) {
+      jobLogger.info(`Job timeout extended to ${jobDefinition.timeout}`);
+      queue.extendTimeout(message.receiptHandle, jobDefinition.timeout);
     }
 
-    const timeout =
-      "timeout" in handlerOrEntry ? handlerOrEntry.timeout : undefined;
-    if (timeout) {
-      jobLogger.info(`Job timeout extended to ${timeout}`);
-      queue.extendTimeout(message.receiptHandle, timeout);
-    }
-
-    const handler =
-      "handler" in handlerOrEntry ? handlerOrEntry.handler : handlerOrEntry;
-    await handler(job);
+    // Not sure how to avoid the cast.
+    // We picked the job definition from the job type so it should match.
+    await jobDefinition.handler(job as any);
 
     await jobRepo.update(job.id, JobStatus.Complete);
     jobLogger.info("Job complete");
   } catch (error) {
     jobLogger.error({ err: error }, "Job failed");
 
-    if (queuedJob.id) {
-      await jobRepo.update(queuedJob.id, JobStatus.Failed, {
-        error: String(error),
-      });
+    if (jobId) {
+      try {
+        await jobRepo.update(jobId, JobStatus.Failed, {
+          error: String(error),
+        });
+      } catch (error) {
+        jobLogger.error({ err: error }, "Error when marking job failed");
+      }
     }
   }
 }

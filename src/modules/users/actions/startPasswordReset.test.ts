@@ -61,10 +61,13 @@ test("returns successfully after sending the password reset email", async () => 
     },
   ]);
   const url = `${process.env.ORIGIN}/reset-password?token=${dbResets[0].token}`;
-  expect(enqueueJob).toHaveBeenCalledExactlyOnceWith("send_email", {
-    email: user.email,
-    subject: "Reset Password",
-    text: `Please click the following link to reset your password\n\n${url}`,
-    html: `<a href="${url}">Click here</a> to reset your password`,
+  expect(enqueueJob).toHaveBeenCalledExactlyOnceWith({
+    type: "send_email",
+    payload: {
+      email: user.email,
+      subject: "Reset Password",
+      text: `Please click the following link to reset your password\n\n${url}`,
+      html: `<a href="${url}">Click here</a> to reset your password`,
+    },
   });
 });

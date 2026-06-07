@@ -1,53 +1,48 @@
 import { createLogger } from "@/logging";
-import { Job } from "@/shared/jobs/model";
-import { REPORTING_JOB_TYPES } from "./jobTypes";
 import { getDb, kyselyTransaction } from "@/db";
 import { sql } from "kysely";
 import { GlossStateRaw } from "@/modules/translation/types";
+import * as z from "zod";
+import { defineJob } from "@/shared/jobs/JobDefinition";
 
-export interface UpdateBookCompletionProgressPayload {
-  allLanguages?: boolean;
-}
+export const UpdateBookCompletionProgressPayloadSchema = z.object({
+  allLanguages: z.boolean().optional().default(false),
+});
 
-export type UpdateBookCompletionProgressJob =
-  Job<UpdateBookCompletionProgressPayload>;
+export type UpdateBookCompletionProgressPayload = z.output<
+  typeof UpdateBookCompletionProgressPayloadSchema
+>;
 
-export async function updateBookCompletionProgressJob(
-  job: UpdateBookCompletionProgressJob,
-): Promise<void> {
-  const logger = createLogger({
-    job: {
-      id: job.id,
-      type: job.type,
-    },
-  });
+export const updateBookCompletionProgressJob = defineJob({
+  type: "update_book_completion_progress",
+  payloadSchema: UpdateBookCompletionProgressPayloadSchema,
+  async handler(job) {
+    const logger = createLogger({
+      job: {
+        id: job.id,
+        type: job.type,
+      },
+    });
 
-  if (job.type !== REPORTING_JOB_TYPES.UPDATE_BOOK_COMPLETION_PROGRESS) {
-    logger.error(
-      `received job type ${job.type}, expected ${REPORTING_JOB_TYPES.UPDATE_BOOK_COMPLETION_PROGRESS}`,
-    );
-    throw new Error(
-      `Expected job type ${REPORTING_JOB_TYPES.UPDATE_BOOK_COMPLETION_PROGRESS}, but received ${job.type}`,
-    );
-  }
+    const languages =
+      job.payload.allLanguages ?
+        await findAllLanguages()
+      : await findChangedBooks();
 
-  const languages =
-    job.payload?.allLanguages ?
-      await findAllLanguages()
-    : await findChangedBooks();
+    logger.info(`Processing ${languages.length} languages(s)`);
 
-  logger.info(`Processing ${languages.length} languages(s)`);
+    for (const { languageId, books } of languages) {
+      await updateLanguageProgress(languageId, books);
 
-  for (const { languageId, books } of languages) {
-    await updateLanguageProgress(languageId, books);
+      logger.info(`Completed ${languageId}`);
+    }
 
-    logger.info(`Completed ${languageId}`);
-  }
+    logger.info(`Completed: ${languages.length} language(s) processed`);
 
-  logger.info(`Completed: ${languages.length} language(s) processed`);
-
-  return;
-}
+    return;
+  },
+  timeout: 60 * 15,
+});
 
 async function updateLanguageProgress(
   languageId: string,

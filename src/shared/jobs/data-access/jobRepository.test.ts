@@ -91,7 +91,7 @@ describe("getById", () => {
 
 describe("create", () => {
   test("inserts a new job with payload into the database", async () => {
-    const job: Job<{ payloadData: string }> = {
+    const job: Job<string, { payloadData: string }> = {
       id: ulid(),
       type: "test_job",
       status: JobStatus.Complete,
@@ -118,7 +118,7 @@ describe("create", () => {
   });
 
   test("inserts a new job with empty payload into the database", async () => {
-    const job: Job<void> = {
+    const job: Job<string, void> = {
       id: ulid(),
       type: "test_job",
       status: JobStatus.Complete,
@@ -154,7 +154,7 @@ describe("create", () => {
     };
     await getDb().insertInto("job").values(parentJob).execute();
 
-    const job: Job<void> = {
+    const job: Job<string, void> = {
       id: ulid(),
       type: "test_job",
       status: JobStatus.Complete,

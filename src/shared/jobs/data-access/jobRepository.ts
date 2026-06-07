@@ -1,10 +1,11 @@
 import { getDb } from "@/db";
 import { Job, JobStatus } from "../model";
+import { JobData, JobPayload, jobRegistry, JobType } from "../jobRegistry";
 
 const jobRepository = {
-  async getById<Payload, Data = unknown>(
+  async getById<Type extends JobType>(
     id: string,
-  ): Promise<Job<Payload, Data> | undefined> {
+  ): Promise<Job<Type, JobPayload<Type>, JobData<Type>> | undefined> {
     const job = await getDb()
       .selectFrom("job")
       .where("id", "=", id)
@@ -22,15 +23,23 @@ const jobRepository = {
 
     if (!job) return;
 
+    const jobDefinition = jobRegistry[job.type];
+    if (!jobDefinition) {
+      throw new Error(`Missing job definition for job ${job.type}`);
+    }
+
+    // I'm not sure how to avoid the type casts here,
+    // but this should ensure the result matches the job type.
     return {
       ...job,
+      type: job.type as Type,
       parentJobId: job.parentJobId ?? undefined,
-      payload: (job.payload ?? undefined) as Payload,
-      data: (job.data as Data) ?? undefined,
+      payload: jobDefinition.payloadSchema.parse(job.payload),
+      data: jobDefinition.dataSchema?.parse(job.data) as JobData<Type>,
     };
   },
 
-  async create(job: Job<any>) {
+  async create(job: Job<any, any, any>) {
     await getDb()
       .insertInto("job")
       .values({

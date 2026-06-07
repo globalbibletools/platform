@@ -2,30 +2,23 @@ import { Readable } from "stream";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { JobStatus } from "@/shared/jobs/model";
 import { exportInterlinearPdfJob } from "./exportInterlinearPdfJob";
-import { EXPORT_JOB_TYPES } from "./jobTypes";
+import jobRepository from "@/shared/jobs/data-access/jobRepository";
 
 const {
   mockFetchBooksWithApprovedGlossChapters,
   mockUploadPdf,
   mockPublicPdfUrl,
   mockGenerateInterlinearPdfDocument,
-  mockUpdateData,
 } = vi.hoisted(() => {
   return {
     mockFetchBooksWithApprovedGlossChapters: vi.fn(),
     mockUploadPdf: vi.fn(),
     mockPublicPdfUrl: vi.fn(),
     mockGenerateInterlinearPdfDocument: vi.fn(),
-    mockUpdateData: vi.fn(),
   };
 });
 
-vi.mock("@/shared/jobs/data-access/jobRepository", () => ({
-  __esModule: true,
-  default: {
-    updateData: mockUpdateData,
-  },
-}));
+vi.mock("@/shared/jobs/data-access/jobRepository");
 vi.mock("@/modules/export/data-access/InterlinearQueryService", () => {
   return {
     __esModule: true,
@@ -46,12 +39,14 @@ vi.mock("@/modules/export/pdf/InterlinearPdfGenerator", () => ({
   generateInterlinearPdfDocument: mockGenerateInterlinearPdfDocument,
 }));
 
+const mockJobRepoUpdateData = vi.mocked(jobRepository.updateData);
+
 const baseJob = {
   id: "job-1",
   createdAt: new Date("2026-04-09T00:00:00.000Z"),
   updatedAt: new Date("2026-04-09T00:00:00.000Z"),
   status: JobStatus.Pending,
-  type: EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF,
+  type: "export_interlinear_pdf" as const,
   payload: {
     languageId: "lang-1",
     languageCode: "spa",
@@ -66,7 +61,7 @@ describe("exportInterlinearPdfJob", () => {
     mockUploadPdf.mockReset();
     mockPublicPdfUrl.mockReset();
     mockGenerateInterlinearPdfDocument.mockReset();
-    mockUpdateData.mockReset();
+    mockJobRepoUpdateData.mockReset();
 
     mockFetchBooksWithApprovedGlossChapters.mockResolvedValue([
       {
@@ -128,7 +123,9 @@ describe("exportInterlinearPdfJob", () => {
   });
 
   it("processes approved gloss chapters and records public download data", async () => {
-    await expect(exportInterlinearPdfJob(baseJob)).resolves.toBeUndefined();
+    await expect(
+      exportInterlinearPdfJob.handler(baseJob),
+    ).resolves.toBeUndefined();
 
     expect(mockFetchBooksWithApprovedGlossChapters).toHaveBeenCalledWith(
       "lang-1",
@@ -163,7 +160,7 @@ describe("exportInterlinearPdfJob", () => {
       environment: "local",
       key: "interlinear/spa/job-1.pdf",
     });
-    expect(mockUpdateData).toHaveBeenCalledExactlyOnceWith("job-1", {
+    expect(mockJobRepoUpdateData).toHaveBeenCalledExactlyOnceWith(baseJob.id, {
       exportKey: "interlinear/spa/job-1.pdf",
       downloadUrl: "https://exports.example.com/final.pdf",
       pages: 3,
@@ -200,7 +197,9 @@ describe("exportInterlinearPdfJob", () => {
       },
     ]);
 
-    await expect(exportInterlinearPdfJob(baseJob)).resolves.toBeUndefined();
+    await expect(
+      exportInterlinearPdfJob.handler(baseJob),
+    ).resolves.toBeUndefined();
 
     expect(mockGenerateInterlinearPdfDocument).toHaveBeenCalledExactlyOnceWith(
       [
@@ -219,7 +218,7 @@ describe("exportInterlinearPdfJob", () => {
       throw new Error("public URL failed");
     });
 
-    await expect(exportInterlinearPdfJob(baseJob)).rejects.toThrow(
+    await expect(exportInterlinearPdfJob.handler(baseJob)).rejects.toThrow(
       /public URL failed/,
     );
 
@@ -229,13 +228,13 @@ describe("exportInterlinearPdfJob", () => {
         key: "interlinear/spa/job-1.pdf",
       }),
     );
-    expect(mockUpdateData).not.toHaveBeenCalled();
+    expect(mockJobRepoUpdateData).not.toHaveBeenCalled();
   });
 
   it("throws when no covered chapters are available", async () => {
     mockFetchBooksWithApprovedGlossChapters.mockResolvedValue([]);
 
-    await expect(exportInterlinearPdfJob(baseJob)).rejects.toThrow(
+    await expect(exportInterlinearPdfJob.handler(baseJob)).rejects.toThrow(
       /No chapters with approved glosses found for export/,
     );
 

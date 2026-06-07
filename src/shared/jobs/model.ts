@@ -5,10 +5,14 @@ export enum JobStatus {
   Failed = "error",
 }
 
-export interface Job<Payload, Data = unknown> {
+export interface Job<
+  Type extends string = string,
+  Payload = unknown,
+  Data = unknown,
+> {
   id: string;
   parentJobId?: string;
-  type: string;
+  type: Type;
   status: JobStatus;
   payload: Payload;
   data?: Data;

@@ -4,7 +4,6 @@ import type {
   ExportInterlinearPdfJobData,
   ExportInterlinearPdfJobPayload,
 } from "../model";
-import { EXPORT_JOB_TYPES } from "../jobs/jobTypes";
 
 export interface ExportJobRow {
   id: string;
@@ -37,7 +36,7 @@ const exportJobQueryService = {
         order by job.created_at desc
         limit $3
       `,
-      [EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF, languageCode, limit],
+      ["export_interlinear_pdf", languageCode, limit],
     );
 
     return result.rows;
@@ -64,7 +63,7 @@ const exportJobQueryService = {
         limit 1
       `,
       [
-        EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF,
+        "export_interlinear_pdf",
         languageCode,
         JobStatus.Pending,
         JobStatus.InProgress,

@@ -1,6 +1,5 @@
 import { google } from "googleapis";
-import { Job } from "@/shared/jobs/model";
-import { REPORTING_JOB_TYPES } from "./jobTypes";
+import { defineJob, voidPayload } from "@/shared/jobs/JobDefinition";
 import { logger } from "@/logging";
 import reportingQueryService from "../ReportingQueryService";
 import pino from "pino";
@@ -39,31 +38,27 @@ const sheets = google.sheets({
 
 const ANALYTICS_SPREADSHEET_ID = process.env.ANALYTICS_SPREADSHEET_ID;
 
-export async function exportAnalyticsJob(job: Job<void>) {
-  const jobLogger = logger.child({
-    job: {
-      id: job.id,
-      type: job.type,
-    },
-  });
+export const exportAnalyticsJob = defineJob({
+  type: "export_analytics",
+  payloadSchema: voidPayload,
+  async handler(job) {
+    const jobLogger = logger.child({
+      job: {
+        id: job.id,
+        type: job.type,
+      },
+    });
 
-  if (job.type !== REPORTING_JOB_TYPES.EXPORT_ANALYTICS) {
-    jobLogger.error(
-      `received job type ${job.type}, expected ${REPORTING_JOB_TYPES.EXPORT_ANALYTICS}`,
-    );
-    throw new Error(
-      `Expected job type ${REPORTING_JOB_TYPES.EXPORT_ANALYTICS}, but received ${job.type}`,
-    );
-  }
-
-  // We run these serially to control memory use.
-  await updateContributionsSheet(jobLogger);
-  await updateUsersSheet(jobLogger);
-  await updateLanguagesSheet(jobLogger);
-  await updateBooksSheet(jobLogger);
-  await updateProgressSnapshots(jobLogger);
-  await updateApprovalsSheet(jobLogger);
-}
+    // We run these serially to control memory use.
+    await updateContributionsSheet(jobLogger);
+    await updateUsersSheet(jobLogger);
+    await updateLanguagesSheet(jobLogger);
+    await updateBooksSheet(jobLogger);
+    await updateProgressSnapshots(jobLogger);
+    await updateApprovalsSheet(jobLogger);
+  },
+  timeout: 60 * 5,
+});
 
 async function updateContributionsSheet(logger: pino.Logger) {
   const contributionRecords = await reportingQueryService.findContributions();
