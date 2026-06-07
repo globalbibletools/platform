@@ -1,8 +1,6 @@
 import { createTransport, SendMailOptions } from "nodemailer";
 import { query } from "@/db";
 import { logger } from "./logging";
-import { defineJob } from "./shared/jobs/JobDefinition";
-import * as z from "zod";
 
 const transporter =
   process.env["EMAIL_SERVER"] ?
@@ -107,27 +105,3 @@ const mailer = {
 };
 
 export default mailer;
-
-const EmailOptionsSchema = z.union([
-  z.object({
-    userId: z.string(),
-    subject: z.string(),
-    text: z.string(),
-    html: z.string(),
-  }),
-  z.object({
-    email: z.string(),
-    subject: z.string(),
-    text: z.string(),
-    html: z.string(),
-  }),
-]);
-
-export const sendEmailJob = defineJob({
-  type: "send_email",
-  payloadSchema: EmailOptionsSchema,
-  async handler(job) {
-    await mailer.sendEmail(job.payload);
-  },
-  timeout: 60 * 5,
-});

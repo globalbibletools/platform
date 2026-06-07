@@ -1,8 +1,9 @@
 import { google } from "googleapis";
-import { defineJob, voidPayload } from "@/shared/jobs/JobDefinition";
 import { logger } from "@/logging";
 import reportingQueryService from "../ReportingQueryService";
 import pino from "pino";
+import { ExportAnalyticsJob } from "./ExportAnalyticsJob";
+
 
 interface Key {
   client_email: string;
@@ -38,27 +39,24 @@ const sheets = google.sheets({
 
 const ANALYTICS_SPREADSHEET_ID = process.env.ANALYTICS_SPREADSHEET_ID;
 
-export const exportAnalyticsJob = defineJob({
-  type: "export_analytics",
-  payloadSchema: voidPayload,
-  async handler(job) {
-    const jobLogger = logger.child({
-      job: {
-        id: job.id,
-        type: job.type,
-      },
-    });
+export async function exportAnalyticsHandler(
+  job: ExportAnalyticsJob,
+) {
+  const jobLogger = logger.child({
+    job: {
+      id: job.id,
+      type: job.type,
+    },
+  });
 
-    // We run these serially to control memory use.
-    await updateContributionsSheet(jobLogger);
-    await updateUsersSheet(jobLogger);
-    await updateLanguagesSheet(jobLogger);
-    await updateBooksSheet(jobLogger);
-    await updateProgressSnapshots(jobLogger);
-    await updateApprovalsSheet(jobLogger);
-  },
-  timeout: 60 * 5,
-});
+  // We run these serially to control memory use.
+  await updateContributionsSheet(jobLogger);
+  await updateUsersSheet(jobLogger);
+  await updateLanguagesSheet(jobLogger);
+  await updateBooksSheet(jobLogger);
+  await updateProgressSnapshots(jobLogger);
+  await updateApprovalsSheet(jobLogger);
+}
 
 async function updateContributionsSheet(logger: pino.Logger) {
   const contributionRecords = await reportingQueryService.findContributions();
@@ -204,5 +202,5 @@ async function updateApprovalsSheet(logger: pino.Logger) {
       values: data,
     },
   });
-  logger.info(`Updated ${approvals.length} approvals`);
+  logger.info(`Updated ${approvals.length} approvals");
 }

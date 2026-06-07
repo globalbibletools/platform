@@ -1,60 +1,58 @@
 import { logger } from "@/logging";
 import { getDb } from "@/db";
 import { JobStatus } from "@/shared/jobs/model";
-import { defineChildJob, voidPayload } from "@/shared/jobs/JobDefinition";
 import { githubExportService } from "../data-access/githubExportService";
+import { ExportGlossesFinalizeJob } from "./ExportGlossesFinalizeJob";
 import { GithubTreeItem } from "../model";
 
-export const exportGlossesFinalizeJob = defineChildJob({
-  type: "export_glosses_finalize",
-  payloadSchema: voidPayload,
-  async handler(job) {
-    const jobLogger = logger.child({
-      job: {
-        id: job.id,
-        type: job.type,
-        parentJobId: job.parentJobId,
-      },
-    });
 
-    const parentJobId = job.parentJobId;
-    if (!parentJobId) {
-      logger.error("missing parentJobId");
-      throw new Error("missing parentJobId");
-    }
+export async function exportGlossesFinalizeHandler(
+  job: ExportGlossesFinalizeJob,
+) {
+  const jobLogger = logger.child({
+    job: {
+      id: job.id,
+      type: job.type,
+      parentJobId: job.parentJobId,
+    },
+  });
 
-    await lockJob({
-      parentJobId,
-      whenLocked: () => {
-        jobLogger.info(
-          "Another finalize job is already running for this export run",
-        );
-      },
-      withLock: async () => {
-        const childJobs = await getChildJobs(parentJobId);
+  const parentJobId = job.parentJobId;
+  if (!parentJobId) {
+    logger.error("missing parentJobId");
+    throw new Error("missing parentJobId");
+  }
 
-        const items = childJobs.flatMap((child) => {
-          // TODO: parse this eventually rather than type casting
-          const data = child.data as { treeItems?: GithubTreeItem[] };
-          return data.treeItems ?? [];
-        });
+  await lockJob({
+    parentJobId,
+    whenLocked: () => {
+      jobLogger.info(
+        "Another finalize job is already running for this export run",
+      );
+    },
+    withLock: async () => {
+      const childJobs = await getChildJobs(parentJobId);
 
-        if (items.length === 0) {
-          jobLogger.info(`Nothing to commit`);
-          return;
-        }
+      const items = childJobs.flatMap((child) => {
+        // TODO: parse this eventually rather than type casting
+        const data = child.data as { treeItems?: GithubTreeItem[] };
+        return data.treeItems ?? [];
+      });
 
-        const commitSha = await githubExportService.createCommit({
-          items,
-          message: `Export from Global Bible Tools for ${new Date().toISOString()}`,
-        });
+      if (items.length === 0) {
+        jobLogger.info(`Nothing to commit`);
+        return;
+      }
 
-        jobLogger.info(`Created commit: ${commitSha}`);
-      },
-    });
-  },
-  timeout: 60 * 5,
-});
+      const commitSha = await githubExportService.createCommit({
+        items,
+        message: `Export from Global Bible Tools for ${new Date().toISOString()}`,
+      });
+
+      jobLogger.info(`Created commit: ${commitSha}`);
+    },
+  });
+}
 
 // This is a db session level lock, which is ok in a lambda environment.
 // If jobs ever run in an environment with shared db sessions,
