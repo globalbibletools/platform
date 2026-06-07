@@ -256,6 +256,7 @@ function Input({
           {...props}
           ref={inputRef}
           dir={dir}
+          wrap="off"
           className={`
             border shadow-inner outline-0
             px-3 bg-white
