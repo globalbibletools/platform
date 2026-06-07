@@ -1,55 +1,57 @@
 import { logger } from "@/logging";
-import { ulid } from "../ulid";
-import { Job, JobStatus } from "./model";
-import type {
-  HasVoidPayload,
-  IsChildJob,
-  JobPayload,
-  JobType,
+import {
+  jobRegistry,
+  type Job,
+  type JobPayloadInput,
+  type JobType,
 } from "./jobRegistry";
 import jobRepo from "./data-access/jobRepository";
 import queue from "./queue";
 
+type NeedsPayload<T extends JobType> =
+  JobPayloadInput<T> extends void ? false : true;
+
 export type EnqueueOptions<T extends JobType> = {
   type: T;
-} & (HasVoidPayload<T> extends true ? {} : { payload: JobPayload<T> }) &
-  (IsChildJob<T> extends true ? { parentJobId: string } : {});
+  parentJobId?: string;
+} & (NeedsPayload<T> extends true ? { payload: JobPayloadInput<T> } : {});
 
 export async function enqueueJob<T extends JobType>(
   options: EnqueueOptions<T>,
-): Promise<Job<string, any, any>> {
-  const jobLogger = logger.child({});
-
-  const rawPayload = "payload" in options ? options.payload : undefined;
-  const parentJobId =
-    "parentJobId" in options ? options.parentJobId : undefined;
-
-  const date = new Date();
-  const job = {
-    id: ulid(),
-    parentJobId,
-    type: options.type,
-    status: JobStatus.Pending,
-    payload: rawPayload,
-    createdAt: date,
-    updatedAt: date,
-  };
-
-  jobLogger.setBindings({
+): Promise<Job> {
+  const jobLogger = logger.child({
     job: {
-      id: job.id,
-      type: job.type,
+      type: options.type,
     },
   });
 
   try {
-    await jobRepo.create(job);
+    const ModelClass = jobRegistry[options.type];
+    if (!ModelClass) {
+      throw new Error(`Job model not found for type ${options.type}`);
+    }
+
+    // Typescript doesn't know which job is represented by the ModelClass
+    // to know whether the payload is the right type.
+    const payload: any = "payload" in options ? options.payload : undefined;
+
+    const job = ModelClass.create(payload, {
+      parentJobId: options.parentJobId,
+    });
+
+    jobLogger.setBindings({
+      job: {
+        id: job.id,
+      },
+    });
+
+    await jobRepo.commit(job);
     await queue.add({ id: job.id });
     jobLogger.info("Queued job");
+
+    return job;
   } catch (error) {
     jobLogger.info({ err: error }, "Queuing job failed");
     throw error;
   }
-
-  return job;
 }

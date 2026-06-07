@@ -11,25 +11,68 @@ vitest.mock("./queue", async () => ({
   },
 }));
 
-// Mock the jobRegistry to provide a test job definition
-vitest.mock("./jobRegistry", () => ({
-  jobRegistry: {
-    send_email: {
-      type: "send_email",
-      payloadSchema: {
-        parse: (v: any) => v,
-      },
-      handler: vitest.fn(),
-      timeout: 300,
-    },
-  },
-}));
+vitest.mock("./jobRegistry", () => {
+  let idCounter = 0;
 
-const mockedCreateJob = vitest.mocked(jobRepository.create);
+  function makeMockModel(type: string) {
+    return class {
+      static type = type;
+      id: string;
+      parentJobId?: string;
+      type: string;
+      status: string;
+      payload: any;
+      data?: any;
+      createdAt: Date;
+      updatedAt: Date;
+
+      constructor(params: {
+        id: string;
+        parentJobId?: string;
+        status: string;
+        payload: any;
+        data?: any;
+        createdAt: Date;
+        updatedAt: Date;
+      }) {
+        this.id = params.id;
+        this.parentJobId = params.parentJobId;
+        this.type = type;
+        this.status = params.status;
+        this.payload = params.payload;
+        this.data = params.data;
+        this.createdAt = params.createdAt;
+        this.updatedAt = params.updatedAt;
+      }
+
+      static create(payload: any, options?: { parentJobId?: string }) {
+        const now = new Date();
+        const id = `${"0".repeat(8)}-${"0".repeat(4)}-${"0".repeat(4)}-${String(++idCounter).padStart(4, "0")}-${"0".repeat(12)}`;
+        return new this({
+          id,
+          parentJobId: options?.parentJobId,
+          status: JobStatus.Pending,
+          payload,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    };
+  }
+
+  return {
+    jobRegistry: {
+      export_analytics: makeMockModel("export_analytics"),
+      export_glosses_child: makeMockModel("export_glosses_child"),
+    },
+  };
+});
+
+const mockedCommitJob = vitest.mocked(jobRepository.commit);
 const mockedQueueAdd = vitest.mocked(queue.add);
 
 beforeEach(() => {
-  mockedCreateJob.mockReset();
+  mockedCommitJob.mockReset();
   mockedQueueAdd.mockReset();
 });
 
@@ -39,15 +82,13 @@ test("creates job and pushes on to the queue with a void payload", async () => {
   expect(mockedQueueAdd).toHaveBeenCalledExactlyOnceWith({
     id: expect.toBeUlid(),
   });
-  expect(mockedCreateJob).toHaveBeenCalledExactlyOnceWith({
-    id: expect.toBeUlid(),
-    parentJobId: undefined,
-    type: "export_analytics",
-    payload: undefined,
-    status: JobStatus.Pending,
-    createdAt: expect.toBeNow(),
-    updatedAt: expect.toBeNow(),
-  });
+  expect(mockedCommitJob).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({
+      type: "export_analytics",
+      status: JobStatus.Pending,
+      parentJobId: undefined,
+    }),
+  );
 });
 
 test("creates job with payload and parentJobId", async () => {
@@ -60,13 +101,12 @@ test("creates job with payload and parentJobId", async () => {
   expect(mockedQueueAdd).toHaveBeenCalledExactlyOnceWith({
     id: expect.toBeUlid(),
   });
-  expect(mockedCreateJob).toHaveBeenCalledExactlyOnceWith({
-    id: expect.toBeUlid(),
-    parentJobId: "parent-123",
-    type: "export_glosses_child",
-    payload: { languageCodes: ["eng", "spa"] },
-    status: JobStatus.Pending,
-    createdAt: expect.toBeNow(),
-    updatedAt: expect.toBeNow(),
-  });
+  expect(mockedCommitJob).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({
+      type: "export_glosses_child",
+      status: JobStatus.Pending,
+      parentJobId: "parent-123",
+      payload: { languageCodes: ["eng", "spa"] },
+    }),
+  );
 });
