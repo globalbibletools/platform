@@ -135,22 +135,3 @@ export function createJobModel<
 
   return JobModel;
 }
-
-/**
- * @deprecated Use InstanceType<ReturnType<typeof createJobModel>> instead.
- * Kept for backward compatibility during migration.
- */
-export interface Job<
-  Type extends string = string,
-  Payload = unknown,
-  Data = unknown,
-> {
-  id: string;
-  parentJobId?: string;
-  type: Type;
-  status: JobStatus;
-  payload: Payload;
-  data?: Data;
-  createdAt: Date;
-  updatedAt: Date;
-}

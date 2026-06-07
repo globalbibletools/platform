@@ -6,14 +6,12 @@ import { phraseFactory } from "@/modules/translation/test-utils/phraseFactory";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 import { userFactory } from "@/modules/users/test-utils/userFactory";
 import { GlossStateRaw } from "@/modules/translation/types";
-import { JobStatus } from "@/shared/jobs/model";
 import { updateBookCompletionProgressHandler } from "./updateBookCompletionProgressHandler";
-import { UpdateBookCompletionProgressPayloadSchema } from "./UpdateBookCompletionProgressJob";
+import { UpdateBookCompletionProgressJob } from "./UpdateBookCompletionProgressJob";
 import type {
   BookCompletionProgressTable,
   BookCompletionTable,
 } from "../db/schema";
-import { ulid } from "@/shared/ulid";
 import {
   bibleFactory,
   HAGGAI_BOOK_ID,
@@ -22,17 +20,7 @@ import {
 initializeDatabase();
 
 function makeJob(payload?: { allLanguages?: boolean }) {
-  const parsedPayload = UpdateBookCompletionProgressPayloadSchema.parse(
-    payload ?? {},
-  );
-  return {
-    id: ulid(),
-    type: "update_book_completion_progress" as const,
-    status: JobStatus.InProgress as JobStatus,
-    payload: parsedPayload,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  return UpdateBookCompletionProgressJob.create(payload ?? {});
 }
 
 const job = makeJob();

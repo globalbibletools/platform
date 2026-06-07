@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { jobRegistry, Job } from "../jobRegistry";
+import { jobRegistry, type Job } from "../jobRegistry";
 
 const jobRepository = {
   async getById(id: string): Promise<Job | undefined> {

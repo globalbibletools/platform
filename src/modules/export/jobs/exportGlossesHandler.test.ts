@@ -1,13 +1,12 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { expect, test, vitest } from "vitest";
 import { enqueueJob } from "@/shared/jobs/__mocks__/enqueueJob";
-import { JobStatus } from "@/shared/jobs/model";
-import { ulid } from "@/shared/ulid";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 import { phraseFactory } from "@/modules/translation/test-utils/phraseFactory";
 import { GlossStateRaw } from "@/modules/translation/types";
 import { subDays } from "date-fns";
 import { exportGlossesHandler } from "./exportGlossesHandler";
+import { ExportGlossesJob } from "./ExportGlossesJob";
 
 vitest.mock("@/shared/jobs/enqueueJob");
 
@@ -40,14 +39,7 @@ test("queues child jobs only for languages with changes in the default window", 
     },
   });
 
-  const job = {
-    id: ulid(),
-    type: "export_glosses" as const,
-    status: JobStatus.Pending,
-    payload: {},
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  const job = ExportGlossesJob.create({});
 
   await exportGlossesHandler(job);
 
@@ -87,16 +79,7 @@ test("queues child jobs only for languages with changes in the specified window"
     },
   });
 
-  const job = {
-    id: ulid(),
-    type: "export_glosses" as const,
-    status: JobStatus.Pending,
-    payload: {
-      windowDays: 4,
-    },
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  const job = ExportGlossesJob.create({ windowDays: 4 });
 
   await exportGlossesHandler(job);
 
@@ -121,14 +104,7 @@ test("ignores eng language even when there are changes", async () => {
     },
   });
 
-  const job = {
-    id: ulid(),
-    type: "export_glosses" as const,
-    status: JobStatus.Pending,
-    payload: {},
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  const job = ExportGlossesJob.create({});
 
   await exportGlossesHandler(job);
 
@@ -147,14 +123,7 @@ test("does not queue jobs if there are no changed languages", async () => {
     },
   });
 
-  const job = {
-    id: ulid(),
-    type: "export_glosses" as const,
-    status: JobStatus.Pending,
-    payload: {},
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  const job = ExportGlossesJob.create({});
 
   await exportGlossesHandler(job);
 

@@ -11,7 +11,6 @@ import {
 } from "vitest";
 import { LocalQueue, SQSQueue } from "./queue";
 import { ulid } from "../ulid";
-import { Job, JobStatus } from "./model";
 import { SQSClient } from "@aws-sdk/client-sqs";
 
 describe("SQSQueue", () => {
@@ -37,22 +36,15 @@ describe("SQSQueue", () => {
     };
     const queue = new SQSQueue(queueUrl, credentials);
 
-    const job: Job<string> = {
-      id: ulid(),
-      type: "test_job",
-      status: JobStatus.Pending,
-      payload: "payload",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    await queue.add(job);
+    const jobId = ulid();
+    await queue.add({ id: jobId });
 
     expect(clientSend).toHaveBeenCalledExactlyOnceWith(
       // For some reason can't deep compare the SendMessageCommnd class
       expect.objectContaining({
         input: {
           QueueUrl: queueUrl,
-          MessageBody: JSON.stringify(job),
+          MessageBody: JSON.stringify({ id: jobId }),
         },
       }),
     );
@@ -104,19 +96,14 @@ describe("LocalQueue", () => {
     const functionUrl = "https://function.com";
     const queue = new LocalQueue(functionUrl);
 
-    const job: Job<string> = {
-      id: ulid(),
-      type: "test_job",
-      status: JobStatus.Pending,
-      payload: "payload",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    await queue.add(job);
+    const jobId = ulid();
+    await queue.add({ id: jobId });
 
     expect(mockedFetch).toHaveBeenCalledExactlyOnceWith(functionUrl, {
       method: "post",
-      body: JSON.stringify({ Records: [{ body: JSON.stringify(job) }] }),
+      body: JSON.stringify({
+        Records: [{ body: JSON.stringify({ id: jobId }) }],
+      }),
     });
   });
 });

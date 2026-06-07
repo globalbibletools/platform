@@ -4,6 +4,7 @@ import { getDb, kyselyTransaction } from "@/db";
 import { JobStatus } from "@/shared/jobs/model";
 import { ulid } from "@/shared/ulid";
 import { exportGlossesFinalizeHandler } from "./exportGlossesFinalizeHandler";
+import { ExportGlossesFinalizeJob } from "./ExportGlossesFinalizeJob";
 
 const { createCommitMock } = vitest.hoisted(() => ({
   createCommitMock: vitest.fn(),
@@ -94,15 +95,9 @@ test("collects child tree items and creates a commit", async () => {
     ])
     .execute();
 
-  const finalizeJob = {
-    id: ulid(),
+  const finalizeJob = ExportGlossesFinalizeJob.create(undefined, {
     parentJobId,
-    type: "export_glosses_finalize" as const,
-    status: JobStatus.Pending,
-    payload: undefined,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  });
 
   await exportGlossesFinalizeHandler(finalizeJob);
 
@@ -204,15 +199,9 @@ test("returns early if another finalize job is in progress", async () => {
     ])
     .execute();
 
-  const finalizeJob = {
-    id: ulid(),
+  const finalizeJob = ExportGlossesFinalizeJob.create(undefined, {
     parentJobId,
-    type: "export_glosses_finalize" as const,
-    status: JobStatus.Pending,
-    payload: undefined,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  });
 
   // We wrap this in a transaction, so that the lock is transaction bound rather than session bound.
   // In lambdas, session level locks are ok because handlers run in isolated lambdas with their own session.

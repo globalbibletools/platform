@@ -48,12 +48,18 @@ vitest.mock("./jobHandlerRegistry", () => ({
 
 vitest.mock("./data-access/jobRepository");
 
-const TestJob = jobRegistry.test_job;
-const TestJobWithTimeout = jobRegistry.test_job_with_timeout;
+// Type assertions needed because mock registries use test keys
+// that don't exist on the real typed registries
+const TestJob = (jobRegistry as any)
+  .test_job as (typeof jobRegistry)["send_email"];
+const TestJobWithTimeout = (jobRegistry as any)
+  .test_job_with_timeout as (typeof jobRegistry)["send_email"];
 
-const testJobHandler = vitest.mocked(jobHandlerRegistry.test_job.handler);
+const testJobHandler = vitest.mocked(
+  (jobHandlerRegistry as any).test_job.handler,
+);
 const testJobWithTimeoutHandler = vitest.mocked(
-  jobHandlerRegistry.test_job_with_timeout.handler,
+  (jobHandlerRegistry as any).test_job_with_timeout.handler,
 );
 const mockedGetById = vitest.mocked(jobRepo.getById);
 const mockedCommit = vitest.mocked(jobRepo.commit);
