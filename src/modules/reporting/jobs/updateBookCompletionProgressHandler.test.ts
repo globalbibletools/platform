@@ -7,10 +7,8 @@ import { languageFactory } from "@/modules/languages/test-utils/languageFactory"
 import { userFactory } from "@/modules/users/test-utils/userFactory";
 import { GlossStateRaw } from "@/modules/translation/types";
 import { JobStatus } from "@/shared/jobs/model";
-import {
-  updateBookCompletionProgressJob,
-  UpdateBookCompletionProgressPayloadSchema,
-} from "./updateBookCompletionProgress";
+import { updateBookCompletionProgressHandler } from "./updateBookCompletionProgressHandler";
+import { UpdateBookCompletionProgressPayloadSchema } from "./UpdateBookCompletionProgressJob";
 import type {
   BookCompletionProgressTable,
   BookCompletionTable,
@@ -94,7 +92,7 @@ test("aggregates book progress for all languages", async () => {
     events: true,
   });
 
-  const result = await updateBookCompletionProgressJob.handler(job);
+  const result = await updateBookCompletionProgressHandler(job);
   expect(result).toBeUndefined();
 
   const progressRows = await findProgress();
@@ -155,7 +153,7 @@ test("counts each word of a multi-word phrase", async () => {
     events: true,
   });
 
-  const result = await updateBookCompletionProgressJob.handler(job);
+  const result = await updateBookCompletionProgressHandler(job);
   expect(result).toBeUndefined();
 
   const progressRows = await findProgress();
@@ -196,7 +194,7 @@ test("doesn't update a language if no events have occurred", async () => {
     .returningAll()
     .execute();
 
-  const result = await updateBookCompletionProgressJob.handler(job);
+  const result = await updateBookCompletionProgressHandler(job);
   expect(result).toBeUndefined();
 
   const progressRows = await findProgress();
@@ -230,7 +228,7 @@ test("replaces previous progress entries", async () => {
     events: true,
   });
 
-  const result = await updateBookCompletionProgressJob.handler(job);
+  const result = await updateBookCompletionProgressHandler(job);
   expect(result).toBeUndefined();
 
   const progressRows = await findProgress();
@@ -274,11 +272,11 @@ test("processes all languages when allLanguages is true", async () => {
     events: true,
   });
 
-  await updateBookCompletionProgressJob.handler(makeJob());
+  await updateBookCompletionProgressHandler(makeJob());
 
   // Run again without new events — normally this language would be skipped,
   // but allLanguages: true forces it to be reprocessed.
-  const result = await updateBookCompletionProgressJob.handler(
+  const result = await updateBookCompletionProgressHandler(
     makeJob({ allLanguages: true }),
   );
   expect(result).toBeUndefined();

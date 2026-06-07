@@ -1,7 +1,8 @@
 import { Readable } from "stream";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { JobStatus } from "@/shared/jobs/model";
-import { exportInterlinearPdfJob } from "./exportInterlinearPdfJob";
+import { ExportInterlinearPdfJob } from "./ExportInterlinearPdfJob";
+import { exportInterlinearPdfHandler } from "./exportInterlinearPdfHandler";
 import jobRepository from "@/shared/jobs/data-access/jobRepository";
 
 const {
@@ -39,29 +40,29 @@ vi.mock("@/modules/export/pdf/InterlinearPdfGenerator", () => ({
   generateInterlinearPdfDocument: mockGenerateInterlinearPdfDocument,
 }));
 
-const mockJobRepoUpdateData = vi.mocked(jobRepository.updateData);
+const mockJobRepoCommit = vi.mocked(jobRepository.commit);
 
-const baseJob = {
+const baseJob = ExportInterlinearPdfJob.fromRaw({
   id: "job-1",
-  createdAt: new Date("2026-04-09T00:00:00.000Z"),
-  updatedAt: new Date("2026-04-09T00:00:00.000Z"),
+  type: "export_interlinear_pdf",
   status: JobStatus.Pending,
-  type: "export_interlinear_pdf" as const,
   payload: {
     languageId: "lang-1",
     languageCode: "spa",
     requestedBy: "user-1",
   },
-};
+  createdAt: new Date("2026-04-09T00:00:00.000Z"),
+  updatedAt: new Date("2026-04-09T00:00:00.000Z"),
+});
 
-describe("exportInterlinearPdfJob", () => {
+describe("exportInterlinearPdfHandler", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     mockFetchBooksWithApprovedGlossChapters.mockReset();
     mockUploadPdf.mockReset();
     mockPublicPdfUrl.mockReset();
     mockGenerateInterlinearPdfDocument.mockReset();
-    mockJobRepoUpdateData.mockReset();
+    mockJobRepoCommit.mockReset();
 
     mockFetchBooksWithApprovedGlossChapters.mockResolvedValue([
       {
@@ -123,9 +124,7 @@ describe("exportInterlinearPdfJob", () => {
   });
 
   it("processes approved gloss chapters and records public download data", async () => {
-    await expect(
-      exportInterlinearPdfJob.handler(baseJob),
-    ).resolves.toBeUndefined();
+    await expect(exportInterlinearPdfHandler(baseJob)).resolves.toBeUndefined();
 
     expect(mockFetchBooksWithApprovedGlossChapters).toHaveBeenCalledWith(
       "lang-1",
@@ -160,11 +159,16 @@ describe("exportInterlinearPdfJob", () => {
       environment: "local",
       key: "interlinear/spa/job-1.pdf",
     });
-    expect(mockJobRepoUpdateData).toHaveBeenCalledExactlyOnceWith(baseJob.id, {
-      exportKey: "interlinear/spa/job-1.pdf",
-      downloadUrl: "https://exports.example.com/final.pdf",
-      pages: 3,
-    });
+    expect(mockJobRepoCommit).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        id: "job-1",
+        data: {
+          exportKey: "interlinear/spa/job-1.pdf",
+          downloadUrl: "https://exports.example.com/final.pdf",
+          pages: 3,
+        },
+      }),
+    );
   });
 
   it("labels sparse chapter selections without implying a full range", async () => {
@@ -197,9 +201,7 @@ describe("exportInterlinearPdfJob", () => {
       },
     ]);
 
-    await expect(
-      exportInterlinearPdfJob.handler(baseJob),
-    ).resolves.toBeUndefined();
+    await expect(exportInterlinearPdfHandler(baseJob)).resolves.toBeUndefined();
 
     expect(mockGenerateInterlinearPdfDocument).toHaveBeenCalledExactlyOnceWith(
       [
@@ -218,7 +220,7 @@ describe("exportInterlinearPdfJob", () => {
       throw new Error("public URL failed");
     });
 
-    await expect(exportInterlinearPdfJob.handler(baseJob)).rejects.toThrow(
+    await expect(exportInterlinearPdfHandler(baseJob)).rejects.toThrow(
       /public URL failed/,
     );
 
@@ -228,13 +230,13 @@ describe("exportInterlinearPdfJob", () => {
         key: "interlinear/spa/job-1.pdf",
       }),
     );
-    expect(mockJobRepoUpdateData).not.toHaveBeenCalled();
+    expect(mockJobRepoCommit).not.toHaveBeenCalled();
   });
 
   it("throws when no covered chapters are available", async () => {
     mockFetchBooksWithApprovedGlossChapters.mockResolvedValue([]);
 
-    await expect(exportInterlinearPdfJob.handler(baseJob)).rejects.toThrow(
+    await expect(exportInterlinearPdfHandler(baseJob)).rejects.toThrow(
       /No chapters with approved glosses found for export/,
     );
 

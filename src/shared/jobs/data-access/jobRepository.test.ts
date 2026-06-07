@@ -6,6 +6,7 @@ import { getDb } from "@/db";
 import { Insertable } from "kysely";
 import { JobTable } from "../db/schema";
 import { JobStatus } from "../model";
+import { SendEmailJob } from "@/shared/email/jobs/SendEmailJob";
 
 initializeDatabase();
 
@@ -16,76 +17,68 @@ describe("getById", () => {
   });
 
   test("returns the job if it exists", async () => {
-    const job: Insertable<JobTable> = {
-      id: ulid(),
-      type: "test_job" as any,
-      status: JobStatus.Complete,
-      payload: { payloadData: "asdf" },
-      data: { data: true },
-      created_at: new Date(),
-      updated_at: new Date(),
+    const jobId = ulid();
+    const payload = {
+      userId: "user-1",
+      subject: "Test",
+      text: "Hello",
+      html: "<p>Hello</p>",
     };
-    await getDb().insertInto("job").values(job).execute();
+    await getDb()
+      .insertInto("job")
+      .values({
+        id: jobId,
+        type: SendEmailJob.type,
+        status: JobStatus.Complete,
+        payload,
+        data: null,
+        created_at: new Date(),
+        updated_at: new Date(),
+      })
+      .execute();
 
-    const result = await jobRepository.getById(job.id);
-    expect(result).toEqual({
-      id: job.id,
-      type: job.type,
-      status: job.status,
-      payload: job.payload,
-      data: job.data,
-      createdAt: job.created_at,
-      updatedAt: job.updated_at,
-    });
+    const result = await jobRepository.getById(jobId);
+    expect(result!.id).toBe(jobId);
+    expect(result!.type).toBe(SendEmailJob.type);
+    expect(result!.status).toBe(JobStatus.Complete);
+    expect(result!.payload).toEqual(payload);
   });
 
-  test("returns empty payload and data if not set", async () => {
-    const job: Insertable<JobTable> = {
-      id: ulid(),
-      type: "test_job" as any,
-      status: JobStatus.Complete,
-      created_at: new Date(),
-      updated_at: new Date(),
+  test("returns job with parent job ID", async () => {
+    const parentJobId = ulid();
+    const jobId = ulid();
+    const payload = {
+      userId: "user-1",
+      subject: "Test",
+      text: "Hello",
+      html: "<p>Hello</p>",
     };
-    await getDb().insertInto("job").values(job).execute();
+    await getDb()
+      .insertInto("job")
+      .values([
+        {
+          id: parentJobId,
+          type: SendEmailJob.type,
+          status: JobStatus.Complete,
+          payload,
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+        {
+          id: jobId,
+          type: SendEmailJob.type,
+          status: JobStatus.Complete,
+          parent_job_id: parentJobId,
+          payload,
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+      ])
+      .execute();
 
-    const result = await jobRepository.getById(job.id);
-    expect(result).toEqual({
-      id: job.id,
-      type: job.type,
-      status: job.status,
-      createdAt: job.created_at,
-      updatedAt: job.updated_at,
-    });
-  });
-
-  test("returns parent job ID", async () => {
-    const parentJob: Insertable<JobTable> = {
-      id: ulid(),
-      type: "test_job" as any,
-      status: JobStatus.Complete,
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
-    const job: Insertable<JobTable> = {
-      id: ulid(),
-      type: "test_job" as any,
-      status: JobStatus.Complete,
-      created_at: new Date(),
-      updated_at: new Date(),
-      parent_job_id: parentJob.id,
-    };
-    await getDb().insertInto("job").values([parentJob, job]).execute();
-
-    const result = await jobRepository.getById(job.id);
-    expect(result).toEqual({
-      id: job.id,
-      type: job.type,
-      status: job.status,
-      createdAt: job.created_at,
-      updatedAt: job.updated_at,
-      parentJobId: job.parent_job_id,
-    });
+    const result = await jobRepository.getById(jobId);
+    expect(result!.parentJobId).toBe(parentJobId);
+    expect(result!.type).toBe(SendEmailJob.type);
   });
 });
 

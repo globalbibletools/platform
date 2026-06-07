@@ -7,9 +7,9 @@ import { languageFactory } from "@/modules/languages/test-utils/languageFactory"
 import { phraseFactory } from "@/modules/translation/test-utils/phraseFactory";
 import { GlossStateRaw } from "@/modules/translation/types";
 import { getDb } from "@/db";
-import { exportGlossesChildJob } from "./exportGlossesChildJob";
+import { exportGlossesChildHandler } from "./exportGlossesChildHandler";
+import { ExportGlossesChildJob } from "./ExportGlossesChildJob";
 import { githubExportService } from "../data-access/githubExportService";
-import type { ExportLanguageBlobsJobPayload } from "../model";
 
 vitest.mock("@/shared/jobs/enqueueJob");
 vitest.mock("../data-access/githubExportService", () => ({
@@ -47,17 +47,17 @@ test("creates blobs for Haggai glosses and then enqueues the finalize job", asyn
 
   const parentJobId = ulid();
 
-  const job = {
+  const job = ExportGlossesChildJob.fromRaw({
     id: ulid(),
     parentJobId,
-    type: "export_glosses_child" as const,
+    type: "export_glosses_child",
     status: JobStatus.Pending,
     payload: {
       languageCodes: [language.code],
-    } satisfies ExportLanguageBlobsJobPayload,
+    },
     createdAt: new Date(),
     updatedAt: new Date(),
-  };
+  });
 
   await getDb()
     .insertInto("job")
@@ -81,7 +81,7 @@ test("creates blobs for Haggai glosses and then enqueues the finalize job", asyn
     ])
     .execute();
 
-  await exportGlossesChildJob.handler(job);
+  await exportGlossesChildHandler(job);
 
   const updatedJob = await getDb()
     .selectFrom("job")
@@ -122,17 +122,17 @@ test("doesn't enqueue the finalize job if there are other child jobs are in prog
 
   const parentJobId = ulid();
 
-  const job = {
+  const job = ExportGlossesChildJob.fromRaw({
     id: ulid(),
     parentJobId,
-    type: "export_glosses_child" as const,
+    type: "export_glosses_child",
     status: JobStatus.Pending,
     payload: {
       languageCodes: [language.code],
-    } satisfies ExportLanguageBlobsJobPayload,
+    },
     createdAt: new Date(),
     updatedAt: new Date(),
-  };
+  });
 
   await getDb()
     .insertInto("job")
@@ -165,7 +165,7 @@ test("doesn't enqueue the finalize job if there are other child jobs are in prog
     ])
     .execute();
 
-  await exportGlossesChildJob.handler(job);
+  await exportGlossesChildHandler(job);
 
   expect(mockedCreateBlob).toHaveBeenCalledExactlyOnceWith({
     path: `${language.code}/37-Hag.json`,

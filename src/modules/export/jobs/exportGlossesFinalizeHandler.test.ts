@@ -3,7 +3,7 @@ import { beforeEach, expect, test, vitest } from "vitest";
 import { getDb, kyselyTransaction } from "@/db";
 import { JobStatus } from "@/shared/jobs/model";
 import { ulid } from "@/shared/ulid";
-import { exportGlossesFinalizeJob } from "./exportGlossesFinalizeJob";
+import { exportGlossesFinalizeHandler } from "./exportGlossesFinalizeHandler";
 
 const { createCommitMock } = vitest.hoisted(() => ({
   createCommitMock: vitest.fn(),
@@ -104,7 +104,7 @@ test("collects child tree items and creates a commit", async () => {
     updatedAt: new Date(),
   };
 
-  await exportGlossesFinalizeJob.handler(finalizeJob);
+  await exportGlossesFinalizeHandler(finalizeJob);
 
   expect(createCommitMock).toHaveBeenCalledExactlyOnceWith({
     items: [
@@ -227,7 +227,7 @@ test("returns early if another finalize job is in progress", async () => {
       )
       .execute();
 
-    await exportGlossesFinalizeJob.handler(finalizeJob);
+    await exportGlossesFinalizeHandler(finalizeJob);
   });
 
   expect(createCommitMock).not.toHaveBeenCalled();

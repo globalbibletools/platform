@@ -97,10 +97,7 @@ export function createJobModel<
         parentJobId: raw.parentJobId,
         status: raw.status,
         payload: payloadSchema.parse(raw.payload),
-        data:
-          raw.data !== undefined ?
-            resolvedDataSchema.parse(raw.data)
-          : undefined,
+        data: raw.data != null ? resolvedDataSchema.parse(raw.data) : undefined,
         createdAt: raw.createdAt,
         updatedAt: raw.updatedAt,
       });

@@ -7,7 +7,7 @@ import { languageFactory } from "@/modules/languages/test-utils/languageFactory"
 import { phraseFactory } from "@/modules/translation/test-utils/phraseFactory";
 import { GlossStateRaw } from "@/modules/translation/types";
 import { subDays } from "date-fns";
-import { exportGlossesJob } from "./exportGlossesJob";
+import { exportGlossesHandler } from "./exportGlossesHandler";
 
 vitest.mock("@/shared/jobs/enqueueJob");
 
@@ -49,7 +49,7 @@ test("queues child jobs only for languages with changes in the default window", 
     updatedAt: new Date(),
   };
 
-  await exportGlossesJob.handler(job);
+  await exportGlossesHandler(job);
 
   expect(enqueueJob).toHaveBeenCalledExactlyOnceWith({
     type: "export_glosses_child",
@@ -98,7 +98,7 @@ test("queues child jobs only for languages with changes in the specified window"
     updatedAt: new Date(),
   };
 
-  await exportGlossesJob.handler(job);
+  await exportGlossesHandler(job);
 
   expect(enqueueJob).toHaveBeenCalledExactlyOnceWith({
     type: "export_glosses_child",
@@ -130,7 +130,7 @@ test("ignores eng language even when there are changes", async () => {
     updatedAt: new Date(),
   };
 
-  await exportGlossesJob.handler(job);
+  await exportGlossesHandler(job);
 
   expect(enqueueJob).not.toHaveBeenCalled();
 });
@@ -156,7 +156,7 @@ test("does not queue jobs if there are no changed languages", async () => {
     updatedAt: new Date(),
   };
 
-  await exportGlossesJob.handler(job);
+  await exportGlossesHandler(job);
 
   expect(enqueueJob).not.toHaveBeenCalled();
 });
