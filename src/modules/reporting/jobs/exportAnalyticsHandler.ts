@@ -4,7 +4,6 @@ import reportingQueryService from "../ReportingQueryService";
 import pino from "pino";
 import { ExportAnalyticsJob } from "./ExportAnalyticsJob";
 
-
 interface Key {
   client_email: string;
   private_key: string;
@@ -39,9 +38,7 @@ const sheets = google.sheets({
 
 const ANALYTICS_SPREADSHEET_ID = process.env.ANALYTICS_SPREADSHEET_ID;
 
-export async function exportAnalyticsHandler(
-  job: ExportAnalyticsJob,
-) {
+export async function exportAnalyticsHandler(job: ExportAnalyticsJob) {
   const jobLogger = logger.child({
     job: {
       id: job.id,
@@ -202,5 +199,5 @@ async function updateApprovalsSheet(logger: pino.Logger) {
       values: data,
     },
   });
-  logger.info(`Updated ${approvals.length} approvals");
+  logger.info(`Updated ${approvals.length} approvals`);
 }

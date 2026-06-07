@@ -1,10 +1,9 @@
 import { SQSRecord } from "aws-lambda";
-import { JobStatus } from "./model";
-import jobRepo from "./data-access/jobRepository";
 import { jobRegistry } from "./jobRegistry";
+import { jobHandlerRegistry } from "./jobHandlerRegistry";
+import jobRepo from "./data-access/jobRepository";
 import queue, { QueuedJob, queuedJobSchema } from "./queue";
 import { logger } from "@/logging";
-import { ulid } from "../ulid";
 
 export async function processJob(message: SQSRecord) {
   const jobLogger = logger.child({});
@@ -20,7 +19,7 @@ export async function processJob(message: SQSRecord) {
       throw error;
     }
 
-    let job, jobDefinition;
+    let job;
     if ("id" in parsed) {
       jobId = parsed.id;
 
@@ -30,37 +29,21 @@ export async function processJob(message: SQSRecord) {
         return;
       }
 
-      // There is a minor chance of a race condition by doing this check here
-      // instead of the database when setting to in progress.
-      if (job.status !== JobStatus.Pending) {
-        jobLogger.error("Job already executed");
-        return;
-      }
+      job.start();
+      await jobRepo.commit(job);
 
-      await jobRepo.update(job.id, JobStatus.InProgress);
       jobLogger.debug("Update job status to in progress");
-
-      jobDefinition = jobRegistry[job.type];
-      if (!jobDefinition) {
-        throw new Error(`Missing job definition for ${job.type} jobs`);
-      }
     } else {
-      jobDefinition = jobRegistry[parsed.type];
-      if (!jobDefinition) {
-        throw new Error(`Missing job definition for ${parsed.type} jobs`);
+      const ModelClass = jobRegistry[parsed.type];
+      if (!ModelClass) {
+        throw new Error(`Missing job model for ${parsed.type} jobs`);
       }
 
-      jobId = ulid();
-      job = {
-        id: jobId,
-        type: parsed.type,
-        status: JobStatus.InProgress,
-        payload: jobDefinition.payloadSchema.parse(parsed.payload),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      job = ModelClass.create(parsed.payload);
+      job.start();
+      jobId = job.id;
 
-      await jobRepo.create(job);
+      await jobRepo.commit(job);
       jobLogger.debug("Created missing job");
     }
 
@@ -73,27 +56,35 @@ export async function processJob(message: SQSRecord) {
 
     jobLogger.info("Job starting");
 
-    if (jobDefinition.timeout) {
-      jobLogger.info(`Job timeout extended to ${jobDefinition.timeout}`);
-      queue.extendTimeout(message.receiptHandle, jobDefinition.timeout);
+    const handlerEntry = jobHandlerRegistry[job.type];
+    if (!handlerEntry) {
+      throw new Error(`Missing handler for ${job.type} jobs`);
     }
 
-    // Not sure how to avoid the cast.
-    // We picked the job definition from the job type so it should match.
-    await jobDefinition.handler(job as any);
+    if (handlerEntry.timeout) {
+      jobLogger.info(`Job timeout extended to ${handlerEntry.timeout}`);
+      queue.extendTimeout(message.receiptHandle, handlerEntry.timeout);
+    }
 
-    await jobRepo.update(job.id, JobStatus.Complete);
+    // Typescript doesn't know that the job and handler correspond
+    // because we got the handler through the job type.
+    await handlerEntry.handler(job as any);
+
+    job.complete();
+    await jobRepo.commit(job);
     jobLogger.info("Job complete");
   } catch (error) {
     jobLogger.error({ err: error }, "Job failed");
 
     if (jobId) {
       try {
-        await jobRepo.update(jobId, JobStatus.Failed, {
-          error: String(error),
-        });
-      } catch (error) {
-        jobLogger.error({ err: error }, "Error when marking job failed");
+        const job = await jobRepo.getById(jobId);
+        if (job) {
+          job.fail(error instanceof Error ? error : undefined);
+          await jobRepo.commit(job);
+        }
+      } catch (commitError) {
+        jobLogger.error({ err: commitError }, "Error when marking job failed");
       }
     }
   }

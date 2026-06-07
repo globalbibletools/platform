@@ -38,6 +38,8 @@ export function createJobModel<
 
   class JobModel {
     static readonly type: Type = type;
+    static readonly payloadSchema = payloadSchema;
+    static readonly dataSchema = dataSchema;
 
     static "~types"?: {
       Type: Type;
@@ -76,10 +78,7 @@ export function createJobModel<
       this.updatedAt = params.updatedAt;
     }
 
-    static create(
-      payload: Input,
-      options?: { parentJobId?: string },
-    ): JobModel {
+    static create(payload: any, options?: { parentJobId?: string }): JobModel {
       const now = new Date();
       return new JobModel({
         id: ulid(),

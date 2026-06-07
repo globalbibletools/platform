@@ -31,10 +31,7 @@ export async function enqueueJob<T extends JobType>(
       throw new Error(`Job model not found for type ${options.type}`);
     }
 
-    // Typescript doesn't know which job is represented by the ModelClass
-    // to know whether the payload is the right type.
-    const payload: any = "payload" in options ? options.payload : undefined;
-
+    const payload = "payload" in options ? options.payload : undefined;
     const job = ModelClass.create(payload, {
       parentJobId: options.parentJobId,
     });

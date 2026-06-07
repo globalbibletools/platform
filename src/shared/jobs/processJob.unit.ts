@@ -7,32 +7,64 @@ import {
   test,
   vitest,
 } from "vitest";
-import { Job, JobStatus } from "./model";
-import { ulid } from "../ulid";
+import { logger } from "@/logging";
+import { JobStatus } from "./model";
 import { processJob } from "./processJob";
-import jobMap, { JobHandler } from "./jobMap";
-import queue, { QueuedJob } from "./queue";
-import jobRepository from "./data-access/jobRepository";
+import { jobRegistry } from "./jobRegistry";
+import { jobHandlerRegistry } from "./jobHandlerRegistry";
+import queue from "./queue";
+import jobRepo from "./data-access/jobRepository";
 
-vitest.mock("./jobMap", () => ({
-  default: {
-    test_job: vitest.fn(),
-    test_job_with_timeout: {
-      handler: vitest.fn(),
-      timeout: 500,
+vitest.mock("@/logging");
+
+vitest.mock("./jobRegistry", async () => {
+  const { createJobModel } =
+    await vitest.importActual<typeof import("./model")>("./model");
+  const z = await vitest.importActual<typeof import("zod")>("zod");
+
+  const TestJob = createJobModel({
+    type: "test_job",
+    payloadSchema: z.string(),
+  });
+  const TestJobWithTimeout = createJobModel({
+    type: "test_job_with_timeout",
+    payloadSchema: z.string(),
+  });
+
+  return {
+    jobRegistry: {
+      test_job: TestJob,
+      test_job_with_timeout: TestJobWithTimeout,
     },
+  };
+});
+
+vitest.mock("./jobHandlerRegistry", () => ({
+  jobHandlerRegistry: {
+    test_job: { handler: vitest.fn() },
+    test_job_with_timeout: { handler: vitest.fn(), timeout: 500 },
   },
 }));
+
 vitest.mock("./data-access/jobRepository");
 
-const mockedJob = vitest.mocked<JobHandler<any>>(jobMap.test_job as any);
-const mockedJobWithTimeout = vitest.mocked<JobHandler<any>>(
-  (jobMap.test_job_with_timeout as any).handler,
+const TestJob = jobRegistry.test_job;
+const TestJobWithTimeout = jobRegistry.test_job_with_timeout;
+
+const testJobHandler = vitest.mocked(jobHandlerRegistry.test_job.handler);
+const testJobWithTimeoutHandler = vitest.mocked(
+  jobHandlerRegistry.test_job_with_timeout.handler,
 );
-const mockedUpdateJob = vitest.mocked(jobRepository.update);
-const mockedCreateJob = vitest.mocked(jobRepository.create);
-const mockedGetJobById = vitest.mocked(jobRepository.getById);
+const mockedGetById = vitest.mocked(jobRepo.getById);
+const mockedCommit = vitest.mocked(jobRepo.commit);
 let mockedExtendTimeout: MockInstance<typeof queue.extendTimeout>;
+
+const mockJobLogger = {
+  debug: vitest.fn(),
+  error: vitest.fn(),
+  info: vitest.fn(),
+  setBindings: vitest.fn(),
+};
 
 beforeAll(() => {
   mockedExtendTimeout = vitest.spyOn(queue, "extendTimeout");
@@ -43,222 +75,116 @@ afterAll(() => {
 });
 
 beforeEach(() => {
-  mockedJob.mockReset();
-  mockedJobWithTimeout.mockReset();
-  mockedUpdateJob.mockReset();
-  mockedCreateJob.mockReset();
-  mockedGetJobById.mockReset();
+  vitest.mocked(logger.child).mockReturnValue(mockJobLogger as any);
+  mockJobLogger.debug.mockReset();
+  mockJobLogger.error.mockReset();
+  mockJobLogger.info.mockReset();
+  mockJobLogger.setBindings.mockReset();
+  testJobHandler.mockReset();
+  testJobWithTimeoutHandler.mockReset();
+  mockedGetById.mockReset();
+  mockedCommit.mockReset();
   mockedExtendTimeout.mockReset();
 });
 
-test("fails if job has already been executed", async () => {
-  const job: Job<string> = {
-    id: ulid(),
-    type: "garbage_job",
-    payload: "payload",
-    status: JobStatus.Complete,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  const queuedJob: QueuedJob<string> = {
-    id: job.id,
-    type: job.type,
-    payload: job.payload,
-  };
-  mockedGetJobById.mockResolvedValue(job);
+test("returns early if job has already been executed", async () => {
+  const job = TestJob.create("payload");
+  (job as any).status = JobStatus.Complete;
+
+  mockedGetById.mockResolvedValue(job);
 
   await processJob({
-    body: JSON.stringify(queuedJob),
+    body: JSON.stringify({ id: job.id }),
   } as any);
 
-  expect(mockedJob).not.toHaveBeenCalled();
-  expect(mockedJobWithTimeout).not.toHaveBeenCalled();
-  expect(mockedExtendTimeout).not.toHaveBeenCalled();
-  expect(mockedCreateJob).not.toHaveBeenCalled();
-  expect(mockedUpdateJob).not.toHaveBeenCalled();
-});
-
-test("fails job if handler is not found", async () => {
-  const job: Job<string> = {
-    id: ulid(),
-    type: "garbage_job",
-    payload: "payload",
-    status: JobStatus.Pending,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  const queuedJob: QueuedJob<string> = {
-    id: job.id,
-    type: job.type,
-    payload: job.payload,
-  };
-  mockedGetJobById.mockResolvedValue(job);
-
-  await processJob({
-    body: JSON.stringify(queuedJob),
-  } as any);
-
-  expect(mockedJob).not.toHaveBeenCalled();
-  expect(mockedJobWithTimeout).not.toHaveBeenCalled();
-  expect(mockedExtendTimeout).not.toHaveBeenCalled();
-  expect(mockedUpdateJob).toHaveBeenNthCalledWith(
-    1,
-    job.id,
-    JobStatus.InProgress,
-  );
-  expect(mockedUpdateJob).toHaveBeenNthCalledWith(2, job.id, JobStatus.Failed, {
-    error: String(new Error("Job handler for garbage_job not found.")),
-  });
-  expect(mockedUpdateJob).toHaveBeenCalledTimes(2);
-});
-
-test("creates job if it does not already exist", async () => {
-  const queuedJob: QueuedJob<string> = {
-    type: "test_job",
-    payload: "payload",
-  };
-
-  await processJob({
-    body: JSON.stringify(queuedJob),
-  } as any);
-
-  expect(mockedJob).toHaveBeenCalledExactlyOnceWith({
-    ...queuedJob,
-    id: expect.toBeUlid(),
-    parentJobId: undefined,
-    status: JobStatus.InProgress,
-    createdAt: expect.any(Date),
-    updatedAt: expect.any(Date),
-  });
-  expect(mockedJobWithTimeout).not.toHaveBeenCalled();
-
-  expect(mockedCreateJob).toHaveBeenCalledExactlyOnceWith({
-    ...queuedJob,
-    id: expect.toBeUlid(),
-    parentJobId: undefined,
-    status: JobStatus.InProgress,
-    createdAt: expect.any(Date),
-    updatedAt: expect.any(Date),
-  });
-  expect(mockedUpdateJob).toHaveBeenCalledExactlyOnceWith(
-    expect.toBeUlid(),
-    JobStatus.Complete,
-  );
+  expect(testJobHandler).not.toHaveBeenCalled();
+  expect(testJobWithTimeoutHandler).not.toHaveBeenCalled();
   expect(mockedExtendTimeout).not.toHaveBeenCalled();
 });
 
-test("handles successful job", async () => {
-  const job: Job<string> = {
-    id: ulid(),
-    type: "test_job",
-    payload: "payload",
-    status: JobStatus.Pending,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  const queuedJob: QueuedJob<string> = {
-    id: job.id,
-    type: job.type,
-    payload: job.payload,
-  };
-  mockedGetJobById.mockResolvedValue(job);
+test("creates untracked job and processes it", async () => {
+  mockedCommit.mockResolvedValue(undefined);
 
   await processJob({
-    body: JSON.stringify(queuedJob),
+    body: JSON.stringify({ type: "test_job", payload: "payload" }),
   } as any);
 
-  expect(mockedJob).toHaveBeenCalledExactlyOnceWith(job);
-  expect(mockedJobWithTimeout).not.toHaveBeenCalled();
+  expect(testJobHandler).toHaveBeenCalledOnce();
+  expect(testJobWithTimeoutHandler).not.toHaveBeenCalled();
 
-  expect(mockedUpdateJob).toHaveBeenNthCalledWith(
-    1,
-    job.id,
-    JobStatus.InProgress,
-  );
-  expect(mockedUpdateJob).toHaveBeenNthCalledWith(
-    2,
-    job.id,
-    JobStatus.Complete,
-  );
-  expect(mockedUpdateJob).toHaveBeenCalledTimes(2);
+  const handlerArg = testJobHandler.mock.calls[0][0];
+  expect(handlerArg.type).toBe("test_job");
+  expect(handlerArg.payload).toBe("payload");
+
+  expect(mockedCommit).toHaveBeenCalledTimes(2);
+  expect(handlerArg.status).toBe(JobStatus.Complete);
+  expect(mockedExtendTimeout).not.toHaveBeenCalled();
+});
+
+test("handles successful tracked job", async () => {
+  const job = TestJob.create("payload");
+  const startSpy = vitest.spyOn(job, "start");
+  const completeSpy = vitest.spyOn(job, "complete");
+
+  mockedGetById.mockResolvedValue(job);
+  mockedCommit.mockResolvedValue(undefined);
+
+  await processJob({ body: JSON.stringify({ id: job.id }) } as any);
+
+  expect(testJobHandler).toHaveBeenCalledExactlyOnceWith(job);
+  expect(testJobWithTimeoutHandler).not.toHaveBeenCalled();
+
+  expect(startSpy).toHaveBeenCalledOnce();
+  expect(completeSpy).toHaveBeenCalledOnce();
+  expect(mockedCommit).toHaveBeenCalledTimes(2);
+  expect(job.status).toBe(JobStatus.Complete);
   expect(mockedExtendTimeout).not.toHaveBeenCalled();
 });
 
 test("handles failed job", async () => {
-  const job: Job<string> = {
-    id: ulid(),
-    type: "test_job",
-    payload: "payload",
-    status: JobStatus.Pending,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  const queuedJob: QueuedJob<string> = {
-    id: job.id,
-    type: job.type,
-    payload: job.payload,
-  };
-  mockedGetJobById.mockResolvedValue(job);
+  const job = TestJob.create("payload");
+  const startSpy = vitest.spyOn(job, "start");
+  const failSpy = vitest.spyOn(job, "fail");
+
+  mockedGetById.mockResolvedValue(job);
+  mockedCommit.mockResolvedValue(undefined);
 
   const error = new Error("job error");
-  mockedJob.mockRejectedValue(error);
+  testJobHandler.mockRejectedValue(error);
 
-  await processJob({
-    body: JSON.stringify(queuedJob),
-  } as any);
+  await processJob({ body: JSON.stringify({ id: job.id }) } as any);
 
-  expect(mockedJob).toHaveBeenCalledExactlyOnceWith(job);
-  expect(mockedJobWithTimeout).not.toHaveBeenCalled();
+  expect(testJobHandler).toHaveBeenCalledExactlyOnceWith(job);
 
-  expect(mockedUpdateJob).toHaveBeenNthCalledWith(
-    1,
-    job.id,
-    JobStatus.InProgress,
-  );
-  expect(mockedUpdateJob).toHaveBeenNthCalledWith(2, job.id, JobStatus.Failed, {
-    error: String(error),
-  });
-  expect(mockedUpdateJob).toHaveBeenCalledTimes(2);
+  expect(startSpy).toHaveBeenCalledOnce();
+  expect(failSpy).toHaveBeenCalledOnce();
+  expect(mockedCommit).toHaveBeenCalledTimes(2);
+  expect(job.status).toBe(JobStatus.Failed);
   expect(mockedExtendTimeout).not.toHaveBeenCalled();
 });
 
-test("extends visibility timeout before starting job", async () => {
-  const job: Job<string> = {
-    id: ulid(),
-    type: "test_job_with_timeout",
-    payload: "payload",
-    status: JobStatus.Pending,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  const queuedJob: QueuedJob<string> = {
-    id: job.id,
-    type: job.type,
-    payload: job.payload,
-  };
-  mockedGetJobById.mockResolvedValue(job);
+test("extends visibility timeout for job with timeout", async () => {
+  const job = TestJobWithTimeout.create("payload");
+  const startSpy = vitest.spyOn(job, "start");
+  const completeSpy = vitest.spyOn(job, "complete");
+
+  mockedGetById.mockResolvedValue(job);
+  mockedCommit.mockResolvedValue(undefined);
 
   const handle = "handle";
   await processJob({
-    body: JSON.stringify(queuedJob),
+    body: JSON.stringify({ id: job.id }),
     receiptHandle: handle,
   } as any);
 
-  expect(mockedJobWithTimeout).toHaveBeenCalledExactlyOnceWith(job);
-  expect(mockedJob).not.toHaveBeenCalled();
+  expect(testJobWithTimeoutHandler).toHaveBeenCalledExactlyOnceWith(job);
+  expect(testJobHandler).not.toHaveBeenCalled();
 
   expect(mockedExtendTimeout).toHaveBeenCalledExactlyOnceWith(handle, 500);
-  expect(mockedExtendTimeout).toHaveBeenCalledBefore(mockedJobWithTimeout);
+  expect(mockedExtendTimeout).toHaveBeenCalledBefore(testJobWithTimeoutHandler);
 
-  expect(mockedUpdateJob).toHaveBeenNthCalledWith(
-    1,
-    job.id,
-    JobStatus.InProgress,
-  );
-  expect(mockedUpdateJob).toHaveBeenNthCalledWith(
-    2,
-    job.id,
-    JobStatus.Complete,
-  );
-  expect(mockedUpdateJob).toHaveBeenCalledTimes(2);
+  expect(startSpy).toHaveBeenCalledOnce();
+  expect(completeSpy).toHaveBeenCalledOnce();
+  expect(mockedCommit).toHaveBeenCalledTimes(2);
+  expect(job.status).toBe(JobStatus.Complete);
 });
