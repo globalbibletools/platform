@@ -1,7 +1,6 @@
 import { sql } from "kysely";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
 import { getDb } from "@/db";
-import { EXPORT_JOB_TYPES } from "@/modules/export/jobs/jobTypes";
 import { createServerFn } from "@tanstack/react-start";
 
 const policy = new Policy({
@@ -19,7 +18,7 @@ export const getActiveJobs = createServerFn()
       .with("export_job", (db) =>
         db
           .selectFrom("job")
-          .where("type", "=", EXPORT_JOB_TYPES.EXPORT_GLOSSES)
+          .where("type", "=", "export_glosses")
           .orderBy("created_at", "desc")
           .select(["id"])
           .limit(1),

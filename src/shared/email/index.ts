@@ -1,7 +1,6 @@
 import { createTransport, SendMailOptions } from "nodemailer";
 import { query } from "@/db";
-import { Job } from "./shared/jobs/model";
-import { logger } from "./logging";
+import { logger } from "@/logging";
 
 const transporter =
   process.env["EMAIL_SERVER"] ?
@@ -106,7 +105,3 @@ const mailer = {
 };
 
 export default mailer;
-
-export async function sendEmailJob(job: Job<EmailOptions>) {
-  await mailer.sendEmail(job.payload);
-}

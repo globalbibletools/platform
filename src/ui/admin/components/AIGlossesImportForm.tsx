@@ -1,6 +1,6 @@
 import { Icon } from "@/components/Icon";
 import { importAIGlosses } from "@/modules/translation/actions/importAIGlosses";
-import { JobStatus } from "@/shared/jobs/model";
+import { JobStatus } from "@/shared/jobs/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import Button from "@/components/Button";
 import { getAIGlossesImportFormData } from "@/ui/admin/serverFns/getAIGlossesImportFormData";

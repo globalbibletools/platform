@@ -1,94 +1,91 @@
 import { SQSRecord } from "aws-lambda";
-import { JobStatus } from "./model";
+import { jobRegistry } from "./jobRegistry";
+import { jobHandlerRegistry } from "./jobHandlerRegistry";
 import jobRepo from "./data-access/jobRepository";
-import jobMap from "./jobMap";
-import queue, { QueuedJob } from "./queue";
+import queue, { QueuedJob, queuedJobSchema } from "./queue";
 import { logger } from "@/logging";
-import { ulid } from "../ulid";
 
 export async function processJob(message: SQSRecord) {
   const jobLogger = logger.child({});
 
-  let queuedJob: QueuedJob<any>;
+  let jobId: string | undefined;
   try {
-    queuedJob = JSON.parse(message.body);
-    jobLogger.debug({ parsedJob: queuedJob }, "Job parsed");
-  } catch (error) {
-    jobLogger.error({ err: error }, "Job failed to parse");
-    throw error;
-  }
-
-  try {
-    jobLogger.setBindings({
-      job: {
-        id: queuedJob.id,
-        type: queuedJob.type,
-      },
-    });
-
-    // SQS delivers a message at least once, this prevents the same message from being processed twice.
-    let job =
-      typeof queuedJob.id === "string" ?
-        await jobRepo.getById(queuedJob.id)
-      : undefined;
-    if (job && job.status !== JobStatus.Pending) {
-      jobLogger.error("Job already executed");
-      return;
+    let parsed: QueuedJob;
+    try {
+      parsed = queuedJobSchema.parse(JSON.parse(message.body));
+      jobLogger.debug({ parsedJob: parsed }, "Job parsed");
+    } catch (error) {
+      jobLogger.error({ err: error }, "Job failed to parse");
+      throw error;
     }
 
-    jobLogger.info("Job starting");
-    if (job) {
-      await jobRepo.update(job.id, JobStatus.InProgress);
+    let job;
+    if ("id" in parsed) {
+      jobId = parsed.id;
+
+      job = await jobRepo.getById(parsed.id);
+      if (!job) {
+        jobLogger.error("Job not found", { jobId: parsed.id });
+        return;
+      }
+
+      job.start();
+      await jobRepo.commit(job);
+
       jobLogger.debug("Update job status to in progress");
-    }
-    // Jobs can be pushed on to the queue without creating a job record in the db.
-    // This supports scheduled events through Event Bridge Scheduler.
-    // In this case we need to generate an ID and create the job in the DB for reporting.
-    else {
-      job = {
-        id: ulid(),
-        ...queuedJob,
-        status: JobStatus.InProgress,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      jobLogger.setBindings({
-        job: {
-          id: queuedJob.id,
-          type: queuedJob.type,
-        },
-      });
+    } else {
+      const ModelClass = jobRegistry[parsed.type];
+      if (!ModelClass) {
+        throw new Error(`Missing job model for ${parsed.type} jobs`);
+      }
 
-      await jobRepo.create(job);
+      job = ModelClass.create(parsed.payload);
+      job.start();
+      jobId = job.id;
+
+      await jobRepo.commit(job);
       jobLogger.debug("Created missing job");
     }
 
-    const handlerOrEntry = jobMap[queuedJob.type];
-    if (!handlerOrEntry) {
-      jobLogger.error("Job handler not found");
-      throw new Error(`Job handler for ${queuedJob.type} not found.`);
+    jobLogger.setBindings({
+      job: {
+        id: job.id,
+        type: job.type,
+      },
+    });
+
+    jobLogger.info("Job starting");
+
+    const handlerEntry = jobHandlerRegistry[job.type];
+    if (!handlerEntry) {
+      throw new Error(`Missing handler for ${job.type} jobs`);
     }
 
-    const timeout =
-      "timeout" in handlerOrEntry ? handlerOrEntry.timeout : undefined;
-    if (timeout) {
-      jobLogger.info(`Job timeout extended to ${timeout}`);
-      queue.extendTimeout(message.receiptHandle, timeout);
+    if (handlerEntry.timeout) {
+      jobLogger.info(`Job timeout extended to ${handlerEntry.timeout}`);
+      queue.extendTimeout(message.receiptHandle, handlerEntry.timeout);
     }
 
-    const handler =
-      "handler" in handlerOrEntry ? handlerOrEntry.handler : handlerOrEntry;
-    await handler(job);
+    // Typescript doesn't know that the job and handler correspond
+    // because we got the handler through the job type.
+    await handlerEntry.handler(job as any);
 
-    await jobRepo.update(job.id, JobStatus.Complete);
+    job.complete();
+    await jobRepo.commit(job);
     jobLogger.info("Job complete");
   } catch (error) {
     jobLogger.error({ err: error }, "Job failed");
 
-    if (queuedJob.id) {
-      await jobRepo.update(queuedJob.id, JobStatus.Failed, {
-        error: String(error),
-      });
+    if (jobId) {
+      try {
+        const job = await jobRepo.getById(jobId);
+        if (job) {
+          job.fail(error instanceof Error ? error : undefined);
+          await jobRepo.commit(job);
+        }
+      } catch (commitError) {
+        jobLogger.error({ err: commitError }, "Error when marking job failed");
+      }
     }
   }
 }

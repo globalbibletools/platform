@@ -1,7 +1,6 @@
 import { NotFoundError } from "@/shared/errors";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
 import { resolveLanguageByCode } from "@/modules/languages";
-import { EXPORT_JOB_TYPES } from "../jobs/jobTypes";
 
 export interface RequestInterlinearExportRequest {
   languageCode: string;
@@ -20,10 +19,13 @@ export async function requestInterlinearExport(
     throw new NotFoundError("Language");
   }
 
-  const job = await enqueueJob(EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF, {
-    languageId: language.id,
-    languageCode: request.languageCode,
-    requestedBy: request.requestedBy,
+  const job = await enqueueJob({
+    type: "export_interlinear_pdf",
+    payload: {
+      languageId: language.id,
+      languageCode: request.languageCode,
+      requestedBy: request.requestedBy,
+    },
   });
 
   return { jobId: job.id };

@@ -6,18 +6,12 @@ import { phraseFactory } from "@/modules/translation/test-utils/phraseFactory";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 import { userFactory } from "@/modules/users/test-utils/userFactory";
 import { GlossStateRaw } from "@/modules/translation/types";
-import { JobStatus } from "@/shared/jobs/model";
-import { REPORTING_JOB_TYPES } from "./jobTypes";
-import {
-  updateBookCompletionProgressJob,
-  UpdateBookCompletionProgressJob,
-  UpdateBookCompletionProgressPayload,
-} from "./updateBookCompletionProgress";
+import { updateBookCompletionProgressHandler } from "./updateBookCompletionProgressHandler";
+import { UpdateBookCompletionProgressJob } from "./UpdateBookCompletionProgressJob";
 import type {
   BookCompletionProgressTable,
   BookCompletionTable,
 } from "../db/schema";
-import { ulid } from "@/shared/ulid";
 import {
   bibleFactory,
   HAGGAI_BOOK_ID,
@@ -25,17 +19,8 @@ import {
 
 initializeDatabase();
 
-function makeJob(
-  payload: UpdateBookCompletionProgressPayload = {},
-): UpdateBookCompletionProgressJob {
-  return {
-    id: ulid(),
-    type: REPORTING_JOB_TYPES.UPDATE_BOOK_COMPLETION_PROGRESS,
-    status: JobStatus.InProgress,
-    payload,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+function makeJob(payload?: { allLanguages?: boolean }) {
+  return UpdateBookCompletionProgressJob.create(payload ?? {});
 }
 
 const job = makeJob();
@@ -95,7 +80,7 @@ test("aggregates book progress for all languages", async () => {
     events: true,
   });
 
-  const result = await updateBookCompletionProgressJob(job);
+  const result = await updateBookCompletionProgressHandler(job);
   expect(result).toBeUndefined();
 
   const progressRows = await findProgress();
@@ -156,7 +141,7 @@ test("counts each word of a multi-word phrase", async () => {
     events: true,
   });
 
-  const result = await updateBookCompletionProgressJob(job);
+  const result = await updateBookCompletionProgressHandler(job);
   expect(result).toBeUndefined();
 
   const progressRows = await findProgress();
@@ -197,7 +182,7 @@ test("doesn't update a language if no events have occurred", async () => {
     .returningAll()
     .execute();
 
-  const result = await updateBookCompletionProgressJob(job);
+  const result = await updateBookCompletionProgressHandler(job);
   expect(result).toBeUndefined();
 
   const progressRows = await findProgress();
@@ -231,7 +216,7 @@ test("replaces previous progress entries", async () => {
     events: true,
   });
 
-  const result = await updateBookCompletionProgressJob(job);
+  const result = await updateBookCompletionProgressHandler(job);
   expect(result).toBeUndefined();
 
   const progressRows = await findProgress();
@@ -275,11 +260,11 @@ test("processes all languages when allLanguages is true", async () => {
     events: true,
   });
 
-  await updateBookCompletionProgressJob(makeJob());
+  await updateBookCompletionProgressHandler(makeJob());
 
   // Run again without new events — normally this language would be skipped,
   // but allLanguages: true forces it to be reprocessed.
-  const result = await updateBookCompletionProgressJob(
+  const result = await updateBookCompletionProgressHandler(
     makeJob({ allLanguages: true }),
   );
   expect(result).toBeUndefined();

@@ -2,18 +2,13 @@ import { getDb } from "@/db";
 import { subDays } from "date-fns";
 import { logger } from "@/logging";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
-import { Job } from "@/shared/jobs/model";
-import { EXPORT_JOB_TYPES } from "./jobTypes";
-import type {
-  ExportLanguageBlobsJobPayload,
-  QueueGithubExportRunJobPayload,
-} from "../model";
+import { ExportGlossesJob } from "./ExportGlossesJob";
 
 const DEFAULT_WINDOW_DAYS = 8;
 
-export async function exportGlossesJob(
-  job: Job<QueueGithubExportRunJobPayload>,
-): Promise<void> {
+export async function exportGlossesHandler(
+  job: ExportGlossesJob,
+) {
   const jobLogger = logger.child({
     job: {
       id: job.id,
@@ -21,16 +16,7 @@ export async function exportGlossesJob(
     },
   });
 
-  if (job.type !== EXPORT_JOB_TYPES.EXPORT_GLOSSES) {
-    jobLogger.error(
-      `received job type ${job.type}, expected ${EXPORT_JOB_TYPES.EXPORT_GLOSSES}`,
-    );
-    throw new Error(
-      `Expected job type ${EXPORT_JOB_TYPES.EXPORT_GLOSSES}, but received ${job.type}`,
-    );
-  }
-
-  const windowDays = job.payload?.windowDays ?? DEFAULT_WINDOW_DAYS;
+  const windowDays = job.payload.windowDays ?? DEFAULT_WINDOW_DAYS;
 
   let languageCodes = await getUpdatedLanguageCodes({ windowDays });
   // Filter out English glosses for now until Allan Bunning's Greek glosses are in an open license
@@ -56,12 +42,10 @@ export async function exportGlossesJob(
 
   await Promise.all(
     batches.map((languageCodes) => {
-      const payload: ExportLanguageBlobsJobPayload = {
-        languageCodes,
-      };
-
-      return enqueueJob(EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD, payload, {
+      return enqueueJob({
+        type: "export_glosses_child",
         parentJobId: job.id,
+        payload: { languageCodes },
       });
     }),
   );

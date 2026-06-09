@@ -1,33 +1,19 @@
 import { logger } from "@/logging";
-import { Job } from "@/shared/jobs/model";
-import jobRepository from "@/shared/jobs/data-access/jobRepository";
+import jobRepo from "@/shared/jobs/data-access/jobRepository";
 import { getStorageEnvironment } from "@/shared/storageEnvironment";
 import exportStorageRepository from "../data-access/ExportStorageRepository";
 import { detectScript } from "@/shared/scriptDetection";
 import interlinearQueryService from "../data-access/InterlinearQueryService";
-import type {
-  ExportInterlinearPdfJobData,
-  ExportInterlinearPdfJobPayload,
-} from "../model";
 import {
   generateInterlinearPdfDocument,
   type InterlinearPdfSection,
 } from "../pdf/InterlinearPdfGenerator";
-import { EXPORT_JOB_TYPES } from "./jobTypes";
+import { ExportInterlinearPdfJob } from "./ExportInterlinearPdfJob";
 
-export async function exportInterlinearPdfJob(
-  job: Job<ExportInterlinearPdfJobPayload>,
-): Promise<void> {
+export async function exportInterlinearPdfHandler(
+  job: ExportInterlinearPdfJob,
+) {
   const jobLogger = logger.child({ jobId: job.id, jobType: job.type });
-
-  if (job.type !== EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF) {
-    jobLogger.error(
-      `received job type ${job.type}, expected ${EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF}`,
-    );
-    throw new Error(
-      `Expected job type ${EXPORT_JOB_TYPES.EXPORT_INTERLINEAR_PDF}, but received ${job.type}`,
-    );
-  }
 
   const environment = getStorageEnvironment();
 
@@ -86,12 +72,12 @@ export async function exportInterlinearPdfJob(
       key: exportKey,
     });
 
-    const data: ExportInterlinearPdfJobData = {
+    job.progress({
       exportKey,
       downloadUrl,
       pages: pageCount,
-    };
-    await jobRepository.updateData(job.id, data);
+    });
+    await jobRepo.commit(job);
 
     jobLogger.info(
       { exportKey, pages: pageCount },
@@ -102,8 +88,6 @@ export async function exportInterlinearPdfJob(
     throw error;
   }
 }
-
-export default exportInterlinearPdfJob;
 
 function formatChapterLabel(chapters: number[]): string {
   const ranges: string[] = [];

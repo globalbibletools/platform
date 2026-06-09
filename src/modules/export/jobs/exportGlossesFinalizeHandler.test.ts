@@ -1,10 +1,10 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { beforeEach, expect, test, vitest } from "vitest";
 import { getDb, kyselyTransaction } from "@/db";
-import { EXPORT_JOB_TYPES } from "./jobTypes";
-import { Job, JobStatus } from "@/shared/jobs/model";
+import { JobStatus } from "@/shared/jobs/types";
 import { ulid } from "@/shared/ulid";
-import { exportGlossesFinalizeJob } from "./exportGlossesFinalizeJob";
+import { exportGlossesFinalizeHandler } from "./exportGlossesFinalizeHandler";
+import { ExportGlossesFinalizeJob } from "./ExportGlossesFinalizeJob";
 
 const { createCommitMock } = vitest.hoisted(() => ({
   createCommitMock: vitest.fn(),
@@ -30,7 +30,7 @@ test("collects child tree items and creates a commit", async () => {
     .values([
       {
         id: parentJobId,
-        type: EXPORT_JOB_TYPES.EXPORT_GLOSSES,
+        type: "export_glosses",
         status: JobStatus.Complete,
         created_at: new Date(),
         updated_at: new Date(),
@@ -38,7 +38,7 @@ test("collects child tree items and creates a commit", async () => {
       {
         id: ulid(),
         parent_job_id: parentJobId,
-        type: EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
+        type: "export_glosses_child",
         status: JobStatus.Complete,
         payload: { languageCode: "eng" } as any,
         data: {
@@ -57,7 +57,7 @@ test("collects child tree items and creates a commit", async () => {
       {
         id: ulid(),
         parent_job_id: parentJobId,
-        type: EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
+        type: "export_glosses_child",
         status: JobStatus.Complete,
         payload: { languageCode: "spa" } as any,
         data: {
@@ -76,7 +76,7 @@ test("collects child tree items and creates a commit", async () => {
       {
         id: ulid(),
         parent_job_id: parentJobId,
-        type: EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
+        type: "export_glosses_child",
         status: JobStatus.Complete,
         payload: { languageCode: "hin" } as any,
         data: {
@@ -95,17 +95,11 @@ test("collects child tree items and creates a commit", async () => {
     ])
     .execute();
 
-  const finalizeJob: Job<void> = {
-    id: ulid(),
+  const finalizeJob = ExportGlossesFinalizeJob.create(undefined, {
     parentJobId,
-    type: EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE,
-    status: JobStatus.Pending,
-    payload: undefined,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  });
 
-  await exportGlossesFinalizeJob(finalizeJob);
+  await exportGlossesFinalizeHandler(finalizeJob);
 
   expect(createCommitMock).toHaveBeenCalledExactlyOnceWith({
     items: [
@@ -140,7 +134,7 @@ test("returns early if another finalize job is in progress", async () => {
     .values([
       {
         id: parentJobId,
-        type: EXPORT_JOB_TYPES.EXPORT_GLOSSES,
+        type: "export_glosses",
         status: JobStatus.Complete,
         created_at: new Date(),
         updated_at: new Date(),
@@ -148,7 +142,7 @@ test("returns early if another finalize job is in progress", async () => {
       {
         id: ulid(),
         parent_job_id: parentJobId,
-        type: EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
+        type: "export_glosses_child",
         status: JobStatus.Complete,
         payload: { languageCode: "eng" } as any,
         data: {
@@ -167,7 +161,7 @@ test("returns early if another finalize job is in progress", async () => {
       {
         id: ulid(),
         parent_job_id: parentJobId,
-        type: EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
+        type: "export_glosses_child",
         status: JobStatus.Complete,
         payload: { languageCode: "spa" } as any,
         data: {
@@ -186,7 +180,7 @@ test("returns early if another finalize job is in progress", async () => {
       {
         id: ulid(),
         parent_job_id: parentJobId,
-        type: EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
+        type: "export_glosses_child",
         status: JobStatus.Complete,
         payload: { languageCode: "hin" } as any,
         data: {
@@ -205,15 +199,9 @@ test("returns early if another finalize job is in progress", async () => {
     ])
     .execute();
 
-  const finalizeJob: Job<void> = {
-    id: ulid(),
+  const finalizeJob = ExportGlossesFinalizeJob.create(undefined, {
     parentJobId,
-    type: EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE,
-    status: JobStatus.Pending,
-    payload: undefined,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  });
 
   // We wrap this in a transaction, so that the lock is transaction bound rather than session bound.
   // In lambdas, session level locks are ok because handlers run in isolated lambdas with their own session.
@@ -228,7 +216,7 @@ test("returns early if another finalize job is in progress", async () => {
       )
       .execute();
 
-    await exportGlossesFinalizeJob(finalizeJob);
+    await exportGlossesFinalizeHandler(finalizeJob);
   });
 
   expect(createCommitMock).not.toHaveBeenCalled();

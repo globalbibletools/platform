@@ -1,15 +1,12 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { expect, test, vitest } from "vitest";
 import { enqueueJob } from "@/shared/jobs/__mocks__/enqueueJob";
-import { Job, JobStatus } from "@/shared/jobs/model";
-import { ulid } from "@/shared/ulid";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 import { phraseFactory } from "@/modules/translation/test-utils/phraseFactory";
 import { GlossStateRaw } from "@/modules/translation/types";
 import { subDays } from "date-fns";
-import { exportGlossesJob } from "./exportGlossesJob";
-import { EXPORT_JOB_TYPES } from "./jobTypes";
-import type { QueueGithubExportRunJobPayload } from "../model";
+import { exportGlossesHandler } from "./exportGlossesHandler";
+import { ExportGlossesJob } from "./ExportGlossesJob";
 
 vitest.mock("@/shared/jobs/enqueueJob");
 
@@ -42,26 +39,17 @@ test("queues child jobs only for languages with changes in the default window", 
     },
   });
 
-  const job: Job<QueueGithubExportRunJobPayload> = {
-    id: ulid(),
-    type: EXPORT_JOB_TYPES.EXPORT_GLOSSES,
-    status: JobStatus.Pending,
-    payload: {},
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  const job = ExportGlossesJob.create({});
 
-  await exportGlossesJob(job);
+  await exportGlossesHandler(job);
 
-  expect(enqueueJob).toHaveBeenCalledExactlyOnceWith(
-    EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
-    {
+  expect(enqueueJob).toHaveBeenCalledExactlyOnceWith({
+    type: "export_glosses_child",
+    parentJobId: job.id,
+    payload: {
       languageCodes: [changedLanguage.code],
     },
-    {
-      parentJobId: job.id,
-    },
-  );
+  });
 });
 
 test("queues child jobs only for languages with changes in the specified window", async () => {
@@ -91,28 +79,17 @@ test("queues child jobs only for languages with changes in the specified window"
     },
   });
 
-  const job: Job<QueueGithubExportRunJobPayload> = {
-    id: ulid(),
-    type: EXPORT_JOB_TYPES.EXPORT_GLOSSES,
-    status: JobStatus.Pending,
+  const job = ExportGlossesJob.create({ windowDays: 4 });
+
+  await exportGlossesHandler(job);
+
+  expect(enqueueJob).toHaveBeenCalledExactlyOnceWith({
+    type: "export_glosses_child",
+    parentJobId: job.id,
     payload: {
-      windowDays: 4,
-    },
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  await exportGlossesJob(job);
-
-  expect(enqueueJob).toHaveBeenCalledExactlyOnceWith(
-    EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
-    {
       languageCodes: [changedLanguage.code],
     },
-    {
-      parentJobId: job.id,
-    },
-  );
+  });
 });
 
 test("ignores eng language even when there are changes", async () => {
@@ -127,16 +104,9 @@ test("ignores eng language even when there are changes", async () => {
     },
   });
 
-  const job: Job<QueueGithubExportRunJobPayload> = {
-    id: ulid(),
-    type: EXPORT_JOB_TYPES.EXPORT_GLOSSES,
-    status: JobStatus.Pending,
-    payload: {},
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  const job = ExportGlossesJob.create({});
 
-  await exportGlossesJob(job);
+  await exportGlossesHandler(job);
 
   expect(enqueueJob).not.toHaveBeenCalled();
 });
@@ -153,16 +123,9 @@ test("does not queue jobs if there are no changed languages", async () => {
     },
   });
 
-  const job: Job<QueueGithubExportRunJobPayload> = {
-    id: ulid(),
-    type: EXPORT_JOB_TYPES.EXPORT_GLOSSES,
-    status: JobStatus.Pending,
-    payload: {},
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  const job = ExportGlossesJob.create({});
 
-  await exportGlossesJob(job);
+  await exportGlossesHandler(job);
 
   expect(enqueueJob).not.toHaveBeenCalled();
 });

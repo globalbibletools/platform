@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { JobStatus } from "../model";
+import { JobStatus } from "../types";
 
 export interface JobStatusReadModel {
   id: string;

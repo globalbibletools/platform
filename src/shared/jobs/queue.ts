@@ -4,19 +4,22 @@ import {
   SQSClient,
   SQSClientConfig,
 } from "@aws-sdk/client-sqs";
+import * as z from "zod";
+import { JobType } from "./jobRegistry";
 
-export interface QueuedJob<Payload> {
-  // Id is optional because jobs can be created through Event Bridge Scheduler
-  // which does not allow its message to dynamically generate an ID.
-  // Instead we generate it when the job is processed.
-  id?: string;
-  parentJobId?: string;
-  type: string;
-  payload: Payload;
-}
+export const queuedJobSchema = z.union([
+  z.object({
+    id: z.string(),
+  }),
+  z.object({
+    type: z.string().transform((x) => x as JobType),
+    payload: z.unknown().optional(),
+  }),
+]);
+export type QueuedJob = z.infer<typeof queuedJobSchema>;
 
 export interface Queue {
-  add<Payload>(job: QueuedJob<Payload>): Promise<void>;
+  add(job: QueuedJob): Promise<void>;
   extendTimeout(handle: string, timeout: number): Promise<void>;
 }
 
@@ -30,7 +33,7 @@ export class SQSQueue implements Queue {
     this.client = new SQSClient({ credentials });
   }
 
-  async add<Payload>(job: QueuedJob<Payload>) {
+  async add(job: QueuedJob) {
     await this.client.send(
       new SendMessageCommand({
         QueueUrl: this.queueUrl,
@@ -53,7 +56,7 @@ export class SQSQueue implements Queue {
 export class LocalQueue implements Queue {
   constructor(private readonly functionUrl: string) {}
 
-  async add<Payload>(job: QueuedJob<Payload>) {
+  async add(job: QueuedJob) {
     // Queues are fire and forget so we don't await it's return here
     fetch(this.functionUrl, {
       method: "post",

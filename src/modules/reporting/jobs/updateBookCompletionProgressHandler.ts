@@ -1,20 +1,13 @@
 import { createLogger } from "@/logging";
-import { Job } from "@/shared/jobs/model";
-import { REPORTING_JOB_TYPES } from "./jobTypes";
 import { getDb, kyselyTransaction } from "@/db";
 import { sql } from "kysely";
 import { GlossStateRaw } from "@/modules/translation/types";
+import { UpdateBookCompletionProgressJob } from "./UpdateBookCompletionProgressJob";
 
-export interface UpdateBookCompletionProgressPayload {
-  allLanguages?: boolean;
-}
 
-export type UpdateBookCompletionProgressJob =
-  Job<UpdateBookCompletionProgressPayload>;
-
-export async function updateBookCompletionProgressJob(
+export async function updateBookCompletionProgressHandler(
   job: UpdateBookCompletionProgressJob,
-): Promise<void> {
+) {
   const logger = createLogger({
     job: {
       id: job.id,
@@ -22,17 +15,8 @@ export async function updateBookCompletionProgressJob(
     },
   });
 
-  if (job.type !== REPORTING_JOB_TYPES.UPDATE_BOOK_COMPLETION_PROGRESS) {
-    logger.error(
-      `received job type ${job.type}, expected ${REPORTING_JOB_TYPES.UPDATE_BOOK_COMPLETION_PROGRESS}`,
-    );
-    throw new Error(
-      `Expected job type ${REPORTING_JOB_TYPES.UPDATE_BOOK_COMPLETION_PROGRESS}, but received ${job.type}`,
-    );
-  }
-
   const languages =
-    job.payload?.allLanguages ?
+    job.payload.allLanguages ?
       await findAllLanguages()
     : await findChangedBooks();
 

@@ -1,9 +1,8 @@
 import { google } from "googleapis";
-import { Job } from "@/shared/jobs/model";
-import { REPORTING_JOB_TYPES } from "./jobTypes";
 import { logger } from "@/logging";
 import reportingQueryService from "../ReportingQueryService";
 import pino from "pino";
+import { ExportAnalyticsJob } from "./ExportAnalyticsJob";
 
 interface Key {
   client_email: string;
@@ -39,22 +38,13 @@ const sheets = google.sheets({
 
 const ANALYTICS_SPREADSHEET_ID = process.env.ANALYTICS_SPREADSHEET_ID;
 
-export async function exportAnalyticsJob(job: Job<void>) {
+export async function exportAnalyticsHandler(job: ExportAnalyticsJob) {
   const jobLogger = logger.child({
     job: {
       id: job.id,
       type: job.type,
     },
   });
-
-  if (job.type !== REPORTING_JOB_TYPES.EXPORT_ANALYTICS) {
-    jobLogger.error(
-      `received job type ${job.type}, expected ${REPORTING_JOB_TYPES.EXPORT_ANALYTICS}`,
-    );
-    throw new Error(
-      `Expected job type ${REPORTING_JOB_TYPES.EXPORT_ANALYTICS}, but received ${job.type}`,
-    );
-  }
 
   // We run these serially to control memory use.
   await updateContributionsSheet(jobLogger);

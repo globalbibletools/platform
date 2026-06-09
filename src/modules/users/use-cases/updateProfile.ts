@@ -1,6 +1,6 @@
 import { NotFoundError } from "@/shared/errors";
 import userRepository from "../data-access/userRepository";
-import mailer, { EmailOptions } from "@/mailer";
+import mailer, { EmailOptions } from "@/shared/email";
 import Password from "../model/Password";
 
 export interface UpdateProfileRequest {

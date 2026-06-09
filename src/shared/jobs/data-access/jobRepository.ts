@@ -1,11 +1,9 @@
 import { getDb } from "@/db";
-import { Job, JobStatus } from "../model";
+import { jobRegistry, type Job } from "../jobRegistry";
 
 const jobRepository = {
-  async getById<Payload, Data = unknown>(
-    id: string,
-  ): Promise<Job<Payload, Data> | undefined> {
-    const job = await getDb()
+  async getById(id: string): Promise<Job | undefined> {
+    const raw = await getDb()
       .selectFrom("job")
       .where("id", "=", id)
       .select([
@@ -20,51 +18,47 @@ const jobRepository = {
       ])
       .executeTakeFirst();
 
-    if (!job) return;
+    if (!raw) return;
 
-    return {
-      ...job,
-      parentJobId: job.parentJobId ?? undefined,
-      payload: (job.payload ?? undefined) as Payload,
-      data: (job.data as Data) ?? undefined,
-    };
+    const JobModel = jobRegistry[raw.type];
+    if (!JobModel) {
+      throw new Error(`Missing job model for job type ${raw.type}`);
+    }
+
+    const job = JobModel.fromRaw({
+      id: raw.id,
+      parentJobId: raw.parentJobId ?? undefined,
+      type: raw.type,
+      status: raw.status,
+      payload: raw.payload,
+      data: raw.data,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+    });
+
+    return job;
   },
 
-  async create(job: Job<any>) {
+  async commit(job: Job): Promise<void> {
     await getDb()
       .insertInto("job")
       .values({
         id: job.id,
-        parent_job_id: job.parentJobId,
+        parent_job_id: job.parentJobId ?? null,
         type: job.type,
         status: job.status,
-        payload: job.payload,
+        payload: job.payload ?? null,
+        data: job.data ?? null,
         created_at: job.createdAt,
         updated_at: job.updatedAt,
       })
-      .execute();
-  },
-
-  async update(jobId: string, status: JobStatus, data?: any): Promise<void> {
-    await getDb()
-      .updateTable("job")
-      .where("id", "=", jobId)
-      .set({
-        status,
-        updated_at: new Date(),
-        ...(data && { data }),
-      })
-      .execute();
-  },
-
-  async updateData(jobId: string, data: any): Promise<void> {
-    await getDb()
-      .updateTable("job")
-      .where("id", "=", jobId)
-      .set({
-        updated_at: new Date(),
-        data,
-      })
+      .onConflict((oc) =>
+        oc.column("id").doUpdateSet({
+          status: job.status,
+          data: job.data ?? null,
+          updated_at: job.updatedAt,
+        }),
+      )
       .execute();
   },
 };

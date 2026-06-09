@@ -1,11 +1,13 @@
 import { logger } from "@/logging";
 import { getDb } from "@/db";
-import { Job, JobStatus } from "@/shared/jobs/model";
+import { JobStatus } from "@/shared/jobs/types";
 import { githubExportService } from "../data-access/githubExportService";
-import { EXPORT_JOB_TYPES } from "./jobTypes";
+import { ExportGlossesFinalizeJob } from "./ExportGlossesFinalizeJob";
 import { GithubTreeItem } from "../model";
 
-export async function exportGlossesFinalizeJob(job: Job<void>): Promise<void> {
+export async function exportGlossesFinalizeHandler(
+  job: ExportGlossesFinalizeJob,
+) {
   const jobLogger = logger.child({
     job: {
       id: job.id,
@@ -16,17 +18,8 @@ export async function exportGlossesFinalizeJob(job: Job<void>): Promise<void> {
 
   const parentJobId = job.parentJobId;
   if (!parentJobId) {
-    logger.error("finalize_github_export_run job missing parentJobId");
-    throw new Error("finalize_github_export_run job missing parentJobId");
-  }
-
-  if (job.type !== EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE) {
-    jobLogger.error(
-      `received job type ${job.type}, expected ${EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE}`,
-    );
-    throw new Error(
-      `Expected job type ${EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE}, but received ${job.type}`,
-    );
+    logger.error("missing parentJobId");
+    throw new Error("missing parentJobId");
   }
 
   await lockJob({
@@ -105,7 +98,7 @@ async function lockJob({
 async function getChildJobs(parentJobId: string) {
   return getDb()
     .selectFrom("job")
-    .where("type", "=", EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD)
+    .where("type", "=", "export_glosses_child")
     .where("parent_job_id", "=", parentJobId)
     .where("status", "=", JobStatus.Complete)
     .select(["id", "data"])

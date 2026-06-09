@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { compileBooks } from "./exportGlossesChildJob";
+import { compileBooks } from "./exportGlossesChildHandler";
 
 async function* wordsIterator(
   words: Array<{

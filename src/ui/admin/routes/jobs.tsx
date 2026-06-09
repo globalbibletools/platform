@@ -10,14 +10,11 @@ import {
   ListRow,
 } from "@/components/List";
 import { queueJobAction } from "@/shared/jobs/queueJobAction";
-import { REPORTING_JOB_TYPES } from "@/modules/reporting/jobs/jobTypes";
-import { EXPORT_JOB_TYPES } from "@/modules/export/jobs/jobTypes";
-import { JobStatus } from "@/shared/jobs/model";
+import { JobStatus } from "@/shared/jobs/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { withDocumentTitle } from "@/documentTitle";
 import { getActiveJobs } from "@/ui/admin/serverFns/getActiveJobs";
-import { TRANSLATION_JOB_TYPES } from "@/modules/translation/jobs/jobType";
 import { Policy } from "@/modules/access";
 import { routerGuard } from "@/modules/access/routerGuard";
 
@@ -52,14 +49,14 @@ function AdminJobsView() {
       <div className="px-8 py-6 w-fit">
         <ViewTitle>Jobs</ViewTitle>
         <ServerAction
-          actionData={{ type: REPORTING_JOB_TYPES.EXPORT_ANALYTICS }}
+          actionData={{ type: "export_analytics" }}
           action={queueJobAction}
         >
           Export Analytics
         </ServerAction>
         <ServerAction
           actionData={{
-            type: REPORTING_JOB_TYPES.UPDATE_BOOK_COMPLETION_PROGRESS,
+            type: "update_book_completion_progress",
             payload: { allLanguages: true },
           }}
           action={queueJobAction}
@@ -68,7 +65,7 @@ function AdminJobsView() {
         </ServerAction>
         <ServerAction
           actionData={{
-            type: TRANSLATION_JOB_TYPES.SYNC_AI_GLOSS_LANGUAGES,
+            type: "sync_ai_gloss_languages",
           }}
           action={queueJobAction}
         >
@@ -79,7 +76,7 @@ function AdminJobsView() {
           <h2 className="text-xl font-bold mb-3">GitHub Export</h2>
 
           <ServerAction
-            actionData={{ type: EXPORT_JOB_TYPES.EXPORT_GLOSSES }}
+            actionData={{ type: "export_glosses" }}
             action={queueJobAction}
             onComplete={refetch}
           >
@@ -108,11 +105,11 @@ function AdminJobsView() {
                           <div>
                             {(() => {
                               switch (job.type) {
-                                case EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD:
+                                case "export_glosses_child":
                                   return `Export ${job.languages.join(", ")}`;
-                                case EXPORT_JOB_TYPES.EXPORT_GLOSSES:
+                                case "export_glosses":
                                   return `Setup`;
-                                case EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE:
+                                case "export_glosses_finalize":
                                   return `Finalize`;
                                 default:
                                   throw new Error(

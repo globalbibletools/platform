@@ -1,20 +1,13 @@
 import { logger } from "@/logging";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
-import { Job, JobStatus } from "@/shared/jobs/model";
+import jobRepo from "@/shared/jobs/data-access/jobRepository";
+import { JobStatus } from "@/shared/jobs/types";
+import { ExportGlossesChildJob } from "./ExportGlossesChildJob";
 import { githubExportService } from "../data-access/githubExportService";
-import type {
-  ExportLanguageBlobsJobData,
-  ExportLanguageBlobsJobPayload,
-  GithubTreeItem,
-} from "../model";
-import { EXPORT_JOB_TYPES } from "./jobTypes";
-import jobRepository from "@/shared/jobs/data-access/jobRepository";
 import { getDb } from "@/db";
 import { GlossStateRaw } from "@/modules/translation/types";
 
-export async function exportGlossesChildJob(
-  job: Job<ExportLanguageBlobsJobPayload>,
-): Promise<void> {
+export async function exportGlossesChildHandler(job: ExportGlossesChildJob) {
   const jobLogger = logger.child({
     job: {
       id: job.id,
@@ -25,20 +18,16 @@ export async function exportGlossesChildJob(
   });
 
   if (!job.parentJobId) {
-    jobLogger.error("export_language_blobs job missing parentJobId");
-    throw new Error("export_language_blobs job missing parentJobId");
+    jobLogger.error("missing parentJobId");
+    throw new Error("missing parentJobId");
   }
 
-  if (job.type !== EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD) {
-    jobLogger.error(
-      `received job type ${job.type}, expected ${EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD}`,
-    );
-    throw new Error(
-      `Expected job type ${EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD}, but received ${job.type}`,
-    );
-  }
-
-  const treeItems: GithubTreeItem[] = [];
+  const treeItems: Array<{
+    path: string;
+    mode: "100644" | "100755" | "040000" | "160000" | "120000";
+    type: "blob" | "tree" | "commit";
+    sha: string;
+  }> = [];
 
   for (const languageCode of job.payload.languageCodes) {
     try {
@@ -68,20 +57,15 @@ export async function exportGlossesChildJob(
     }
   }
 
-  const data: ExportLanguageBlobsJobData = {
-    treeItems,
-  };
-  await jobRepository.updateData(job.id, data);
+  job.progress({ treeItems });
+  await jobRepo.commit(job);
 
   const remainingJobs = await getChildJobsRemaining(job.parentJobId);
   if (remainingJobs === 1) {
-    await enqueueJob(
-      EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE,
-      {},
-      {
-        parentJobId: job.parentJobId,
-      },
-    );
+    await enqueueJob({
+      type: "export_glosses_finalize",
+      parentJobId: job.parentJobId,
+    });
   }
 }
 
@@ -150,7 +134,7 @@ export async function compileBooks({
 async function getChildJobsRemaining(parentJobId: string): Promise<number> {
   const result = await getDb()
     .selectFrom("job")
-    .where("type", "=", EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD)
+    .where("type", "=", "export_glosses_child")
     .where("parent_job_id", "=", parentJobId)
     .where("status", "not in", [JobStatus.Complete, JobStatus.Failed])
     .select([(eb) => eb.fn.countAll<number>().as("count")])

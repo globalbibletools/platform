@@ -1,5 +1,5 @@
 import { requestInterlinearExport } from "@/modules/export/actions/requestInterlinearExport";
-import { JobStatus } from "@/shared/jobs/model";
+import { JobStatus } from "@/shared/jobs/types";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import JobStatusPoller from "@/shared/jobs/ui/JobStatusPoller";

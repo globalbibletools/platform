@@ -1,16 +1,15 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { beforeEach, expect, test, vitest } from "vitest";
 import { enqueueJob } from "@/shared/jobs/__mocks__/enqueueJob";
-import { Job, JobStatus } from "@/shared/jobs/model";
+import { JobStatus } from "@/shared/jobs/types";
 import { ulid } from "@/shared/ulid";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 import { phraseFactory } from "@/modules/translation/test-utils/phraseFactory";
 import { GlossStateRaw } from "@/modules/translation/types";
 import { getDb } from "@/db";
-import { EXPORT_JOB_TYPES } from "./jobTypes";
-import { exportGlossesChildJob } from "./exportGlossesChildJob";
+import { exportGlossesChildHandler } from "./exportGlossesChildHandler";
+import { ExportGlossesChildJob } from "./ExportGlossesChildJob";
 import { githubExportService } from "../data-access/githubExportService";
-import { ExportLanguageBlobsJobPayload } from "../model";
 
 vitest.mock("@/shared/jobs/enqueueJob");
 vitest.mock("../data-access/githubExportService", () => ({
@@ -48,24 +47,24 @@ test("creates blobs for Haggai glosses and then enqueues the finalize job", asyn
 
   const parentJobId = ulid();
 
-  const job: Job<ExportLanguageBlobsJobPayload> = {
+  const job = ExportGlossesChildJob.fromRaw({
     id: ulid(),
     parentJobId,
-    type: EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
+    type: "export_glosses_child",
     status: JobStatus.Pending,
     payload: {
       languageCodes: [language.code],
     },
     createdAt: new Date(),
     updatedAt: new Date(),
-  };
+  });
 
   await getDb()
     .insertInto("job")
     .values([
       {
         id: parentJobId,
-        type: EXPORT_JOB_TYPES.EXPORT_GLOSSES,
+        type: "export_glosses",
         status: JobStatus.Complete,
         created_at: new Date(),
         updated_at: new Date(),
@@ -82,37 +81,31 @@ test("creates blobs for Haggai glosses and then enqueues the finalize job", asyn
     ])
     .execute();
 
-  await exportGlossesChildJob(job);
+  await exportGlossesChildHandler(job);
 
   const updatedJob = await getDb()
     .selectFrom("job")
     .where("id", "=", job.id)
-    .select(["id", "status", "parent_job_id as parentJobId", "data"])
-    .executeTakeFirst();
-  expect(updatedJob).toEqual({
-    id: job.id,
-    status: JobStatus.Pending,
-    parentJobId,
-    data: {
-      treeItems: [
-        {
-          path: `${language.code}/37-Hag.json`,
-          mode: "100644",
-          type: "blob",
-          sha: "blob-sha",
-        },
-      ],
-    },
+    .select(["data"])
+    .executeTakeFirstOrThrow();
+
+  expect(updatedJob.data).toEqual({
+    treeItems: [
+      {
+        path: `${language.code}/37-Hag.json`,
+        mode: "100644",
+        type: "blob",
+        sha: "blob-sha",
+      },
+    ],
   });
+
   expect(mockedCreateBlob).toHaveBeenCalledOnce();
   expect(mockedCreateBlob.mock.lastCall).toMatchSnapshot();
-  expect(enqueueJob).toHaveBeenCalledExactlyOnceWith(
-    EXPORT_JOB_TYPES.EXPORT_GLOSSES_FINALIZE,
-    {},
-    {
-      parentJobId,
-    },
-  );
+  expect(enqueueJob).toHaveBeenCalledExactlyOnceWith({
+    type: "export_glosses_finalize",
+    parentJobId,
+  });
 });
 
 test("doesn't enqueue the finalize job if there are other child jobs are in progress", async () => {
@@ -129,24 +122,24 @@ test("doesn't enqueue the finalize job if there are other child jobs are in prog
 
   const parentJobId = ulid();
 
-  const job: Job<ExportLanguageBlobsJobPayload> = {
+  const job = ExportGlossesChildJob.fromRaw({
     id: ulid(),
     parentJobId,
-    type: EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
+    type: "export_glosses_child",
     status: JobStatus.Pending,
     payload: {
       languageCodes: [language.code],
     },
     createdAt: new Date(),
     updatedAt: new Date(),
-  };
+  });
 
   await getDb()
     .insertInto("job")
     .values([
       {
         id: parentJobId,
-        type: EXPORT_JOB_TYPES.EXPORT_GLOSSES,
+        type: "export_glosses",
         status: JobStatus.Complete,
         created_at: new Date(),
         updated_at: new Date(),
@@ -163,7 +156,7 @@ test("doesn't enqueue the finalize job if there are other child jobs are in prog
       {
         id: ulid(),
         parent_job_id: parentJobId,
-        type: EXPORT_JOB_TYPES.EXPORT_GLOSSES_CHILD,
+        type: "export_glosses_child",
         status: JobStatus.InProgress,
         payload: { languageCode: "hin" },
         created_at: new Date(),
@@ -172,7 +165,7 @@ test("doesn't enqueue the finalize job if there are other child jobs are in prog
     ])
     .execute();
 
-  await exportGlossesChildJob(job);
+  await exportGlossesChildHandler(job);
 
   expect(mockedCreateBlob).toHaveBeenCalledExactlyOnceWith({
     path: `${language.code}/37-Hag.json`,

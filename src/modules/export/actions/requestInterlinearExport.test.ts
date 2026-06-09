@@ -76,9 +76,12 @@ test("creates export request for language", async () => {
   });
 
   expect(response.status).toBe(204);
-  expect(enqueueJob).toHaveBeenCalledExactlyOnceWith("export_interlinear_pdf", {
-    languageId: language.id,
-    languageCode: language.code,
-    requestedBy: translator.id,
+  expect(enqueueJob).toHaveBeenCalledExactlyOnceWith({
+    type: "export_interlinear_pdf",
+    payload: {
+      languageId: language.id,
+      languageCode: language.code,
+      requestedBy: translator.id,
+    },
   });
 });

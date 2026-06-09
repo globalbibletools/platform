@@ -5,7 +5,6 @@ import { ulid } from "@/shared/ulid";
 import { TextDirectionRaw } from "@/modules/languages/model";
 import { ResolvedLanguage } from "@/modules/languages";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
-import { TRANSLATION_JOB_TYPES } from "../jobs/jobType";
 import { initLanguageModuleMock } from "@/modules/languages/__mocks__";
 
 vi.mock("@/modules/languages");
@@ -44,12 +43,12 @@ test("enqueues job when language exists", async () => {
 
   const result = await enqueueAIGlossImportJob(request);
 
-  expect(mockEnqueueJob).toHaveBeenCalledWith(
-    TRANSLATION_JOB_TYPES.IMPORT_AI_GLOSSES,
-    {
+  expect(mockEnqueueJob).toHaveBeenCalledWith({
+    type: "import_ai_glosses",
+    payload: {
       languageCode: "spa",
     },
-  );
+  });
 
   const job = await mockEnqueueJob.mock.results[0].value;
   expect(result).toEqual({ jobId: job.id });

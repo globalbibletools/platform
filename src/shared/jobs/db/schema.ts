@@ -1,9 +1,10 @@
-import { JobStatus } from "../model";
+import { JobType } from "../jobRegistry";
+import { JobStatus } from "../types";
 
 export interface JobTable {
   id: string;
   parent_job_id: string | null;
-  type: string;
+  type: JobType;
   status: JobStatus;
   payload: unknown | null;
   data: unknown | null;

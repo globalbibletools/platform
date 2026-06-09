@@ -18,7 +18,11 @@ export const queueJobAction = createServerFn({ method: "POST" })
     const logger = serverActionLogger("queueJobAction");
 
     try {
-      await enqueueJob(data.type, data.payload);
+      // TODO: improve the typing here
+      await enqueueJob({
+        type: data.type,
+        payload: data.payload,
+      } as any);
     } catch (error) {
       logger.error(error);
       throw error;

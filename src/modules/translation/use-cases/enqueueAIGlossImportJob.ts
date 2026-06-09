@@ -1,7 +1,6 @@
 import { NotFoundError } from "@/shared/errors";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
 import { resolveLanguageByCode } from "@/modules/languages";
-import { TRANSLATION_JOB_TYPES } from "../jobs/jobType";
 
 export interface EnqueueAIGlossImportJobRequest {
   languageCode: string;
@@ -19,8 +18,11 @@ export async function enqueueAIGlossImportJob(
     throw new NotFoundError("Language");
   }
 
-  const job = await enqueueJob(TRANSLATION_JOB_TYPES.IMPORT_AI_GLOSSES, {
-    languageCode: request.languageCode,
+  const job = await enqueueJob({
+    type: "import_ai_glosses",
+    payload: {
+      languageCode: request.languageCode,
+    },
   });
 
   return { jobId: job.id };
