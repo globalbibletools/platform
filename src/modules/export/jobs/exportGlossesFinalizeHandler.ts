@@ -1,10 +1,9 @@
 import { logger } from "@/logging";
 import { getDb } from "@/db";
-import { JobStatus } from "@/shared/jobs/model";
+import { JobStatus } from "@/shared/jobs/types";
 import { githubExportService } from "../data-access/githubExportService";
 import { ExportGlossesFinalizeJob } from "./ExportGlossesFinalizeJob";
 import { GithubTreeItem } from "../model";
-
 
 export async function exportGlossesFinalizeHandler(
   job: ExportGlossesFinalizeJob,

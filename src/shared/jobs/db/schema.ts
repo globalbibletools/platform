@@ -1,5 +1,5 @@
 import { JobType } from "../jobRegistry";
-import { JobStatus } from "../model";
+import { JobStatus } from "../types";
 
 export interface JobTable {
   id: string;

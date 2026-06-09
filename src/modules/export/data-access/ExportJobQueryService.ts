@@ -1,5 +1,5 @@
 import { query } from "@/db";
-import { JobStatus } from "@/shared/jobs/model";
+import { JobStatus } from "@/shared/jobs/types";
 import type {
   ExportInterlinearPdfJobData,
   ExportInterlinearPdfJobPayload,

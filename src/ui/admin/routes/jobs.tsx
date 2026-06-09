@@ -10,7 +10,7 @@ import {
   ListRow,
 } from "@/components/List";
 import { queueJobAction } from "@/shared/jobs/queueJobAction";
-import { JobStatus } from "@/shared/jobs/model";
+import { JobStatus } from "@/shared/jobs/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { withDocumentTitle } from "@/documentTitle";

@@ -1,6 +1,6 @@
 import { Readable } from "stream";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { JobStatus } from "@/shared/jobs/model";
+import { JobStatus } from "@/shared/jobs/types";
 import { ExportInterlinearPdfJob } from "./ExportInterlinearPdfJob";
 import { exportInterlinearPdfHandler } from "./exportInterlinearPdfHandler";
 import jobRepository from "@/shared/jobs/data-access/jobRepository";

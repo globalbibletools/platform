@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getJobStatus } from "../actions/getJobStatus";
-import { JobStatus } from "../model";
+import { JobStatus } from "../types";
 
 export interface JobStatusPollerProps {
   jobId: string;

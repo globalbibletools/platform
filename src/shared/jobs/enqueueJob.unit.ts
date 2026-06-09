@@ -1,5 +1,5 @@
 import { beforeEach, expect, test, vitest } from "vitest";
-import { JobStatus } from "./model";
+import { JobStatus } from "./types";
 import { enqueueJob } from "./enqueueJob";
 import queue from "./queue";
 import jobRepository from "./data-access/jobRepository";

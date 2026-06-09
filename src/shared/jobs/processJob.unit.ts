@@ -8,7 +8,7 @@ import {
   vitest,
 } from "vitest";
 import { logger } from "@/logging";
-import { JobStatus } from "./model";
+import { JobStatus } from "./types";
 import { processJob } from "./processJob";
 import { jobRegistry } from "./jobRegistry";
 import { jobHandlerRegistry } from "./jobHandlerRegistry";

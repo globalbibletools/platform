@@ -5,7 +5,7 @@ import { ulid } from "@/shared/ulid";
 import { getDb } from "@/db";
 import { Insertable } from "kysely";
 import { JobTable } from "../db/schema";
-import { JobStatus } from "../model";
+import { JobStatus } from "../types";
 import { SendEmailJob } from "@/shared/email/jobs/SendEmailJob";
 
 initializeDatabase();

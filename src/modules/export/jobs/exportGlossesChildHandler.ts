@@ -1,16 +1,13 @@
 import { logger } from "@/logging";
 import { enqueueJob } from "@/shared/jobs/enqueueJob";
 import jobRepo from "@/shared/jobs/data-access/jobRepository";
-import { JobStatus } from "@/shared/jobs/model";
+import { JobStatus } from "@/shared/jobs/types";
 import { ExportGlossesChildJob } from "./ExportGlossesChildJob";
 import { githubExportService } from "../data-access/githubExportService";
 import { getDb } from "@/db";
 import { GlossStateRaw } from "@/modules/translation/types";
 
-
-export async function exportGlossesChildHandler(
-  job: ExportGlossesChildJob,
-) {
+export async function exportGlossesChildHandler(job: ExportGlossesChildJob) {
   const jobLogger = logger.child({
     job: {
       id: job.id,

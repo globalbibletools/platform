@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { JobStatus } from "@/shared/jobs/model";
+import { JobStatus } from "@/shared/jobs/types";
 import { sql } from "kysely";
 
 interface AIGlossImportJobReadModel {

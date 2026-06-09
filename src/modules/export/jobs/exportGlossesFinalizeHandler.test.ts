@@ -1,7 +1,7 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { beforeEach, expect, test, vitest } from "vitest";
 import { getDb, kyselyTransaction } from "@/db";
-import { JobStatus } from "@/shared/jobs/model";
+import { JobStatus } from "@/shared/jobs/types";
 import { ulid } from "@/shared/ulid";
 import { exportGlossesFinalizeHandler } from "./exportGlossesFinalizeHandler";
 import { ExportGlossesFinalizeJob } from "./ExportGlossesFinalizeJob";

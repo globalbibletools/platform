@@ -1,7 +1,7 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { beforeEach, expect, test, vitest } from "vitest";
 import { enqueueJob } from "@/shared/jobs/__mocks__/enqueueJob";
-import { JobStatus } from "@/shared/jobs/model";
+import { JobStatus } from "@/shared/jobs/types";
 import { ulid } from "@/shared/ulid";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 import { phraseFactory } from "@/modules/translation/test-utils/phraseFactory";

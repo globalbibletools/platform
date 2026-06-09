@@ -1,12 +1,6 @@
 import * as z from "zod";
 import { ulid } from "../ulid";
-
-export enum JobStatus {
-  Pending = "pending",
-  InProgress = "in-progress",
-  Complete = "complete",
-  Failed = "error",
-}
+import { JobStatus } from "./types";
 
 export interface RawJob {
   id: string;
