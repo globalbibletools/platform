@@ -264,7 +264,7 @@ function Input({
             box-content min-w-12
             overflow-hidden resize-none
             block
-            ${font == "Noto Nastaliq Urdu" ? "h-[30px] leading-8" : "h-[26px]"}
+            ${font == "Noto Nastaliq Urdu" ? "h-[36px] leading-[36px]" : "h-[26px]"}
             ${
               hasModelGloss ?
                 right ? "pl-8"
@@ -314,7 +314,7 @@ function Input({
             w-7 inline-flex justify-center items-center outline-0 border bg-white
             disabled:opacity-50 dark:bg-gray-800
             ${right ? "rounded-l" : "rounded-r"}
-            ${font === "Noto Nastaliq Urdu" ? "h-8" : "h-7"}
+            ${font === "Noto Nastaliq Urdu" ? "h-[36px]" : "h-7"}
             ${
               initial.state === GlossStateRaw.Unapproved ?
                 "text-blue-800 dark:text-green-400 border-blue-800 dark:border-green-800"
