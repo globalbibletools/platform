@@ -10,6 +10,10 @@ COPY src/assets/fonts dist/fonts/
 RUN npm run build:job-worker
 
 FROM public.ecr.aws/lambda/nodejs:22 AS runner
+
+COPY package*.json .
+RUN ["npm", "install", "better-sqlite3"]
+
 ENV NODE_ENV=production
 ENV PDFKIT_DATA_DIR=/var/task/data
 COPY --from=build /app/dist/job-worker.js ${LAMBDA_TASK_ROOT}
