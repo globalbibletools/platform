@@ -16,7 +16,7 @@ export async function exportInterlinearPdfHandler(
 
   const { languageCode, languageId } = job.payload;
 
-  const exportKey = `interlinear/${languageCode}/${job.id}.pdf`;
+  const exportKey = `interlinear-pdf/${languageCode}.pdf`;
 
   try {
     const books =

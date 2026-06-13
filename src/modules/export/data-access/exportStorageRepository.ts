@@ -41,7 +41,7 @@ export const exportStorageRepository = {
     if (process.env.NODE_ENV === "production") {
       return `https://assets.globalbibletools.com/${key}`;
     } else {
-      return `${process.env.EXPORT_PUBLIC_S3_ENDPOINT}/${key}`;
+      return `${process.env.EXPORT_PUBLIC_S3_ENDPOINT}/${EXPORT_BUCKET}/${key}`;
     }
   },
 };

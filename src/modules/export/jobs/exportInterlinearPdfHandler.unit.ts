@@ -150,18 +150,18 @@ describe("exportInterlinearPdfHandler", () => {
       }),
     );
     expect(mockUpload).toHaveBeenCalledExactlyOnceWith({
-      key: "interlinear/spa/job-1.pdf",
+      key: "interlinear-pdf/spa.pdf",
       source: expect.anything(),
       type: "application/pdf",
     });
     expect(mockPublicUrl).toHaveBeenCalledExactlyOnceWith({
-      key: "interlinear/spa/job-1.pdf",
+      key: "interlinear-pdf/spa.pdf",
     });
     expect(mockJobRepoCommit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({
         id: "job-1",
         data: {
-          exportKey: "interlinear/spa/job-1.pdf",
+          exportKey: "interlinear-pdf/spa.pdf",
           downloadUrl: "https://exports.example.com/final.pdf",
           pages: 3,
         },
@@ -223,7 +223,7 @@ describe("exportInterlinearPdfHandler", () => {
     );
 
     expect(mockUpload).toHaveBeenCalledExactlyOnceWith({
-      key: "interlinear/spa/job-1.pdf",
+      key: "interlinear-pdf/spa.pdf",
       source: expect.anything(),
       type: "application/pdf",
     });
