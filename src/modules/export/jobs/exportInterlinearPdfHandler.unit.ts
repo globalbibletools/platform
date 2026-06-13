@@ -7,14 +7,14 @@ import jobRepository from "@/shared/jobs/data-access/jobRepository";
 
 const {
   mockFetchBooksWithApprovedGlossChapters,
-  mockUploadPdf,
-  mockPublicPdfUrl,
+  mockUpload,
+  mockPublicUrl,
   mockGenerateInterlinearPdfDocument,
 } = vi.hoisted(() => {
   return {
     mockFetchBooksWithApprovedGlossChapters: vi.fn(),
-    mockUploadPdf: vi.fn(),
-    mockPublicPdfUrl: vi.fn(),
+    mockUpload: vi.fn(),
+    mockPublicUrl: vi.fn(),
     mockGenerateInterlinearPdfDocument: vi.fn(),
   };
 });
@@ -29,12 +29,12 @@ vi.mock("@/modules/export/data-access/InterlinearQueryService", () => {
     },
   };
 });
-vi.mock("@/modules/export/data-access/ExportStorageRepository", () => {
+vi.mock("@/modules/export/data-access/exportStorageRepository", () => {
   const repo = {
-    uploadPdf: mockUploadPdf,
-    publicPdfUrl: mockPublicPdfUrl,
+    upload: mockUpload,
+    publicUrl: mockPublicUrl,
   };
-  return { __esModule: true, exportStorageRepository: repo, default: repo };
+  return { __esModule: true, exportStorageRepository: repo };
 });
 vi.mock("@/modules/export/pdf/InterlinearPdfGenerator", () => ({
   generateInterlinearPdfDocument: mockGenerateInterlinearPdfDocument,
@@ -59,8 +59,8 @@ describe("exportInterlinearPdfHandler", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     mockFetchBooksWithApprovedGlossChapters.mockReset();
-    mockUploadPdf.mockReset();
-    mockPublicPdfUrl.mockReset();
+    mockUpload.mockReset();
+    mockPublicUrl.mockReset();
     mockGenerateInterlinearPdfDocument.mockReset();
     mockJobRepoCommit.mockReset();
 
@@ -116,7 +116,7 @@ describe("exportInterlinearPdfHandler", () => {
       stream: Readable.from(["pdf"]),
       pageCount: 3,
     }));
-    mockPublicPdfUrl.mockReturnValue("https://exports.example.com/final.pdf");
+    mockPublicUrl.mockReturnValue("https://exports.example.com/final.pdf");
   });
 
   afterEach(() => {
@@ -149,14 +149,12 @@ describe("exportInterlinearPdfHandler", () => {
         }),
       }),
     );
-    expect(mockUploadPdf).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({
-        environment: "local",
-        key: "interlinear/spa/job-1.pdf",
-      }),
-    );
-    expect(mockPublicPdfUrl).toHaveBeenCalledExactlyOnceWith({
-      environment: "local",
+    expect(mockUpload).toHaveBeenCalledExactlyOnceWith({
+      key: "interlinear/spa/job-1.pdf",
+      source: expect.anything(),
+      type: "application/pdf",
+    });
+    expect(mockPublicUrl).toHaveBeenCalledExactlyOnceWith({
       key: "interlinear/spa/job-1.pdf",
     });
     expect(mockJobRepoCommit).toHaveBeenCalledExactlyOnceWith(
@@ -216,7 +214,7 @@ describe("exportInterlinearPdfHandler", () => {
   });
 
   it("does not record job data when final URL generation fails", async () => {
-    mockPublicPdfUrl.mockImplementationOnce(() => {
+    mockPublicUrl.mockImplementationOnce(() => {
       throw new Error("public URL failed");
     });
 
@@ -224,12 +222,11 @@ describe("exportInterlinearPdfHandler", () => {
       /public URL failed/,
     );
 
-    expect(mockUploadPdf).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({
-        environment: "local",
-        key: "interlinear/spa/job-1.pdf",
-      }),
-    );
+    expect(mockUpload).toHaveBeenCalledExactlyOnceWith({
+      key: "interlinear/spa/job-1.pdf",
+      source: expect.anything(),
+      type: "application/pdf",
+    });
     expect(mockJobRepoCommit).not.toHaveBeenCalled();
   });
 
@@ -241,6 +238,6 @@ describe("exportInterlinearPdfHandler", () => {
     );
 
     expect(mockGenerateInterlinearPdfDocument).not.toHaveBeenCalled();
-    expect(mockUploadPdf).not.toHaveBeenCalled();
+    expect(mockUpload).not.toHaveBeenCalled();
   });
 });
