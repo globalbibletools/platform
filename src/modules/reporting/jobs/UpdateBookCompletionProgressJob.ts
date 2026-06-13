@@ -3,7 +3,7 @@ import * as z from "zod";
 
 export const UpdateBookCompletionProgressPayloadSchema = z.object({
   allLanguages: z.boolean().optional().default(false),
-});
+}).optional();
 
 export type UpdateBookCompletionProgressPayload = z.output<
   typeof UpdateBookCompletionProgressPayloadSchema

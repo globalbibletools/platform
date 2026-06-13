@@ -16,7 +16,7 @@ export async function updateBookCompletionProgressHandler(
   });
 
   const languages =
-    job.payload.allLanguages ?
+    job.payload?.allLanguages ?
       await findAllLanguages()
     : await findChangedBooks();
 
