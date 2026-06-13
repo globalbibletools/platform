@@ -1,7 +1,6 @@
 import { logger } from "@/logging";
 import jobRepo from "@/shared/jobs/data-access/jobRepository";
-import { getStorageEnvironment } from "@/shared/storageEnvironment";
-import exportStorageRepository from "../data-access/ExportStorageRepository";
+import { exportStorageRepository } from "../data-access/exportStorageRepository";
 import { detectScript } from "@/shared/scriptDetection";
 import interlinearQueryService from "../data-access/InterlinearQueryService";
 import {
@@ -15,11 +14,9 @@ export async function exportInterlinearPdfHandler(
 ) {
   const jobLogger = logger.child({ jobId: job.id, jobType: job.type });
 
-  const environment = getStorageEnvironment();
-
   const { languageCode, languageId } = job.payload;
 
-  const exportKey = `interlinear/${languageCode}/${job.id}.pdf`;
+  const exportKey = `interlinear-pdf/${languageCode}.pdf`;
 
   try {
     const books =
@@ -61,14 +58,13 @@ export async function exportInterlinearPdfHandler(
       },
     });
 
-    await exportStorageRepository.uploadPdf({
-      environment,
+    await exportStorageRepository.upload({
       key: exportKey,
-      stream,
+      source: stream,
+      type: "application/pdf",
     });
 
-    const downloadUrl = exportStorageRepository.publicPdfUrl({
-      environment,
+    const downloadUrl = exportStorageRepository.publicUrl({
       key: exportKey,
     });
 
