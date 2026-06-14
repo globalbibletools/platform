@@ -27,19 +27,18 @@ export async function exportInterlinearPdfHandler(
     logger.info({ books: books.length }, "Data fetched");
 
     if (books.length === 0) {
+      logger.info("No books to export");
       throw new Error("No chapters with approved glosses found for export");
     }
 
     const sections: InterlinearPdfSection[] = books.map((book) => {
-      const sampleText =
-        book.verses?.[0]?.words?.[0]?.text ??
-        book.verses?.[0]?.words?.[0]?.gloss ??
-        "";
-      const sourceScript = detectScript(sampleText);
+      const sourceScript = book.bookId < 40 ? "hebrew" : "greek";
 
       const glossLanguageName = book.language.name;
       const sourceLanguageLabel =
         sourceScript === "hebrew" ? "Hebrew" : "Greek";
+
+      logger.info(`Producing section details for ${book.bookName}`);
 
       return {
         chapter: book,
