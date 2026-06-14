@@ -1,7 +1,6 @@
 import { logger } from "@/logging";
 import jobRepo from "@/shared/jobs/data-access/jobRepository";
 import { exportStorageRepository } from "../data-access/exportStorageRepository";
-import { detectScript } from "@/shared/scriptDetection";
 import interlinearQueryService from "../data-access/InterlinearQueryService";
 import {
   generateInterlinearPdfDocument,
