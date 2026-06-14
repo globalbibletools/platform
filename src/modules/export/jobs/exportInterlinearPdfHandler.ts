@@ -30,6 +30,8 @@ export async function exportInterlinearPdfHandler(
       throw new Error("No chapters with approved glosses found for export");
     }
 
+    logger.info({ books: books.length }, "Chapters found");
+
     const sections: InterlinearPdfSection[] = books.map((book) => {
       const sampleText =
         book.verses?.[0]?.words?.[0]?.text ??
