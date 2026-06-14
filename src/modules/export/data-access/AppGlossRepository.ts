@@ -1,3 +1,4 @@
+import { logger } from "@/logging";
 import SQLite, { Database, Statement } from "better-sqlite3";
 import { Writable } from "stream";
 
@@ -85,6 +86,7 @@ class SqliteWritableStream<T> extends Writable {
       this.run(this.insertStmt, row);
       callback();
     } catch (error) {
+      logger.error({ err: error, row }, "Failed to insert sqlite rows");
       callback(error instanceof Error ? error : new Error(String(error)));
     }
   }
@@ -94,6 +96,7 @@ class SqliteWritableStream<T> extends Writable {
       this.database.prepare("commit").run();
       callback();
     } catch (error) {
+      logger.error({ err: error }, "Failed to commit sqlite transaction");
       callback(error instanceof Error ? error : new Error(String(error)));
     }
   }
