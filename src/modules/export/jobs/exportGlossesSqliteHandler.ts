@@ -6,8 +6,7 @@ import { resolveLanguageByCode } from "@/modules/languages";
 import { Logger } from "pino";
 import { pipeline } from "stream/promises";
 import { AppGlossRepository } from "../data-access/AppGlossRepository";
-import { getStorageEnvironment } from "@/shared/storageEnvironment";
-import exportStorageRepository from "../data-access/ExportStorageRepository";
+import { exportStorageRepository } from "../data-access/exportStorageRepository";
 
 export async function exportGlossesSqliteHandler(job: ExportGlossesSqliteJob) {
   const jobLogger = logger.child({
@@ -19,16 +18,13 @@ export async function exportGlossesSqliteHandler(job: ExportGlossesSqliteJob) {
 
   const { languageCodes } = job.payload;
 
-  const environment = getStorageEnvironment();
-
   for (const languageCode of languageCodes) {
     const buffer = await createSqliteDb(languageCode, jobLogger);
     if (buffer) {
       await exportStorageRepository.upload({
-        environment,
         key: `glosses/v1/${languageCode}.db`,
-        stream: buffer,
-        type: "unknown",
+        source: buffer,
+        type: "application/vnd.sqlite3",
       });
     }
 
@@ -55,12 +51,12 @@ async function createSqliteDb(
     return;
   }
 
+  const appGlossRepository = new AppGlossRepository();
+
   const glossStream = streamGlossesForLanguage(language.id);
 
   let nextTextId = 1;
   const textIdMap = new Map<string, number>();
-
-  const appGlossRepository = new AppGlossRepository();
 
   await pipeline(
     glossStream,
@@ -68,7 +64,8 @@ async function createSqliteDb(
       for await (const row of stream) {
         if (!row.gloss) continue;
 
-        // The database format does not support word ids with hyphens yet, so we skip these for now.
+        // The database format does not support word ids with hyphens yet,
+        // so we skip these for now.
         if (row.wordId.includes("-")) continue;
 
         let textId = textIdMap.get(row.gloss);
