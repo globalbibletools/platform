@@ -24,13 +24,11 @@ export async function exportInterlinearPdfHandler(
       await interlinearQueryService.fetchBooksWithApprovedGlossChapters(
         languageId,
       );
-    logger.info("Data fetched");
+    logger.info({ books: books.length }, "Data fetched");
 
     if (books.length === 0) {
       throw new Error("No chapters with approved glosses found for export");
     }
-
-    logger.info({ books: books.length }, "Chapters found");
 
     const sections: InterlinearPdfSection[] = books.map((book) => {
       const sampleText =
