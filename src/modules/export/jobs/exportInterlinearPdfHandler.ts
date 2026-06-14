@@ -19,10 +19,12 @@ export async function exportInterlinearPdfHandler(
   const exportKey = `interlinear-pdf/${languageCode}.pdf`;
 
   try {
+    logger.info("Fetching data");
     const books =
       await interlinearQueryService.fetchBooksWithApprovedGlossChapters(
         languageId,
       );
+    logger.info("Data fetched");
 
     if (books.length === 0) {
       throw new Error("No chapters with approved glosses found for export");
@@ -50,6 +52,7 @@ export async function exportInterlinearPdfHandler(
         },
       };
     });
+    logger.info("Books generated");
 
     const { stream, pageCount } = generateInterlinearPdfDocument(sections, {
       pageSize: "letter",
@@ -57,12 +60,15 @@ export async function exportInterlinearPdfHandler(
         generatedAt: job.createdAt ?? new Date(),
       },
     });
+    logger.info("PDF generated");
 
     await exportStorageRepository.upload({
       key: exportKey,
       source: stream,
       type: "application/pdf",
     });
+
+    logger.info("PDF uploaded");
 
     const downloadUrl = exportStorageRepository.publicUrl({
       key: exportKey,
