@@ -16,16 +16,17 @@ import Database from "better-sqlite3";
 vitest.mock("../data-access/exportStorageRepository", () => ({
   exportStorageRepository: {
     upload: vitest.fn(),
+    uploadZip: vitest.fn(),
     publicUrl: vitest.fn(),
   },
 }));
 
 initializeDatabase();
 
-const mockedUpload = vitest.mocked(exportStorageRepository.upload);
+const mockedUploadZip = vitest.mocked(exportStorageRepository.uploadZip);
 
 beforeEach(() => {
-  mockedUpload.mockReset();
+  mockedUploadZip.mockReset();
 });
 
 function querySqliteTables(buffer: Buffer) {
@@ -74,13 +75,13 @@ test("exports approved glosses for a language as a SQLite database", async () =>
 
   await exportGlossesSqliteHandler(job);
 
-  expect(mockedUpload).toHaveBeenCalledExactlyOnceWith({
-    key: `glosses/v1/${language.code}.db`,
+  expect(mockedUploadZip).toHaveBeenCalledExactlyOnceWith({
+    key: `glosses/v1/${language.code}.db.zip`,
     source: expect.any(Buffer),
-    type: "application/vnd.sqlite3",
+    fileName: `${language.code}.db`,
   });
 
-  const buffer = mockedUpload.mock.calls[0][0].source as Buffer;
+  const buffer = mockedUploadZip.mock.calls[0][0].source as Buffer;
   const { verses, texts } = querySqliteTables(buffer);
 
   expect(verses).toEqual([{ _id: Number(word.id), text: 1 }]);
@@ -114,13 +115,13 @@ test("skips words with null glosses", async () => {
 
   await exportGlossesSqliteHandler(job);
 
-  expect(mockedUpload).toHaveBeenCalledExactlyOnceWith({
-    key: `glosses/v1/${language.code}.db`,
+  expect(mockedUploadZip).toHaveBeenCalledExactlyOnceWith({
+    key: `glosses/v1/${language.code}.db.zip`,
     source: expect.any(Buffer),
-    type: "application/vnd.sqlite3",
+    fileName: `${language.code}.db`,
   });
 
-  const buffer = mockedUpload.mock.calls[0][0].source as Buffer;
+  const buffer = mockedUploadZip.mock.calls[0][0].source as Buffer;
   const { verses, texts } = querySqliteTables(buffer);
 
   expect(verses).toEqual([]);
@@ -134,7 +135,7 @@ test("skips a language code that does not exist", async () => {
 
   await exportGlossesSqliteHandler(job);
 
-  expect(mockedUpload).not.toHaveBeenCalled();
+  expect(mockedUploadZip).not.toHaveBeenCalled();
 });
 
 test("exports multiple languages in separate databases", async () => {
@@ -182,14 +183,14 @@ test("exports multiple languages in separate databases", async () => {
 
   await exportGlossesSqliteHandler(job);
 
-  expect(mockedUpload).toHaveBeenCalledTimes(2);
+  expect(mockedUploadZip).toHaveBeenCalledTimes(2);
 
-  const spaBuffer = mockedUpload.mock.calls[0][0].source as Buffer;
+  const spaBuffer = mockedUploadZip.mock.calls[0][0].source as Buffer;
   const { verses: spaVerses, texts: spaTexts } = querySqliteTables(spaBuffer);
   expect(spaVerses).toEqual([{ _id: Number(word.id), text: 1 }]);
   expect(spaTexts).toEqual([{ _id: 1, text: "hello" }]);
 
-  const hinBuffer = mockedUpload.mock.calls[1][0].source as Buffer;
+  const hinBuffer = mockedUploadZip.mock.calls[1][0].source as Buffer;
   const { verses: hinVerses, texts: hinTexts } = querySqliteTables(hinBuffer);
   expect(hinVerses).toEqual([{ _id: Number(word.id), text: 1 }]);
   expect(hinTexts).toEqual([{ _id: 1, text: "namaste" }]);
@@ -238,7 +239,7 @@ test("deduplicates gloss text entries", async () => {
 
   await exportGlossesSqliteHandler(job);
 
-  const buffer = mockedUpload.mock.calls[0][0].source as Buffer;
+  const buffer = mockedUploadZip.mock.calls[0][0].source as Buffer;
   const { verses, texts } = querySqliteTables(buffer);
 
   expect(verses).toEqual([

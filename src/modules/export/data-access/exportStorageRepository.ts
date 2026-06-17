@@ -1,5 +1,6 @@
 import { Upload } from "@aws-sdk/lib-storage";
-import { Readable } from "stream";
+import { PassThrough, Readable } from "stream";
+import { ZipArchive } from "archiver";
 import { createLogger } from "@/logging";
 import { getS3Client } from "@/shared/s3";
 
@@ -31,10 +32,30 @@ export const exportStorageRepository = {
 
     await upload.done();
 
-    const location = `s3://${EXPORT_BUCKET}/${key}`;
+    const location = this.publicUrl({ key });
     logger.info(`Export PDF uploaded to ${location}`);
 
     return location;
+  },
+
+  async uploadZip({
+    key,
+    source,
+    fileName,
+  }: {
+    key: string;
+    source: Buffer;
+    fileName: string;
+  }): Promise<string> {
+    const archive = new ZipArchive();
+    archive.append(source, { name: fileName });
+    archive.finalize();
+
+    return this.upload({
+      key,
+      source: archive.pipe(new PassThrough()),
+      type: "application/zip",
+    });
   },
 
   publicUrl({ key }: { key: string }): string {

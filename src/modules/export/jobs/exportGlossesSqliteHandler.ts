@@ -21,10 +21,10 @@ export async function exportGlossesSqliteHandler(job: ExportGlossesSqliteJob) {
   for (const languageCode of languageCodes) {
     const buffer = await createSqliteDb(languageCode, jobLogger);
     if (buffer) {
-      await exportStorageRepository.upload({
-        key: `glosses/v1/${languageCode}.db`,
+      await exportStorageRepository.uploadZip({
+        key: `glosses/v1/${languageCode}.db.zip`,
         source: buffer,
-        type: "application/vnd.sqlite3",
+        fileName: `${languageCode}.db`,
       });
     }
 
