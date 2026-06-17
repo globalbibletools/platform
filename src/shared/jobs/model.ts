@@ -27,8 +27,7 @@ export function createJobModel<
   payloadSchema: z.ZodType<Payload, z.ZodTypeDef, Input>;
   dataSchema?: z.ZodType<Data>;
 }) {
-  const resolvedDataSchema =
-    dataSchema ?? (z.void() as unknown as z.ZodType<Data>);
+  const resolvedDataSchema = dataSchema ?? (z.any() as z.ZodType<Data>);
 
   class JobModel {
     static readonly type: Type = type;
