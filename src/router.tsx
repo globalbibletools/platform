@@ -26,6 +26,12 @@ export function getRouter() {
   return router;
 }
 
+declare module "@tanstack/history" {
+  interface HistoryState {
+    autofocus?: boolean;
+  }
+}
+
 declare module "@tanstack/react-router" {
   interface Register {
     router: ReturnType<typeof getRouter>;

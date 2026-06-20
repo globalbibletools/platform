@@ -258,6 +258,7 @@ function Input({
           dir={dir}
           wrap="off"
           className={`
+            gloss-input
             border shadow-inner outline-0
             px-3 bg-white
             dark:shadow-none dark:bg-gray-900

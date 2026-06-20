@@ -1,6 +1,11 @@
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { getTranslationVerseData } from "../serverFns/getTranslationVerseData";
-import { createFileRoute, notFound, useRouter } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  notFound,
+  useRouter,
+  useRouterState,
+} from "@tanstack/react-router";
 import { incrementVerseId, parseVerseId } from "@/verse-utils";
 import { withDocumentTitle } from "@/documentTitle";
 import { getTranslator } from "@/shared/i18n/messages";
@@ -90,13 +95,23 @@ function TranslationRoute() {
   const { backtranslations, runningSanityCheck, runSanityCheck } =
     useSanityCheck({ code, verseId });
 
+  const autofocus =
+    useRouterState({ select: (s) => s.location.state })?.autofocus === true;
+
+  const firstPhraseId =
+    data.phrases.find((ph) => ph.wordIds.includes(data.words[0].id))?.id ?? 0;
+
   const { selectedWordIds, focusedPhraseId, lastFocusedPhraseId, dispatch } =
     useSelectionState({
       verseId,
-      firstPhraseId:
-        data.phrases.find((ph) => ph.wordIds.includes(data.words[0].id))?.id ??
-        0,
+      firstPhraseId,
     });
+
+  useEffect(() => {
+    if (!autofocus) return;
+    const input = document.querySelector(".gloss-input");
+    if (input instanceof HTMLElement) input.focus();
+  }, [verseId, autofocus]);
 
   const focusedPhrase = data.phrases.find((ph) => ph.id === focusedPhraseId);
   const sidebarPhrase = data.phrases.find(
@@ -286,6 +301,7 @@ function TranslationRoute() {
                   code: data.language.code,
                   verseId: incrementVerseId(verseId),
                 }}
+                state={{ autofocus: true }}
               >
                 Next
                 <Icon

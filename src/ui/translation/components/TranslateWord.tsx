@@ -236,7 +236,7 @@ export default function TranslateWord({
                         const prevRoot =
                           rootRef.current?.previousElementSibling;
                         const prev =
-                          prevRoot?.querySelector("textarea") ??
+                          prevRoot?.querySelector(".gloss-input") ??
                           prevRoot?.querySelector("button");
                         if (prev && prev instanceof HTMLElement) {
                           prev.focus();
@@ -244,7 +244,7 @@ export default function TranslateWord({
                       } else {
                         const nextRoot = rootRef.current?.nextElementSibling;
                         const next =
-                          nextRoot?.querySelector("textarea") ??
+                          nextRoot?.querySelector(".gloss-input") ??
                           nextRoot?.querySelector("button");
                         if (next && next instanceof HTMLElement) {
                           next.focus();
