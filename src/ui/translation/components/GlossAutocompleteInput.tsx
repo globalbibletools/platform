@@ -283,6 +283,11 @@ function Input({
           value={draft.text}
           autoComplete="off"
           data-method={draft.source}
+          onFocus={(e) => {
+            const len = e.currentTarget.value.length;
+            e.currentTarget.setSelectionRange(len, len);
+            props.onFocus?.(e);
+          }}
           onChange={(e) => {
             dispatch({
               type: "inputChange",

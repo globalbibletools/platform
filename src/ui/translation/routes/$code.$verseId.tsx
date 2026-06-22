@@ -111,6 +111,11 @@ function TranslationRoute() {
     if (!autofocus) return;
     const input = document.querySelector(".gloss-input");
     if (input instanceof HTMLElement) input.focus();
+
+    const timeout = setTimeout(() => {
+      window.history.replaceState({}, "");
+    });
+    return () => clearTimeout(timeout);
   }, [verseId, autofocus]);
 
   const focusedPhrase = data.phrases.find((ph) => ph.id === focusedPhraseId);
