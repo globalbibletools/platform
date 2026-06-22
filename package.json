@@ -33,8 +33,6 @@
     "@tiptap/react": "3.18.0",
     "@tiptap/starter-kit": "3.18.0",
     "aws-lambda": "1.0.7",
-    "chart.js": "4.4.4",
-    "chartjs-adapter-date-fns": "3.0.0",
     "d3": "7.9.0",
     "date-fns": "4.1.0",
     "dompurify": "3.3.3",
