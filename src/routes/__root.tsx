@@ -67,7 +67,7 @@ function RootLayout() {
       </head>
       <body className="has-[dialog:modal]:overflow-hidden">
         <TimezoneTracker />
-        <AnalyticsProvider id={process.env.VITE_FATHOM_ID} />
+        <AnalyticsProvider />
         <IntlProvider locale={locale?.code} messages={messages} timeZone={tz}>
           <FlashProvider>
             <Outlet />
