@@ -4,7 +4,14 @@ import Button from "@/components/Button";
 import ComboboxInput from "@/components/ComboboxInput";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "use-intl";
-import { createContext, ReactNode, useCallback, use, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  use,
+  useState,
+  useEffect,
+} from "react";
 import AudioDialog from "./AudioDialog";
 import SettingsMenu from "./SettingsMenu";
 import CommandInput from "./CommandInput";
@@ -29,7 +36,6 @@ export default function ReadingToolbar({
     from: "/_main/read/$code/$chapterId",
   });
   const navigate = useNavigate();
-  const [textSize, setTextSize] = useState(3);
   const [mode, setMode] = useState<"immersive" | "standard">("standard");
   const [aiGlosses, setAiGlosses] = useState<"none" | "fallback" | "prefer">(
     "fallback",
@@ -37,6 +43,14 @@ export default function ReadingToolbar({
   const [audioVerse, setAudioVerse] = useState<string>();
 
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
+  const [textSize, setTextSize] = useState(() => {
+    const storedSize = localStorage.getItem("textSize");
+    return storedSize ? parseInt(storedSize) : 3;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("textSize", JSON.stringify(textSize));
+  }, [textSize]);
 
   const copyToClipboard = useClipboardCopy({
     messageOnSuccess: t("copyLink.success"),
