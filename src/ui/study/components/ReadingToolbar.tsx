@@ -4,14 +4,7 @@ import Button from "@/components/Button";
 import ComboboxInput from "@/components/ComboboxInput";
 import { Icon } from "@/components/Icon";
 import { useTranslations } from "use-intl";
-import {
-  createContext,
-  ReactNode,
-  useCallback,
-  use,
-  useState,
-  useEffect,
-} from "react";
+import { createContext, ReactNode, useCallback, use, useState } from "react";
 import AudioDialog from "./AudioDialog";
 import SettingsMenu from "./SettingsMenu";
 import CommandInput from "./CommandInput";
@@ -19,6 +12,7 @@ import { useFlash } from "@/flash";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { ProgressByBookIdReadModel } from "../readModels/getReadBookProgressReadModel";
 import { generateChapterPermalinkUrl } from "@/modules/study/route-handlers/resolvePermalink";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 export interface TranslationToolbarProps {
   languages: { englishName: string; localName: string; code: string }[];
@@ -36,21 +30,17 @@ export default function ReadingToolbar({
     from: "/_main/read/$code/$chapterId",
   });
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"immersive" | "standard">("standard");
-  const [aiGlosses, setAiGlosses] = useState<"none" | "fallback" | "prefer">(
-    "fallback",
-  );
   const [audioVerse, setAudioVerse] = useState<string>();
 
   const [showAudioPlayer, setShowAudioPlayer] = useState(false);
-  const [textSize, setTextSize] = useState(() => {
-    const storedSize = localStorage.getItem("textSize");
-    return storedSize ? parseInt(storedSize) : 3;
-  });
 
-  useEffect(() => {
-    localStorage.setItem("textSize", JSON.stringify(textSize));
-  }, [textSize]);
+  const defaultReadingSettings: ReadingSettings = {
+    mode: "standard",
+    aiGlosses: "fallback",
+    textSize: 3,
+  };
+  const [readingSettings, setReadingSettings] =
+    useLocalStorage<ReadingSettings>("readingSettings", defaultReadingSettings);
 
   const copyToClipboard = useClipboardCopy({
     messageOnSuccess: t("copyLink.success"),
@@ -112,18 +102,14 @@ export default function ReadingToolbar({
             <span className="sr-only">{t("gpt")}</span>
           </Button>
           <SettingsMenu
-            textSize={textSize}
+            readingSettings={readingSettings}
             languageCode={code}
             languages={languages}
-            mode={mode}
-            aiGlosses={aiGlosses}
-            onTextSizeChange={setTextSize}
-            onModeChange={setMode}
-            onAiGlossesChange={setAiGlosses}
+            onReadingSettingChange={setReadingSettings}
           />
         </div>
       </div>
-      <ReadingContext value={{ textSize, audioVerse, mode, aiGlosses }}>
+      <ReadingContext value={{ ...readingSettings, audioVerse }}>
         {children}
       </ReadingContext>
       {showAudioPlayer && (
@@ -138,6 +124,11 @@ export default function ReadingToolbar({
   );
 }
 
+export interface ReadingSettings {
+  textSize: number;
+  mode: "immersive" | "standard";
+  aiGlosses: "none" | "fallback" | "prefer";
+}
 interface ReadingContextValue {
   textSize: number;
   audioVerse?: string;

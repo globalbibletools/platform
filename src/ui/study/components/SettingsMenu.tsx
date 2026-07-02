@@ -10,27 +10,20 @@ import Button from "@/components/Button";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useTranslations } from "use-intl";
+import { ReadingSettings } from "./ReadingToolbar";
 
 export interface SettingsMenuProps {
-  textSize: number;
+  readingSettings: ReadingSettings;
   languageCode: string;
   languages: { englishName: string; localName: string; code: string }[];
-  mode: "immersive" | "standard";
-  aiGlosses: "none" | "fallback" | "prefer";
-  onTextSizeChange?(textSize: number): void;
-  onModeChange?(mode: "immersive" | "standard"): void;
-  onAiGlossesChange?(aiGlosses: "none" | "fallback" | "prefer"): void;
+  onReadingSettingChange?(readingSettings: ReadingSettings): void;
 }
 
 export default function SettingsMenu({
-  textSize,
+  readingSettings,
   languageCode,
   languages,
-  mode,
-  aiGlosses,
-  onTextSizeChange,
-  onModeChange,
-  onAiGlossesChange,
+  onReadingSettingChange,
 }: SettingsMenuProps) {
   const t = useTranslations("SettingsMenu");
 
@@ -68,8 +61,13 @@ export default function SettingsMenu({
           <FormLabel id="mode-label">Mode</FormLabel>
           <ButtonSelectorInput
             name="mode"
-            value={mode}
-            onChange={onModeChange}
+            value={readingSettings.mode}
+            onChange={(value) => {
+              if (value !== "immersive" && value !== "standard") {
+                return;
+              }
+              onReadingSettingChange?.({ ...readingSettings, mode: value });
+            }}
             aria-labelledby="mode-label"
           >
             <ButtonSelectorOption value="standard">
@@ -84,7 +82,7 @@ export default function SettingsMenu({
           <FormLabel id="ai-glosses-label">{t("ai_glosses")}</FormLabel>
           <ButtonSelectorInput
             name="aiGlosses"
-            value={aiGlosses}
+            value={readingSettings.aiGlosses}
             onChange={(value) => {
               if (
                 value !== "none" &&
@@ -94,7 +92,10 @@ export default function SettingsMenu({
                 return;
               }
 
-              onAiGlossesChange?.(value);
+              onReadingSettingChange?.({
+                ...readingSettings,
+                aiGlosses: value,
+              });
             }}
             aria-labelledby="ai-glosses-label"
           >
@@ -118,8 +119,13 @@ export default function SettingsMenu({
               min={1}
               max={10}
               step={1}
-              value={textSize}
-              onChange={(e) => onTextSizeChange?.(e.target.valueAsNumber)}
+              value={readingSettings.textSize}
+              onChange={(e) =>
+                onReadingSettingChange?.({
+                  ...readingSettings,
+                  textSize: e.target.valueAsNumber,
+                })
+              }
             />
           </div>
         </div>
