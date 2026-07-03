@@ -43,7 +43,15 @@ export default function InviteUserRoute() {
   return (
     <div className="px-8 py-6">
       <ViewTitle>{t("title")}</ViewTitle>
-      <Form action={inviteUser} redirect={{ to: "/admin" }}>
+      <Form
+        action={inviteUser}
+        redirect={
+          initialLanguage ?
+            { to: "/admin/languages/$code", params: { code: initialLanguage } }
+          : { to: "/admin" }
+        }
+        successMessage="User invited successfully"
+      >
         <div className="mb-2">
           <FormLabel htmlFor="email">{t("form.email")}</FormLabel>
           <TextInput
