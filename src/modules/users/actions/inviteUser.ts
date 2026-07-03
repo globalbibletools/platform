@@ -1,13 +1,15 @@
 import * as z from "zod";
 import { createServerFn } from "@tanstack/react-start";
 import { parseForm } from "@/form-parser";
-import { serverActionLogger } from "@/server-action";
-import { inviteUser as inviteUserUseCase } from "../use-cases/inviteUser";
-import { UserAlreadyActiveError } from "../model/errors";
+import mailer from "@/shared/email";
+import { addUserToLanguages } from "@/modules/languages";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
+import userRepository from "../data-access/userRepository";
+import User from "../model/User";
 
 const requestSchema = z.object({
   email: z.string().email().min(1),
+  languages: z.array(z.string()).optional(),
 });
 
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
@@ -22,17 +24,29 @@ export const inviteUser = createServerFn({ method: "POST" })
   })
   .middleware([createPolicyMiddleware({ policy })])
   .handler(async ({ data }) => {
-    const logger = serverActionLogger("inviteUser");
+    let token;
+    let user = await userRepository.findByEmail(data.email);
+    if (!user) {
+      const result = User.invite(data.email);
+      user = result.user;
+      token = result.token;
+    } else if (!user.isActive()) {
+      token = user.reinvite();
+    }
 
-    try {
-      await inviteUserUseCase({ email: data.email });
-    } catch (error) {
-      if (error instanceof UserAlreadyActiveError) {
-        logger.error("user already exists");
-        // TODO: Convert to error code
-        throw new Error("errors.user_exists");
-      }
+    if (token) {
+      await userRepository.commit(user);
 
-      throw error;
+      const url = `${process.env.ORIGIN}/invite?token=${token}`;
+      await mailer.sendEmail({
+        email: user.email.address,
+        subject: "GlobalBibleTools Invite",
+        text: `You've been invited to globalbibletools.com. Click the following to accept your invite and get started.\n\n${url.toString()}`,
+        html: `You've been invited to globalbibletools.com. <a href="${url.toString()}">Click here<a/> to accept your invite and get started.`,
+      });
+    }
+
+    if (data.languages && data.languages.length > 0) {
+      await addUserToLanguages({ userId: user.id, languages: data.languages });
     }
   });

@@ -7,7 +7,7 @@ import { Icon } from "@/components/Icon";
 import ContributionBar from "./ContributionBar";
 import ServerAction from "@/components/ServerAction";
 import { removeLanguageMember } from "@/modules/languages/actions/removeLanguageMember";
-import { reinviteLanguageMemberAction } from "@/modules/languages/actions/reinviteLanguageMember";
+import { reinviteUserAction } from "@/modules/users/actions/reinviteUser";
 import {
   DashboardCard,
   DashboardCardEmptyState,
@@ -132,8 +132,8 @@ export default function LanguageUsersDashboardCard({
                       {member.status === "invited" && (
                         <ServerAction
                           variant="tertiary"
-                          actionData={{ userId: member.id, code: languageCode }}
-                          action={reinviteLanguageMemberAction}
+                          actionData={{ userId: member.id }}
+                          action={reinviteUserAction}
                           successMessage="Invite resent!"
                         >
                           <Icon icon="envelope" />

@@ -133,15 +133,6 @@
     },
     "headTitle": "نسيت كلمة المرور"
   },
-  "InviteLanguageUserPage": {
-    "title": "دعوة مستخدم",
-    "form": {
-      "email": "البريد الإلكتروني",
-      "role": "الدور",
-      "submit": "دعوة"
-    },
-    "role": "{role, select, ADMIN {مدير} TRANSLATOR {مترجم} other {}}"
-  },
   "InviteUserPage": {
     "title": "دعوة مستخدم",
     "form": {
