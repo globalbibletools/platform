@@ -10,6 +10,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { withDocumentTitle } from "@/documentTitle";
 import { Policy } from "@/modules/access";
 import { routerGuard } from "@/modules/access/routerGuard";
+import { getAllLanguages } from "@/ui/admin/serverFns/getAllLanguages";
+import MultiselectInput from "@/components/MultiselectInput";
 
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
@@ -17,18 +19,25 @@ export const Route = createFileRoute("/_main/admin/users/invite")({
   beforeLoad: ({ context }) => {
     routerGuard({ context: context.auth, policy });
   },
+  loader: async () => {
+    const languages = await getAllLanguages();
+
+    return { languages };
+  },
   head: () => withDocumentTitle("Invite User | Admin"),
   component: InviteUserRoute,
 });
 
 export default function InviteUserRoute() {
+  const { languages } = Route.useLoaderData();
+
   const t = useTranslations("InviteUserPage");
 
   return (
     <div className="px-8 py-6">
       <ViewTitle>{t("title")}</ViewTitle>
       <Form action={inviteUser} redirect={{ to: "/admin" }}>
-        <div className="mb-4">
+        <div className="mb-2">
           <FormLabel htmlFor="email">{t("form.email")}</FormLabel>
           <TextInput
             id="email"
@@ -37,6 +46,20 @@ export default function InviteUserRoute() {
             aria-describedby="email-error"
           />
           <FieldError id="email-error" name="email" />
+        </div>
+        <div className="mb-4">
+          <FormLabel id="languages-label">Languages</FormLabel>
+          <MultiselectInput
+            name="languages"
+            className="block w-96"
+            items={languages.map((lang) => ({
+              label: lang.englishName,
+              value: lang.code,
+            }))}
+            aria-labeledby="languages-label"
+            aria-describedby="languages-error"
+          />
+          <FieldError id="languages-error" name="languages" />
         </div>
         <Button type="submit">{t("form.submit")}</Button>
       </Form>
