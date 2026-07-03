@@ -1,13 +1,13 @@
 import * as z from "zod";
 import { createServerFn } from "@tanstack/react-start";
 import { parseForm } from "@/form-parser";
-import { serverActionLogger } from "@/server-action";
 import { inviteUser as inviteUserUseCase } from "../use-cases/inviteUser";
-import { UserAlreadyActiveError } from "../model/errors";
+import { addUserToLanguages } from "@/modules/languages";
 import { createPolicyMiddleware, Policy } from "@/modules/access";
 
 const requestSchema = z.object({
   email: z.string().email().min(1),
+  languages: z.array(z.string()).optional(),
 });
 
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
@@ -22,17 +22,9 @@ export const inviteUser = createServerFn({ method: "POST" })
   })
   .middleware([createPolicyMiddleware({ policy })])
   .handler(async ({ data }) => {
-    const logger = serverActionLogger("inviteUser");
+    const { userId } = await inviteUserUseCase({ email: data.email });
 
-    try {
-      await inviteUserUseCase({ email: data.email });
-    } catch (error) {
-      if (error instanceof UserAlreadyActiveError) {
-        logger.error("user already exists");
-        // TODO: Convert to error code
-        throw new Error("errors.user_exists");
-      }
-
-      throw error;
+    if (data.languages && data.languages.length > 0) {
+      await addUserToLanguages({ userId, languages: data.languages });
     }
   });

@@ -4,40 +4,39 @@ import User from "../model/User";
 
 export interface InviteUserRequest {
   email: string;
-  returnIfActive?: boolean;
 }
 
 export interface InviteUserResponse {
   userId: string;
+  alreadyActive: boolean;
 }
 
 export async function inviteUser(
   request: InviteUserRequest,
 ): Promise<InviteUserResponse> {
   let token;
-
   let user = await userRepository.findByEmail(request.email);
-  if (user) {
-    if (request.returnIfActive && user.isActive()) {
-      return { userId: user.id };
-    } else {
-      token = user.reinvite();
-    }
-  } else {
+  if (!user) {
     const result = User.invite(request.email);
     user = result.user;
     token = result.token;
+  } else if (!user.isActive()) {
+    token = user.reinvite();
   }
 
-  await userRepository.commit(user);
+  if (token) {
+    await userRepository.commit(user);
 
-  const url = `${process.env.ORIGIN}/invite?token=${token}`;
-  await mailer.sendEmail({
-    email: user.email.address,
-    subject: "GlobalBibleTools Invite",
-    text: `You've been invited to globalbibletools.com. Click the following to accept your invite and get started.\n\n${url.toString()}`,
-    html: `You've been invited to globalbibletools.com. <a href="${url.toString()}">Click here<a/> to accept your invite and get started.`,
-  });
+    const url = `${process.env.ORIGIN}/invite?token=${token}`;
+    await mailer.sendEmail({
+      email: user.email.address,
+      subject: "GlobalBibleTools Invite",
+      text: `You've been invited to globalbibletools.com. Click the following to accept your invite and get started.\n\n${url.toString()}`,
+      html: `You've been invited to globalbibletools.com. <a href="${url.toString()}">Click here<a/> to accept your invite and get started.`,
+    });
 
-  return { userId: user.id };
+    return { userId: user.id, alreadyActive: false };
+  }
+
+  return { userId: user.id, alreadyActive: true };
 }
