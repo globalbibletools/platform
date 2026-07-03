@@ -7,15 +7,21 @@ import ViewTitle from "@/components/ViewTitle";
 import Form from "@/components/Form";
 import { inviteUser } from "@/modules/users/actions/inviteUser";
 import { createFileRoute } from "@tanstack/react-router";
+import * as z from "zod";
 import { withDocumentTitle } from "@/documentTitle";
 import { Policy } from "@/modules/access";
 import { routerGuard } from "@/modules/access/routerGuard";
 import { getAllLanguages } from "@/ui/admin/serverFns/getAllLanguages";
 import MultiselectInput from "@/components/MultiselectInput";
 
+const searchSchema = z.object({
+  language: z.string().optional(),
+});
+
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
 export const Route = createFileRoute("/_main/admin/users/invite")({
+  validateSearch: searchSchema,
   beforeLoad: ({ context }) => {
     routerGuard({ context: context.auth, policy });
   },
@@ -30,6 +36,7 @@ export const Route = createFileRoute("/_main/admin/users/invite")({
 
 export default function InviteUserRoute() {
   const { languages } = Route.useLoaderData();
+  const { language: initialLanguage } = Route.useSearch();
 
   const t = useTranslations("InviteUserPage");
 
@@ -56,6 +63,7 @@ export default function InviteUserRoute() {
               label: lang.englishName,
               value: lang.code,
             }))}
+            defaultValue={initialLanguage ? [initialLanguage] : undefined}
             aria-labeledby="languages-label"
             aria-describedby="languages-error"
           />
