@@ -51,7 +51,7 @@ jobs:
           provenance: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-  deploy-job-worker:
+  deploy-job-worker-light:
     needs: test
     runs-on: ubuntu-latest
     permissions:
@@ -76,7 +76,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ steps.login-ecr.outputs.registry }}/globalbibletools-job-worker
+            ${{ steps.login-ecr.outputs.registry }}/globalbibletools-job-worker-light
           tags: |
             type=sha
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
@@ -87,7 +87,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          file: Dockerfile.job-worker
+          file: Dockerfile.job-worker-light
           target: runner
           push: true
           platforms: linux/amd64
@@ -96,4 +96,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Update lambda image
-        run: aws lambda update-function-code --function-name job_worker --image-uri ${{ steps.login-ecr.outputs.registry }}/globalbibletools-job-worker:latest
+        run: aws lambda update-function-code --function-name job_worker_light --image-uri ${{ steps.login-ecr.outputs.registry }}/globalbibletools-job-worker-light:latest

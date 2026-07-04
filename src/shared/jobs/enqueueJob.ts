@@ -6,7 +6,7 @@ import {
   type JobType,
 } from "./jobRegistry";
 import jobRepo from "./data-access/jobRepository";
-import queue from "./queue";
+import { queueRegistry } from "./queueRegistry";
 
 type NeedsPayload<T extends JobType> =
   JobPayloadInput<T> extends void ? false : true;
@@ -43,7 +43,7 @@ export async function enqueueJob<T extends JobType>(
     });
 
     await jobRepo.commit(job);
-    await queue.add({ id: job.id });
+    await queueRegistry[ModelClass.queueName].add({ id: job.id });
     jobLogger.info("Queued job");
 
     return job;

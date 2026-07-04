@@ -23,6 +23,7 @@
             docker
             lsof
             postgresql
+            tree-sitter
           ];
         };
       }

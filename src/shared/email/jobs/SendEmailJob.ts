@@ -18,5 +18,6 @@ const EmailOptionsSchema = z.union([
 
 export class SendEmailJob extends createJobModel({
   type: "send_email",
+  queueName: "light",
   payloadSchema: EmailOptionsSchema,
 }) {}

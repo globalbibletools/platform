@@ -1,13 +1,15 @@
 import { beforeEach, expect, test, vitest } from "vitest";
 import { JobStatus } from "./types";
 import { enqueueJob } from "./enqueueJob";
-import queue from "./queue";
+import { queueRegistry } from "./queueRegistry";
 import jobRepository from "./data-access/jobRepository";
 
 vitest.mock("./data-access/jobRepository");
-vitest.mock("./queue", async () => ({
-  default: {
-    add: vitest.fn(),
+vitest.mock("./queueRegistry", () => ({
+  queueRegistry: {
+    light: {
+      add: vitest.fn(),
+    },
   },
 }));
 
@@ -17,6 +19,7 @@ vitest.mock("./jobRegistry", () => {
   function makeMockModel(type: string) {
     return class {
       static type = type;
+      static queueName = "light" as const;
       id: string;
       parentJobId?: string;
       type: string;
@@ -69,7 +72,7 @@ vitest.mock("./jobRegistry", () => {
 });
 
 const mockedCommitJob = vitest.mocked(jobRepository.commit);
-const mockedQueueAdd = vitest.mocked(queue.add);
+const mockedQueueAdd = vitest.mocked(queueRegistry.light.add);
 
 beforeEach(() => {
   mockedCommitJob.mockReset();

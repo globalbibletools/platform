@@ -1,6 +1,6 @@
 import * as z from "zod";
 import { ulid } from "../ulid";
-import { JobStatus } from "./types";
+import { JobQueueName, JobStatus } from "./types";
 
 export interface RawJob {
   id: string;
@@ -20,10 +20,12 @@ export function createJobModel<
   Data = void,
 >({
   type,
+  queueName,
   payloadSchema,
   dataSchema,
 }: {
   type: Type;
+  queueName: JobQueueName;
   payloadSchema: z.ZodType<Payload, z.ZodTypeDef, Input>;
   dataSchema?: z.ZodType<Data>;
 }) {
@@ -31,6 +33,7 @@ export function createJobModel<
 
   class JobModel {
     static readonly type: Type = type;
+    static readonly queueName: JobQueueName = queueName;
     static readonly payloadSchema = payloadSchema;
     static readonly dataSchema = dataSchema;
 
