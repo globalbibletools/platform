@@ -69,15 +69,3 @@ export class LocalQueue implements Queue {
   // Nothing to do since the local queue isn't really a queue.
   async extendTimeout() {}
 }
-
-const sqsCredentials =
-  process.env.ACCESS_KEY_ID ?
-    {
-      accessKeyId: process.env.ACCESS_KEY_ID ?? "",
-      secretAccessKey: process.env.SECRET_ACCESS_KEY ?? "",
-    }
-  : undefined;
-
-export default process.env.NODE_ENV === "production" ?
-  new SQSQueue(process.env.JOB_QUEUE_URL ?? "", sqsCredentials)
-: new LocalQueue(process.env.JOB_FUNCTION_URL ?? "");
