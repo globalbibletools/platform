@@ -12,7 +12,7 @@ fs.mkdirSync(path.dirname(pdfkitDataTarget), { recursive: true });
 fs.cpSync(pdfkitDataSource, pdfkitDataTarget, { recursive: true });
 
 const ctx = await esbuild.context({
-  entryPoints: ["src/shared/jobs/bin/worker.ts"],
+  entryPoints: ["src/shared/jobs/bin/localWorker.ts"],
   bundle: true,
   platform: "node",
   format: "cjs",
@@ -28,7 +28,7 @@ console.log("esbuild watching...");
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const HANDLER_PATH = url.pathToFileURL(
-  path.resolve(__dirname, "./localWorker.cjs"),
+  path.resolve(__dirname, "./localWorkerThread.cjs"),
 );
 
 const TIMEOUT = 1000 * 60 * 15;

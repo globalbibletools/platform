@@ -60,7 +60,7 @@ export class LocalQueue implements Queue {
     // Queues are fire and forget so we don't await it's return here
     fetch(this.functionUrl, {
       method: "post",
-      body: JSON.stringify({ Records: [{ body: JSON.stringify(job) }] }),
+      body: JSON.stringify({ body: JSON.stringify(job) }),
     }).catch((error) => {
       console.error(`Failed to execute job: ${error}`);
     });
