@@ -10,12 +10,16 @@ const idleDelayMs = Number(process.env.JOB_DELAY ?? 1000 * 60);
 const workerLogger = logger.child({ queue: queueName, concurrency });
 const queue = queueRegistry[queueName];
 
+let isShuttingDown = false;
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function pollLoop(): Promise<void> {
   while (true) {
+    if (isShuttingDown) return;
+
     let message;
     try {
       message = await queue.poll();
@@ -39,10 +43,22 @@ async function pollLoop(): Promise<void> {
   }
 }
 
-workerLogger.info("Starting ECS job worker");
+process.on("SIGTERM", () => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  workerLogger.info("Shutting down, draining in-flight jobs");
+});
 
-for (let i = 0; i < concurrency; i++) {
-  pollLoop().catch((error) => {
-    workerLogger.error({ err: error }, "Poll loop exited unexpectedly");
-  });
+async function main(): Promise<void> {
+  workerLogger.info("Starting ECS job worker");
+
+  const loops: Promise<void>[] = [];
+  for (let i = 0; i < concurrency; i++) {
+    loops.push(pollLoop());
+  }
+
+  await Promise.all(loops);
+  process.exit(0);
 }
+
+void main();

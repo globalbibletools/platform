@@ -9,6 +9,6 @@ const ExportGlossesPayloadSchema = z
 
 export class ExportGlossesJob extends createJobModel({
   type: "export_glosses",
-  queueName: "heavy",
+  queueName: "light",
   payloadSchema: ExportGlossesPayloadSchema,
 }) {}
