@@ -12,9 +12,32 @@ const queue = queueRegistry[queueName];
 
 let isShuttingDown = false;
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+const ECS_AGENT_URI = process.env.ECS_AGENT_URI;
+const PROTECTION_EXPIRES_MINUTES = 60;
+
+let inFlightCount = 0;
+let pendingProtection: "ENABLED" | "DISABLED" = "DISABLED";
+let isSyncing = false;
+
+async function main(): Promise<void> {
+  workerLogger.info("Starting ECS job worker");
+
+  const loops: Promise<void>[] = [];
+  for (let i = 0; i < concurrency; i++) {
+    loops.push(pollLoop());
+  }
+
+  await Promise.all(loops);
+  process.exit(0);
 }
+
+void main();
+
+process.on("SIGTERM", () => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  workerLogger.info("Shutting down, draining in-flight jobs");
+});
 
 async function pollLoop(): Promise<void> {
   while (true) {
@@ -34,31 +57,73 @@ async function pollLoop(): Promise<void> {
       continue;
     }
 
+    jobStarted();
     try {
       await processJob(message, queueName);
       await queue.delete(message.receiptHandle);
     } catch (error) {
       workerLogger.error({ err: error }, "Error during server job");
+    } finally {
+      jobFinished();
     }
   }
 }
 
-process.on("SIGTERM", () => {
-  if (isShuttingDown) return;
-  isShuttingDown = true;
-  workerLogger.info("Shutting down, draining in-flight jobs");
-});
-
-async function main(): Promise<void> {
-  workerLogger.info("Starting ECS job worker");
-
-  const loops: Promise<void>[] = [];
-  for (let i = 0; i < concurrency; i++) {
-    loops.push(pollLoop());
+async function putProtection(
+  status: "ENABLED" | "DISABLED",
+): Promise<"ENABLED" | "DISABLED"> {
+  if (!ECS_AGENT_URI) return status;
+  const response = await fetch(`${ECS_AGENT_URI}/task-protection`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ProtectionStatus: status,
+      ExpiresInMinutes: PROTECTION_EXPIRES_MINUTES,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(
+      `task-protection PUT failed: ${response.status} ${response.statusText}`,
+    );
   }
-
-  await Promise.all(loops);
-  process.exit(0);
+  return status;
 }
 
-void main();
+async function syncProtection(status: "ENABLED" | "DISABLED"): Promise<void> {
+  pendingProtection = status;
+  if (isSyncing) return;
+  isSyncing = true;
+  try {
+    while (true) {
+      const current = pendingProtection;
+      try {
+        await putProtection(current);
+      } catch (error) {
+        workerLogger.error({ err: error }, "Failed to sync task protection");
+        return;
+      }
+      if (pendingProtection !== current) continue;
+      return;
+    }
+  } finally {
+    isSyncing = false;
+  }
+}
+
+function jobStarted(): void {
+  inFlightCount++;
+  if (inFlightCount === 1) {
+    void syncProtection("ENABLED");
+  }
+}
+
+function jobFinished(): void {
+  inFlightCount--;
+  if (inFlightCount === 0) {
+    void syncProtection("DISABLED");
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
