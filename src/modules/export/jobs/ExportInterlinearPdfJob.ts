@@ -15,6 +15,7 @@ const ExportInterlinearPdfDataSchema = z.object({
 
 export class ExportInterlinearPdfJob extends createJobModel({
   type: "export_interlinear_pdf",
+  queueName: "light",
   payloadSchema: ExportInterlinearPdfPayloadSchema,
   dataSchema: ExportInterlinearPdfDataSchema,
 }) {}

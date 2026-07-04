@@ -24,10 +24,12 @@ vitest.mock("./jobRegistry", async () => {
 
   const TestJob = createJobModel({
     type: "test_job",
+    queueName: "light",
     payloadSchema: z.string(),
   });
   const TestJobWithTimeout = createJobModel({
     type: "test_job_with_timeout",
+    queueName: "light",
     payloadSchema: z.string(),
   });
 
