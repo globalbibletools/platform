@@ -11,7 +11,7 @@ const ImportAIGlossesDataSchema = z.object({
 
 export class ImportAIGlossesJob extends createJobModel({
   type: "import_ai_glosses",
-  queueName: "light",
+  queueName: "heavy",
   payloadSchema: ImportAIGlossesPayloadSchema,
   dataSchema: ImportAIGlossesDataSchema,
 }) {}

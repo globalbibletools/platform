@@ -13,6 +13,6 @@ export type UpdateBookCompletionProgressPayload = z.output<
 
 export class UpdateBookCompletionProgressJob extends createJobModel({
   type: "update_book_completion_progress",
-  queueName: "light",
+  queueName: "heavy",
   payloadSchema: UpdateBookCompletionProgressPayloadSchema,
 }) {}

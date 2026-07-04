@@ -16,6 +16,14 @@ function createLightQueue(): Queue {
   return new LocalQueue(process.env.JOB_FUNCTION_URL ?? "");
 }
 
+function createHeavyQueue(): Queue {
+  if (process.env.NODE_ENV === "production") {
+    return new SQSQueue(process.env.JOB_QUEUE_HEAVY_URL ?? "", sqsCredentials);
+  }
+  return new LocalQueue(process.env.JOB_HEAVY_FUNCTION_URL ?? "");
+}
+
 export const queueRegistry: Record<JobQueueName, Queue> = {
   light: createLightQueue(),
+  heavy: createHeavyQueue(),
 };

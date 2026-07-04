@@ -3,6 +3,6 @@ import * as z from "zod";
 
 export class ExportAnalyticsJob extends createJobModel({
   type: "export_analytics",
-  queueName: "light",
+  queueName: "heavy",
   payloadSchema: z.any(),
 }) {}

@@ -6,6 +6,7 @@
     "dev:job-worker": "node src/shared/jobs/bin/workerDevServer.js",
     "build": "vite build",
     "build:job-worker-light": "esbuild src/shared/jobs/bin/lambdaWorker.ts --bundle --outfile=dist/job-worker-light.js --format=cjs --platform=node --target=node20",
+    "build:job-worker-heavy": "esbuild src/shared/jobs/bin/ecsWorker.ts --bundle --outfile=dist/ecs-worker.js --format=cjs --platform=node --target=node22",
     "start": "node ./output/server/index.mjs",
     "lint": "eslint ./src",
     "format": "prettier . --write",

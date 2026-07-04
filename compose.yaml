@@ -9,6 +9,7 @@ services:
       DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
       TEST_DATABASE_URL: postgresql://postgres:asdfasdf@test_db:5432/postgres
       JOB_FUNCTION_URL: http://job_worker_light:3000
+      JOB_HEAVY_FUNCTION_URL: http://job_worker_heavy:3000
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
@@ -43,6 +44,33 @@ services:
     volumes:
       - ./:/app
       - job-worker-light-node-modules:/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+  job_worker_heavy:
+    build:
+      context: .
+      target: dev
+      dockerfile: Dockerfile.job-worker-light
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://postgres:asdfasdf@db:5432/postgres
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_ENDPOINT_URL_S3: http://localstack:4566
+      AWS_S3_FORCE_PATH_STYLE: "true"
+      EXPORT_PUBLIC_S3_ENDPOINT: http://localhost:${LOCALSTACK_PORT:-4566}
+      BIBLE_SYSTEMS_API_KEY: ${BIBLE_SYSTEMS_API_KEY}
+      JOB_QUEUE_NAME: heavy
+    volumes:
+      - ./:/app
+      - job-worker-heavy-node-modules:/app/node_modules
     depends_on:
       db:
         condition: service_healthy
@@ -120,4 +148,5 @@ volumes:
   db-data:
   platform-node-modules:
   job-worker-light-node-modules:
+  job-worker-heavy-node-modules:
   docs-node-modules:
