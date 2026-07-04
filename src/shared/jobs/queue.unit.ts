@@ -101,9 +101,7 @@ describe("LocalQueue", () => {
 
     expect(mockedFetch).toHaveBeenCalledExactlyOnceWith(functionUrl, {
       method: "post",
-      body: JSON.stringify({
-        Records: [{ body: JSON.stringify({ id: jobId }) }],
-      }),
+      body: JSON.stringify({ body: JSON.stringify({ id: jobId }) }),
     });
   });
 });
