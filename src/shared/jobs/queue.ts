@@ -1,5 +1,7 @@
 import {
   ChangeMessageVisibilityCommand,
+  DeleteMessageCommand,
+  ReceiveMessageCommand,
   SendMessageCommand,
   SQSClient,
   SQSClientConfig,
@@ -18,9 +20,16 @@ export const queuedJobSchema = z.union([
 ]);
 export type QueuedJob = z.infer<typeof queuedJobSchema>;
 
+export interface QueuedMessage {
+  body: string;
+  receiptHandle: string;
+}
+
 export interface Queue {
   add(job: QueuedJob): Promise<void>;
   extendTimeout(handle: string, timeout: number): Promise<void>;
+  poll(): Promise<QueuedMessage | undefined>;
+  delete(handle: string): Promise<void>;
 }
 
 export class SQSQueue implements Queue {
@@ -51,6 +60,30 @@ export class SQSQueue implements Queue {
       }),
     );
   }
+
+  async poll(): Promise<QueuedMessage | undefined> {
+    const response = await this.client.send(
+      new ReceiveMessageCommand({
+        QueueUrl: this.queueUrl,
+        MaxNumberOfMessages: 1,
+      }),
+    );
+    const message = response.Messages?.[0];
+    if (!message) return undefined;
+    return {
+      body: message.Body ?? "",
+      receiptHandle: message.ReceiptHandle ?? "",
+    };
+  }
+
+  async delete(handle: string) {
+    await this.client.send(
+      new DeleteMessageCommand({
+        QueueUrl: this.queueUrl,
+        ReceiptHandle: handle,
+      }),
+    );
+  }
 }
 
 export class LocalQueue implements Queue {
@@ -68,4 +101,16 @@ export class LocalQueue implements Queue {
 
   // Nothing to do since the local queue isn't really a queue.
   async extendTimeout() {}
+
+  async poll(): Promise<QueuedMessage | undefined> {
+    throw new Error(
+      "poll() is not supported on LocalQueue (dev is push-based)",
+    );
+  }
+
+  async delete() {
+    throw new Error(
+      "delete() is not supported on LocalQueue (dev is push-based)",
+    );
+  }
 }

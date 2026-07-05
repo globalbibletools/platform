@@ -5,4 +5,4 @@ export enum JobStatus {
   Failed = "error",
 }
 
-export type JobQueueName = "light";
+export type JobQueueName = "light" | "heavy";
