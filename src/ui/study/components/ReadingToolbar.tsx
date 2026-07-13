@@ -38,6 +38,9 @@ export default function ReadingToolbar({
     mode: "standard",
     aiGlosses: "fallback",
     textSize: 3,
+    hebrewVowels: true,
+    hebrewAccents: true,
+    greekAccents: true,
   };
   const [readingSettings, setReadingSettings] =
     useLocalStorage<ReadingSettings>("readingSettings", defaultReadingSettings);
@@ -128,12 +131,18 @@ export interface ReadingSettings {
   textSize: number;
   mode: "immersive" | "standard";
   aiGlosses: "none" | "fallback" | "prefer";
+  hebrewVowels: boolean;
+  hebrewAccents: boolean;
+  greekAccents: boolean;
 }
 interface ReadingContextValue {
   textSize: number;
   audioVerse?: string;
   mode: "immersive" | "standard";
   aiGlosses: "none" | "fallback" | "prefer";
+  hebrewVowels: boolean;
+  hebrewAccents: boolean;
+  greekAccents: boolean;
 }
 
 const ReadingContext = createContext<ReadingContextValue | null>(null);

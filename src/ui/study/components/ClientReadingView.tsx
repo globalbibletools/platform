@@ -11,6 +11,11 @@ import { useTranslations } from "use-intl";
 import VerseDetails from "./VerseDetails";
 import AttributionDialog from "./AttributionDialog";
 import { fontMap } from "@/fonts";
+import {
+  removeHebrewAccents,
+  removeHebrewVowels,
+  removeGreekAccents,
+} from "@/utils/remove-vowels-or-accents";
 
 interface VerseWord {
   id: string;
@@ -67,7 +72,15 @@ export default function ReadingView({
   const t = useTranslations("ReadingView");
   const isOT = isOldTestament(chapterId + "001");
 
-  const { textSize, audioVerse, mode, aiGlosses } = useReadingContext();
+  const {
+    textSize,
+    audioVerse,
+    mode,
+    aiGlosses,
+    hebrewVowels,
+    hebrewAccents,
+    greekAccents,
+  } = useReadingContext();
 
   const popover = usePopover(mode !== "immersive");
   const popoverGloss =
@@ -84,6 +97,21 @@ export default function ReadingView({
   const selectedWord = selectedVerse?.words.find(
     (w) => w.id === selectedWordId,
   );
+
+  const processWord = (word: string): string => {
+    let wordToProcess = word;
+    if (isOT && !hebrewVowels) {
+      wordToProcess = removeHebrewVowels(wordToProcess);
+    }
+    if (isOT && !hebrewAccents) {
+      wordToProcess = removeHebrewAccents(wordToProcess);
+    }
+    if (!isOT && !greekAccents) {
+      wordToProcess = removeGreekAccents(wordToProcess);
+    }
+
+    return wordToProcess;
+  };
 
   return (
     <>
@@ -128,7 +156,7 @@ export default function ReadingView({
                       popover.onWordClick(e, word);
                     }}
                   >
-                    {word.text}
+                    {processWord(word.text)}
                   </span>
                   {!word.text.endsWith("־") && " "}
                 </Fragment>

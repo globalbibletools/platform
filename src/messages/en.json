@@ -569,7 +569,10 @@
       "prefer": "Prefer"
     },
     "text_size": "Text Size",
-    "language": "Language"
+    "language": "Language",
+    "hebrew_vowels": "Hebrew Vowels",
+    "hebrew_accents": "Hebrew Accents",
+    "greek_accents": "Greek Accents"
   },
   "TranslateWord": {
     "approve_tooltip": "Approve",

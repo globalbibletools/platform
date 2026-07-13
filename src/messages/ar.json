@@ -587,7 +587,10 @@
       "prefer": "تفضيل"
     },
     "text_size": "حجم النص",
-    "language": "اللغة"
+    "language": "اللغة",
+    "hebrew_vowels": "حركات اللغة العبرية",
+    "hebrew_accents": "علامات النغم الماسورية",
+    "greek_accents": "علامات النطق اليونانية"
   },
   "TranslateWord": {
     "approve_tooltip": "الموافقة",
