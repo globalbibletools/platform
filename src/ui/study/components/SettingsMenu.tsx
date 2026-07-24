@@ -12,7 +12,6 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import { useTranslations } from "use-intl";
 import { ReadingSettings } from "./ReadingToolbar";
 import { SwitchInput } from "@/components/SwitchInput";
-import { isOldTestament } from "@/verse-utils";
 
 export interface SettingsMenuProps {
   readingSettings: ReadingSettings;
@@ -31,7 +30,6 @@ export default function SettingsMenu({
 
   const navigate = useNavigate();
   const params = useParams({ from: "/_main/read/$code/$chapterId" });
-  const isOT = isOldTestament(params.chapterId + "001");
 
   return (
     <Popover className="relative leading-0">
@@ -113,55 +111,45 @@ export default function SettingsMenu({
             </ButtonSelectorOption>
           </ButtonSelectorInput>
         </div>
-        {isOT && (
-          <>
-            <div className="flex items-center justify-between gap-3">
-              <FormLabel id="hebrew-vowels-label">
-                {t("hebrew_vowels")}
-              </FormLabel>
-              <SwitchInput
-                name="hebrewVowels"
-                checked={readingSettings.hebrewVowels}
-                onChange={(value) =>
-                  onReadingSettingChange?.({
-                    ...readingSettings,
-                    hebrewVowels: value,
-                  })
-                }
-              />
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <FormLabel id="hebrew-accents-label">
-                {t("hebrew_accents")}
-              </FormLabel>
-              <SwitchInput
-                name="hebrewAccents"
-                checked={readingSettings.hebrewAccents}
-                onChange={(value) =>
-                  onReadingSettingChange?.({
-                    ...readingSettings,
-                    hebrewAccents: value,
-                  })
-                }
-              />
-            </div>
-          </>
-        )}
-        {!isOT && (
-          <div className="flex items-center justify-between gap-3">
-            <FormLabel id="greek-accents-label">{t("greek_accents")}</FormLabel>
-            <SwitchInput
-              name="greekAccents"
-              checked={readingSettings.greekAccents}
-              onChange={(value) =>
-                onReadingSettingChange?.({
-                  ...readingSettings,
-                  greekAccents: value,
-                })
-              }
-            />
-          </div>
-        )}
+        <div className="flex items-center justify-start gap-12">
+          <SwitchInput
+            name="hebrewVowels"
+            checked={readingSettings.hebrewVowels}
+            onChange={(value) =>
+              onReadingSettingChange?.({
+                ...readingSettings,
+                hebrewVowels: value,
+              })
+            }
+          />
+          <FormLabel id="hebrew-vowels-label">{t("hebrew_vowels")}</FormLabel>
+        </div>
+        <div className="flex items-center justify-start gap-12">
+          <SwitchInput
+            name="hebrewAccents"
+            checked={readingSettings.hebrewAccents}
+            onChange={(value) =>
+              onReadingSettingChange?.({
+                ...readingSettings,
+                hebrewAccents: value,
+              })
+            }
+          />
+          <FormLabel id="hebrew-accents-label">{t("hebrew_accents")}</FormLabel>
+        </div>
+        <div className="flex items-center justify-start gap-12">
+          <SwitchInput
+            name="greekAccents"
+            checked={readingSettings.greekAccents}
+            onChange={(value) =>
+              onReadingSettingChange?.({
+                ...readingSettings,
+                greekAccents: value,
+              })
+            }
+          />
+          <FormLabel id="greek-accents-label">{t("greek_accents")}</FormLabel>
+        </div>
         <div>
           <FormLabel htmlFor="text-size">{t("text_size")}</FormLabel>
           <div className="w-full">

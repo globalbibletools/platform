@@ -1,7 +1,7 @@
 "use client";
 
 import { isOldTestament } from "@/verse-utils";
-import { Fragment, MouseEvent, useEffect, useState } from "react";
+import { Fragment, MouseEvent, useEffect, useMemo, useState } from "react";
 import { useFloating, autoUpdate, shift } from "@floating-ui/react-dom";
 import { createPortal } from "react-dom";
 import WordDetails from "./WordDetails";
@@ -11,11 +11,6 @@ import { useTranslations } from "use-intl";
 import VerseDetails from "./VerseDetails";
 import AttributionDialog from "./AttributionDialog";
 import { fontMap } from "@/fonts";
-import {
-  removeHebrewAccents,
-  removeHebrewVowels,
-  removeGreekAccents,
-} from "@/utils/remove-vowels-or-accents";
 
 interface VerseWord {
   id: string;
@@ -98,20 +93,25 @@ export default function ReadingView({
     (w) => w.id === selectedWordId,
   );
 
-  const processWord = (word: string): string => {
-    let wordToProcess = word;
-    if (isOT && !hebrewVowels) {
-      wordToProcess = removeHebrewVowels(wordToProcess);
-    }
-    if (isOT && !hebrewAccents) {
-      wordToProcess = removeHebrewAccents(wordToProcess);
-    }
-    if (!isOT && !greekAccents) {
-      wordToProcess = removeGreekAccents(wordToProcess);
-    }
-
-    return wordToProcess;
-  };
+  const processedVerses = useMemo(() => {
+    return verses.flatMap((verse) => {
+      return {
+        ...verse,
+        words: verse.words.map((word) => {
+          return {
+            ...word,
+            displayText: processWord(
+              word.text,
+              isOT,
+              hebrewVowels,
+              hebrewAccents,
+              greekAccents,
+            ),
+          };
+        }),
+      };
+    });
+  }, [hebrewAccents, hebrewVowels, greekAccents]);
 
   return (
     <>
@@ -125,7 +125,7 @@ export default function ReadingView({
           `}
             dir={isOT ? "rtl" : "ltr"}
           >
-            {verses.flatMap((verse) => {
+            {processedVerses.flatMap((verse) => {
               const words = verse.words.map((word, i) => (
                 <Fragment key={word.id}>
                   <span
@@ -156,7 +156,7 @@ export default function ReadingView({
                       popover.onWordClick(e, word);
                     }}
                   >
-                    {processWord(word.text)}
+                    {word.displayText}
                   </span>
                   {!word.text.endsWith("־") && " "}
                 </Fragment>
@@ -279,6 +279,25 @@ export default function ReadingView({
     </>
   );
 }
+
+const processWord = (
+  word: string,
+  isOT: boolean,
+  hebrewVowels: boolean,
+  hebrewAccents: boolean,
+  greekAccents: boolean,
+): string => {
+  const hebrewVowelsRegex = /[\u05B0-\u05BC\u05C1-\u05C2\u05C7]/g;
+  const hebrewAccentsRegex = /[\u0591-\u05AF\u05BD\u05BF\u05C0\u05C3]/g;
+  const greekAccentsRegex = /[\u0300\u0301\u0308\u0313\u0314\u0342\u0345]/g;
+
+  if (isOT && !hebrewVowels) word = word.replace(hebrewVowelsRegex, "");
+  if (isOT && !hebrewAccents) word = word.replace(hebrewAccentsRegex, "");
+  if (!isOT && !greekAccents)
+    word = word.normalize("NFD").replace(greekAccentsRegex, "");
+
+  return word;
+};
 
 function getDisplayGloss(
   word: VerseWord,
