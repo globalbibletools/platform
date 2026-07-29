@@ -1,18 +1,9 @@
-import {
-  afterAll,
-  beforeAll,
-  beforeEach,
-  expect,
-  MockInstance,
-  test,
-  vitest,
-} from "vitest";
+import { beforeEach, expect, test, vitest } from "vitest";
 import { logger } from "@/logging";
 import { JobStatus } from "./types";
 import { processJob } from "./processJob";
 import { jobRegistry } from "./jobRegistry";
 import { jobHandlerRegistry } from "./jobHandlerRegistry";
-import { queueRegistry } from "./queueRegistry";
 import jobRepo from "./data-access/jobRepository";
 
 vitest.mock("@/logging");
