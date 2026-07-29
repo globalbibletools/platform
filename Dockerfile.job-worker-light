@@ -11,9 +11,6 @@ RUN npm run build:job-worker-light
 
 FROM public.ecr.aws/lambda/nodejs:22 AS runner
 
-COPY package*.json .
-RUN ["npm", "install", "better-sqlite3"]
-
 ENV NODE_ENV=production
 ENV PDFKIT_DATA_DIR=/var/task/data
 COPY --from=build /app/dist/job-worker-light.js ${LAMBDA_TASK_ROOT}

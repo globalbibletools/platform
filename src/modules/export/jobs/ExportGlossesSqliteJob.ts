@@ -8,4 +8,5 @@ const ExportGlossesSqlitePayloadSchema = z.object({
 export class ExportGlossesSqliteJob extends createJobModel({
   type: "export_glosses_sqlite",
   payloadSchema: ExportGlossesSqlitePayloadSchema,
+  queueName: "heavy",
 }) {}
