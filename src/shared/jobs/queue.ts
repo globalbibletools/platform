@@ -25,11 +25,13 @@ export interface QueuedMessage {
   receiptHandle: string;
 }
 
+export type CancelHeartbeat = () => void;
+
 export interface Queue {
   add(job: QueuedJob): Promise<void>;
-  extendTimeout(handle: string, timeout: number): Promise<void>;
   poll(): Promise<QueuedMessage | undefined>;
   delete(handle: string): Promise<void>;
+  startHeartbeat(handle: string): CancelHeartbeat;
 }
 
 export class SQSQueue implements Queue {
@@ -47,16 +49,6 @@ export class SQSQueue implements Queue {
       new SendMessageCommand({
         QueueUrl: this.queueUrl,
         MessageBody: JSON.stringify(job),
-      }),
-    );
-  }
-
-  async extendTimeout(handle: string, timeout: number) {
-    await this.client.send(
-      new ChangeMessageVisibilityCommand({
-        QueueUrl: this.queueUrl,
-        ReceiptHandle: handle,
-        VisibilityTimeout: timeout,
       }),
     );
   }
@@ -84,6 +76,35 @@ export class SQSQueue implements Queue {
       }),
     );
   }
+
+  startHeartbeat(handle: string): CancelHeartbeat {
+    const VISBILITY_TIMEOUT = 60;
+    // 20 seconds gives us a second chance to extend before the visibility expires.
+    const EXTEND_INTERVAL = 20 * 1000;
+
+    let extending = false;
+
+    const timer = setInterval(async () => {
+      if (extending) return;
+      extending = true;
+
+      try {
+        await this.client.send(
+          new ChangeMessageVisibilityCommand({
+            QueueUrl: this.queueUrl,
+            ReceiptHandle: handle,
+            VisibilityTimeout: VISBILITY_TIMEOUT,
+          }),
+        );
+      } catch (err) {
+        console.error(err);
+      } finally {
+        extending = false;
+      }
+    }, EXTEND_INTERVAL);
+
+    return () => clearTimeout(timer);
+  }
 }
 
 export class LocalQueue implements Queue {
@@ -99,9 +120,6 @@ export class LocalQueue implements Queue {
     });
   }
 
-  // Nothing to do since the local queue isn't really a queue.
-  async extendTimeout() {}
-
   async poll(): Promise<QueuedMessage | undefined> {
     throw new Error(
       "poll() is not supported on LocalQueue (dev is push-based)",
@@ -112,5 +130,9 @@ export class LocalQueue implements Queue {
     throw new Error(
       "delete() is not supported on LocalQueue (dev is push-based)",
     );
+  }
+
+  startHeartbeat(): CancelHeartbeat {
+    return () => {};
   }
 }

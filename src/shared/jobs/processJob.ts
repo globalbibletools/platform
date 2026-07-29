@@ -13,6 +13,8 @@ export async function processJob(
   const jobLogger = logger.child({});
   const queue = queueRegistry[queueName];
 
+  const cancelHeartbeat = queue.startHeartbeat(message.receiptHandle);
+
   let jobId: string | undefined;
   try {
     let parsed: QueuedJob;
@@ -66,11 +68,6 @@ export async function processJob(
       throw new Error(`Missing handler for ${job.type} jobs`);
     }
 
-    if (handlerEntry.timeout) {
-      jobLogger.info(`Job timeout extended to ${handlerEntry.timeout}`);
-      queue.extendTimeout(message.receiptHandle, handlerEntry.timeout);
-    }
-
     // Typescript doesn't know that the job and handler correspond
     // because we got the handler through the job type.
     await handlerEntry.handler(job as any);
@@ -92,5 +89,7 @@ export async function processJob(
         jobLogger.error({ err: commitError }, "Error when marking job failed");
       }
     }
+  } finally {
+    cancelHeartbeat();
   }
 }
