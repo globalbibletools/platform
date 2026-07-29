@@ -8,6 +8,7 @@ import {
 } from "@aws-sdk/client-sqs";
 import * as z from "zod";
 import { JobType } from "./jobRegistry";
+import { logger } from "@/logging";
 
 export const queuedJobSchema = z.union([
   z.object({
@@ -89,6 +90,9 @@ export class SQSQueue implements Queue {
       extending = true;
 
       try {
+        logger.info(
+          `Extending visibility timeout by ${VISBILITY_TIMEOUT} seconds.`,
+        );
         await this.client.send(
           new ChangeMessageVisibilityCommand({
             QueueUrl: this.queueUrl,
@@ -97,7 +101,7 @@ export class SQSQueue implements Queue {
           }),
         );
       } catch (err) {
-        console.error(err);
+        logger.error({ err }, "Failed to extend visibility timeout");
       } finally {
         extending = false;
       }
