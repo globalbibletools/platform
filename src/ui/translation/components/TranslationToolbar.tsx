@@ -89,6 +89,7 @@ export default function TranslationToolbar({
       return navigate({
         to: "/translate/$code/$verseId",
         params: { code, verseId: nextVerseId },
+        state: { autofocus: true },
       });
     },
     [code, navigate],

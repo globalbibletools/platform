@@ -6,6 +6,7 @@ import { ExportGlossesChildJob } from "./ExportGlossesChildJob";
 import { githubExportService } from "../data-access/githubExportService";
 import { getDb } from "@/db";
 import { GlossStateRaw } from "@/modules/translation/types";
+import { GithubTreeItem } from "../model";
 
 export async function exportGlossesChildHandler(job: ExportGlossesChildJob) {
   const jobLogger = logger.child({
@@ -22,12 +23,7 @@ export async function exportGlossesChildHandler(job: ExportGlossesChildJob) {
     throw new Error("missing parentJobId");
   }
 
-  const treeItems: Array<{
-    path: string;
-    mode: "100644" | "100755" | "040000" | "160000" | "120000";
-    type: "blob" | "tree" | "commit";
-    sha: string;
-  }> = [];
+  const treeItems: GithubTreeItem[] = [];
 
   for (const languageCode of job.payload.languageCodes) {
     try {
@@ -39,20 +35,32 @@ export async function exportGlossesChildHandler(job: ExportGlossesChildJob) {
 
       const compiledBooks = await compileBooks({ books, verses, words });
 
+      const blobItems: GithubTreeItem[] = [];
       for (const book of compiledBooks) {
-        treeItems.push(
+        blobItems.push(
           await githubExportService.createBlob({
-            path: `${languageCode}/${book.id.toString().padStart(2, "0")}-${book.name}.json`,
+            path: `${book.id.toString().padStart(2, "0")}-${book.name}.json`,
             content: JSON.stringify(book, null, 2),
           }),
         );
       }
 
-      jobLogger.info(`Exported language blobs for ${languageCode}`);
+      const subtreeSha = await githubExportService.createSubtree({
+        tree: blobItems,
+      });
+
+      treeItems.push({
+        path: languageCode,
+        mode: "040000",
+        type: "tree",
+        sha: subtreeSha,
+      });
+
+      jobLogger.info(`Exported language subtree for ${languageCode}`);
     } catch (err) {
       jobLogger.error(
         { err },
-        `Error exported language blobs for ${languageCode}`,
+        `Error exporting language subtree for ${languageCode}`,
       );
     }
   }

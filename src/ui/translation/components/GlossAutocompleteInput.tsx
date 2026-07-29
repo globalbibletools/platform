@@ -258,6 +258,7 @@ function Input({
           dir={dir}
           wrap="off"
           className={`
+            gloss-input
             border shadow-inner outline-0
             px-3 bg-white
             dark:shadow-none dark:bg-gray-900
@@ -282,6 +283,11 @@ function Input({
           value={draft.text}
           autoComplete="off"
           data-method={draft.source}
+          onFocus={(e) => {
+            const len = e.currentTarget.value.length;
+            e.currentTarget.setSelectionRange(len, len);
+            props.onFocus?.(e);
+          }}
           onChange={(e) => {
             dispatch({
               type: "inputChange",

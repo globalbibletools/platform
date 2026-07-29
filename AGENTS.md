@@ -218,4 +218,4 @@ describe("feature", () => {
 - **i18n:** use `useTranslations(namespace)` in client components
 - **Logging:** import from `@/logging` (Pino-based); this import is auto-mocked in all test files.
 - **ULIDs** are used as primary keys — generate with the `ulid()` helper from `@/shared/ulid`.
-- **Background jobs** live in `src/shared/jobs/` and module `jobs/` directories; the worker entrypoint is `src/shared/jobs/bin/worker.ts`.
+- **Background jobs** live in `src/shared/jobs/` and module `jobs/` directories. The lambda (light) worker entrypoint is `src/shared/jobs/bin/lambdaWorker.ts`, the ECS (heavy) worker entrypoint is `src/shared/jobs/bin/ecsWorker.ts`, and the dev worker entrypoint is `src/shared/jobs/bin/localWorker.ts`.

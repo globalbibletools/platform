@@ -16,13 +16,14 @@
           packages = with pkgs; [
             opencode
             nodejs_22
-            nodePackages.typescript-language-server
+            typescript-go
             nodePackages.vscode-langservers-extracted
             tailwindcss-language-server
             docker-compose
             docker
             lsof
             postgresql
+            tree-sitter
           ];
         };
       }

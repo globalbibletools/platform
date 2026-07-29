@@ -44,9 +44,9 @@ test("collects child tree items and creates a commit", async () => {
         data: {
           treeItems: [
             {
-              path: "eng/37-Hag.json",
-              mode: "100644",
-              type: "blob",
+              path: "eng",
+              mode: "040000",
+              type: "tree",
               sha: "sha-eng",
             },
           ],
@@ -63,9 +63,9 @@ test("collects child tree items and creates a commit", async () => {
         data: {
           treeItems: [
             {
-              path: "spa/37-Hag.json",
-              mode: "100644",
-              type: "blob",
+              path: "spa",
+              mode: "040000",
+              type: "tree",
               sha: "sha-spa",
             },
           ],
@@ -82,9 +82,9 @@ test("collects child tree items and creates a commit", async () => {
         data: {
           treeItems: [
             {
-              path: "hin/37-Hag.json",
-              mode: "100644",
-              type: "blob",
+              path: "hin",
+              mode: "040000",
+              type: "tree",
               sha: "sha-hin",
             },
           ],
@@ -104,21 +104,21 @@ test("collects child tree items and creates a commit", async () => {
   expect(createCommitMock).toHaveBeenCalledExactlyOnceWith({
     items: [
       {
-        path: "eng/37-Hag.json",
-        mode: "100644",
-        type: "blob",
+        path: "eng",
+        mode: "040000",
+        type: "tree",
         sha: "sha-eng",
       },
       {
-        path: "spa/37-Hag.json",
-        mode: "100644",
-        type: "blob",
+        path: "spa",
+        mode: "040000",
+        type: "tree",
         sha: "sha-spa",
       },
       {
-        path: "hin/37-Hag.json",
-        mode: "100644",
-        type: "blob",
+        path: "hin",
+        mode: "040000",
+        type: "tree",
         sha: "sha-hin",
       },
     ],
@@ -148,9 +148,9 @@ test("returns early if another finalize job is in progress", async () => {
         data: {
           treeItems: [
             {
-              path: "eng/37-Hag.json",
-              mode: "100644",
-              type: "blob",
+              path: "eng",
+              mode: "040000",
+              type: "tree",
               sha: "sha-eng",
             },
           ],
@@ -167,9 +167,9 @@ test("returns early if another finalize job is in progress", async () => {
         data: {
           treeItems: [
             {
-              path: "spa/37-Hag.json",
-              mode: "100644",
-              type: "blob",
+              path: "spa",
+              mode: "040000",
+              type: "tree",
               sha: "sha-spa",
             },
           ],
@@ -186,9 +186,9 @@ test("returns early if another finalize job is in progress", async () => {
         data: {
           treeItems: [
             {
-              path: "hin/37-Hag.json",
-              mode: "100644",
-              type: "blob",
+              path: "hin",
+              mode: "040000",
+              type: "tree",
               sha: "sha-hin",
             },
           ],

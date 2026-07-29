@@ -44,6 +44,22 @@ async function createBlob({
   };
 }
 
+async function createSubtree({
+  tree,
+}: {
+  tree: GithubTreeItem[];
+}): Promise<string> {
+  const client = getClient();
+
+  const result = await client.git.createTree({
+    owner: ghOwner,
+    repo: ghRepo,
+    tree,
+  });
+
+  return result.data.sha;
+}
+
 async function createCommit({
   items,
   message,
@@ -90,5 +106,6 @@ async function createCommit({
 
 export const githubExportService = {
   createBlob,
+  createSubtree,
   createCommit,
 };

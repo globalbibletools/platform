@@ -66,6 +66,15 @@ function LanguageSettingsRoute() {
               saved: t("saved"),
             }}
           />
+          <div className="grow" />
+          <Button
+            variant="tertiary"
+            to="/admin/users/invite"
+            search={{ language: languageSettings.code }}
+          >
+            <Icon icon="envelope" className="me-1" />
+            Invite
+          </Button>
         </div>
         <section className="flex flex-col gap-4 lg:flex-row lg:gap-20 pb-8 border-b border-b-green-300 dark:border-b-blue-800">
           <div className="grow">

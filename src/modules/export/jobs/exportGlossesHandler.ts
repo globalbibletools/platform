@@ -6,9 +6,7 @@ import { ExportGlossesJob } from "./ExportGlossesJob";
 
 const DEFAULT_WINDOW_DAYS = 8;
 
-export async function exportGlossesHandler(
-  job: ExportGlossesJob,
-) {
+export async function exportGlossesHandler(job: ExportGlossesJob) {
   const jobLogger = logger.child({
     job: {
       id: job.id,
@@ -16,7 +14,7 @@ export async function exportGlossesHandler(
     },
   });
 
-  const windowDays = job.payload.windowDays ?? DEFAULT_WINDOW_DAYS;
+  const windowDays = job.payload?.windowDays ?? DEFAULT_WINDOW_DAYS;
 
   let languageCodes = await getUpdatedLanguageCodes({ windowDays });
   // Filter out English glosses for now until Allan Bunning's Greek glosses are in an open license

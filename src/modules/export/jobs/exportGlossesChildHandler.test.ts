@@ -15,25 +15,28 @@ vitest.mock("@/shared/jobs/enqueueJob");
 vitest.mock("../data-access/githubExportService", () => ({
   githubExportService: {
     createBlob: vitest.fn(),
+    createSubtree: vitest.fn(),
   },
 }));
 
 initializeDatabase();
 
 const mockedCreateBlob = vitest.mocked(githubExportService.createBlob);
+const mockedCreateSubtree = vitest.mocked(githubExportService.createSubtree);
 
 beforeEach(() => {
   mockedCreateBlob.mockReset().mockResolvedValue({
-    path: "eng/37-Hag.json",
+    path: "37-Hag.json",
     mode: "100644",
     type: "blob",
     sha: "blob-sha",
   });
+  mockedCreateSubtree.mockReset().mockResolvedValue("tree-sha");
   enqueueJob.mockReset();
   enqueueJob.mockResolvedValue({ id: ulid() } as any);
 });
 
-test("creates blobs for Haggai glosses and then enqueues the finalize job", async () => {
+test("creates a language subtree from blobs and then enqueues the finalize job", async () => {
   const { language } = await languageFactory.build();
   await phraseFactory.build({
     languageId: language.id,
@@ -92,16 +95,26 @@ test("creates blobs for Haggai glosses and then enqueues the finalize job", asyn
   expect(updatedJob.data).toEqual({
     treeItems: [
       {
-        path: `${language.code}/37-Hag.json`,
-        mode: "100644",
-        type: "blob",
-        sha: "blob-sha",
+        path: language.code,
+        mode: "040000",
+        type: "tree",
+        sha: "tree-sha",
       },
     ],
   });
 
   expect(mockedCreateBlob).toHaveBeenCalledOnce();
   expect(mockedCreateBlob.mock.lastCall).toMatchSnapshot();
+  expect(mockedCreateSubtree).toHaveBeenCalledExactlyOnceWith({
+    tree: [
+      {
+        path: "37-Hag.json",
+        mode: "100644",
+        type: "blob",
+        sha: "blob-sha",
+      },
+    ],
+  });
   expect(enqueueJob).toHaveBeenCalledExactlyOnceWith({
     type: "export_glosses_finalize",
     parentJobId,
@@ -168,8 +181,18 @@ test("doesn't enqueue the finalize job if there are other child jobs are in prog
   await exportGlossesChildHandler(job);
 
   expect(mockedCreateBlob).toHaveBeenCalledExactlyOnceWith({
-    path: `${language.code}/37-Hag.json`,
+    path: "37-Hag.json",
     content: expect.any(String),
+  });
+  expect(mockedCreateSubtree).toHaveBeenCalledExactlyOnceWith({
+    tree: [
+      {
+        path: "37-Hag.json",
+        mode: "100644",
+        type: "blob",
+        sha: "blob-sha",
+      },
+    ],
   });
   expect(enqueueJob).not.toHaveBeenCalled();
 });

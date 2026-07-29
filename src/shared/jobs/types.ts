@@ -4,3 +4,5 @@ export enum JobStatus {
   Complete = "complete",
   Failed = "error",
 }
+
+export type JobQueueName = "light" | "heavy";

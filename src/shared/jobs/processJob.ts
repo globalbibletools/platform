@@ -1,12 +1,17 @@
-import { SQSRecord } from "aws-lambda";
 import { jobRegistry } from "./jobRegistry";
 import { jobHandlerRegistry } from "./jobHandlerRegistry";
 import jobRepo from "./data-access/jobRepository";
-import queue, { QueuedJob, queuedJobSchema } from "./queue";
+import { queueRegistry } from "./queueRegistry";
+import { QueuedJob, queuedJobSchema, QueuedMessage } from "./queue";
+import { JobQueueName } from "./types";
 import { logger } from "@/logging";
 
-export async function processJob(message: SQSRecord) {
+export async function processJob(
+  message: QueuedMessage,
+  queueName: JobQueueName,
+) {
   const jobLogger = logger.child({});
+  const queue = queueRegistry[queueName];
 
   let jobId: string | undefined;
   try {

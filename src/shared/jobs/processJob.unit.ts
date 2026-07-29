@@ -12,7 +12,7 @@ import { JobStatus } from "./types";
 import { processJob } from "./processJob";
 import { jobRegistry } from "./jobRegistry";
 import { jobHandlerRegistry } from "./jobHandlerRegistry";
-import queue from "./queue";
+import { queueRegistry } from "./queueRegistry";
 import jobRepo from "./data-access/jobRepository";
 
 vitest.mock("@/logging");
@@ -24,10 +24,12 @@ vitest.mock("./jobRegistry", async () => {
 
   const TestJob = createJobModel({
     type: "test_job",
+    queueName: "light",
     payloadSchema: z.string(),
   });
   const TestJobWithTimeout = createJobModel({
     type: "test_job_with_timeout",
+    queueName: "light",
     payloadSchema: z.string(),
   });
 
@@ -48,6 +50,14 @@ vitest.mock("./jobHandlerRegistry", () => ({
 
 vitest.mock("./data-access/jobRepository");
 
+vitest.mock("./queueRegistry", () => ({
+  queueRegistry: {
+    light: {
+      extendTimeout: vitest.fn(),
+    },
+  },
+}));
+
 // Type assertions needed because mock registries use test keys
 // that don't exist on the real typed registries
 const TestJob = (jobRegistry as any)
@@ -63,7 +73,7 @@ const testJobWithTimeoutHandler = vitest.mocked(
 );
 const mockedGetById = vitest.mocked(jobRepo.getById);
 const mockedCommit = vitest.mocked(jobRepo.commit);
-let mockedExtendTimeout: MockInstance<typeof queue.extendTimeout>;
+let mockedExtendTimeout: MockInstance<typeof queueRegistry.light.extendTimeout>;
 
 const mockJobLogger = {
   debug: vitest.fn(),
@@ -73,7 +83,7 @@ const mockJobLogger = {
 };
 
 beforeAll(() => {
-  mockedExtendTimeout = vitest.spyOn(queue, "extendTimeout");
+  mockedExtendTimeout = vitest.spyOn(queueRegistry.light, "extendTimeout");
 });
 
 afterAll(() => {
@@ -99,9 +109,12 @@ test("returns early if job has already been executed", async () => {
 
   mockedGetById.mockResolvedValue(job);
 
-  await processJob({
-    body: JSON.stringify({ id: job.id }),
-  } as any);
+  await processJob(
+    {
+      body: JSON.stringify({ id: job.id }),
+    } as any,
+    "light",
+  );
 
   expect(testJobHandler).not.toHaveBeenCalled();
   expect(testJobWithTimeoutHandler).not.toHaveBeenCalled();
@@ -111,9 +124,12 @@ test("returns early if job has already been executed", async () => {
 test("creates untracked job and processes it", async () => {
   mockedCommit.mockResolvedValue(undefined);
 
-  await processJob({
-    body: JSON.stringify({ type: "test_job", payload: "payload" }),
-  } as any);
+  await processJob(
+    {
+      body: JSON.stringify({ type: "test_job", payload: "payload" }),
+    } as any,
+    "light",
+  );
 
   expect(testJobHandler).toHaveBeenCalledOnce();
   expect(testJobWithTimeoutHandler).not.toHaveBeenCalled();
@@ -135,7 +151,7 @@ test("handles successful tracked job", async () => {
   mockedGetById.mockResolvedValue(job);
   mockedCommit.mockResolvedValue(undefined);
 
-  await processJob({ body: JSON.stringify({ id: job.id }) } as any);
+  await processJob({ body: JSON.stringify({ id: job.id }) } as any, "light");
 
   expect(testJobHandler).toHaveBeenCalledExactlyOnceWith(job);
   expect(testJobWithTimeoutHandler).not.toHaveBeenCalled();
@@ -158,7 +174,7 @@ test("handles failed job", async () => {
   const error = new Error("job error");
   testJobHandler.mockRejectedValue(error);
 
-  await processJob({ body: JSON.stringify({ id: job.id }) } as any);
+  await processJob({ body: JSON.stringify({ id: job.id }) } as any, "light");
 
   expect(testJobHandler).toHaveBeenCalledExactlyOnceWith(job);
 
@@ -178,10 +194,13 @@ test("extends visibility timeout for job with timeout", async () => {
   mockedCommit.mockResolvedValue(undefined);
 
   const handle = "handle";
-  await processJob({
-    body: JSON.stringify({ id: job.id }),
-    receiptHandle: handle,
-  } as any);
+  await processJob(
+    {
+      body: JSON.stringify({ id: job.id }),
+      receiptHandle: handle,
+    } as any,
+    "light",
+  );
 
   expect(testJobWithTimeoutHandler).toHaveBeenCalledExactlyOnceWith(job);
   expect(testJobHandler).not.toHaveBeenCalled();

@@ -18,6 +18,7 @@ const ExportLanguageBlobsDataSchema = z.object({
 
 export class ExportGlossesChildJob extends createJobModel({
   type: "export_glosses_child",
+  queueName: "light",
   payloadSchema: ExportLanguageBlobsPayloadSchema,
   dataSchema: ExportLanguageBlobsDataSchema,
 }) {}

@@ -133,15 +133,6 @@
     },
     "headTitle": "Forgot Password"
   },
-  "InviteLanguageUserPage": {
-    "title": "Invite User",
-    "form": {
-      "email": "Email",
-      "role": "Role",
-      "submit": "Invite"
-    },
-    "role": "{role, select, ADMIN {Admin} TRANSLATOR {Translator} other {}}"
-  },
   "InviteUserPage": {
     "title": "Invite User",
     "form": {

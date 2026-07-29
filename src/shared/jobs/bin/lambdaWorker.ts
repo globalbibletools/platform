@@ -1,5 +1,6 @@
 import { type SQSEvent } from "aws-lambda";
 import { processJob } from "@/shared/jobs/processJob";
+import { JobQueueName } from "@/shared/jobs/types";
 import { logger } from "@/logging";
 
 export async function handler(event: SQSEvent) {
@@ -15,5 +16,6 @@ export async function handler(event: SQSEvent) {
     return;
   }
 
-  await processJob(firstRecord);
+  const queueName = (process.env.JOB_QUEUE_NAME ?? "light") as JobQueueName;
+  await processJob(firstRecord, queueName);
 }

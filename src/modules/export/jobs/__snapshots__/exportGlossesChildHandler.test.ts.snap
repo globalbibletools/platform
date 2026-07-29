@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`creates blobs for Haggai glosses and then enqueues the finalize job 1`] = `
+exports[`creates a language subtree from blobs and then enqueues the finalize job 1`] = `
 [
   {
     "content": "{
@@ -2641,7 +2641,7 @@ exports[`creates blobs for Haggai glosses and then enqueues the finalize job 1`]
     }
   ]
 }",
-    "path": "eng/37-Hag.json",
+    "path": "37-Hag.json",
   },
 ]
 `;

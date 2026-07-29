@@ -1,7 +1,6 @@
 import { logger } from "@/logging";
 import jobRepo from "@/shared/jobs/data-access/jobRepository";
 import { exportStorageRepository } from "../data-access/exportStorageRepository";
-import { detectScript } from "@/shared/scriptDetection";
 import interlinearQueryService from "../data-access/InterlinearQueryService";
 import {
   generateInterlinearPdfDocument,
@@ -24,22 +23,21 @@ export async function exportInterlinearPdfHandler(
       await interlinearQueryService.fetchBooksWithApprovedGlossChapters(
         languageId,
       );
-    logger.info("Data fetched");
+    logger.info({ books: books.length }, "Data fetched");
 
     if (books.length === 0) {
+      logger.info("No books to export");
       throw new Error("No chapters with approved glosses found for export");
     }
 
     const sections: InterlinearPdfSection[] = books.map((book) => {
-      const sampleText =
-        book.verses?.[0]?.words?.[0]?.text ??
-        book.verses?.[0]?.words?.[0]?.gloss ??
-        "";
-      const sourceScript = detectScript(sampleText);
+      const sourceScript = book.bookId < 40 ? "hebrew" : "greek";
 
       const glossLanguageName = book.language.name;
       const sourceLanguageLabel =
         sourceScript === "hebrew" ? "Hebrew" : "Greek";
+
+      logger.info(`Producing section details for ${book.bookName}`);
 
       return {
         chapter: book,
