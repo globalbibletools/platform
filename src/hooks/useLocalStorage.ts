@@ -1,44 +1,79 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSyncExternalStore } from "react";
-
-type LocalStorageInit<T> = T | ((saved: Partial<T> | undefined) => T);
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 
 export const useLocalStorage = <T>(key: string, defaultValue: T) => {
-  const resolvedInitialValue = _resolveInitialValue(key, defaultValue);
-  const queryKey = [key, resolvedInitialValue] as const;
-  const queryClient = useQueryClient();
-  const mounted = __useMounted();
+  // Cache so getSnapshot returns a stable reference when nothing changed
+  const cacheRef = useRef<{ raw: string | null; value: T } | undefined>(
+    undefined,
+  );
 
-  const { data } = useQuery({
-    queryKey,
-    queryFn: () => resolvedInitialValue,
-    initialData: resolvedInitialValue,
-    staleTime: Infinity,
-    gcTime: Infinity,
-  });
+  const getSnapshot = useCallback(() => {
+    const raw = localStorage.getItem(key);
 
-  const { mutate: setData } = useMutation({
-    mutationFn: async (next: T) => {
-      _safeSetItem(key, next);
-      return next;
+    if (cacheRef.current && cacheRef.current.raw === raw) {
+      return cacheRef.current.value; // same reference, no re-render triggered
+    }
+
+    const value = _safeGetItem(key, defaultValue);
+    cacheRef.current = { raw, value };
+    return value;
+  }, [key, defaultValue]);
+
+  const getServerSnapshot = useCallback(() => {
+    return defaultValue;
+  }, [defaultValue]);
+
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      const onStorageEvent = (e: Event) => {
+        const customEvent = e as CustomEvent;
+        if (customEvent.detail?.key === key) {
+          onChange();
+        }
+      };
+      addEventListener("storage", onChange);
+      addEventListener("local-storage-change", onStorageEvent as EventListener);
+      return () => {
+        removeEventListener("storage", onChange);
+        removeEventListener(
+          "local-storage-change",
+          onStorageEvent as EventListener,
+        );
+      };
     },
-    onSuccess: (next) => {
-      queryClient.setQueryData(queryKey, next);
+    [key],
+  );
+
+  const data = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  const setData = useCallback(
+    (value: T) => {
+      _safeSetItem(key, value);
+      window.dispatchEvent(
+        new CustomEvent("local-storage-change", { detail: { key } }),
+      );
     },
-  });
+    [key],
+  );
 
-  const value = mounted ? data : defaultValue;
+  useEffect(() => {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return;
 
-  return [value as T, setData] as const;
+    const reconciled = _safeGetItem(key, defaultValue);
+    if (raw !== JSON.stringify(reconciled)) {
+      if (_safeSetItem(key, reconciled)) {
+        window.dispatchEvent(
+          new CustomEvent("local-storage-change", { detail: { key } }),
+        );
+      }
+    }
+  }, [key]);
+
+  return [data, setData] as const;
 };
 
-const _resolveInitialValue = <T>(key: string, init: LocalStorageInit<T>): T => {
-  const raw = _safeGetItem<T>(key);
-  if (typeof init === "function") {
-    return (init as (saved: Partial<T> | undefined) => T)(raw);
-  }
-  return raw !== undefined ? (raw as T) : init;
-};
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const _safeSetItem = <T>(key: string, value: T) => {
   try {
@@ -54,20 +89,18 @@ const _safeSetItem = <T>(key: string, value: T) => {
   }
 };
 
-const _safeGetItem = <T>(key: string): Partial<T> | undefined => {
+const _safeGetItem = <T>(key: string, defaultValue: T): T => {
   try {
     const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : undefined;
+    if (!item) return defaultValue;
+
+    const parsed = JSON.parse(item);
+    if (isPlainObject(defaultValue) && isPlainObject(parsed)) {
+      return { ...defaultValue, ...parsed } as T;
+    }
+    return parsed;
   } catch (error: any) {
     console.error(`Error reading localStorage key ${key}`, error);
-    return undefined;
+    return defaultValue;
   }
-};
-
-const __useMounted = () => {
-  return useSyncExternalStore(
-    () => () => {}, // empty subscribe
-    () => true, // client snapshot: always true
-    () => false, // server snapshot: always false
-  );
 };
