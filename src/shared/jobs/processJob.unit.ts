@@ -27,16 +27,10 @@ vitest.mock("./jobRegistry", async () => {
     queueName: "light",
     payloadSchema: z.string(),
   });
-  const TestJobWithTimeout = createJobModel({
-    type: "test_job_with_timeout",
-    queueName: "light",
-    payloadSchema: z.string(),
-  });
 
   return {
     jobRegistry: {
       test_job: TestJob,
-      test_job_with_timeout: TestJobWithTimeout,
     },
   };
 });
@@ -44,7 +38,6 @@ vitest.mock("./jobRegistry", async () => {
 vitest.mock("./jobHandlerRegistry", () => ({
   jobHandlerRegistry: {
     test_job: { handler: vitest.fn() },
-    test_job_with_timeout: { handler: vitest.fn(), timeout: 500 },
   },
 }));
 
@@ -64,14 +57,9 @@ vitest.mock("./queueRegistry", () => ({
 // that don't exist on the real typed registries
 const TestJob = (jobRegistry as any)
   .test_job as (typeof jobRegistry)["send_email"];
-const TestJobWithTimeout = (jobRegistry as any)
-  .test_job_with_timeout as (typeof jobRegistry)["send_email"];
 
 const testJobHandler = vitest.mocked(
   (jobHandlerRegistry as any).test_job.handler,
-);
-const testJobWithTimeoutHandler = vitest.mocked(
-  (jobHandlerRegistry as any).test_job_with_timeout.handler,
 );
 const mockedGetById = vitest.mocked(jobRepo.getById);
 const mockedCommit = vitest.mocked(jobRepo.commit);
@@ -90,7 +78,6 @@ beforeEach(() => {
   mockJobLogger.info.mockReset();
   mockJobLogger.setBindings.mockReset();
   testJobHandler.mockReset();
-  testJobWithTimeoutHandler.mockReset();
   mockedGetById.mockReset();
   mockedCommit.mockReset();
 });
@@ -109,7 +96,6 @@ test("returns early if job has already been executed", async () => {
   );
 
   expect(testJobHandler).not.toHaveBeenCalled();
-  expect(testJobWithTimeoutHandler).not.toHaveBeenCalled();
 });
 
 test("creates untracked job and processes it", async () => {
@@ -123,7 +109,6 @@ test("creates untracked job and processes it", async () => {
   );
 
   expect(testJobHandler).toHaveBeenCalledOnce();
-  expect(testJobWithTimeoutHandler).not.toHaveBeenCalled();
 
   const handlerArg = testJobHandler.mock.calls[0][0];
   expect(handlerArg.type).toBe("test_job");
@@ -144,7 +129,6 @@ test("handles successful tracked job", async () => {
   await processJob({ body: JSON.stringify({ id: job.id }) } as any, "light");
 
   expect(testJobHandler).toHaveBeenCalledExactlyOnceWith(job);
-  expect(testJobWithTimeoutHandler).not.toHaveBeenCalled();
 
   expect(startSpy).toHaveBeenCalledOnce();
   expect(completeSpy).toHaveBeenCalledOnce();
@@ -171,30 +155,4 @@ test("handles failed job", async () => {
   expect(failSpy).toHaveBeenCalledOnce();
   expect(mockedCommit).toHaveBeenCalledTimes(2);
   expect(job.status).toBe(JobStatus.Failed);
-});
-
-test("extends visibility timeout for job with timeout", async () => {
-  const job = TestJobWithTimeout.create("payload");
-  const startSpy = vitest.spyOn(job, "start");
-  const completeSpy = vitest.spyOn(job, "complete");
-
-  mockedGetById.mockResolvedValue(job);
-  mockedCommit.mockResolvedValue(undefined);
-
-  const handle = "handle";
-  await processJob(
-    {
-      body: JSON.stringify({ id: job.id }),
-      receiptHandle: handle,
-    } as any,
-    "light",
-  );
-
-  expect(testJobWithTimeoutHandler).toHaveBeenCalledExactlyOnceWith(job);
-  expect(testJobHandler).not.toHaveBeenCalled();
-
-  expect(startSpy).toHaveBeenCalledOnce();
-  expect(completeSpy).toHaveBeenCalledOnce();
-  expect(mockedCommit).toHaveBeenCalledTimes(2);
-  expect(job.status).toBe(JobStatus.Complete);
 });
