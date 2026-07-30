@@ -12,6 +12,7 @@ import { exportGlossesSqliteHandler } from "./exportGlossesSqliteHandler";
 import { ExportGlossesSqliteJob } from "./ExportGlossesSqliteJob";
 import { exportStorageRepository } from "../data-access/exportStorageRepository";
 import Database from "better-sqlite3";
+import { Readable } from "stream";
 
 vitest.mock("../data-access/exportStorageRepository", () => ({
   exportStorageRepository: {
@@ -24,6 +25,7 @@ vitest.mock("../data-access/exportStorageRepository", () => ({
 initializeDatabase();
 
 const mockedUploadZip = vitest.mocked(exportStorageRepository.uploadZip);
+const mockedUpload = vitest.mocked(exportStorageRepository.upload);
 
 beforeEach(() => {
   mockedUploadZip.mockReset();
@@ -32,6 +34,8 @@ beforeEach(() => {
     size: 1024,
     sha256: "abc123",
   }));
+  mockedUpload.mockReset();
+  mockedUpload.mockImplementation(async () => "manifest-location");
 });
 
 function querySqliteTables(buffer: Buffer) {
@@ -46,6 +50,10 @@ function querySqliteTables(buffer: Buffer) {
   }[];
   db.close();
   return { verses, texts };
+}
+
+async function readManifestSource(source: Readable): Promise<unknown[]> {
+  return source.map((line) => JSON.parse(line)).toArray();
 }
 
 test("exports approved glosses for a language as a SQLite database", async () => {
@@ -106,6 +114,25 @@ test("exports approved glosses for a language as a SQLite database", async () =>
       updated_at: expect.toBeNow(),
     },
   ]);
+
+  expect(mockedUpload).toHaveBeenCalledExactlyOnceWith({
+    key: "glosses/v1/manifest.jsonl",
+    source: expect.any(Readable),
+    type: "application/jsonl",
+  });
+  const manifest = await readManifestSource(
+    mockedUpload.mock.calls[0][0].source as Readable,
+  );
+  expect(manifest).toEqual([
+    {
+      id: language.code,
+      updatedAt: expect.toBeNow(),
+      sha256: "abc123",
+      size: 1024,
+      url: `glosses/v1/${language.code}.db.zip`,
+      resourceName: language.local_name,
+    },
+  ]);
 });
 
 test("skips words with null glosses", async () => {
@@ -146,6 +173,25 @@ test("skips words with null glosses", async () => {
 
   expect(verses).toEqual([]);
   expect(texts).toEqual([]);
+
+  expect(mockedUpload).toHaveBeenCalledExactlyOnceWith({
+    key: "glosses/v1/manifest.jsonl",
+    source: expect.any(Readable),
+    type: "application/jsonl",
+  });
+  const manifest = await readManifestSource(
+    mockedUpload.mock.calls[0][0].source as Readable,
+  );
+  expect(manifest).toEqual([
+    {
+      id: language.code,
+      updatedAt: expect.toBeNow(),
+      sha256: "abc123",
+      size: 1024,
+      url: `glosses/v1/${language.code}.db.zip`,
+      resourceName: language.local_name,
+    },
+  ]);
 });
 
 test("skips a language code that does not exist", async () => {
@@ -162,6 +208,16 @@ test("skips a language code that does not exist", async () => {
     .selectAll()
     .execute();
   expect(trackingRows).toEqual([]);
+
+  expect(mockedUpload).toHaveBeenCalledExactlyOnceWith({
+    key: "glosses/v1/manifest.jsonl",
+    source: expect.any(Readable),
+    type: "application/jsonl",
+  });
+  const manifest = await readManifestSource(
+    mockedUpload.mock.calls[0][0].source as Readable,
+  );
+  expect(manifest).toEqual([]);
 });
 
 test("exports multiple languages in separate databases", async () => {
@@ -242,6 +298,34 @@ test("exports multiple languages in separate databases", async () => {
       updated_at: expect.toBeNow(),
     },
   ]);
+
+  expect(mockedUpload).toHaveBeenCalledExactlyOnceWith({
+    key: "glosses/v1/manifest.jsonl",
+    source: expect.any(Readable),
+    type: "application/jsonl",
+  });
+  const manifest = await readManifestSource(
+    mockedUpload.mock.calls[0][0].source as Readable,
+  );
+  // Manifest is ordered by language.code (hin before spa)
+  expect(manifest).toEqual([
+    {
+      id: language2.code,
+      updatedAt: expect.toBeNow(),
+      sha256: "abc123",
+      size: 1024,
+      url: `glosses/v1/${language2.code}.db.zip`,
+      resourceName: language2.local_name,
+    },
+    {
+      id: language1.code,
+      updatedAt: expect.toBeNow(),
+      sha256: "abc123",
+      size: 1024,
+      url: `glosses/v1/${language1.code}.db.zip`,
+      resourceName: language1.local_name,
+    },
+  ]);
 });
 
 test("deduplicates gloss text entries", async () => {
@@ -295,6 +379,12 @@ test("deduplicates gloss text entries", async () => {
     { _id: Number(words[1].id), text: 1 },
   ]);
   expect(texts).toEqual([{ _id: 1, text: "same gloss" }]);
+
+  expect(mockedUpload).toHaveBeenCalledExactlyOnceWith({
+    key: "glosses/v1/manifest.jsonl",
+    source: expect.any(Readable),
+    type: "application/jsonl",
+  });
 });
 
 test("upserts an existing tracking row instead of creating a duplicate", async () => {
@@ -353,4 +443,10 @@ test("upserts an existing tracking row instead of creating a duplicate", async (
       updated_at: expect.toBeNow(),
     },
   ]);
+
+  expect(mockedUpload).toHaveBeenCalledExactlyOnceWith({
+    key: "glosses/v1/manifest.jsonl",
+    source: expect.any(Readable),
+    type: "application/jsonl",
+  });
 });
