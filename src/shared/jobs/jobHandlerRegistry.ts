@@ -8,6 +8,7 @@ import { updateBookCompletionProgressHandler } from "@/modules/reporting/jobs/up
 import { importAIGlossesHandler } from "@/modules/translation/jobs/importAIGlossesHandler";
 import { syncAIGlossLanguagesHandler } from "@/modules/translation/jobs/syncAIGlossLanguagesHandler";
 import { sendEmailHandler } from "@/shared/email/jobs/sendEmailHandler";
+import { exportGlossesSqliteHandler } from "@/modules/export/jobs/exportGlossesSqliteHandler";
 
 export type JobHandlerRegistry = {
   [Type in JobType]: {
@@ -42,5 +43,8 @@ export const jobHandlerRegistry: JobHandlerRegistry = {
   },
   sync_ai_gloss_languages: {
     handler: syncAIGlossLanguagesHandler,
+  },
+  export_glosses_sqlite: {
+    handler: exportGlossesSqliteHandler,
   },
 };

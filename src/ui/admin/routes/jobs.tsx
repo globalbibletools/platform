@@ -17,6 +17,7 @@ import { withDocumentTitle } from "@/documentTitle";
 import { getActiveJobs } from "@/ui/admin/serverFns/getActiveJobs";
 import { Policy } from "@/modules/access";
 import { routerGuard } from "@/modules/access/routerGuard";
+import AppDatabaseExportPanel from "@/ui/admin/components/AppDatabaseExportPanel";
 
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
@@ -71,6 +72,10 @@ function AdminJobsView() {
         >
           Sync AI Gloss Languages
         </ServerAction>
+
+        <div className="mt-8 max-w-5xl">
+          <AppDatabaseExportPanel />
+        </div>
 
         <div className="mt-8 max-w-5xl">
           <h2 className="text-xl font-bold mb-3">GitHub Export</h2>
