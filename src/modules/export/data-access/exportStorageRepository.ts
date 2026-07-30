@@ -1,6 +1,7 @@
 import { Upload } from "@aws-sdk/lib-storage";
 import { PassThrough, Readable } from "stream";
 import { ZipArchive } from "archiver";
+import { createHash } from "crypto";
 import { createLogger } from "@/logging";
 import { getS3Client } from "@/shared/s3";
 
@@ -46,16 +47,29 @@ export const exportStorageRepository = {
     key: string;
     source: Buffer;
     fileName: string;
-  }): Promise<string> {
+  }): Promise<{ key: string; size: number; sha256: string }> {
     const archive = new ZipArchive();
     archive.append(source, { name: fileName });
     archive.finalize();
 
-    return this.upload({
+    const hash = createHash("sha256");
+    let size = 0;
+
+    const counter = new PassThrough({
+      transform(chunk, _encoding, cb) {
+        size += chunk.length;
+        hash.update(chunk);
+        cb(null, chunk);
+      },
+    });
+
+    await this.upload({
       key,
-      source: archive.pipe(new PassThrough()),
+      source: archive.pipe(counter),
       type: "application/zip",
     });
+
+    return { key, size, sha256: hash.digest("hex") };
   },
 
   publicUrl({ key }: { key: string }): string {

@@ -27,6 +27,11 @@ const mockedUploadZip = vitest.mocked(exportStorageRepository.uploadZip);
 
 beforeEach(() => {
   mockedUploadZip.mockReset();
+  mockedUploadZip.mockImplementation(async ({ key }) => ({
+    key,
+    size: 1024,
+    sha256: "abc123",
+  }));
 });
 
 function querySqliteTables(buffer: Buffer) {
@@ -86,6 +91,21 @@ test("exports approved glosses for a language as a SQLite database", async () =>
 
   expect(verses).toEqual([{ _id: Number(word.id), text: 1 }]);
   expect(texts).toEqual([{ _id: 1, text: "test gloss" }]);
+
+  const trackingRows = await getDb()
+    .selectFrom("glosses_sqlite_export")
+    .selectAll()
+    .orderBy("s3_key")
+    .execute();
+  expect(trackingRows).toEqual([
+    {
+      language_id: language.id,
+      s3_key: `glosses/v1/${language.code}.db.zip`,
+      sha256: "abc123",
+      size: 1024,
+      updated_at: expect.toBeNow(),
+    },
+  ]);
 });
 
 test("skips words with null glosses", async () => {
@@ -136,6 +156,12 @@ test("skips a language code that does not exist", async () => {
   await exportGlossesSqliteHandler(job);
 
   expect(mockedUploadZip).not.toHaveBeenCalled();
+
+  const trackingRows = await getDb()
+    .selectFrom("glosses_sqlite_export")
+    .selectAll()
+    .execute();
+  expect(trackingRows).toEqual([]);
 });
 
 test("exports multiple languages in separate databases", async () => {
@@ -194,6 +220,28 @@ test("exports multiple languages in separate databases", async () => {
   const { verses: hinVerses, texts: hinTexts } = querySqliteTables(hinBuffer);
   expect(hinVerses).toEqual([{ _id: Number(word.id), text: 1 }]);
   expect(hinTexts).toEqual([{ _id: 1, text: "namaste" }]);
+
+  const trackingRows = await getDb()
+    .selectFrom("glosses_sqlite_export")
+    .selectAll()
+    .orderBy("s3_key")
+    .execute();
+  expect(trackingRows).toEqual([
+    {
+      language_id: language2.id,
+      s3_key: `glosses/v1/${language2.code}.db.zip`,
+      sha256: "abc123",
+      size: 1024,
+      updated_at: expect.toBeNow(),
+    },
+    {
+      language_id: language1.id,
+      s3_key: `glosses/v1/${language1.code}.db.zip`,
+      sha256: "abc123",
+      size: 1024,
+      updated_at: expect.toBeNow(),
+    },
+  ]);
 });
 
 test("deduplicates gloss text entries", async () => {
@@ -247,4 +295,62 @@ test("deduplicates gloss text entries", async () => {
     { _id: Number(words[1].id), text: 1 },
   ]);
   expect(texts).toEqual([{ _id: 1, text: "same gloss" }]);
+});
+
+test("upserts an existing tracking row instead of creating a duplicate", async () => {
+  const { language } = await languageFactory.build({ code: "spa" });
+
+  await getDb()
+    .insertInto("glosses_sqlite_export")
+    .values({
+      language_id: language.id,
+      s3_key: "glosses/v1/old.db.zip",
+      sha256: "old-hash",
+      size: 1,
+      updated_at: new Date("2020-01-01"),
+    })
+    .execute();
+
+  await getDb()
+    .insertInto("book_completion")
+    .values({
+      language_id: language.id,
+      book_id: HAGGAI_BOOK_ID,
+      refreshed_at: new Date(),
+      updated_at: new Date(),
+      completed_at: new Date(),
+    })
+    .execute();
+
+  const word = await bibleFactory.word();
+
+  await phraseFactory.build({
+    languageId: language.id,
+    wordIds: [word.id],
+    events: true,
+    gloss: {
+      state: GlossStateRaw.Approved,
+      gloss: "test gloss",
+    },
+  });
+
+  const job = ExportGlossesSqliteJob.create({
+    languageCodes: [language.code],
+  });
+
+  await exportGlossesSqliteHandler(job);
+
+  const trackingRows = await getDb()
+    .selectFrom("glosses_sqlite_export")
+    .selectAll()
+    .execute();
+  expect(trackingRows).toEqual([
+    {
+      language_id: language.id,
+      s3_key: `glosses/v1/${language.code}.db.zip`,
+      sha256: "abc123",
+      size: 1024,
+      updated_at: expect.toBeNow(),
+    },
+  ]);
 });

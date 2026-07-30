@@ -3,10 +3,10 @@ import { ExportGlossesSqliteJob } from "./ExportGlossesSqliteJob";
 import { getDb } from "@/db";
 import { GlossStateRaw } from "@/modules/translation/types";
 import { resolveLanguageByCode } from "@/modules/languages";
-import { Logger } from "pino";
 import { pipeline } from "stream/promises";
 import { AppGlossRepository } from "../data-access/AppGlossRepository";
 import { exportStorageRepository } from "../data-access/exportStorageRepository";
+import { glossesSqliteExportRepository } from "../data-access/glossesSqliteExportRepository";
 
 export async function exportGlossesSqliteHandler(job: ExportGlossesSqliteJob) {
   const jobLogger = logger.child({
@@ -19,14 +19,27 @@ export async function exportGlossesSqliteHandler(job: ExportGlossesSqliteJob) {
   const { languageCodes } = job.payload;
 
   for (const languageCode of languageCodes) {
-    const buffer = await createSqliteDb(languageCode, jobLogger);
-    if (buffer) {
-      await exportStorageRepository.uploadZip({
-        key: `glosses/v1/${languageCode}.db.zip`,
-        source: buffer,
-        fileName: `${languageCode}.db`,
-      });
+    const language = await resolveLanguageByCode(languageCode);
+    if (!language) {
+      jobLogger.error({ languageCode }, "Could not find language to export");
+      continue;
     }
+
+    const buffer = await createSqliteDb(language.id);
+
+    const { key, size, sha256 } = await exportStorageRepository.uploadZip({
+      key: `glosses/v1/${languageCode}.db.zip`,
+      source: buffer,
+      fileName: `${languageCode}.db`,
+    });
+
+    await glossesSqliteExportRepository.upsertGlossDbExport({
+      languageId: language.id,
+      s3Key: key,
+      sha256,
+      size,
+      updatedAt: new Date(),
+    });
 
     jobLogger.info(
       { languageCode },
@@ -40,20 +53,10 @@ export async function exportGlossesSqliteHandler(job: ExportGlossesSqliteJob) {
   );
 }
 
-async function createSqliteDb(
-  languageCode: string,
-  logger: Logger,
-): Promise<Buffer | undefined> {
-  const language = await resolveLanguageByCode(languageCode);
-
-  if (!language) {
-    logger.error({ languageCode }, "Could not find language to export");
-    return;
-  }
-
+async function createSqliteDb(languageId: string): Promise<Buffer> {
   const appGlossRepository = new AppGlossRepository();
 
-  const glossStream = streamGlossesForLanguage(language.id);
+  const glossStream = streamGlossesForLanguage(languageId);
 
   let nextTextId = 1;
   const textIdMap = new Map<string, number>();

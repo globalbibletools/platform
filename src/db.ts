@@ -44,6 +44,7 @@ import {
   PhraseWordTable,
   TranslatorNoteTable,
 } from "./modules/translation/db/schema";
+import { GlossesSqliteExportTable } from "./modules/export/db/schema";
 import { JobTable } from "./shared/jobs/db/schema";
 import {
   BookCompletionProgressTable,
@@ -62,6 +63,7 @@ export interface Database {
   gloss: GlossTable;
   gloss_event: GlossEventTable;
   gloss_history: GlossHistoryTable;
+  glosses_sqlite_export: GlossesSqliteExportTable;
   job: JobTable;
   language: LanguageTable;
   language_member: LanguageMemberTable;
