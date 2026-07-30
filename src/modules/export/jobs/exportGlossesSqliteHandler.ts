@@ -4,9 +4,13 @@ import { getDb } from "@/db";
 import { GlossStateRaw } from "@/modules/translation/types";
 import { resolveLanguageByCode } from "@/modules/languages";
 import { pipeline } from "stream/promises";
+import { Readable } from "stream";
 import { AppGlossRepository } from "../data-access/AppGlossRepository";
 import { exportStorageRepository } from "../data-access/exportStorageRepository";
-import { glossesSqliteExportRepository } from "../data-access/glossesSqliteExportRepository";
+import {
+  glossesSqliteExportRepository,
+  GlossDbExportRow,
+} from "../data-access/glossesSqliteExportRepository";
 
 export async function exportGlossesSqliteHandler(job: ExportGlossesSqliteJob) {
   const jobLogger = logger.child({
@@ -51,6 +55,35 @@ export async function exportGlossesSqliteHandler(job: ExportGlossesSqliteJob) {
     { languageCount: languageCodes.length },
     "Glosses SQLite export complete",
   );
+
+  await uploadGlossesManifest();
+}
+
+async function uploadGlossesManifest(): Promise<void> {
+  const manifestStream = Readable.from(
+    manifestLines(glossesSqliteExportRepository.streamGlossDbExports()),
+  );
+
+  await exportStorageRepository.upload({
+    key: "glosses/v1/manifest.jsonl",
+    source: manifestStream,
+    type: "application/jsonl",
+  });
+}
+
+async function* manifestLines(
+  rows: AsyncIterableIterator<GlossDbExportRow>,
+): AsyncGenerator<string> {
+  for await (const row of rows) {
+    yield JSON.stringify({
+      id: row.code,
+      updatedAt: row.updatedAt.toISOString(),
+      sha256: row.sha256,
+      size: row.size,
+      url: row.s3Key,
+      resourceName: row.localName,
+    }) + "\n";
+  }
 }
 
 async function createSqliteDb(languageId: string): Promise<Buffer> {
