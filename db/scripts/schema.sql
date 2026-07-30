@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict VmAKqS3l6tx4cR0kYi8HOp8nm1ZzVETf7oXflgLrqrPDjXcViV3mRz1axCj2F1h
+\restrict chc3AdzzUD6GEhmEnhizEWWpNBOP2z1vp1d4NbxIRfN76FbkogRdFD6eXXeFSkw
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -599,6 +599,19 @@ CREATE SEQUENCE public.gloss_history_id_seq
 --
 
 ALTER SEQUENCE public.gloss_history_id_seq OWNED BY public.gloss_history.id;
+
+
+--
+-- Name: glosses_sqlite_export; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.glosses_sqlite_export (
+    language_id uuid NOT NULL,
+    s3_key text NOT NULL,
+    sha256 text NOT NULL,
+    size bigint NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
 
 
 --
@@ -1255,6 +1268,14 @@ ALTER TABLE ONLY public.gloss
 
 
 --
+-- Name: glosses_sqlite_export glosses_sqlite_export_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.glosses_sqlite_export
+    ADD CONSTRAINT glosses_sqlite_export_pkey PRIMARY KEY (language_id);
+
+
+--
 -- Name: job job_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1857,6 +1878,14 @@ ALTER TABLE ONLY public.gloss
 
 
 --
+-- Name: glosses_sqlite_export glosses_sqlite_export_language_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.glosses_sqlite_export
+    ADD CONSTRAINT glosses_sqlite_export_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.language(id) ON DELETE CASCADE;
+
+
+--
 -- Name: job job_parent_job_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2180,5 +2209,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict VmAKqS3l6tx4cR0kYi8HOp8nm1ZzVETf7oXflgLrqrPDjXcViV3mRz1axCj2F1h
+\unrestrict chc3AdzzUD6GEhmEnhizEWWpNBOP2z1vp1d4NbxIRfN76FbkogRdFD6eXXeFSkw
 
