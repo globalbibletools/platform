@@ -241,7 +241,7 @@ async function machineTranslate(
   code: string,
   sourceCode: string,
 ): Promise<Record<string, string>> {
-  if (!translateClient || words.length === 0) return {};
+  if (!translateClient || words.length === 0 || code === sourceCode) return {};
 
   const toCode = code === "test" ? "en" : translateClient.convertISOCode(code);
   const fromCode = translateClient.convertISOCode(sourceCode);
