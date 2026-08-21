@@ -46,7 +46,10 @@ import {
   PhraseWordTable,
   TranslatorNoteTable,
 } from "./modules/translation/db/schema";
-import { GlossesSqliteExportTable } from "./modules/export/db/schema";
+import {
+  AudioBookExportTable,
+  GlossesSqliteExportTable,
+} from "./modules/export/db/schema";
 import { JobTable } from "./shared/jobs/db/schema";
 import {
   BookCompletionProgressTable,
@@ -57,6 +60,7 @@ import {
 
 export interface Database {
   ai_gloss_language: AIGlossLanguageTable;
+  audio_book_export: AudioBookExportTable;
   book: BookTable;
   book_completion: BookCompletionTable;
   book_completion_progress: BookCompletionProgressTable;

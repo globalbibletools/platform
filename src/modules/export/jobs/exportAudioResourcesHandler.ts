@@ -1,8 +1,13 @@
 import { logger } from "@/logging";
 import bookKeys from "@/data/book-keys.json";
 import { ZipArchive } from "archiver";
+import { Readable } from "stream";
 import { ExportAudioResourcesJob } from "./ExportAudioResourceJob";
 import { exportStorageRepository } from "../data-access/exportStorageRepository";
+import {
+  audioBookExportRepository,
+  AudioBookExportRow,
+} from "../data-access/audioBookExportRepository";
 import { Logger } from "pino";
 import { getDb } from "@/db";
 
@@ -16,6 +21,8 @@ export async function exportAudioResourcesHandler(
     },
   });
 
+  const updatedAt = new Date();
+
   for (const speaker of job.payload.speakers) {
     for (const bookId of speaker.bookIds) {
       await uploadTimingsForBook({
@@ -24,17 +31,80 @@ export async function exportAudioResourcesHandler(
         logger: jobLogger,
       });
 
-      await zipBookDirectory({
+      const result = await zipBookDirectory({
         speaker: speaker.speaker,
         bookId,
         logger: jobLogger,
       });
 
-      // TODO: update manifest data
+      await audioBookExportRepository.upsertAudioBookExport({
+        recordingId: speaker.speaker,
+        bookId,
+        s3Key: result.key,
+        sha256: result.sha256,
+        size: result.size,
+        updatedAt,
+      });
     }
   }
 
-  // TODO: write new manifest
+  await uploadAudioManifest();
+}
+
+async function uploadAudioManifest(): Promise<void> {
+  const manifestStream = Readable.from(
+    manifestLines(audioBookExportRepository.streamAudioBookExports()),
+  );
+
+  await exportStorageRepository.upload({
+    key: "audio/v1/manifest.jsonl",
+    source: manifestStream,
+    type: "application/jsonl",
+  });
+}
+
+async function* manifestLines(
+  rows: AsyncIterableIterator<AudioBookExportRow>,
+): AsyncGenerator<string> {
+  // Rows are ordered by recording_id then book_id, so consecutive rows with
+  // the same recording_id form one speaker group. Emit a parent resource for
+  // the speaker, followed by a child resource for each exported book.
+  let currentRecording: string | null = null;
+  let group: AudioBookExportRow[] = [];
+
+  const flush = function* (): Generator<string> {
+    if (group.length === 0) return;
+
+    const recordingId = group[0].recordingId;
+    const recordingName = group[0].recordingName || recordingId;
+
+    yield JSON.stringify({
+      id: recordingId,
+      resourceName: recordingName,
+    }) + "\n";
+
+    for (const row of group) {
+      const bookCode = bookKeys[row.bookId - 1];
+      yield JSON.stringify({
+        id: `${recordingId}/${bookCode}`,
+        resourceName: row.bookName,
+        updatedAt: row.updatedAt.toISOString(),
+        sha256: row.sha256,
+        size: row.size,
+        url: row.s3Key,
+      }) + "\n";
+    }
+  };
+
+  for await (const row of rows) {
+    if (currentRecording !== row.recordingId) {
+      yield* flush();
+      group = [];
+      currentRecording = row.recordingId;
+    }
+    group.push(row);
+  }
+  yield* flush();
 }
 
 async function uploadTimingsForBook({
@@ -117,7 +187,7 @@ async function zipBookDirectory({
 
   archive.finalize();
 
-  await exportStorageRepository.uploadZip({
+  const result = await exportStorageRepository.uploadZip({
     key: `audio/v1/${speaker}/${bookCode}.zip`,
     archive,
   });
@@ -126,4 +196,6 @@ async function zipBookDirectory({
     { speaker, bookId, bookCode, fileCount },
     "Uploaded audio book zip",
   );
+
+  return result;
 }
