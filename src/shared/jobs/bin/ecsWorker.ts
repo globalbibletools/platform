@@ -73,11 +73,11 @@ async function putProtection(
   status: "ENABLED" | "DISABLED",
 ): Promise<"ENABLED" | "DISABLED"> {
   if (!ECS_AGENT_URI) return status;
-  const response = await fetch(`${ECS_AGENT_URI}/task-protection`, {
+  const response = await fetch(`${ECS_AGENT_URI}/task-protection/v1/state`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      ProtectionStatus: status,
+      ProtectionEnabled: status === "ENABLED",
       ExpiresInMinutes: PROTECTION_EXPIRES_MINUTES,
     }),
   });
