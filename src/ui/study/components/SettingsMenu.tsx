@@ -11,6 +11,7 @@ import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useTranslations } from "use-intl";
 import { ReadingSettings } from "./ReadingToolbar";
+import { SwitchInput } from "@/components/SwitchInput";
 
 export interface SettingsMenuProps {
   readingSettings: ReadingSettings;
@@ -109,6 +110,45 @@ export default function SettingsMenu({
               {t("ai_glosses_options.prefer")}
             </ButtonSelectorOption>
           </ButtonSelectorInput>
+        </div>
+        <div className="flex items-center justify-start gap-12">
+          <SwitchInput
+            name="hebrewVowels"
+            checked={readingSettings.hebrewVowels}
+            onChange={(value) =>
+              onReadingSettingChange?.({
+                ...readingSettings,
+                hebrewVowels: value,
+              })
+            }
+          />
+          <FormLabel id="hebrew-vowels-label">{t("hebrew_vowels")}</FormLabel>
+        </div>
+        <div className="flex items-center justify-start gap-12">
+          <SwitchInput
+            name="hebrewAccents"
+            checked={readingSettings.hebrewAccents}
+            onChange={(value) =>
+              onReadingSettingChange?.({
+                ...readingSettings,
+                hebrewAccents: value,
+              })
+            }
+          />
+          <FormLabel id="hebrew-accents-label">{t("hebrew_accents")}</FormLabel>
+        </div>
+        <div className="flex items-center justify-start gap-12">
+          <SwitchInput
+            name="greekAccents"
+            checked={readingSettings.greekAccents}
+            onChange={(value) =>
+              onReadingSettingChange?.({
+                ...readingSettings,
+                greekAccents: value,
+              })
+            }
+          />
+          <FormLabel id="greek-accents-label">{t("greek_accents")}</FormLabel>
         </div>
         <div>
           <FormLabel htmlFor="text-size">{t("text_size")}</FormLabel>

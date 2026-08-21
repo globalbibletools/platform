@@ -1,4 +1,4 @@
-import { useRef, useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 
 export const useLocalStorage = <T>(key: string, defaultValue: T) => {
   // Cache so getSnapshot returns a stable reference when nothing changed
@@ -16,7 +16,7 @@ export const useLocalStorage = <T>(key: string, defaultValue: T) => {
     const value = _safeGetItem(key, defaultValue);
     cacheRef.current = { raw, value };
     return value;
-  }, [key]);
+  }, [key, defaultValue]);
 
   const getServerSnapshot = useCallback(() => {
     return defaultValue;
@@ -55,8 +55,25 @@ export const useLocalStorage = <T>(key: string, defaultValue: T) => {
     [key],
   );
 
+  useEffect(() => {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return;
+
+    const reconciled = _safeGetItem(key, defaultValue);
+    if (raw !== JSON.stringify(reconciled)) {
+      if (_safeSetItem(key, reconciled)) {
+        window.dispatchEvent(
+          new CustomEvent("local-storage-change", { detail: { key } }),
+        );
+      }
+    }
+  }, [key]);
+
   return [data, setData] as const;
 };
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const _safeSetItem = <T>(key: string, value: T) => {
   try {
@@ -72,10 +89,16 @@ const _safeSetItem = <T>(key: string, value: T) => {
   }
 };
 
-const _safeGetItem = <T>(key: string, defaultValue: T) => {
+const _safeGetItem = <T>(key: string, defaultValue: T): T => {
   try {
     const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : defaultValue;
+    if (!item) return defaultValue;
+
+    const parsed = JSON.parse(item);
+    if (isPlainObject(defaultValue) && isPlainObject(parsed)) {
+      return { ...defaultValue, ...parsed } as T;
+    }
+    return parsed;
   } catch (error: any) {
     console.error(`Error reading localStorage key ${key}`, error);
     return defaultValue;
