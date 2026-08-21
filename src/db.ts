@@ -25,6 +25,8 @@ import {
   LemmaFormTable,
   LemmaResourceTable,
   LemmaTable,
+  RecordingTable,
+  VerseAudioTimingTable,
   VerseCommentaryTable,
   VerseQuestionTable,
   VerseTable,
@@ -76,6 +78,7 @@ export interface Database {
   machine_gloss_model: MachineGlossModelTable;
   phrase: PhraseTable;
   phrase_word: PhraseWordTable;
+  recording: RecordingTable;
   reset_password_token: ResetPasswordTokenTable;
   session: SessionTable;
   tracking_event: TrackingEventTable;
@@ -85,6 +88,7 @@ export interface Database {
   user_system_role: UserSystemRoleTable;
   users: UserTable;
   verse: VerseTable;
+  verse_audio_timing: VerseAudioTimingTable;
   verse_commentary: VerseCommentaryTable;
   verse_question: VerseQuestionTable;
   word: WordTable;
