@@ -9,6 +9,13 @@ const EXPORT_BUCKET = process.env.STATIC_ASSET_BUCKET ?? "gbt-static-assets";
 
 const s3Client = getS3Client();
 
+export interface UploadResult {
+  key: string;
+  size: number;
+  sha256: string;
+  location: string;
+}
+
 export const exportStorageRepository = {
   async upload({
     key,
@@ -18,15 +25,34 @@ export const exportStorageRepository = {
     key: string;
     source: Readable | Buffer;
     type: string;
-  }): Promise<string> {
+  }): Promise<UploadResult> {
     const logger = createLogger({ bucket: EXPORT_BUCKET, key });
+
+    const hash = createHash("sha256");
+    let size = 0;
+
+    let body: Readable | Buffer;
+    if (Buffer.isBuffer(source)) {
+      size = source.length;
+      hash.update(source);
+      body = source;
+    } else {
+      const counter = new PassThrough({
+        transform(chunk, _encoding, cb) {
+          size += chunk.length;
+          hash.update(chunk);
+          cb(null, chunk);
+        },
+      });
+      body = source.pipe(counter);
+    }
 
     const upload = new Upload({
       client: s3Client,
       params: {
         Bucket: EXPORT_BUCKET,
         Key: key,
-        Body: source,
+        Body: body,
         ContentType: type,
       },
     });
@@ -34,42 +60,23 @@ export const exportStorageRepository = {
     await upload.done();
 
     const location = this.publicUrl({ key });
-    logger.info(`Export PDF uploaded to ${location}`);
+    logger.info(`Uploaded ${key} to ${location} (${size} bytes)`);
 
-    return location;
+    return { key, size, sha256: hash.digest("hex"), location };
   },
 
   async uploadZip({
     key,
-    source,
-    fileName,
+    archive,
   }: {
     key: string;
-    source: Buffer;
-    fileName: string;
-  }): Promise<{ key: string; size: number; sha256: string }> {
-    const archive = new ZipArchive();
-    archive.append(source, { name: fileName });
-    archive.finalize();
-
-    const hash = createHash("sha256");
-    let size = 0;
-
-    const counter = new PassThrough({
-      transform(chunk, _encoding, cb) {
-        size += chunk.length;
-        hash.update(chunk);
-        cb(null, chunk);
-      },
-    });
-
-    await this.upload({
+    archive: ZipArchive;
+  }): Promise<UploadResult> {
+    return this.upload({
       key,
-      source: archive.pipe(counter),
+      source: archive,
       type: "application/zip",
     });
-
-    return { key, size, sha256: hash.digest("hex") };
   },
 
   publicUrl({ key }: { key: string }): string {
