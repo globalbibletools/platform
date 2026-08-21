@@ -1,5 +1,9 @@
 import { logger } from "@/logging";
+import bookKeys from "@/data/book-keys.json";
 import { ExportAudioResourcesJob } from "./ExportAudioResourceJob";
+import { exportStorageRepository } from "../data-access/exportStorageRepository";
+import { Logger } from "pino";
+import { getDb } from "@/db";
 
 export async function exportAudioResourcesHandler(
   job: ExportAudioResourcesJob,
@@ -10,4 +14,74 @@ export async function exportAudioResourcesHandler(
       type: job.type,
     },
   });
+
+  for (const speaker of job.payload.speakers) {
+    for (const bookId of speaker.bookIds) {
+      await uploadTimingsForBook({
+        speaker: speaker.speaker,
+        bookId,
+        logger: jobLogger,
+      });
+
+      // TODO: upload zip of book
+      // TODO: update manifest data
+    }
+  }
+
+  // TODO: write new manifest
+}
+
+async function uploadTimingsForBook({
+  speaker,
+  bookId,
+  logger,
+}: {
+  speaker: string;
+  bookId: number;
+  logger: Logger;
+}) {
+  const timings = await getDb()
+    .selectFrom("verse_audio_timing as t")
+    .innerJoin("verse as v", "v.id", "t.verse_id")
+    .where("t.recording_id", "=", speaker)
+    .where("v.book_id", "=", bookId)
+    .where("t.start", "is not", null)
+    .select([
+      "v.chapter as chapter",
+      "v.number as verse",
+      (eb) => eb.ref("t.start").$notNull().as("start"),
+      "t.end as end",
+    ])
+    .orderBy("v.chapter")
+    .orderBy("v.number")
+    .execute();
+
+  const NO_END = 0xffffffff;
+
+  const bytes = new DataView(new ArrayBuffer(timings.length * 11));
+  for (let i = 0; i < timings.length; i++) {
+    const timing = timings[i];
+    const offset = i * 11;
+
+    bytes.setUint8(offset, bookId);
+    bytes.setUint8(offset + 1, timing.chapter);
+    bytes.setUint8(offset + 2, timing.verse);
+    bytes.setUint32(offset + 3, Math.trunc(timing.start * 100));
+    bytes.setUint32(
+      offset + 7,
+      timing.end == null ? NO_END : Math.trunc(timing.end * 100),
+    );
+  }
+
+  const bookCode = bookKeys[bookId - 1];
+  await exportStorageRepository.upload({
+    key: `audio/v1/${speaker}/${bookCode}/timings.bin`,
+    source: Buffer.from(bytes.buffer),
+    type: "application/octet-stream",
+  });
+
+  logger.info(
+    { speaker, bookId, bookCode, count: timings.length },
+    "Uploaded audio timings",
+  );
 }
