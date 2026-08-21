@@ -1,4 +1,5 @@
 import { Upload } from "@aws-sdk/lib-storage";
+import { GetObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { PassThrough, Readable } from "stream";
 import { ZipArchive } from "archiver";
 import { createHash } from "crypto";
@@ -77,6 +78,40 @@ export const exportStorageRepository = {
       source: archive,
       type: "application/zip",
     });
+  },
+
+  async *streamFiles({
+    prefix,
+  }: {
+    prefix: string;
+  }): AsyncGenerator<{ key: string; body: Readable }> {
+    let continuationToken: string | undefined;
+    do {
+      const response = await s3Client.send(
+        new ListObjectsV2Command({
+          Bucket: EXPORT_BUCKET,
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+        }),
+      );
+
+      for (const object of response.Contents ?? []) {
+        if (!object.Key) continue;
+
+        const { Body } = await s3Client.send(
+          new GetObjectCommand({
+            Bucket: EXPORT_BUCKET,
+            Key: object.Key,
+          }),
+        );
+        if (!Body) continue;
+
+        yield { key: object.Key, body: Body as Readable };
+      }
+
+      continuationToken =
+        response.IsTruncated ? response.NextContinuationToken : undefined;
+    } while (continuationToken);
   },
 
   publicUrl({ key }: { key: string }): string {

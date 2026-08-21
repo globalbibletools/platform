@@ -1,5 +1,6 @@
 import { logger } from "@/logging";
 import bookKeys from "@/data/book-keys.json";
+import { ZipArchive } from "archiver";
 import { ExportAudioResourcesJob } from "./ExportAudioResourceJob";
 import { exportStorageRepository } from "../data-access/exportStorageRepository";
 import { Logger } from "pino";
@@ -23,7 +24,12 @@ export async function exportAudioResourcesHandler(
         logger: jobLogger,
       });
 
-      // TODO: upload zip of book
+      await zipBookDirectory({
+        speaker: speaker.speaker,
+        bookId,
+        logger: jobLogger,
+      });
+
       // TODO: update manifest data
     }
   }
@@ -83,5 +89,41 @@ async function uploadTimingsForBook({
   logger.info(
     { speaker, bookId, bookCode, count: timings.length },
     "Uploaded audio timings",
+  );
+}
+
+async function zipBookDirectory({
+  speaker,
+  bookId,
+  logger,
+}: {
+  speaker: string;
+  bookId: number;
+  logger: Logger;
+}) {
+  const bookCode = bookKeys[bookId - 1];
+  const prefix = `audio/v1/${speaker}/${bookCode}/`;
+
+  const archive = new ZipArchive();
+  let fileCount = 0;
+
+  for await (const { key, body } of exportStorageRepository.streamFiles({
+    prefix,
+  })) {
+    const relativePath = key.slice(prefix.length);
+    archive.append(body, { name: `${bookCode}/${relativePath}` });
+    fileCount += 1;
+  }
+
+  archive.finalize();
+
+  await exportStorageRepository.uploadZip({
+    key: `audio/v1/${speaker}/${bookCode}.zip`,
+    archive,
+  });
+
+  logger.info(
+    { speaker, bookId, bookCode, fileCount },
+    "Uploaded audio book zip",
   );
 }
