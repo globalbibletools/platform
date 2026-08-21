@@ -9,6 +9,7 @@ import { ExportGlossesFinalizeJob } from "@/modules/export/jobs/ExportGlossesFin
 import { ImportAIGlossesJob } from "@/modules/translation/jobs/ImportAIGlossesJob";
 import { SyncAIGlossLanguagesJob } from "@/modules/translation/jobs/SyncAIGlossLanguagesJob";
 import { ExportGlossesSqliteJob } from "@/modules/export/jobs/ExportGlossesSqliteJob";
+import { ExportAudioResourcesJob } from "@/modules/export/jobs/ExportAudioResourceJob";
 
 export const jobRegistry = {
   [SendEmailJob.type]: SendEmailJob,
@@ -21,6 +22,7 @@ export const jobRegistry = {
   [ImportAIGlossesJob.type]: ImportAIGlossesJob,
   [SyncAIGlossLanguagesJob.type]: SyncAIGlossLanguagesJob,
   [ExportGlossesSqliteJob.type]: ExportGlossesSqliteJob,
+  [ExportAudioResourcesJob.type]: ExportAudioResourcesJob,
 } satisfies Record<
   string,
   ReturnType<typeof createJobModel<any, any, any, any>>
