@@ -201,7 +201,11 @@ async function zipBookDirectory({
     logger.info(`Appended file: ${bookCode}/${relativePath}`);
   }
 
-  archive.finalize();
+  logger.info(`Added ${fileCount} files`);
+
+  await archive.finalize();
+
+  logger.info("Archive finalized");
 
   const result = await exportStorageRepository.uploadZip({
     key: `audio/v1/${speaker}/${bookCode}.zip`,
