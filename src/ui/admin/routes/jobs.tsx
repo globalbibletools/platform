@@ -18,6 +18,7 @@ import { getActiveJobs } from "@/ui/admin/serverFns/getActiveJobs";
 import { Policy } from "@/modules/access";
 import { routerGuard } from "@/modules/access/routerGuard";
 import AppDatabaseExportPanel from "@/ui/admin/components/AppDatabaseExportPanel";
+import AppAudioExportPanel from "@/ui/admin/components/AppAudioExportPanel";
 
 const policy = new Policy({ systemRoles: [Policy.SystemRole.Admin] });
 
@@ -75,6 +76,10 @@ function AdminJobsView() {
 
         <div className="mt-8 max-w-5xl">
           <AppDatabaseExportPanel />
+        </div>
+
+        <div className="mt-8 max-w-5xl">
+          <AppAudioExportPanel />
         </div>
 
         <div className="mt-8 max-w-5xl">
