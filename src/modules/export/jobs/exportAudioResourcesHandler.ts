@@ -10,6 +10,7 @@ import {
 } from "../data-access/audioBookExportRepository";
 import { Logger } from "pino";
 import { getDb } from "@/db";
+import { once } from "events";
 
 export async function exportAudioResourcesHandler(
   job: ExportAudioResourcesJob,
@@ -185,32 +186,38 @@ async function zipBookDirectory({
       throw err;
     }
   });
-
   archive.on("error", function (err) {
     logger.error(`Error in zip file: ${err}`);
     throw err;
   });
 
+  // Start the upload stream to put it in a flowing state,
+  // since it is pulling from the archive stream
+  const upload = exportStorageRepository.uploadZip({
+    key: `audio/v1/${speaker}/${bookCode}.zip`,
+    archive,
+  });
+
+  // Loop over each file in the in directory,
+  // blocking until each is read into the archive stream
   for await (const { key, body } of exportStorageRepository.streamFiles({
     prefix,
   })) {
     const relativePath = key.slice(prefix.length);
-    archive.append(body, { name: `${bookCode}/${relativePath}` });
-    fileCount += 1;
 
+    archive.append(body, { name: `${bookCode}/${relativePath}` });
+    await once(archive, "entry");
+
+    fileCount += 1;
     logger.info(`Appended file: ${bookCode}/${relativePath}`);
   }
 
   logger.info(`Added ${fileCount} files`);
 
+  // Nothing more to add.
+  // Finalize the archive, and wait for the upload to finish.
   await archive.finalize();
-
-  logger.info("Archive finalized");
-
-  const result = await exportStorageRepository.uploadZip({
-    key: `audio/v1/${speaker}/${bookCode}.zip`,
-    archive,
-  });
+  const result = await upload;
 
   logger.info(
     { speaker, bookId, bookCode, fileCount },
