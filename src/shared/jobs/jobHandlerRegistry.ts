@@ -9,6 +9,7 @@ import { importAIGlossesHandler } from "@/modules/translation/jobs/importAIGloss
 import { syncAIGlossLanguagesHandler } from "@/modules/translation/jobs/syncAIGlossLanguagesHandler";
 import { sendEmailHandler } from "@/shared/email/jobs/sendEmailHandler";
 import { exportGlossesSqliteHandler } from "@/modules/export/jobs/exportGlossesSqliteHandler";
+import { exportAudioResourcesHandler } from "@/modules/export/jobs/exportAudioResourcesHandler";
 
 export type JobHandlerRegistry = {
   [Type in JobType]: {
@@ -46,5 +47,8 @@ export const jobHandlerRegistry: JobHandlerRegistry = {
   },
   export_glosses_sqlite: {
     handler: exportGlossesSqliteHandler,
+  },
+  export_audio_resources: {
+    handler: exportAudioResourcesHandler,
   },
 };

@@ -1,4 +1,4 @@
-import { query } from "@/db";
+import { getDb } from "@/db";
 
 export interface ReadAudioTimingReadModel {
   verseId: string;
@@ -10,19 +10,17 @@ export async function getReadAudioTimingsReadModel(
   bookId: number,
   chapter: number,
 ): Promise<Array<ReadAudioTimingReadModel>> {
-  const result = await query<ReadAudioTimingReadModel>(
-    `
-      SELECT t.verse_id AS "verseId", t.start
-      FROM verse_audio_timing AS t
-      JOIN verse AS v ON v.id = t.verse_id
-      WHERE t.recording_id = $1
-        AND v.book_id = $2
-        AND v.chapter = $3
-        AND t.start IS NOT NULL
-      ORDER BY t.verse_id
-    `,
-    [speaker, bookId, chapter],
-  );
-
-  return result.rows;
+  return getDb()
+    .selectFrom("verse_audio_timing as t")
+    .innerJoin("verse as v", "v.id", "t.verse_id")
+    .where("t.recording_id", "=", speaker)
+    .where("v.book_id", "=", bookId)
+    .where("v.chapter", "=", chapter)
+    .where("t.start", "is not", null)
+    .select([
+      "t.verse_id as verseId",
+      (eb) => eb.ref("start").$notNull().as("start"),
+    ])
+    .orderBy("t.verse_id")
+    .execute();
 }

@@ -25,6 +25,8 @@ import {
   LemmaFormTable,
   LemmaResourceTable,
   LemmaTable,
+  RecordingTable,
+  VerseAudioTimingTable,
   VerseCommentaryTable,
   VerseQuestionTable,
   VerseTable,
@@ -44,7 +46,10 @@ import {
   PhraseWordTable,
   TranslatorNoteTable,
 } from "./modules/translation/db/schema";
-import { GlossesSqliteExportTable } from "./modules/export/db/schema";
+import {
+  AudioBookExportTable,
+  GlossesSqliteExportTable,
+} from "./modules/export/db/schema";
 import { JobTable } from "./shared/jobs/db/schema";
 import {
   BookCompletionProgressTable,
@@ -55,6 +60,7 @@ import {
 
 export interface Database {
   ai_gloss_language: AIGlossLanguageTable;
+  audio_book_export: AudioBookExportTable;
   book: BookTable;
   book_completion: BookCompletionTable;
   book_completion_progress: BookCompletionProgressTable;
@@ -76,6 +82,7 @@ export interface Database {
   machine_gloss_model: MachineGlossModelTable;
   phrase: PhraseTable;
   phrase_word: PhraseWordTable;
+  recording: RecordingTable;
   reset_password_token: ResetPasswordTokenTable;
   session: SessionTable;
   tracking_event: TrackingEventTable;
@@ -85,6 +92,7 @@ export interface Database {
   user_system_role: UserSystemRoleTable;
   users: UserTable;
   verse: VerseTable;
+  verse_audio_timing: VerseAudioTimingTable;
   verse_commentary: VerseCommentaryTable;
   verse_question: VerseQuestionTable;
   word: WordTable;

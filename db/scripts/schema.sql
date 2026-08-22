@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict chc3AdzzUD6GEhmEnhizEWWpNBOP2z1vp1d4NbxIRfN76FbkogRdFD6eXXeFSkw
+\restrict GeH24j6eYeZMRb2yVM4kPheKYlxWT0yebnCncg2FoUgTmLVYIhHp0Tey6KZPC5c
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -417,6 +417,20 @@ CREATE TABLE public.ai_gloss_language (
     code text NOT NULL,
     name text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: audio_book_export; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.audio_book_export (
+    recording_id text NOT NULL,
+    book_id integer NOT NULL,
+    s3_key text NOT NULL,
+    sha256 text NOT NULL,
+    size bigint NOT NULL,
+    updated_at timestamp with time zone NOT NULL
 );
 
 
@@ -1212,6 +1226,14 @@ ALTER TABLE ONLY public.ai_gloss_language
 
 
 --
+-- Name: audio_book_export audio_book_export_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audio_book_export
+    ADD CONSTRAINT audio_book_export_pkey PRIMARY KEY (recording_id, book_id);
+
+
+--
 -- Name: book_completion book_completion_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1766,6 +1788,22 @@ CREATE TRIGGER increment_suggestion AFTER INSERT OR UPDATE OF gloss, state ON pu
 
 
 --
+-- Name: audio_book_export audio_book_export_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audio_book_export
+    ADD CONSTRAINT audio_book_export_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.book(id) ON DELETE CASCADE;
+
+
+--
+-- Name: audio_book_export audio_book_export_recording_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audio_book_export
+    ADD CONSTRAINT audio_book_export_recording_id_fkey FOREIGN KEY (recording_id) REFERENCES public.recording(id) ON DELETE CASCADE;
+
+
+--
 -- Name: book_completion book_completion_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2209,5 +2247,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict chc3AdzzUD6GEhmEnhizEWWpNBOP2z1vp1d4NbxIRfN76FbkogRdFD6eXXeFSkw
+\unrestrict GeH24j6eYeZMRb2yVM4kPheKYlxWT0yebnCncg2FoUgTmLVYIhHp0Tey6KZPC5c
 

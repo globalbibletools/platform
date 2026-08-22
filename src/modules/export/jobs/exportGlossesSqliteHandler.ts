@@ -5,6 +5,7 @@ import { GlossStateRaw } from "@/modules/translation/types";
 import { resolveLanguageByCode } from "@/modules/languages";
 import { pipeline } from "stream/promises";
 import { Readable } from "stream";
+import { ZipArchive } from "archiver";
 import { AppGlossRepository } from "../data-access/AppGlossRepository";
 import { exportStorageRepository } from "../data-access/exportStorageRepository";
 import {
@@ -31,10 +32,13 @@ export async function exportGlossesSqliteHandler(job: ExportGlossesSqliteJob) {
 
     const buffer = await createSqliteDb(language.id);
 
+    const archive = new ZipArchive();
+    archive.append(buffer, { name: `${languageCode}.db` });
+    archive.finalize();
+
     const { key, size, sha256 } = await exportStorageRepository.uploadZip({
       key: `glosses/v1/${languageCode}.db.zip`,
-      source: buffer,
-      fileName: `${languageCode}.db`,
+      archive,
     });
 
     await glossesSqliteExportRepository.upsertGlossDbExport({

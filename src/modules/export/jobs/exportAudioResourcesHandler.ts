@@ -1,0 +1,201 @@
+import { logger } from "@/logging";
+import bookKeys from "@/data/book-keys.json";
+import { ZipArchive } from "archiver";
+import { Readable } from "stream";
+import { ExportAudioResourcesJob } from "./ExportAudioResourceJob";
+import { exportStorageRepository } from "../data-access/exportStorageRepository";
+import {
+  audioBookExportRepository,
+  AudioBookExportRow,
+} from "../data-access/audioBookExportRepository";
+import { Logger } from "pino";
+import { getDb } from "@/db";
+
+export async function exportAudioResourcesHandler(
+  job: ExportAudioResourcesJob,
+) {
+  const jobLogger = logger.child({
+    job: {
+      id: job.id,
+      type: job.type,
+    },
+  });
+
+  const updatedAt = new Date();
+
+  for (const speaker of job.payload.speakers) {
+    for (const bookId of speaker.bookIds) {
+      await uploadTimingsForBook({
+        speaker: speaker.speaker,
+        bookId,
+        logger: jobLogger,
+      });
+
+      const result = await zipBookDirectory({
+        speaker: speaker.speaker,
+        bookId,
+        logger: jobLogger,
+      });
+
+      await audioBookExportRepository.upsertAudioBookExport({
+        recordingId: speaker.speaker,
+        bookId,
+        s3Key: result.key,
+        sha256: result.sha256,
+        size: result.size,
+        updatedAt,
+      });
+    }
+  }
+
+  await uploadAudioManifest();
+}
+
+async function uploadAudioManifest(): Promise<void> {
+  const manifestStream = Readable.from(
+    manifestLines(audioBookExportRepository.streamAudioBookExports()),
+  );
+
+  await exportStorageRepository.upload({
+    key: "audio/v1/manifest.jsonl",
+    source: manifestStream,
+    type: "application/jsonl",
+  });
+}
+
+async function* manifestLines(
+  rows: AsyncIterableIterator<AudioBookExportRow>,
+): AsyncGenerator<string> {
+  // Rows are ordered by recording_id then book_id, so consecutive rows with
+  // the same recording_id form one speaker group. Emit a parent resource for
+  // the speaker, followed by a child resource for each exported book.
+  let currentRecording: string | null = null;
+  let group: AudioBookExportRow[] = [];
+
+  const flush = function* (): Generator<string> {
+    if (group.length === 0) return;
+
+    const recordingId = group[0].recordingId;
+    const recordingName = group[0].recordingName || recordingId;
+
+    yield JSON.stringify({
+      id: recordingId,
+      resourceName: recordingName,
+    }) + "\n";
+
+    for (const row of group) {
+      const bookCode = bookKeys[row.bookId - 1];
+      yield JSON.stringify({
+        id: `${recordingId}/${bookCode}`,
+        resourceName: row.bookName,
+        updatedAt: row.updatedAt.toISOString(),
+        sha256: row.sha256,
+        size: row.size,
+        url: row.s3Key,
+      }) + "\n";
+    }
+  };
+
+  for await (const row of rows) {
+    if (currentRecording !== row.recordingId) {
+      yield* flush();
+      group = [];
+      currentRecording = row.recordingId;
+    }
+    group.push(row);
+  }
+  yield* flush();
+}
+
+async function uploadTimingsForBook({
+  speaker,
+  bookId,
+  logger,
+}: {
+  speaker: string;
+  bookId: number;
+  logger: Logger;
+}) {
+  const timings = await getDb()
+    .selectFrom("verse_audio_timing as t")
+    .innerJoin("verse as v", "v.id", "t.verse_id")
+    .where("t.recording_id", "=", speaker)
+    .where("v.book_id", "=", bookId)
+    .where("t.start", "is not", null)
+    .select([
+      "v.chapter as chapter",
+      "v.number as verse",
+      (eb) => eb.ref("t.start").$notNull().as("start"),
+      "t.end as end",
+    ])
+    .orderBy("v.chapter")
+    .orderBy("v.number")
+    .execute();
+
+  const NO_END = 0xffffffff;
+
+  const bytes = new DataView(new ArrayBuffer(timings.length * 11));
+  for (let i = 0; i < timings.length; i++) {
+    const timing = timings[i];
+    const offset = i * 11;
+
+    bytes.setUint8(offset, bookId);
+    bytes.setUint8(offset + 1, timing.chapter);
+    bytes.setUint8(offset + 2, timing.verse);
+    bytes.setUint32(offset + 3, Math.trunc(timing.start * 100));
+    bytes.setUint32(
+      offset + 7,
+      timing.end == null ? NO_END : Math.trunc(timing.end * 100),
+    );
+  }
+
+  const bookCode = bookKeys[bookId - 1];
+  await exportStorageRepository.upload({
+    key: `audio/v1/${speaker}/${bookCode}/timings.bin`,
+    source: Buffer.from(bytes.buffer),
+    type: "application/octet-stream",
+  });
+
+  logger.info(
+    { speaker, bookId, bookCode, count: timings.length },
+    "Uploaded audio timings",
+  );
+}
+
+async function zipBookDirectory({
+  speaker,
+  bookId,
+  logger,
+}: {
+  speaker: string;
+  bookId: number;
+  logger: Logger;
+}) {
+  const bookCode = bookKeys[bookId - 1];
+  const prefix = `audio/v1/${speaker}/${bookCode}/`;
+
+  const archive = new ZipArchive();
+  let fileCount = 0;
+
+  for await (const { key, body } of exportStorageRepository.streamFiles({
+    prefix,
+  })) {
+    const relativePath = key.slice(prefix.length);
+    archive.append(body, { name: `${bookCode}/${relativePath}` });
+    fileCount += 1;
+  }
+
+  archive.finalize();
+
+  const result = await exportStorageRepository.uploadZip({
+    key: `audio/v1/${speaker}/${bookCode}.zip`,
+    archive,
+  });
+
+  logger.info(
+    { speaker, bookId, bookCode, fileCount },
+    "Uploaded audio book zip",
+  );
+
+  return result;
+}

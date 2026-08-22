@@ -1,3 +1,5 @@
+import { Generated } from "kysely";
+
 export interface BookTable {
   id: number;
   name: string;
@@ -48,4 +50,17 @@ export interface LemmaResourceTable {
   lemma_id: string;
   resource_code: string;
   content: string;
+}
+
+export interface RecordingTable {
+  id: string;
+  name: string;
+}
+
+export interface VerseAudioTimingTable {
+  id: Generated<number>;
+  verse_id: string;
+  recording_id: string;
+  start: number | null;
+  end: number | null;
 }
