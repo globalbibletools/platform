@@ -177,12 +177,28 @@ async function zipBookDirectory({
   const archive = new ZipArchive();
   let fileCount = 0;
 
+  archive.on("warning", function (err) {
+    if (err.code === "ENOENT") {
+      logger.warn(`Error in zip file: ${err}`);
+    } else {
+      logger.error(`Error in zip file: ${err}`);
+      throw err;
+    }
+  });
+
+  archive.on("error", function (err) {
+    logger.error(`Error in zip file: ${err}`);
+    throw err;
+  });
+
   for await (const { key, body } of exportStorageRepository.streamFiles({
     prefix,
   })) {
     const relativePath = key.slice(prefix.length);
     archive.append(body, { name: `${bookCode}/${relativePath}` });
     fileCount += 1;
+
+    logger.info(`Appended file: ${bookCode}/${relativePath}`);
   }
 
   archive.finalize();
