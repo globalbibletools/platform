@@ -11,7 +11,7 @@ import {
 import { Logger } from "pino";
 import { getDb } from "@/db";
 import { once } from "events";
-import type { Testament } from "@/modules/bible-core/types";
+import { Testament, TestamentName } from "@/modules/bible-core/types";
 
 export async function exportAudioResourcesHandler(
   job: ExportAudioResourcesJob,
@@ -81,7 +81,8 @@ async function* manifestLines(
   const flush = function* (): Generator<string> {
     if (group.length === 0) return;
 
-    const recordingId = `${group[0].testament}/${group[0].recordingId}`;
+    const testament = group[0].testament as Testament;
+    const recordingId = `${testament}/${group[0].recordingId}`;
     const recordingName = group[0].recordingName || recordingId;
 
     yield JSON.stringify({
@@ -101,6 +102,16 @@ async function* manifestLines(
       }) + "\n";
     }
   };
+
+  // Emit the testament resource groups first.
+  yield JSON.stringify({
+    id: Testament.OldTestament,
+    resourceName: "Old Testament",
+  }) + "\n";
+  yield JSON.stringify({
+    id: Testament.NewTestament,
+    resourceName: "New Testament",
+  }) + "\n";
 
   for await (const row of rows) {
     if (currentRecording !== row.recordingId) {
