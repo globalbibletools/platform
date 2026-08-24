@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict GeH24j6eYeZMRb2yVM4kPheKYlxWT0yebnCncg2FoUgTmLVYIhHp0Tey6KZPC5c
+\restrict VfUbb1BorfMUO3joaS6uicR1tvKIh3X8cheamc7vtvIwD6qRfym4QcFclZDKMce
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -926,7 +926,9 @@ ALTER SEQUENCE public.phrase_id_seq OWNED BY public.phrase.id;
 
 CREATE TABLE public.recording (
     id text NOT NULL,
-    name text NOT NULL
+    name text NOT NULL,
+    testament text NOT NULL,
+    CONSTRAINT recording_testament_check CHECK ((testament = ANY (ARRAY['OT'::text, 'NT'::text])))
 );
 
 
@@ -2247,5 +2249,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict GeH24j6eYeZMRb2yVM4kPheKYlxWT0yebnCncg2FoUgTmLVYIhHp0Tey6KZPC5c
+\unrestrict VfUbb1BorfMUO3joaS6uicR1tvKIh3X8cheamc7vtvIwD6qRfym4QcFclZDKMce
 

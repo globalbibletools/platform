@@ -11,6 +11,7 @@ import {
 import { Logger } from "pino";
 import { getDb } from "@/db";
 import { once } from "events";
+import type { Testament } from "@/modules/bible-core/types";
 
 export async function exportAudioResourcesHandler(
   job: ExportAudioResourcesJob,
@@ -25,14 +26,18 @@ export async function exportAudioResourcesHandler(
   const updatedAt = new Date();
 
   for (const speaker of job.payload.speakers) {
+    const testament = await getTestament(speaker.speaker);
+
     for (const bookId of speaker.bookIds) {
       await uploadTimingsForBook({
+        testament,
         speaker: speaker.speaker,
         bookId,
         logger: jobLogger,
       });
 
       const result = await zipBookDirectory({
+        testament,
         speaker: speaker.speaker,
         bookId,
         logger: jobLogger,
@@ -76,7 +81,7 @@ async function* manifestLines(
   const flush = function* (): Generator<string> {
     if (group.length === 0) return;
 
-    const recordingId = group[0].recordingId;
+    const recordingId = `${group[0].testament}/${group[0].recordingId}`;
     const recordingName = group[0].recordingName || recordingId;
 
     yield JSON.stringify({
@@ -108,11 +113,23 @@ async function* manifestLines(
   yield* flush();
 }
 
+async function getTestament(speaker: string): Promise<Testament> {
+  const row = await getDb()
+    .selectFrom("recording")
+    .where("id", "=", speaker)
+    .select("testament")
+    .executeTakeFirstOrThrow();
+
+  return row.testament;
+}
+
 async function uploadTimingsForBook({
+  testament,
   speaker,
   bookId,
   logger,
 }: {
+  testament: Testament;
   speaker: string;
   bookId: number;
   logger: Logger;
@@ -152,7 +169,7 @@ async function uploadTimingsForBook({
 
   const bookCode = bookKeys[bookId - 1];
   await exportStorageRepository.upload({
-    key: `audio/v1/${speaker}/${bookCode}/timings.bin`,
+    key: `audio/v1/${testament}/${speaker}/${bookCode}/timings.bin`,
     source: Buffer.from(bytes.buffer),
     type: "application/octet-stream",
   });
@@ -164,16 +181,18 @@ async function uploadTimingsForBook({
 }
 
 async function zipBookDirectory({
+  testament,
   speaker,
   bookId,
   logger,
 }: {
+  testament: Testament;
   speaker: string;
   bookId: number;
   logger: Logger;
 }) {
   const bookCode = bookKeys[bookId - 1];
-  const prefix = `audio/v1/${speaker}/${bookCode}/`;
+  const prefix = `audio/v1/${testament}/${speaker}/${bookCode}/`;
 
   const archive = new ZipArchive();
   let fileCount = 0;
@@ -194,7 +213,7 @@ async function zipBookDirectory({
   // Start the upload stream to put it in a flowing state,
   // since it is pulling from the archive stream
   const upload = exportStorageRepository.uploadZip({
-    key: `audio/v1/${speaker}/${bookCode}.zip`,
+    key: `audio/v1/${testament}/${speaker}/${bookCode}.zip`,
     archive,
   });
 

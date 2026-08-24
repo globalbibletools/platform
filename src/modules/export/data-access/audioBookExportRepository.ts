@@ -12,6 +12,7 @@ export interface UpsertAudioBookExportInput {
 
 export interface AudioBookExportRow {
   recordingId: string;
+  testament: string;
   bookId: number;
   recordingName: string;
   bookName: string;
@@ -53,6 +54,7 @@ export const audioBookExportRepository = {
       .innerJoin("book as b", "b.id", "e.book_id")
       .select([
         "e.recording_id as recordingId",
+        "r.testament as testament",
         "e.book_id as bookId",
         "r.name as recordingName",
         "b.name as bookName",

@@ -33,7 +33,7 @@ export default function AppAudioExportPanel() {
   const recordingItems: ComboboxItem[] = useMemo(
     () =>
       audioData.recordings.map((recording) => ({
-        label: recording.name || recording.id,
+        label: `${recording.name || recording.id} (${recording.testament})`,
         value: recording.id,
       })),
     [audioData.recordings],

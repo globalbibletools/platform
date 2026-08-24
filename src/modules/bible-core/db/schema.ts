@@ -1,4 +1,5 @@
 import { Generated } from "kysely";
+import type { Testament } from "../types";
 
 export interface BookTable {
   id: number;
@@ -55,6 +56,7 @@ export interface LemmaResourceTable {
 export interface RecordingTable {
   id: string;
   name: string;
+  testament: Testament;
 }
 
 export interface VerseAudioTimingTable {

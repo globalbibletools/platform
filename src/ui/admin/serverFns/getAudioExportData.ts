@@ -19,6 +19,7 @@ export interface AudioExportJob {
 export interface RecordingReadModel {
   id: string;
   name: string;
+  testament: string;
 }
 
 export interface BookReadModel {
@@ -72,7 +73,7 @@ async function getLatestAudioExportJob(): Promise<AudioExportJob | undefined> {
 async function getRecordings(): Promise<RecordingReadModel[]> {
   return getDb()
     .selectFrom("recording")
-    .select(["id", "name"])
+    .select(["id", "name", "testament"])
     .orderBy("name")
     .execute();
 }
