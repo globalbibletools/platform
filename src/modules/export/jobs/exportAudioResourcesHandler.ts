@@ -11,7 +11,7 @@ import {
 import { Logger } from "pino";
 import { getDb } from "@/db";
 import { once } from "events";
-import { Testament, TestamentName } from "@/modules/bible-core/types";
+import { Testament } from "@/modules/bible-core/types";
 
 export async function exportAudioResourcesHandler(
   job: ExportAudioResourcesJob,
