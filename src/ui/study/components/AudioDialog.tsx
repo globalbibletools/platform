@@ -284,7 +284,7 @@ export default function AudioDialog({
     <dialog
       open
       className={`
-            ${className}
+            ${className} z-10
             fixed border border-gray-400 shadow-lg bg-white rounded flex flex-col items-center px-4 pt-8 pb-3 gap-4
             dark:bg-gray-800 dark:border-gray-700 dark:shadow-none dark:text-gray-300
         `}
