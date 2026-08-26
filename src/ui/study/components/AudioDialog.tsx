@@ -48,11 +48,25 @@ export default function AudioDialog({
   const isVersePlayer = !!verseId;
 
   const bookId = parseInt(chapterId.slice(0, 2)) || 1;
+  const isOT = bookId < 40;
   const chapter = parseInt(chapterId.slice(2, 5)) || 1;
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [speaker, setSpeaker] = useState("HEB");
+  const [otSpeaker, setOTSpeaker] = useState("HEB");
+  const [ntSpeaker, setNTSpeaker] = useState("TK");
   const [speed, setSpeed] = useState(2);
+
+  const speaker = isOT ? otSpeaker : ntSpeaker;
+  const setSpeaker = useCallback(
+    (speaker: string) => {
+      if (isOT) {
+        setOTSpeaker(speaker);
+      } else {
+        setNTSpeaker(speaker);
+      }
+    },
+    [isOT],
+  );
 
   const { data } = useQuery({
     queryKey: ["chapter-audio", speaker, chapterId],
@@ -373,10 +387,17 @@ export default function AudioDialog({
         </Button>
         <ListboxInput
           menuClassName="min-w-[120px]"
-          items={[
-            { label: "Schmueloff", value: "HEB" },
-            { label: "Beeri", value: "RDB" },
-          ]}
+          items={
+            isOT ?
+              [
+                { label: "Schmueloff", value: "HEB" },
+                { label: "Beeri", value: "RDB" },
+              ]
+            : [
+                { label: "Modern", value: "TK" },
+                { label: "Lucian", value: "JH" },
+              ]
+          }
           value={speaker}
           onChange={setSpeaker}
           aria-label={t("speaker")}
