@@ -20,6 +20,7 @@ import { getReadAudioTimings } from "../serverFns/getReadAudioTimings";
 interface VerseAudioTiming {
   verseId: string;
   start: number;
+  end: number | null;
 }
 
 export interface AudioDialogProps {
@@ -195,9 +196,12 @@ export default function AudioDialog({
       const el = audioRef.current;
       if (!el) return;
 
-      const index = parseInt(verseNumber) - 1;
-      if (data[index]) {
-        el.currentTime = data[index].start;
+      const targetVerseId = chapterId + verseNumber.padStart(3, "0");
+      const exact = data.find((v) => v.verseId === targetVerseId);
+      const next = data.find((v) => v.verseId > targetVerseId);
+      const target = exact ?? next;
+      if (target) {
+        el.currentTime = target.start;
         el.play();
       }
     }
@@ -216,14 +220,13 @@ export default function AudioDialog({
       el.pause();
     }
 
-    const verse = data.reduce<VerseAudioTiming | undefined>(
-      (last, v) => (v.start > el.currentTime ? last : v),
-      undefined,
+    const current = data.find(
+      (verse) =>
+        el.currentTime >= verse.start && el.currentTime < (verse.end ?? length),
     );
-
-    if (lastVerseIdRef.current !== verse?.verseId) {
-      onVerseChange?.(verse?.verseId);
-      lastVerseIdRef.current = verse?.verseId;
+    if (lastVerseIdRef.current !== current?.verseId) {
+      onVerseChange?.(current?.verseId);
+      lastVerseIdRef.current = current?.verseId;
     }
   }
 
@@ -530,7 +533,7 @@ function useTimeRange({
     }
 
     const start = timings[timingIndex].start;
-    const end = timings[timingIndex + 1]?.start ?? length;
+    const end = timings[timingIndex].end ?? length;
     return {
       start,
       end,

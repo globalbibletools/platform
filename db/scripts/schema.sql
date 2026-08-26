@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict VfUbb1BorfMUO3joaS6uicR1tvKIh3X8cheamc7vtvIwD6qRfym4QcFclZDKMce
+\restrict ggJWgBFr8952Ni0ZB8OtmjkJafj9mduuO3GTNdBI2wluV68myPhdeKxSbD3TvAc
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -2150,14 +2150,6 @@ ALTER TABLE ONLY public.verse_audio_timing
 
 
 --
--- Name: verse_audio_timing verse_audio_timing_verse_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.verse_audio_timing
-    ADD CONSTRAINT verse_audio_timing_verse_id_fkey FOREIGN KEY (verse_id) REFERENCES public.verse(id);
-
-
---
 -- Name: verse verse_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2249,5 +2241,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict VfUbb1BorfMUO3joaS6uicR1tvKIh3X8cheamc7vtvIwD6qRfym4QcFclZDKMce
+\unrestrict ggJWgBFr8952Ni0ZB8OtmjkJafj9mduuO3GTNdBI2wluV68myPhdeKxSbD3TvAc
 

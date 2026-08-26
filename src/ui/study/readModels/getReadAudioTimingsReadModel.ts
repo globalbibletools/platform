@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 export interface ReadAudioTimingReadModel {
   verseId: string;
   start: number;
+  end: number | null;
 }
 
 export async function getReadAudioTimingsReadModel(
@@ -20,6 +21,7 @@ export async function getReadAudioTimingsReadModel(
     .select([
       "t.verse_id as verseId",
       (eb) => eb.ref("start").$notNull().as("start"),
+      "t.end as end",
     ])
     .orderBy("t.verse_id")
     .execute();

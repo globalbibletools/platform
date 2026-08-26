@@ -1,0 +1,1 @@
+alter table verse_audio_timing drop constraint verse_audio_timing_verse_id_fkey;
