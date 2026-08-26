@@ -29,12 +29,16 @@ export async function exportAudioResourcesHandler(
     const testament = await getTestament(speaker.speaker);
 
     for (const bookId of speaker.bookIds) {
-      await uploadTimingsForBook({
+      const hasTimings = await uploadTimingsForBook({
         testament,
         speaker: speaker.speaker,
         bookId,
         logger: jobLogger,
       });
+
+      if (!hasTimings) {
+        continue;
+      }
 
       const result = await zipBookDirectory({
         testament,
@@ -144,7 +148,8 @@ async function uploadTimingsForBook({
   speaker: string;
   bookId: number;
   logger: Logger;
-}) {
+}): Promise<boolean> {
+  const bookCode = bookKeys[bookId - 1];
   const timings = await getDb()
     .selectFrom("verse_audio_timing as t")
     .innerJoin("verse as v", "v.id", "t.verse_id")
@@ -160,6 +165,14 @@ async function uploadTimingsForBook({
     .orderBy("v.chapter")
     .orderBy("v.number")
     .execute();
+
+  if (timings.length === 0) {
+    logger.info(
+      { speaker, bookId, bookCode, count: timings.length },
+      `No timings for ${bookCode}, ${speaker}`,
+    );
+    return false;
+  }
 
   const NO_END = 0xffffffff;
 
@@ -178,7 +191,6 @@ async function uploadTimingsForBook({
     );
   }
 
-  const bookCode = bookKeys[bookId - 1];
   await exportStorageRepository.upload({
     key: `audio/v1/${testament}/${speaker}/${bookCode}/timings.bin`,
     source: Buffer.from(bytes.buffer),
@@ -187,8 +199,10 @@ async function uploadTimingsForBook({
 
   logger.info(
     { speaker, bookId, bookCode, count: timings.length },
-    "Uploaded audio timings",
+    `Uploaded audio timings for ${bookCode}, ${speaker}`,
   );
+
+  return true;
 }
 
 async function zipBookDirectory({
