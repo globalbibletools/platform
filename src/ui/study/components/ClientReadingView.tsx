@@ -111,7 +111,7 @@ export default function ReadingView({
         }),
       };
     });
-  }, [hebrewAccents, hebrewVowels, greekAccents]);
+  }, [verses, isOT, hebrewAccents, hebrewVowels, greekAccents]);
 
   return (
     <>
