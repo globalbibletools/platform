@@ -104,10 +104,6 @@ async function createSqliteDb(languageId: string): Promise<Buffer> {
       for await (const row of stream) {
         if (!row.gloss) continue;
 
-        // The database format does not support word ids with hyphens yet,
-        // so we skip these for now.
-        if (row.wordId.includes("-")) continue;
-
         let textId = textIdMap.get(row.gloss);
         if (!textId) {
           textId = nextTextId;
@@ -115,9 +111,15 @@ async function createSqliteDb(languageId: string): Promise<Buffer> {
           textIdMap.set(row.gloss, textId);
         }
 
+        // Early versions of the gloss database used an _id column that was an integer.
+        // That is no longer compatible now that wordIds are not necessarily numbers.
+        // We keep writing to this column for backwards compatibility with older app versions.
+        const legacyWordId = row.wordId.includes("-") ? undefined : row.wordId;
+
         yield {
-          _id: row.wordId,
+          _id: legacyWordId,
           text: textId,
+          wordId: row.wordId,
         };
       }
     },

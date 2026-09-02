@@ -1,5 +1,6 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { beforeEach, expect, test, vitest } from "vitest";
+import { sql } from "kysely";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 import { phraseFactory } from "@/modules/translation/test-utils/phraseFactory";
 import { GlossStateRaw } from "@/modules/translation/types";
@@ -64,8 +65,9 @@ function extractSqliteBuffer(archive: unknown): Buffer {
 function querySqliteTables(buffer: Buffer) {
   const db = new Database(buffer);
   const verses = db.prepare("select * from verses order by _id").all() as {
-    _id: number;
+    _id: number | null;
     text: number;
+    word_id: string;
   }[];
   const texts = db.prepare("select * from text order by _id").all() as {
     _id: number;
@@ -119,7 +121,7 @@ test("exports approved glosses for a language as a SQLite database", async () =>
   const buffer = extractSqliteBuffer(mockedUploadZip.mock.calls[0][0].archive);
   const { verses, texts } = querySqliteTables(buffer);
 
-  expect(verses).toEqual([{ _id: Number(word.id), text: 1 }]);
+  expect(verses).toEqual([{ _id: Number(word.id), text: 1, word_id: word.id }]);
   expect(texts).toEqual([{ _id: 1, text: "test gloss" }]);
 
   const trackingRows = await getDb()
@@ -155,6 +157,67 @@ test("exports approved glosses for a language as a SQLite database", async () =>
       resourceName: language.local_name,
     },
   ]);
+});
+
+test("exports a null _id for a word whose id contains a hyphen", async () => {
+  const { language } = await languageFactory.build({ code: "spa" });
+
+  await getDb()
+    .insertInto("book_completion")
+    .values({
+      language_id: language.id,
+      book_id: HAGGAI_BOOK_ID,
+      refreshed_at: new Date(),
+      updated_at: new Date(),
+      completed_at: new Date(),
+    })
+    .execute();
+
+  const existingWord = await bibleFactory.word();
+  const hyphenatedWordId = "37001001-001";
+
+  await getDb()
+    .insertInto("word")
+    .values({
+      id: hyphenatedWordId,
+      text: "word",
+      verse_id: existingWord.verse_id,
+      form_id: existingWord.form_id,
+    })
+    .execute();
+
+  // book_word_map is a materialized view, so it must be refreshed to
+  // include the newly inserted word.
+  await getDb().executeQuery(
+    sql`refresh materialized view book_word_map`.compile(getDb()),
+  );
+
+  await phraseFactory.build({
+    languageId: language.id,
+    wordIds: [hyphenatedWordId],
+    events: true,
+    gloss: {
+      state: GlossStateRaw.Approved,
+      gloss: "test gloss",
+    },
+  });
+
+  const job = ExportGlossesSqliteJob.create({
+    languageCodes: [language.code],
+  });
+
+  await exportGlossesSqliteHandler(job);
+
+  expect(mockedUploadZip).toHaveBeenCalledExactlyOnceWith({
+    key: `glosses/v1/${language.code}.db.zip`,
+    archive: expect.any(Object),
+  });
+
+  const buffer = extractSqliteBuffer(mockedUploadZip.mock.calls[0][0].archive);
+  const { verses, texts } = querySqliteTables(buffer);
+
+  expect(verses).toEqual([{ _id: null, text: 1, word_id: hyphenatedWordId }]);
+  expect(texts).toEqual([{ _id: 1, text: "test gloss" }]);
 });
 
 test("skips words with null glosses", async () => {
@@ -291,13 +354,17 @@ test("exports multiple languages in separate databases", async () => {
   const spaArchive = mockedUploadZip.mock.calls[0][0].archive;
   const spaBuffer = extractSqliteBuffer(spaArchive);
   const { verses: spaVerses, texts: spaTexts } = querySqliteTables(spaBuffer);
-  expect(spaVerses).toEqual([{ _id: Number(word.id), text: 1 }]);
+  expect(spaVerses).toEqual([
+    { _id: Number(word.id), text: 1, word_id: word.id },
+  ]);
   expect(spaTexts).toEqual([{ _id: 1, text: "hello" }]);
 
   const hinArchive = mockedUploadZip.mock.calls[1][0].archive;
   const hinBuffer = extractSqliteBuffer(hinArchive);
   const { verses: hinVerses, texts: hinTexts } = querySqliteTables(hinBuffer);
-  expect(hinVerses).toEqual([{ _id: Number(word.id), text: 1 }]);
+  expect(hinVerses).toEqual([
+    { _id: Number(word.id), text: 1, word_id: word.id },
+  ]);
   expect(hinTexts).toEqual([{ _id: 1, text: "namaste" }]);
 
   const trackingRows = await getDb()
@@ -398,8 +465,8 @@ test("deduplicates gloss text entries", async () => {
   const { verses, texts } = querySqliteTables(buffer);
 
   expect(verses).toEqual([
-    { _id: Number(words[0].id), text: 1 },
-    { _id: Number(words[1].id), text: 1 },
+    { _id: Number(words[0].id), text: 1, word_id: words[0].id },
+    { _id: Number(words[1].id), text: 1, word_id: words[1].id },
   ]);
   expect(texts).toEqual([{ _id: 1, text: "same gloss" }]);
 

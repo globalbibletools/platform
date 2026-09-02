@@ -8,8 +8,9 @@ interface TextTable {
 }
 
 interface VersesTable {
-  _id: number;
+  _id?: number; // deprecated
   text: number;
+  wordId: string;
 }
 
 export class AppGlossRepository {
@@ -34,8 +35,9 @@ export class AppGlossRepository {
     this.db
       .prepare(
         `create table verses (
-        _id integer primary key,
-        text integer
+        _id integer unique,
+        text integer,
+        word_id text primary key
       )`,
       )
       .run();
@@ -44,8 +46,8 @@ export class AppGlossRepository {
   getVerseWritableStream() {
     return new SqliteWritableStream(
       this.db,
-      "insert into verses (_id, text) values (?, ?)",
-      (stmt, row: VersesTable) => stmt.run(row._id, row.text),
+      "insert into verses (_id, text, word_id) values (?, ?, ?)",
+      (stmt, row: VersesTable) => stmt.run(row._id, row.text, row.wordId),
     );
   }
 
