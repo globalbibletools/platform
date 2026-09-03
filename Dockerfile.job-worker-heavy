@@ -17,6 +17,5 @@ COPY package*.json .
 RUN ["npm", "install", "better-sqlite3"]
 RUN ["rm", "package.json", "package-lock.json"]
 COPY --from=build /app/dist/ecs-worker.js ./dist/ecs-worker.js
-COPY --from=build /app/node_modules/pdfkit/js/data ./data
 COPY --from=build /app/dist/fonts ./fonts
 CMD ["node", "dist/ecs-worker.js"]

@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { PDFDocument } from "pdf-lib";
 import {
   formatVerseLabel,
@@ -72,16 +72,6 @@ function buildSampleChapter(): InterlinearChapterResult {
 }
 
 describe("generateInterlinearPdf", () => {
-  beforeEach(() => {
-    process.env.PDFKIT_DATA_DIR = path.join(
-      process.cwd(),
-      "node_modules",
-      "pdfkit",
-      "js",
-      "data",
-    );
-  });
-
   it("creates a readable PDF with Noto gloss and SBL body fonts", async () => {
     const { stream, pageCount } = generateInterlinearPdf(buildSampleChapter(), {
       pageSize: "letter",

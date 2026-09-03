@@ -83,6 +83,8 @@ export function generateInterlinearPdfDocument(
     size: options.pageSize ?? "letter",
     margin: 56,
     bufferPages: true,
+    // Skip loading PDFKit built in fonts. They aren't available in the docker container.
+    font: null as any,
   });
 
   const hebrewFont = fs.readFileSync(resolveRequiredFontFile("SBL_Hbrw.ttf"));
