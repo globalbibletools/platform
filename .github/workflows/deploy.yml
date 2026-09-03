@@ -140,3 +140,10 @@ jobs:
           provenance: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Redeploy ECS service
+        run: >
+          aws ecs update-service
+          --cluster job-worker-heavy
+          --service worker
+          --force-new-deployment
