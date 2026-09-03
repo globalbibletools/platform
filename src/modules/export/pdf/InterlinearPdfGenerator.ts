@@ -164,8 +164,8 @@ function registerGlossFont(
 
 function resolveRequiredFontFile(filename: string): string {
   const candidates = [
-    "/var/task/fonts",
-    path.join(process.cwd(), "src", "assets", "fonts"),
+    path.join(process.cwd(), "fonts"), // Prod
+    path.join(process.cwd(), "src", "assets", "fonts"), // Local dev
   ].map((fontBase) => path.join(fontBase, filename));
 
   const fontPath = candidates.find((candidate) => fs.existsSync(candidate));
