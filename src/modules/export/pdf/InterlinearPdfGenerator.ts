@@ -148,7 +148,8 @@ function registerGlossFont(
   registeredFonts: Set<string>,
 ) {
   const glossFontFile = pdfFontMap[configuredFontName];
-  if (!glossFontFile) return "Helvetica";
+  if (!glossFontFile)
+    throw new Error(`Missing font file for ${configuredFontName}`);
 
   if (!registeredFonts.has(configuredFontName)) {
     const fontData = fs.readFileSync(resolveRequiredFontFile(glossFontFile));
