@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { PDFDocument } from "pdf-lib";
 import {
   formatVerseLabel,
