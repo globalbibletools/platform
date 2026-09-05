@@ -149,20 +149,11 @@ function streamGlossesForLanguage(
   languageId: string,
 ): AsyncIterableIterator<GlossExportRow> {
   return getDb()
-    .with("completed_books", (db) =>
-      db
-        .selectFrom("book_completion")
-        .where("language_id", "=", languageId)
-        .where("completed_at", "is not", null)
-        .select("book_id"),
-    )
     .with("gloss_word", (db) =>
       db
         .selectFrom("phrase_word as pw")
         .innerJoin("phrase as ph", "ph.id", "pw.phrase_id")
         .innerJoin("gloss as g", "g.phrase_id", "ph.id")
-        .innerJoin("book_word_map as w", "w.word_id", "pw.word_id")
-        .innerJoin("completed_books as b", "b.book_id", "w.book_id")
         .where("ph.language_id", "=", languageId)
         .where("ph.deleted_at", "is", null)
         .where("g.state", "=", GlossStateRaw.Approved)
@@ -172,8 +163,6 @@ function streamGlossesForLanguage(
       db
         .selectFrom("machine_gloss as mg")
         .innerJoin("machine_gloss_model as mgm", "mgm.id", "mg.model_id")
-        .innerJoin("book_word_map as w", "w.word_id", "mg.word_id")
-        .innerJoin("completed_books as b", "b.book_id", "w.book_id")
         .where("mg.language_id", "=", languageId)
         .where("mgm.code", "=", "llm_import")
         .select(["mg.word_id", "mg.gloss"]),

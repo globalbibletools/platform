@@ -1,13 +1,9 @@
 import { initializeDatabase } from "@/tests/vitest/dbUtils";
 import { beforeEach, expect, test, vitest } from "vitest";
-import { sql } from "kysely";
 import { languageFactory } from "@/modules/languages/test-utils/languageFactory";
 import { phraseFactory } from "@/modules/translation/test-utils/phraseFactory";
 import { GlossStateRaw } from "@/modules/translation/types";
-import {
-  HAGGAI_BOOK_ID,
-  bibleFactory,
-} from "@/modules/bible-core/test-utils/bibleFactory";
+import { bibleFactory } from "@/modules/bible-core/test-utils/bibleFactory";
 import { getDb } from "@/db";
 import { exportGlossesSqliteHandler } from "./exportGlossesSqliteHandler";
 import { ExportGlossesSqliteJob } from "./ExportGlossesSqliteJob";
@@ -85,17 +81,6 @@ async function readManifestSource(source: Readable): Promise<unknown[]> {
 test("exports approved glosses for a language as a SQLite database", async () => {
   const { language } = await languageFactory.build({ code: "spa" });
 
-  await getDb()
-    .insertInto("book_completion")
-    .values({
-      language_id: language.id,
-      book_id: HAGGAI_BOOK_ID,
-      refreshed_at: new Date(),
-      updated_at: new Date(),
-      completed_at: new Date(),
-    })
-    .execute();
-
   const word = await bibleFactory.word();
 
   await phraseFactory.build({
@@ -165,17 +150,6 @@ test("exports approved glosses for a language as a SQLite database", async () =>
 test("exports a null _id for a word whose id contains a hyphen", async () => {
   const { language } = await languageFactory.build({ code: "spa" });
 
-  await getDb()
-    .insertInto("book_completion")
-    .values({
-      language_id: language.id,
-      book_id: HAGGAI_BOOK_ID,
-      refreshed_at: new Date(),
-      updated_at: new Date(),
-      completed_at: new Date(),
-    })
-    .execute();
-
   const existingWord = await bibleFactory.word();
   const hyphenatedWordId = "37001001-001";
 
@@ -188,12 +162,6 @@ test("exports a null _id for a word whose id contains a hyphen", async () => {
       form_id: existingWord.form_id,
     })
     .execute();
-
-  // book_word_map is a materialized view, so it must be refreshed to
-  // include the newly inserted word.
-  await getDb().executeQuery(
-    sql`refresh materialized view book_word_map`.compile(getDb()),
-  );
 
   await phraseFactory.build({
     languageId: language.id,
@@ -227,17 +195,6 @@ test("exports a null _id for a word whose id contains a hyphen", async () => {
 
 test("skips words with null glosses", async () => {
   const { language } = await languageFactory.build({ code: "hin" });
-
-  await getDb()
-    .insertInto("book_completion")
-    .values({
-      language_id: language.id,
-      book_id: HAGGAI_BOOK_ID,
-      refreshed_at: new Date(),
-      updated_at: new Date(),
-      completed_at: new Date(),
-    })
-    .execute();
 
   // Create a phrase with unapproved gloss — should not appear in export
   await phraseFactory.build({
@@ -285,17 +242,6 @@ test("skips words with null glosses", async () => {
 
 test("exports an llm gloss with is_ai when a word has no approved gloss", async () => {
   const { language } = await languageFactory.build({ code: "hin" });
-
-  await getDb()
-    .insertInto("book_completion")
-    .values({
-      language_id: language.id,
-      book_id: HAGGAI_BOOK_ID,
-      refreshed_at: new Date(),
-      updated_at: new Date(),
-      completed_at: new Date(),
-    })
-    .execute();
 
   const [approvedWord, aiWord] = await bibleFactory.words({ count: 3 });
 
@@ -387,19 +333,6 @@ test("skips a language code that does not exist", async () => {
 test("exports multiple languages in separate databases", async () => {
   const { language: language1 } = await languageFactory.build({ code: "spa" });
   const { language: language2 } = await languageFactory.build({ code: "hin" });
-
-  for (const language of [language1, language2]) {
-    await getDb()
-      .insertInto("book_completion")
-      .values({
-        language_id: language.id,
-        book_id: HAGGAI_BOOK_ID,
-        refreshed_at: new Date(),
-        updated_at: new Date(),
-        completed_at: new Date(),
-      })
-      .execute();
-  }
 
   const word = await bibleFactory.word();
 
@@ -501,17 +434,6 @@ test("exports multiple languages in separate databases", async () => {
 test("deduplicates gloss text entries", async () => {
   const { language } = await languageFactory.build({ code: "arb" });
 
-  await getDb()
-    .insertInto("book_completion")
-    .values({
-      language_id: language.id,
-      book_id: HAGGAI_BOOK_ID,
-      refreshed_at: new Date(),
-      updated_at: new Date(),
-      completed_at: new Date(),
-    })
-    .execute();
-
   // Create two phrases with the same gloss text on different words
   const words = await bibleFactory.words({ count: 2 });
 
@@ -568,17 +490,6 @@ test("upserts an existing tracking row instead of creating a duplicate", async (
       sha256: "old-hash",
       size: 1,
       updated_at: new Date("2020-01-01"),
-    })
-    .execute();
-
-  await getDb()
-    .insertInto("book_completion")
-    .values({
-      language_id: language.id,
-      book_id: HAGGAI_BOOK_ID,
-      refreshed_at: new Date(),
-      updated_at: new Date(),
-      completed_at: new Date(),
     })
     .execute();
 
