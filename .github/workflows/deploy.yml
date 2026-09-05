@@ -141,9 +141,35 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Redeploy ECS service
+      - name: Fetch current task definition
+        run: |
+          # Fetch the latest revision of the "job_worker_heavy" family, which
+          # is managed by Terraform in the infra repo.
+          aws ecs describe-task-definition \
+            --task-definition job_worker_heavy \
+            --query 'taskDefinition' \
+            > task-definition.json
+
+      - name: Create new task definition revision with sha-tagged image
+        run: |
+          jq \
+            --arg image "${{ steps.login-ecr.outputs.registry }}/globalbibletools-job-worker-heavy:${{ steps.meta.outputs.version }}" \
+            'del(.taskDefinitionArn, .revision, .status, .requiresAttributes,
+                .compatibilities, .registeredAt, .registeredBy)
+              | .containerDefinitions[0].image = $image' \
+            task-definition.json > new-task-definition.json
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://new-task-definition.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+          echo "TASK_DEF_ARN=$NEW_TASK_DEF_ARN" >> "$GITHUB_ENV"
+
+      - name: Deploy to ECS
         run: >
           aws ecs update-service
           --cluster job-worker-heavy
           --service worker
-          --force-new-deployment
+          --task-definition ${{ env.TASK_DEF_ARN }}
+
+      - name: Wait for service stability
+        run: aws ecs wait services-stable --cluster job-worker-heavy --services worker
