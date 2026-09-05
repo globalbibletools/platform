@@ -102,13 +102,16 @@ async function createSqliteDb(languageId: string): Promise<Buffer> {
     glossStream,
     async function* (stream) {
       for await (const row of stream) {
-        if (!row.gloss) continue;
+        const gloss = row.approvedGloss ?? row.llmGloss;
+        if (!gloss) continue;
 
-        let textId = textIdMap.get(row.gloss);
+        const isAi = row.approvedGloss == null;
+
+        let textId = textIdMap.get(gloss);
         if (!textId) {
           textId = nextTextId;
           nextTextId += 1;
-          textIdMap.set(row.gloss, textId);
+          textIdMap.set(gloss, textId);
         }
 
         // Early versions of the gloss database used an _id column that was an integer.
@@ -120,6 +123,7 @@ async function createSqliteDb(languageId: string): Promise<Buffer> {
           _id: legacyWordId,
           text: textId,
           wordId: row.wordId,
+          isAi,
         };
       }
     },
@@ -137,7 +141,8 @@ async function createSqliteDb(languageId: string): Promise<Buffer> {
 
 interface GlossExportRow {
   wordId: string;
-  gloss: string | null;
+  approvedGloss: string | null;
+  llmGloss: string | null;
 }
 
 function streamGlossesForLanguage(
@@ -163,9 +168,24 @@ function streamGlossesForLanguage(
         .where("g.state", "=", GlossStateRaw.Approved)
         .select(["pw.word_id", "g.gloss"]),
     )
+    .with("llm_gloss_word", (db) =>
+      db
+        .selectFrom("machine_gloss as mg")
+        .innerJoin("machine_gloss_model as mgm", "mgm.id", "mg.model_id")
+        .innerJoin("book_word_map as w", "w.word_id", "mg.word_id")
+        .innerJoin("completed_books as b", "b.book_id", "w.book_id")
+        .where("mg.language_id", "=", languageId)
+        .where("mgm.code", "=", "llm_import")
+        .select(["mg.word_id", "mg.gloss"]),
+    )
     .selectFrom("word")
     .leftJoin("gloss_word", "gloss_word.word_id", "word.id")
-    .select(["word.id as wordId", "gloss_word.gloss"])
+    .leftJoin("llm_gloss_word", "llm_gloss_word.word_id", "word.id")
+    .select([
+      "word.id as wordId",
+      "gloss_word.gloss as approvedGloss",
+      "llm_gloss_word.gloss as llmGloss",
+    ])
     .orderBy("word.id")
     .stream();
 }

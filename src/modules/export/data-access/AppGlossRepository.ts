@@ -11,6 +11,7 @@ interface VersesTable {
   _id?: number; // deprecated
   text: number;
   wordId: string;
+  isAi: boolean;
 }
 
 export class AppGlossRepository {
@@ -37,7 +38,8 @@ export class AppGlossRepository {
         `create table verses (
         _id integer unique,
         text integer,
-        word_id text primary key
+        word_id text primary key,
+        is_ai integer not null default 0
       )`,
       )
       .run();
@@ -46,8 +48,9 @@ export class AppGlossRepository {
   getVerseWritableStream() {
     return new SqliteWritableStream(
       this.db,
-      "insert into verses (_id, text, word_id) values (?, ?, ?)",
-      (stmt, row: VersesTable) => stmt.run(row._id, row.text, row.wordId),
+      "insert into verses (_id, text, word_id, is_ai) values (?, ?, ?, ?)",
+      (stmt, row: VersesTable) =>
+        stmt.run(row._id, row.text, row.wordId, row.isAi ? 1 : 0),
     );
   }
 

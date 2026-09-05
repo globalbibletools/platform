@@ -68,6 +68,7 @@ function querySqliteTables(buffer: Buffer) {
     _id: number | null;
     text: number;
     word_id: string;
+    is_ai: number;
   }[];
   const texts = db.prepare("select * from text order by _id").all() as {
     _id: number;
@@ -121,7 +122,9 @@ test("exports approved glosses for a language as a SQLite database", async () =>
   const buffer = extractSqliteBuffer(mockedUploadZip.mock.calls[0][0].archive);
   const { verses, texts } = querySqliteTables(buffer);
 
-  expect(verses).toEqual([{ _id: Number(word.id), text: 1, word_id: word.id }]);
+  expect(verses).toEqual([
+    { _id: Number(word.id), text: 1, word_id: word.id, is_ai: 0 },
+  ]);
   expect(texts).toEqual([{ _id: 1, text: "test gloss" }]);
 
   const trackingRows = await getDb()
@@ -216,7 +219,9 @@ test("exports a null _id for a word whose id contains a hyphen", async () => {
   const buffer = extractSqliteBuffer(mockedUploadZip.mock.calls[0][0].archive);
   const { verses, texts } = querySqliteTables(buffer);
 
-  expect(verses).toEqual([{ _id: null, text: 1, word_id: hyphenatedWordId }]);
+  expect(verses).toEqual([
+    { _id: null, text: 1, word_id: hyphenatedWordId, is_ai: 0 },
+  ]);
   expect(texts).toEqual([{ _id: 1, text: "test gloss" }]);
 });
 
@@ -275,6 +280,81 @@ test("skips words with null glosses", async () => {
       url: `glosses/v1/${language.code}.db.zip`,
       resourceName: language.local_name,
     },
+  ]);
+});
+
+test("exports an llm gloss with is_ai when a word has no approved gloss", async () => {
+  const { language } = await languageFactory.build({ code: "hin" });
+
+  await getDb()
+    .insertInto("book_completion")
+    .values({
+      language_id: language.id,
+      book_id: HAGGAI_BOOK_ID,
+      refreshed_at: new Date(),
+      updated_at: new Date(),
+      completed_at: new Date(),
+    })
+    .execute();
+
+  const [approvedWord, aiWord] = await bibleFactory.words({ count: 3 });
+
+  const llmImportModel = await getDb()
+    .selectFrom("machine_gloss_model")
+    .where("code", "=", "llm_import")
+    .select("id")
+    .executeTakeFirstOrThrow();
+
+  await getDb()
+    .insertInto("machine_gloss")
+    .values([
+      {
+        word_id: approvedWord.id,
+        language_id: language.id,
+        model_id: llmImportModel.id,
+        gloss: "ai gloss",
+      },
+      {
+        word_id: aiWord.id,
+        language_id: language.id,
+        model_id: llmImportModel.id,
+        gloss: "ai gloss",
+      },
+    ])
+    .execute();
+
+  // The approved gloss takes precedence over the llm gloss for this word
+  await phraseFactory.build({
+    languageId: language.id,
+    wordIds: [approvedWord.id],
+    events: true,
+    gloss: {
+      state: GlossStateRaw.Approved,
+      gloss: "approved gloss",
+    },
+  });
+
+  const job = ExportGlossesSqliteJob.create({
+    languageCodes: [language.code],
+  });
+
+  await exportGlossesSqliteHandler(job);
+
+  const buffer = extractSqliteBuffer(mockedUploadZip.mock.calls[0][0].archive);
+  const { verses, texts } = querySqliteTables(buffer);
+
+  expect(verses).toEqual([
+    {
+      _id: Number(approvedWord.id),
+      text: 1,
+      word_id: approvedWord.id,
+      is_ai: 0,
+    },
+    { _id: Number(aiWord.id), text: 2, word_id: aiWord.id, is_ai: 1 },
+  ]);
+  expect(texts).toEqual([
+    { _id: 1, text: "approved gloss" },
+    { _id: 2, text: "ai gloss" },
   ]);
 });
 
@@ -355,7 +435,7 @@ test("exports multiple languages in separate databases", async () => {
   const spaBuffer = extractSqliteBuffer(spaArchive);
   const { verses: spaVerses, texts: spaTexts } = querySqliteTables(spaBuffer);
   expect(spaVerses).toEqual([
-    { _id: Number(word.id), text: 1, word_id: word.id },
+    { _id: Number(word.id), text: 1, word_id: word.id, is_ai: 0 },
   ]);
   expect(spaTexts).toEqual([{ _id: 1, text: "hello" }]);
 
@@ -363,7 +443,7 @@ test("exports multiple languages in separate databases", async () => {
   const hinBuffer = extractSqliteBuffer(hinArchive);
   const { verses: hinVerses, texts: hinTexts } = querySqliteTables(hinBuffer);
   expect(hinVerses).toEqual([
-    { _id: Number(word.id), text: 1, word_id: word.id },
+    { _id: Number(word.id), text: 1, word_id: word.id, is_ai: 0 },
   ]);
   expect(hinTexts).toEqual([{ _id: 1, text: "namaste" }]);
 
@@ -465,8 +545,8 @@ test("deduplicates gloss text entries", async () => {
   const { verses, texts } = querySqliteTables(buffer);
 
   expect(verses).toEqual([
-    { _id: Number(words[0].id), text: 1, word_id: words[0].id },
-    { _id: Number(words[1].id), text: 1, word_id: words[1].id },
+    { _id: Number(words[0].id), text: 1, word_id: words[0].id, is_ai: 0 },
+    { _id: Number(words[1].id), text: 1, word_id: words[1].id, is_ai: 0 },
   ]);
   expect(texts).toEqual([{ _id: 1, text: "same gloss" }]);
 
