@@ -21,17 +21,17 @@ export interface TranslationToolbarProps {
 }
 
 function sortLanguagesByMembership(
-  languages: { englishName: string; localName: string; code: string }[],
-  currentCode: string,
-): { englishName: string; localName: string; code: string }[] {
-  // Current language always first
-  const current = languages.find((l) => l.code === currentCode);
-  const others = languages.filter((l) => l.code !== currentCode);
+  languages: LanguageReadModel[],
+  currentLanguage: { isMember: boolean } | null,
+): LanguageReadModel[] {
+  const memberLanguages = languages.filter((l) => l.isMember);
+  const nonMemberLanguages = languages.filter((l) => !l.isMember);
   
-  // Sort others alphabetically by localName
-  others.sort((a, b) => a.localName.localeCompare(b.localName));
+  // Sort each group alphabetically by englishName
+  memberLanguages.sort((a, b) => a.englishName.localeCompare(b.englishName));
+  nonMemberLanguages.sort((a, b) => a.englishName.localeCompare(b.englishName));
   
-  return current ? [current, ...others] : others;
+  return [...memberLanguages, ...nonMemberLanguages];
 }
 
 export default function ReadingToolbar({
