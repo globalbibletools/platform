@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict ggJWgBFr8952Ni0ZB8OtmjkJafj9mduuO3GTNdBI2wluV68myPhdeKxSbD3TvAc
+\restrict B2J6BPpXqSS0Y5oXCW1Q67XakYolBftYsAGIBEa3FWMzKpp6LvXOKPwi2b5RqSR
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -134,23 +134,26 @@ CREATE TYPE public.user_status AS ENUM (
 CREATE FUNCTION public.decrement_suggestion() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
-BEGIN
-    IF OLD.state = 'APPROVED' AND (NEW.gloss <> OLD.gloss OR NEW.state <> 'APPROVED') THEN
-        UPDATE lemma_form_suggestion AS c
-        SET
-            count = c.count - 1 
-        WHERE c.gloss = OLD.gloss
-            AND c.language_id = (SELECT language_id FROM phrase WHERE id = OLD.phrase_id)
-            AND c.form_id IN (
-                SELECT w.form_id FROM word AS w
-                JOIN phrase_word AS phw ON phw.word_id = w.id
-                JOIN phrase AS ph ON  phw.phrase_id = ph.id
-                WHERE ph.id = OLD.phrase_id
+begin
+    if old.state = 'APPROVED'
+        and (new.gloss <> old.gloss or new.state <> 'APPROVED')
+        and (select count(*) from phrase_word where phrase_id = old.phrase_id) = 1
+    then
+        update lemma_form_suggestion as c
+        set
+            count = c.count - 1
+        where c.gloss = old.gloss
+            and c.language_id = (select language_id from phrase where id = old.phrase_id)
+            and c.form_id in (
+                select w.form_id from word as w
+                join phrase_word as phw on phw.word_id = w.id
+                join phrase as ph on phw.phrase_id = ph.id
+                where ph.id = old.phrase_id
             );
-    END IF;
+    end if;
 
-    RETURN NULL;
-END;
+    return null;
+end;
 $$;
 
 
@@ -161,33 +164,35 @@ $$;
 CREATE FUNCTION public.decrement_suggestion_after_phrase_delete() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
-DECLARE
-    t_gloss TEXT;
-BEGIN
-    IF NEW.deleted_at IS NOT NULL THEN
+declare
+    t_gloss text;
+begin
+    if new.deleted_at is not null
+        and (select count(*) from phrase_word where phrase_id = new.id) = 1
+    then
         -- Ignore phrases with unapproved glosses.
-        SELECT gloss.gloss INTO t_gloss
-        FROM gloss
-        WHERE phrase_id = NEW.id
-            AND state = 'APPROVED';
-        IF NOT FOUND THEN
-            RETURN NULL;
-        END IF;
+        select gloss.gloss into t_gloss
+        from gloss
+        where phrase_id = new.id
+            and state = 'APPROVED';
+        if not found then
+            return null;
+        end if;
 
-        UPDATE lemma_form_suggestion AS c
-        SET
-            count = c.count - 1 
-        WHERE c.gloss = t_gloss
-            AND c.language_id = NEW.language_id
-            AND c.form_id IN (
-                SELECT w.form_id FROM word AS w
-                JOIN phrase_word AS phw ON phw.word_id = w.id
-                WHERE phw.phrase_id = NEW.id
+        update lemma_form_suggestion as c
+        set
+            count = c.count - 1
+        where c.gloss = t_gloss
+            and c.language_id = new.language_id
+            and c.form_id in (
+                select w.form_id from word as w
+                join phrase_word as phw on phw.word_id = w.id
+                where phw.phrase_id = new.id
             );
-    END IF;
+    end if;
 
-    RETURN NULL;
-END;
+    return null;
+end;
 $$;
 
 
@@ -384,24 +389,27 @@ $$;
 CREATE FUNCTION public.increment_suggestion() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
-BEGIN
-    IF NEW.state = 'APPROVED' AND (OLD IS NULL OR NEW.gloss <> OLD.gloss OR OLD.state <> 'APPROVED') THEN
-        INSERT INTO lemma_form_suggestion AS c (language_id, form_id, gloss, count)
-        SELECT
+begin
+    if new.state = 'APPROVED'
+        and (old is null or new.gloss <> old.gloss or old.state <> 'APPROVED')
+        and (select count(*) from phrase_word where phrase_id = new.phrase_id) = 1
+    then
+        insert into lemma_form_suggestion as c (language_id, form_id, gloss, count)
+        select
             ph.language_id,
             w.form_id,
-            NEW.gloss,
+            new.gloss,
             1
-        FROM word AS w
-        JOIN phrase_word AS phw ON phw.word_id = w.id
-        JOIN phrase AS ph ON  phw.phrase_id = ph.id
-        WHERE ph.id = NEW.phrase_id
-        ON CONFLICT (language_id, form_id, gloss) DO UPDATE
-            SET count = c.count + 1;
-    END IF;
+        from word as w
+        join phrase_word as phw on phw.word_id = w.id
+        join phrase as ph on phw.phrase_id = ph.id
+        where ph.id = new.phrase_id
+        on conflict (language_id, form_id, gloss) do update
+            set count = c.count + 1;
+    end if;
 
-    RETURN NULL;
-END;
+    return null;
+end;
 $$;
 
 
@@ -2241,5 +2249,5 @@ ALTER TABLE ONLY public.word
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ggJWgBFr8952Ni0ZB8OtmjkJafj9mduuO3GTNdBI2wluV68myPhdeKxSbD3TvAc
+\unrestrict B2J6BPpXqSS0Y5oXCW1Q67XakYolBftYsAGIBEa3FWMzKpp6LvXOKPwi2b5RqSR
 
