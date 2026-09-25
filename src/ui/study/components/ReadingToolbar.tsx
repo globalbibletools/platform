@@ -20,6 +20,20 @@ export interface TranslationToolbarProps {
   children: ReactNode;
 }
 
+function sortLanguagesByMembership(
+  languages: LanguageReadModel[],
+  currentLanguage: { isMember: boolean } | null,
+): LanguageReadModel[] {
+  const memberLanguages = languages.filter((l) => l.isMember);
+  const nonMemberLanguages = languages.filter((l) => !l.isMember);
+  
+  // Sort each group alphabetically by englishName
+  memberLanguages.sort((a, b) => a.englishName.localeCompare(b.englishName));
+  nonMemberLanguages.sort((a, b) => a.englishName.localeCompare(b.englishName));
+  
+  return [...memberLanguages, ...nonMemberLanguages];
+}
+
 export default function ReadingToolbar({
   languages,
   progressByBookId,
@@ -62,7 +76,7 @@ export default function ReadingToolbar({
         <CommandInput progressByBookId={progressByBookId} />
         <ComboboxInput
           id="target-language"
-          items={languages.map((l) => ({
+          items={sortLanguagesByMembership(languages, code).map((l) => ({
             label: l.localName,
             value: l.code,
           }))}
