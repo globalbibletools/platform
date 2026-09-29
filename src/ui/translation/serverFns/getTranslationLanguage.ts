@@ -15,7 +15,7 @@ export const getTranslationLanguage = createServerFn({ method: "GET" })
   .middleware([createPolicyMiddleware({ policy })])
   .handler(async ({ data, context }) => {
     const [languages, currentLanguage] = await Promise.all([
-      getLanguagesReadModel(),
+      getLanguagesReadModel(context.session.user.id),
       getCurrentLanguageReadModel(data.code, context.session.user.id),
     ]);
 
