@@ -20,20 +20,6 @@ export interface TranslationToolbarProps {
   children: ReactNode;
 }
 
-function sortLanguagesByMembership(
-  languages: LanguageReadModel[],
-  currentLanguage: { isMember: boolean } | null,
-): LanguageReadModel[] {
-  const memberLanguages = languages.filter((l) => l.isMember);
-  const nonMemberLanguages = languages.filter((l) => !l.isMember);
-  
-  // Sort each group alphabetically by englishName
-  memberLanguages.sort((a, b) => a.englishName.localeCompare(b.englishName));
-  nonMemberLanguages.sort((a, b) => a.englishName.localeCompare(b.englishName));
-  
-  return [...memberLanguages, ...nonMemberLanguages];
-}
-
 export default function ReadingToolbar({
   languages,
   progressByBookId,
@@ -191,4 +177,17 @@ export function useClipboardCopy({
   );
 
   return copy;
+}
+
+function sortLanguagesByMembership(
+  languages: LanguageReadModel[],
+): LanguageReadModel[] {
+  const memberLanguages = languages.filter((l) => l.isMember);
+  const nonMemberLanguages = languages.filter((l) => !l.isMember);
+
+  // Sort each group alphabetically by localName
+  memberLanguages.sort((a, b) => a.localName.localeCompare(b.localName));
+  nonMemberLanguages.sort((a, b) => a.localName.localeCompare(b.localName));
+
+  return [...memberLanguages, ...nonMemberLanguages];
 }
