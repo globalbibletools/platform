@@ -74,8 +74,24 @@ function querySqliteTables(buffer: Buffer) {
   return { verses, texts };
 }
 
-async function readManifestSource(source: Readable): Promise<unknown[]> {
+async function readJsonl(source: Readable): Promise<unknown[]> {
   return source.map((line) => JSON.parse(line)).toArray();
+}
+
+function uploadedSource(key: string): Readable {
+  const call = mockedUpload.mock.calls.find(([args]) => args.key === key);
+  if (!call) throw new Error(`No upload found for key ${key}`);
+  return call[0].source as Readable;
+}
+
+async function expectLanguagesUpload(expected: unknown[]): Promise<void> {
+  expect(mockedUpload).toHaveBeenCalledWith({
+    key: "languages.jsonl",
+    source: expect.any(Readable),
+    type: "application/jsonl",
+  });
+  const languages = await readJsonl(uploadedSource("languages.jsonl"));
+  expect(languages).toEqual(expected);
 }
 
 test("exports approved glosses for a language as a SQLite database", async () => {
@@ -127,22 +143,29 @@ test("exports approved glosses for a language as a SQLite database", async () =>
     },
   ]);
 
-  expect(mockedUpload).toHaveBeenCalledExactlyOnceWith({
+  expect(mockedUpload).toHaveBeenCalledWith({
     key: "glosses/v1/manifest.jsonl",
     source: expect.any(Readable),
     type: "application/jsonl",
   });
-  const manifest = await readManifestSource(
-    mockedUpload.mock.calls[0][0].source as Readable,
-  );
+  const manifest = await readJsonl(uploadedSource("glosses/v1/manifest.jsonl"));
   expect(manifest).toEqual([
     {
       id: language.code,
+      langCode: language.code,
       updatedAt: expect.toBeNow(),
       sha256: "abc123",
       size: 1024,
       url: `glosses/v1/${language.code}.db.zip`,
       resourceName: language.local_name,
+    },
+  ]);
+
+  await expectLanguagesUpload([
+    {
+      code: language.code,
+      name: language.local_name,
+      textDirection: language.text_direction,
     },
   ]);
 });
@@ -220,22 +243,29 @@ test("skips words with null glosses", async () => {
   expect(verses).toEqual([]);
   expect(texts).toEqual([]);
 
-  expect(mockedUpload).toHaveBeenCalledExactlyOnceWith({
+  expect(mockedUpload).toHaveBeenCalledWith({
     key: "glosses/v1/manifest.jsonl",
     source: expect.any(Readable),
     type: "application/jsonl",
   });
-  const manifest = await readManifestSource(
-    mockedUpload.mock.calls[0][0].source as Readable,
-  );
+  const manifest = await readJsonl(uploadedSource("glosses/v1/manifest.jsonl"));
   expect(manifest).toEqual([
     {
       id: language.code,
+      langCode: language.code,
       updatedAt: expect.toBeNow(),
       sha256: "abc123",
       size: 1024,
       url: `glosses/v1/${language.code}.db.zip`,
       resourceName: language.local_name,
+    },
+  ]);
+
+  await expectLanguagesUpload([
+    {
+      code: language.code,
+      name: language.local_name,
+      textDirection: language.text_direction,
     },
   ]);
 });
@@ -319,15 +349,15 @@ test("skips a language code that does not exist", async () => {
     .execute();
   expect(trackingRows).toEqual([]);
 
-  expect(mockedUpload).toHaveBeenCalledExactlyOnceWith({
+  expect(mockedUpload).toHaveBeenCalledWith({
     key: "glosses/v1/manifest.jsonl",
     source: expect.any(Readable),
     type: "application/jsonl",
   });
-  const manifest = await readManifestSource(
-    mockedUpload.mock.calls[0][0].source as Readable,
-  );
+  const manifest = await readJsonl(uploadedSource("glosses/v1/manifest.jsonl"));
   expect(manifest).toEqual([]);
+
+  await expectLanguagesUpload([]);
 });
 
 test("exports multiple languages in separate databases", async () => {
@@ -402,18 +432,17 @@ test("exports multiple languages in separate databases", async () => {
     },
   ]);
 
-  expect(mockedUpload).toHaveBeenCalledExactlyOnceWith({
+  expect(mockedUpload).toHaveBeenCalledWith({
     key: "glosses/v1/manifest.jsonl",
     source: expect.any(Readable),
     type: "application/jsonl",
   });
-  const manifest = await readManifestSource(
-    mockedUpload.mock.calls[0][0].source as Readable,
-  );
+  const manifest = await readJsonl(uploadedSource("glosses/v1/manifest.jsonl"));
   // Manifest is ordered by language.code (hin before spa)
   expect(manifest).toEqual([
     {
       id: language2.code,
+      langCode: language2.code,
       updatedAt: expect.toBeNow(),
       sha256: "abc123",
       size: 1024,
@@ -422,11 +451,26 @@ test("exports multiple languages in separate databases", async () => {
     },
     {
       id: language1.code,
+      langCode: language1.code,
       updatedAt: expect.toBeNow(),
       sha256: "abc123",
       size: 1024,
       url: `glosses/v1/${language1.code}.db.zip`,
       resourceName: language1.local_name,
+    },
+  ]);
+
+  // Languages are ordered by code (hin before spa)
+  await expectLanguagesUpload([
+    {
+      code: language2.code,
+      name: language2.local_name,
+      textDirection: language2.text_direction,
+    },
+    {
+      code: language1.code,
+      name: language1.local_name,
+      textDirection: language1.text_direction,
     },
   ]);
 });
@@ -472,7 +516,7 @@ test("deduplicates gloss text entries", async () => {
   ]);
   expect(texts).toEqual([{ _id: 1, text: "same gloss" }]);
 
-  expect(mockedUpload).toHaveBeenCalledExactlyOnceWith({
+  expect(mockedUpload).toHaveBeenCalledWith({
     key: "glosses/v1/manifest.jsonl",
     source: expect.any(Readable),
     type: "application/jsonl",
@@ -525,7 +569,7 @@ test("upserts an existing tracking row instead of creating a duplicate", async (
     },
   ]);
 
-  expect(mockedUpload).toHaveBeenCalledExactlyOnceWith({
+  expect(mockedUpload).toHaveBeenCalledWith({
     key: "glosses/v1/manifest.jsonl",
     source: expect.any(Readable),
     type: "application/jsonl",
