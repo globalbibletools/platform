@@ -81,6 +81,7 @@ async function* manifestLines(
   for await (const row of rows) {
     yield JSON.stringify({
       id: row.code,
+      langCode: row.code,
       updatedAt: row.updatedAt.toISOString(),
       sha256: row.sha256,
       size: row.size,

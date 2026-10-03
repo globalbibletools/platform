@@ -138,6 +138,7 @@ test("exports approved glosses for a language as a SQLite database", async () =>
   expect(manifest).toEqual([
     {
       id: language.code,
+      langCode: language.code,
       updatedAt: expect.toBeNow(),
       sha256: "abc123",
       size: 1024,
@@ -231,6 +232,7 @@ test("skips words with null glosses", async () => {
   expect(manifest).toEqual([
     {
       id: language.code,
+      langCode: language.code,
       updatedAt: expect.toBeNow(),
       sha256: "abc123",
       size: 1024,
@@ -414,6 +416,7 @@ test("exports multiple languages in separate databases", async () => {
   expect(manifest).toEqual([
     {
       id: language2.code,
+      langCode: language2.code,
       updatedAt: expect.toBeNow(),
       sha256: "abc123",
       size: 1024,
@@ -422,6 +425,7 @@ test("exports multiple languages in separate databases", async () => {
     },
     {
       id: language1.code,
+      langCode: language1.code,
       updatedAt: expect.toBeNow(),
       sha256: "abc123",
       size: 1024,
