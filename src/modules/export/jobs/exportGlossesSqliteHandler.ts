@@ -11,6 +11,7 @@ import { exportStorageRepository } from "../data-access/exportStorageRepository"
 import {
   glossesSqliteExportRepository,
   GlossDbExportRow,
+  GlossLanguageExportRow,
 } from "../data-access/glossesSqliteExportRepository";
 
 export async function exportGlossesSqliteHandler(job: ExportGlossesSqliteJob) {
@@ -60,7 +61,7 @@ export async function exportGlossesSqliteHandler(job: ExportGlossesSqliteJob) {
     "Glosses SQLite export complete",
   );
 
-  await uploadGlossesManifest();
+  await Promise.all([uploadGlossesManifest(), uploadLanguagesManifest()]);
 }
 
 async function uploadGlossesManifest(): Promise<void> {
@@ -73,6 +74,30 @@ async function uploadGlossesManifest(): Promise<void> {
     source: manifestStream,
     type: "application/jsonl",
   });
+}
+
+async function uploadLanguagesManifest(): Promise<void> {
+  const manifestStream = Readable.from(
+    languageLines(glossesSqliteExportRepository.streamGlossLanguages()),
+  );
+
+  await exportStorageRepository.upload({
+    key: "languages.jsonl",
+    source: manifestStream,
+    type: "application/jsonl",
+  });
+}
+
+async function* languageLines(
+  rows: AsyncIterableIterator<GlossLanguageExportRow>,
+): AsyncGenerator<string> {
+  for await (const row of rows) {
+    yield JSON.stringify({
+      code: row.code,
+      name: row.name,
+      textDirection: row.textDirection,
+    }) + "\n";
+  }
 }
 
 async function* manifestLines(
