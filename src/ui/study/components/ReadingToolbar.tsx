@@ -11,11 +11,12 @@ import CommandInput from "./CommandInput";
 import { useFlash } from "@/flash";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { ProgressByBookIdReadModel } from "../readModels/getReadBookProgressReadModel";
+import { ReadLanguageReadModel } from "../readModels/getReadLanguagesReadModel";
 import { generateChapterPermalinkUrl } from "@/modules/study/route-handlers/resolvePermalink";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 export interface TranslationToolbarProps {
-  languages: { englishName: string; localName: string; code: string }[];
+  languages: ReadLanguageReadModel[];
   progressByBookId: ProgressByBookIdReadModel;
   children: ReactNode;
 }
@@ -27,10 +28,10 @@ function sortLanguagesByMembership(
   // Current language always first
   const current = languages.find((l) => l.code === currentCode);
   const others = languages.filter((l) => l.code !== currentCode);
-  
+
   // Sort others alphabetically by localName
   others.sort((a, b) => a.localName.localeCompare(b.localName));
-  
+
   return current ? [current, ...others] : others;
 }
 
@@ -76,7 +77,7 @@ export default function ReadingToolbar({
         <CommandInput progressByBookId={progressByBookId} />
         <ComboboxInput
           id="target-language"
-          items={sortLanguagesByMembership(languages, code).map((l) => ({
+          items={sortLanguagesByMembership(languages).map((l) => ({
             label: l.localName,
             value: l.code,
           }))}
@@ -191,4 +192,17 @@ export function useClipboardCopy({
   );
 
   return copy;
+}
+
+function sortLanguagesByMembership(
+  languages: ReadLanguageReadModel[],
+): ReadLanguageReadModel[] {
+  const memberLanguages = languages.filter((l) => l.isMember);
+  const nonMemberLanguages = languages.filter((l) => !l.isMember);
+
+  // Sort each group alphabetically by localName
+  memberLanguages.sort((a, b) => a.localName.localeCompare(b.localName));
+  nonMemberLanguages.sort((a, b) => a.localName.localeCompare(b.localName));
+
+  return [...memberLanguages, ...nonMemberLanguages];
 }

@@ -1,4 +1,5 @@
 import { getDb } from "@/db";
+import { TextDirectionRaw } from "@/modules/languages/model";
 import { sql } from "kysely";
 
 export interface UpsertGlossDbExportInput {
@@ -17,6 +18,12 @@ export interface GlossDbExportRow {
   sha256: string;
   size: number;
   updatedAt: Date;
+}
+
+export interface GlossLanguageExportRow {
+  code: string;
+  name: string;
+  textDirection: TextDirectionRaw;
 }
 
 export const glossesSqliteExportRepository = {
@@ -53,6 +60,19 @@ export const glossesSqliteExportRepository = {
         "e.sha256 as sha256",
         "e.size as size",
         "e.updated_at as updatedAt",
+      ])
+      .orderBy("l.code")
+      .stream();
+  },
+
+  streamGlossLanguages(): AsyncIterableIterator<GlossLanguageExportRow> {
+    return getDb()
+      .selectFrom("glosses_sqlite_export as e")
+      .innerJoin("language as l", "l.id", "e.language_id")
+      .select([
+        "l.code as code",
+        "l.local_name as name",
+        "l.text_direction as textDirection",
       ])
       .orderBy("l.code")
       .stream();

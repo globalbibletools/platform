@@ -49,15 +49,14 @@ export interface TranslationToolbarProps {
 
 function sortLanguagesByMembership(
   languages: LanguageReadModel[],
-  currentLanguage: { isMember: boolean } | null,
 ): LanguageReadModel[] {
   const memberLanguages = languages.filter((l) => l.isMember);
   const nonMemberLanguages = languages.filter((l) => !l.isMember);
-  
+
   // Sort each group alphabetically by englishName
   memberLanguages.sort((a, b) => a.englishName.localeCompare(b.englishName));
   nonMemberLanguages.sort((a, b) => a.englishName.localeCompare(b.englishName));
-  
+
   return [...memberLanguages, ...nonMemberLanguages];
 }
 
@@ -345,7 +344,7 @@ export default function TranslationToolbar({
         <div className="shrink-0 flex items-center">
           <ComboboxInput
             aria-label={t("language")}
-            items={sortLanguagesByMembership(languages, currentLanguage).map((l) => ({
+            items={sortLanguagesByMembership(languages).map((l) => ({
               label: l.englishName,
               value: l.code,
             }))}
