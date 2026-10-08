@@ -7,6 +7,7 @@ import { useTranslations } from "use-intl";
 import { Fragment, Ref, useImperativeHandle, useRef, useState } from "react";
 import TranslationLexiconPanel from "./TranslationLexiconPanel";
 import PhraseNoteEditor from "./PhraseNoteEditor";
+import ChapterContextPanel from "./ChapterContextPanel";
 
 export interface Word {
   id: string;
@@ -28,7 +29,10 @@ export interface TranslationSidebarProps {
     font: string;
     textDirection: string;
     isMember: boolean;
+    translationIds: string[];
   };
+  verseId: string;
+  sidebarPosition: "right" | "bottom";
   onClose?(): void;
   ref?: Ref<TranslationSidebarRef>;
 }
@@ -38,6 +42,8 @@ export default function TranslationSidebar({
   language,
   word,
   phraseId,
+  verseId,
+  sidebarPosition,
   onClose,
   ref,
 }: TranslationSidebarProps) {
@@ -91,19 +97,21 @@ export default function TranslationSidebar({
         <TabGroup as={Fragment} selectedIndex={tabIndex} onChange={setTabIndex}>
           <TabList className="flex flex-row">
             <div className="border-b border-blue-800 dark:border-green-400 h-full w-2"></div>
-            {[t("tabs.lexicon"), t("tabs.notes")].map((title) => (
-              <Fragment key={title}>
-                <Tab
-                  className="
+            {[t("tabs.lexicon"), t("tabs.notes"), t("tabs.chapter")].map(
+              (title) => (
+                <Fragment key={title}>
+                  <Tab
+                    className="
                     px-4 py-1 text-blue-800 font-bold rounded-t-lg border border-blue-800 data-selected:border-b-transparent outline-green-300 focus-visible:outline-2
                     dark:text-green-400 dark:border-green-400
                   "
-                >
-                  {title}
-                </Tab>
-                <div className="border-b border-blue-800 dark:border-green-400 h-full w-1"></div>
-              </Fragment>
-            ))}
+                  >
+                    {title}
+                  </Tab>
+                  <div className="border-b border-blue-800 dark:border-green-400 h-full w-1"></div>
+                </Fragment>
+              ),
+            )}
             <div className="border-b border-blue-800 dark:border-green-400 h-full grow"></div>
           </TabList>
           <TabPanels className="overflow-y-auto grow px-4 pt-4 pb-10 mb-4">
@@ -133,6 +141,13 @@ export default function TranslationSidebar({
                   editorRef={footnotesEditorRef}
                 />
               </div>
+            </TabPanel>
+            <TabPanel>
+              <ChapterContextPanel
+                verseId={verseId}
+                language={language}
+                sidebarPosition={sidebarPosition}
+              />
             </TabPanel>
           </TabPanels>
         </TabGroup>

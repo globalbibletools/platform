@@ -21,20 +21,6 @@ export interface TranslationToolbarProps {
   children: ReactNode;
 }
 
-function sortLanguagesByMembership(
-  languages: { englishName: string; localName: string; code: string }[],
-  currentCode: string,
-): { englishName: string; localName: string; code: string }[] {
-  // Current language always first
-  const current = languages.find((l) => l.code === currentCode);
-  const others = languages.filter((l) => l.code !== currentCode);
-
-  // Sort others alphabetically by localName
-  others.sort((a, b) => a.localName.localeCompare(b.localName));
-
-  return current ? [current, ...others] : others;
-}
-
 export default function ReadingToolbar({
   languages,
   progressByBookId,

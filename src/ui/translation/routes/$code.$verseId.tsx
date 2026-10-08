@@ -15,7 +15,6 @@ import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import TranslationToolbar, {
   ActionMap,
 } from "../components/TranslationToolbar";
-import TranslationReference from "../components/TranslationReference";
 import Button from "@/components/Button";
 import { Icon } from "@/components/Icon";
 import TranslationSidebar, {
@@ -23,6 +22,7 @@ import TranslationSidebar, {
 } from "../components/TranslationSidebar";
 import TranslateWord, { createWordGrid } from "../components/TranslateWord";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
+import { useMediaQuery } from "@/utils/useMediaQuery";
 import { sanityCheck } from "@/modules/translation/actions/sanityCheck";
 import { approveAll } from "@/modules/translation/actions/approveAll";
 import { linkWords } from "@/modules/translation/actions/linkWords";
@@ -129,6 +129,8 @@ function TranslationRoute() {
 
   const [showSidebar, setShowSidebar] = useState(false);
   const sidebarRef = useRef<TranslationSidebarRef>(null);
+  const isLargeScreen = useMediaQuery("(min-width: 1024px)");
+  const sidebarPosition = isLargeScreen ? "right" : ("bottom" as const);
 
   const { approveAll, isApprovingAll } = useApproveAll({ code, verseId });
   const { linkWords, isLinkingWords } = useLinkWords({
@@ -232,19 +234,6 @@ function TranslationRoute() {
           key={data.language.code}
           className="flex flex-col max-h-full min-h-0 gap-8 overflow-auto grow pt-8 pb-24 px-6"
         >
-          <div className="w-full max-w-[1200px] flex gap-4 md:grid-cols-2 mx-2 self-center">
-            <p
-              className="grow text-base font-mixed"
-              dir={isHebrew ? "rtl" : "ltr"}
-            >
-              {concatVerseWords(data.words)}
-            </p>
-            <TranslationReference
-              className="grow"
-              verseId={verseId}
-              language={data.language}
-            />
-          </div>
           <ol
             className={`
                         flex h-fit content-start flex-wrap gap-x-1 gap-y-2
@@ -323,6 +312,8 @@ function TranslationRoute() {
             language={data.language}
             word={sidebarWord}
             phraseId={sidebarPhrase!.id}
+            verseId={verseId}
+            sidebarPosition={sidebarPosition}
             className="
               sticky z-10
               h-[320px] bottom-10 mb-10
@@ -337,16 +328,6 @@ function TranslationRoute() {
       </div>
     </>
   );
-}
-
-function concatVerseWords(words: Array<{ text: string }>) {
-  return words
-    .map((word) => word.text)
-    .reduce((sentence, word) => {
-      if (!sentence) return word;
-      if (sentence.endsWith("־")) return `${sentence}${word}`;
-      return `${sentence} ${word}`;
-    }, "");
 }
 
 function useSanityCheck({ code, verseId }: { code: string; verseId: string }) {
