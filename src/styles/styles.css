@@ -1,6 +1,305 @@
 @import "tailwindcss" source("../");
 @import "./fonts.css";
 
+/* fetch-bible rendering styles (inlined from @gracious.tech/fetch-client/dist/client.css) */
+.fetch-bible .fb-add {
+  font-style: italic;
+}
+.fb-alt-italic.fetch-bible .fb-add {
+  font-style: normal;
+  filter: var(--fb-alt-italic-filter);
+}
+.fetch-bible .fb-bk {
+  font-style: italic;
+}
+.fb-alt-italic.fetch-bible .fb-bk {
+  font-style: normal;
+  filter: var(--fb-alt-italic-filter);
+}
+.fetch-bible .fb-dc {
+  font-style: italic;
+}
+.fb-alt-italic.fetch-bible .fb-dc {
+  font-style: normal;
+  filter: var(--fb-alt-italic-filter);
+}
+.fetch-bible .fb-k {
+  font-weight: bold;
+  font-style: italic;
+}
+.fb-alt-bold:not(.fb-alt-italic).fetch-bible .fb-k {
+  font-weight: normal;
+  filter: var(--fb-alt-bold-filter);
+}
+.fb-alt-italic:not(.fb-alt-bold).fetch-bible .fb-k {
+  font-style: normal;
+  filter: var(--fb-alt-italic-filter);
+}
+.fb-alt-bold.fb-alt-italic.fetch-bible .fb-k {
+  font-weight: normal;
+  font-style: normal;
+  filter: var(--fb-alt-bold-italic-filter);
+}
+.fetch-bible .fb-nd {
+  font-variant: small-caps;
+}
+.fetch-bible .fb-pn {
+  text-decoration: underline;
+}
+.fetch-bible .fb-png {
+  text-decoration: underline double;
+}
+.fetch-bible .fb-qac {
+  font-weight: bold;
+  font-style: italic;
+}
+.fb-alt-bold:not(.fb-alt-italic).fetch-bible .fb-qac {
+  font-weight: normal;
+  filter: var(--fb-alt-bold-filter);
+}
+.fb-alt-italic:not(.fb-alt-bold).fetch-bible .fb-qac {
+  font-style: normal;
+  filter: var(--fb-alt-italic-filter);
+}
+.fb-alt-bold.fb-alt-italic.fetch-bible .fb-qac {
+  font-weight: normal;
+  font-style: normal;
+  filter: var(--fb-alt-bold-italic-filter);
+}
+.fetch-bible .fb-qs {
+  font-style: italic;
+  display: block;
+  text-align: right;
+}
+.fb-alt-italic.fetch-bible .fb-qs {
+  font-style: normal;
+  filter: var(--fb-alt-italic-filter);
+}
+.fetch-bible .fb-qt {
+  font-style: italic;
+}
+.fb-alt-italic.fetch-bible .fb-qt {
+  font-style: normal;
+  filter: var(--fb-alt-italic-filter);
+}
+.fetch-bible .fb-sig {
+  font-style: italic;
+}
+.fb-alt-italic.fetch-bible .fb-sig {
+  font-style: normal;
+  filter: var(--fb-alt-italic-filter);
+}
+.fetch-bible .fb-tl {
+  font-style: italic;
+}
+.fb-alt-italic.fetch-bible .fb-tl {
+  font-style: normal;
+  filter: var(--fb-alt-italic-filter);
+}
+.fetch-bible .fb-wj {
+  color: var(--fb-red-letter);
+}
+.fetch-bible .fb-em {
+  font-style: italic;
+}
+.fb-alt-italic.fetch-bible .fb-em {
+  font-style: normal;
+  filter: var(--fb-alt-italic-filter);
+}
+.fetch-bible .fb-bd {
+  font-weight: bold;
+}
+.fetch-bible .fb-bdit {
+  font-weight: bold;
+  font-style: italic;
+}
+.fetch-bible .fb-it {
+  font-style: italic;
+}
+.fetch-bible .fb-no {
+  font-weight: normal;
+  font-style: normal;
+  color: inherit;
+  filter: none;
+}
+.fetch-bible .fb-sc {
+  font-variant: small-caps;
+}
+.fetch-bible .fb-lik {
+  font-style: italic;
+}
+.fb-alt-italic.fetch-bible .fb-lik {
+  font-style: normal;
+  filter: var(--fb-alt-italic-filter);
+}
+.fetch-bible .fb-pmo,
+.fetch-bible .fb-pm,
+.fetch-bible .fb-pmc {
+  margin-left: 3em;
+}
+.fetch-bible .fb-q1 {
+  margin-left: 1.5em;
+}
+.fetch-bible .fb-q2 {
+  margin-left: 3em;
+}
+.fetch-bible .fb-q3 {
+  margin-left: 4.5em;
+}
+.fetch-bible .fb-q4 {
+  margin-left: 6em;
+}
+.fetch-bible.no-initial-indent .fb-q1 {
+  margin-left: 0em;
+}
+.fetch-bible.no-initial-indent .fb-q2 {
+  margin-left: 1.5em;
+}
+.fetch-bible.no-initial-indent .fb-q3 {
+  margin-left: 3em;
+}
+.fetch-bible.no-initial-indent .fb-q4 {
+  margin-left: 4.5em;
+}
+.fetch-bible .fb-qr {
+  text-align: end;
+}
+.fetch-bible .fb-b {
+  margin-top: 1em;
+}
+.fetch-bible {
+  --fb-red-letter: hsl(0, 60%, 50%);
+  --fb-alt-italic-filter: opacity(0.85);
+  --fb-alt-bold-filter: contrast(2);
+  --fb-alt-bold-italic-filter: drop-shadow(0 0 5px hsl(0, 50%, 0%));
+}
+.fetch-bible sup,
+.fetch-bible sub {
+  line-height: 0;
+}
+.fetch-bible:not(.fb-plain) {
+  position: relative;
+  line-height: 1.65;
+  font-size: 16px;
+}
+@media (min-width: 800px) {
+  .fetch-bible:not(.fb-plain) {
+    font-size: 18px;
+  }
+}
+.fetch-bible:not(.fb-plain) h3[data-c] {
+  text-align: center;
+  opacity: 0.5;
+  font-size: 0.8em;
+  font-weight: normal;
+  font-family: Arial, sans-serif;
+  margin: 12px 0;
+}
+.fetch-bible:not(.fb-plain) h3[data-c]::before {
+  content: "——— ";
+}
+.fetch-bible:not(.fb-plain) h3[data-c]::after {
+  content: " ———";
+}
+.fetch-bible:not(.fb-plain) h4 {
+  font-size: 1em;
+  opacity: 0.6;
+  margin-top: 1.3em;
+  margin-bottom: 0.5em;
+}
+.fetch-bible:not(.fb-plain) sup[data-v] {
+  opacity: 0.6;
+  padding-right: 0.3em;
+  font-size: 0.7em;
+  user-select: none;
+}
+.fetch-bible:not(.fb-plain) .fb-attribution {
+  margin: 2em 0;
+  font-size: 0.8em;
+}
+.fetch-bible:not(.fb-plain) .fb-note {
+  cursor: help;
+}
+.fetch-bible:not(.fb-plain) .fb-note::before {
+  content: "*";
+  opacity: 0.5;
+}
+.fetch-bible:not(.fb-plain) .fb-note > span {
+  position: absolute;
+  z-index: 1;
+  font-size: 0.8em;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background-color: rgba(128, 128, 128, 0.1);
+  backdrop-filter: blur(50px);
+}
+.fetch-bible:not(.fb-plain) .fb-note:not(:hover) > span {
+  display: none;
+}
+.fetch-bible.no-red-letter .fb-wj {
+  color: inherit;
+}
+.fetch-bible.no-verses sup[data-v] {
+  display: none;
+}
+.fetch-bible.no-chapters h3[data-c] {
+  display: none;
+}
+.fetch-bible.no-headings .fb-ms,
+.fetch-bible.no-headings .fb-ms1,
+.fetch-bible.no-headings .fb-ms2,
+.fetch-bible.no-headings .fb-ms3,
+.fetch-bible.no-headings .fb-ms4,
+.fetch-bible.no-headings .fb-mr,
+.fetch-bible.no-headings .fb-s,
+.fetch-bible.no-headings .fb-s1,
+.fetch-bible.no-headings .fb-s2,
+.fetch-bible.no-headings .fb-s3,
+.fetch-bible.no-headings .fb-s4,
+.fetch-bible.no-headings .fb-sr,
+.fetch-bible.no-headings .fb-r,
+.fetch-bible.no-headings .fb-sp,
+.fetch-bible.no-headings .fb-qa {
+  display: none;
+}
+.fetch-bible.no-notes .fb-note {
+  display: none;
+}
+.fetch-bible.no-select sup[data-v],
+.fetch-bible.no-select h3[data-c],
+.fetch-bible.no-select .fb-note,
+.fetch-bible.no-select .fb-ms,
+.fetch-bible.no-select .fb-ms1,
+.fetch-bible.no-select .fb-ms2,
+.fetch-bible.no-select .fb-ms3,
+.fetch-bible.no-select .fb-ms4,
+.fetch-bible.no-select .fb-mr,
+.fetch-bible.no-select .fb-s,
+.fetch-bible.no-select .fb-s1,
+.fetch-bible.no-select .fb-s2,
+.fetch-bible.no-select .fb-s3,
+.fetch-bible.no-select .fb-s4,
+.fetch-bible.no-select .fb-sr,
+.fetch-bible.no-select .fb-r,
+.fetch-bible.no-select .fb-sp {
+  user-select: none;
+}
+.fetch-bible .fbn-excerpt {
+  font-style: italic;
+}
+.fetch-bible .fbn-excerpt::before {
+  content: open-quote;
+}
+.fetch-bible .fbn-excerpt::after {
+  content: close-quote;
+}
+.fetch-bible .fbn-greek,
+.fetch-bible .fbn-hebrew,
+.fetch-bible .fbn-aramaic,
+.fetch-bible .fbn-latin {
+  font-style: italic;
+}
+
 @layer base {
   :root {
     --heading-height: 4rem;
