@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, memo, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { parseVerseId } from "@/verse-utils";
 import bookKeys from "@/data/book-keys.json";
@@ -13,6 +13,7 @@ import {
   ButtonSelectorOption,
 } from "@/components/ButtonSelectorInput";
 import { useTranslations } from "use-intl";
+import DOMPurify from "dompurify";
 
 export interface ChapterContextPanelProps {
   verseId: string;
@@ -233,20 +234,24 @@ function TranslationText({
   }
 
   return (
-    <div
-      className="text-sm leading-relaxed"
-      dir={data.direction}
-      style={{
-        fontFamily: fontMap[language.font],
-      }}
-    >
-      <span className="font-bold me-2" title={data.name}>
+    <div dir={data.direction} style={{ fontFamily: fontMap[language.font] }}>
+      <p className="text-xs font-bold mb-2" title={data.name}>
         {data.shortName}
-      </span>
-      {data.chapter}
+      </p>
+      <ChapterHtml html={data.chapter} />
     </div>
   );
 }
+
+const ChapterHtml = memo(function ChapterHtml({ html }: { html: string }) {
+  const sanitized = useMemo(() => DOMPurify.sanitize(html), [html]);
+  return (
+    <div
+      className="fetch-bible"
+      dangerouslySetInnerHTML={{ __html: sanitized }}
+    />
+  );
+});
 
 function useChapterTranslationQuery(
   bookId: number,
@@ -265,13 +270,10 @@ function useChapterTranslationQuery(
           const book = await collection.fetch_book(
             translationId,
             bookKey,
-            "txt",
+            "html",
           );
           const chapterText = book.get_chapter(chapterNumber, {
             attribute: false,
-            verse_nums: true,
-            headings: false,
-            notes: false,
           });
           const translation = translations.find((t) => t.id === translationId);
           if (translation) {
