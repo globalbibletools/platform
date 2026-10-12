@@ -14,7 +14,7 @@
 begin;
 
 insert into recording (id, name, testament)
-values ('PCR', 'PCR', 'NT')
+values ('PCR', 'Rico', 'NT')
 on conflict (id) do nothing;
 
 insert into verse_audio_timing (verse_id, recording_id, start, "end")

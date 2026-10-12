@@ -399,6 +399,7 @@ export default function AudioDialog({
             : [
                 { label: "Modern", value: "TK" },
                 { label: "Lucian", value: "JH" },
+                { label: "Rico", value: "PCR" },
               ]
           }
           value={speaker}
