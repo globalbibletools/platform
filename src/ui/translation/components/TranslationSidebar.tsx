@@ -32,7 +32,6 @@ export interface TranslationSidebarProps {
     translationIds: string[];
   };
   verseId: string;
-  sidebarPosition: "right" | "bottom";
   onClose?(): void;
   ref?: Ref<TranslationSidebarRef>;
 }
@@ -43,7 +42,6 @@ export default function TranslationSidebar({
   word,
   phraseId,
   verseId,
-  sidebarPosition,
   onClose,
   ref,
 }: TranslationSidebarProps) {
@@ -143,11 +141,7 @@ export default function TranslationSidebar({
               </div>
             </TabPanel>
             <TabPanel>
-              <ChapterContextPanel
-                verseId={verseId}
-                language={language}
-                sidebarPosition={sidebarPosition}
-              />
+              <ChapterContextPanel verseId={verseId} language={language} />
             </TabPanel>
           </TabPanels>
         </TabGroup>

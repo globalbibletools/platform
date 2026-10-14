@@ -6,7 +6,8 @@ import { jsonArrayFrom } from "kysely/helpers/postgres";
 import * as z from "zod";
 
 const requestSchema = z.object({
-  verseId: z.string(),
+  chapterId: z.string(),
+  languageCode: z.string(),
 });
 
 const policy = new Policy({ authenticated: true });
@@ -26,7 +27,7 @@ export const getChapterWords = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => requestSchema.parse(input))
   .middleware([createPolicyMiddleware({ policy })])
   .handler(async ({ data }) => {
-    const { bookId, chapterNumber } = parseVerseId(data.verseId);
+    const { bookId, chapterNumber } = parseVerseId(data.chapterId + "001");
     const db = getDb();
 
     const result = await db

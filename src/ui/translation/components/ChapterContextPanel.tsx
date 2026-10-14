@@ -23,7 +23,6 @@ export interface ChapterContextPanelProps {
     textDirection: string;
     translationIds: string[];
   };
-  sidebarPosition: "right" | "bottom";
 }
 
 const bibleClient = new BibleClient();
@@ -31,7 +30,6 @@ const bibleClient = new BibleClient();
 export default function ChapterContextPanel({
   verseId,
   language,
-  sidebarPosition,
 }: ChapterContextPanelProps) {
   const t = useTranslations("TranslationSidebar");
   const { bookId, chapterNumber } = parseVerseId(verseId);
@@ -42,9 +40,12 @@ export default function ChapterContextPanel({
 
   const { data: verses, isLoading: isLoadingWords } = useQuery({
     queryKey: ["chapter-words", chapterId, language.code],
-    queryFn: () =>
+    queryFn: ({ queryKey: [, chapterId, languageCode] }) =>
       getChapterWords({
-        data: { verseId },
+        data: {
+          chapterId: chapterId as string,
+          languageCode: languageCode as string,
+        },
       }),
   });
 
@@ -68,27 +69,8 @@ export default function ChapterContextPanel({
     return null;
   }
 
-  if (sidebarPosition === "right") {
-    return (
-      <div className="flex flex-col gap-2 h-full">
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          <OriginalText verses={verses} isHebrew={isHebrew} verseId={verseId} />
-        </div>
-        {hasTranslation && (
-          <div className="flex-1 min-h-0 overflow-y-auto border-t border-gray-300 dark:border-gray-600 pt-2">
-            <TranslationText
-              data={translationData}
-              isLoading={isLoadingTranslation}
-              language={language}
-            />
-          </div>
-        )}
-      </div>
-    );
-  }
-
   return (
-    <BottomLayout
+    <ChapterLayout
       verses={verses}
       isHebrew={isHebrew}
       verseId={verseId}
@@ -101,7 +83,7 @@ export default function ChapterContextPanel({
   );
 }
 
-function BottomLayout({
+function ChapterLayout({
   verses,
   isHebrew,
   verseId,
@@ -235,9 +217,6 @@ function TranslationText({
 
   return (
     <div dir={data.direction} style={{ fontFamily: fontMap[language.font] }}>
-      <p className="text-xs font-bold mb-2" title={data.name}>
-        {data.shortName}
-      </p>
       <ChapterHtml html={data.chapter} />
     </div>
   );

@@ -22,7 +22,6 @@ import TranslationSidebar, {
 } from "../components/TranslationSidebar";
 import TranslateWord, { createWordGrid } from "../components/TranslateWord";
 import { hasShortcutModifier } from "@/utils/keyboard-shortcuts";
-import { useMediaQuery } from "@/utils/useMediaQuery";
 import { sanityCheck } from "@/modules/translation/actions/sanityCheck";
 import { approveAll } from "@/modules/translation/actions/approveAll";
 import { linkWords } from "@/modules/translation/actions/linkWords";
@@ -129,8 +128,6 @@ function TranslationRoute() {
 
   const [showSidebar, setShowSidebar] = useState(false);
   const sidebarRef = useRef<TranslationSidebarRef>(null);
-  const isLargeScreen = useMediaQuery("(min-width: 1024px)");
-  const sidebarPosition = isLargeScreen ? "right" : ("bottom" as const);
 
   const { approveAll, isApprovingAll } = useApproveAll({ code, verseId });
   const { linkWords, isLinkingWords } = useLinkWords({
@@ -313,7 +310,6 @@ function TranslationRoute() {
             word={sidebarWord}
             phraseId={sidebarPhrase!.id}
             verseId={verseId}
-            sidebarPosition={sidebarPosition}
             className="
               sticky z-10
               h-[320px] bottom-10 mb-10
