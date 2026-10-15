@@ -9,7 +9,14 @@ import {
   parseReferenceParts,
   parseVerseId,
 } from "@/verse-utils";
-import { SubmitEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  KeyboardEvent,
+  SubmitEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslations } from "use-intl";
 import { ProgressByBookIdReadModel } from "../readModels/getReadBookProgressReadModel";
 
@@ -55,10 +62,13 @@ export default function ChapterPickerDialog({
   }, [bookNames]);
 
   const [reference, setReference] = useState("");
+  const [selectedBookId, setSelectedBookId] = useState<number>();
   const options = useMemo(
-    () => getChapterReferenceOptions(reference, books),
-    [reference, books],
+    () => getChapterReferenceOptions(reference, books, selectedBookId),
+    [reference, books, selectedBookId],
   );
+
+  const book = options.books.length === 1 ? options.books[0] : undefined;
 
   async function _onSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -67,10 +77,18 @@ export default function ChapterPickerDialog({
       onSubmit(options.chapterId);
       return;
     }
+  }
 
-    if (options.book) {
-      setReference(options.book.name);
-      return;
+  function _onKeyUp(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Enter" || book) return;
+
+    const match = parseReferenceParts(reference);
+    if (!match?.bookToken || match.chapterToken) return;
+
+    const topMatch = options.books[0];
+    if (topMatch) {
+      setReference(`${topMatch.name} `);
+      setSelectedBookId(topMatch.id);
     }
   }
 
@@ -109,7 +127,9 @@ export default function ChapterPickerDialog({
             value={reference}
             onChange={(e) => {
               setReference(e.target.value);
+              setSelectedBookId(undefined);
             }}
+            onKeyUp={_onKeyUp}
             name="reference"
             autoComplete="off"
             placeholder={currentReference}
@@ -122,7 +142,7 @@ export default function ChapterPickerDialog({
           />
         </div>
 
-        {options.book ?
+        {book ?
           <>
             <div>
               <Button
@@ -131,6 +151,7 @@ export default function ChapterPickerDialog({
                 small
                 onClick={() => {
                   setReference("");
+                  setSelectedBookId(undefined);
                 }}
               >
                 <Icon icon="arrow-left" className="rtl:hidden me-2" />
@@ -139,9 +160,9 @@ export default function ChapterPickerDialog({
               </Button>
             </div>
             <ol className="grid grid-cols-[repeat(auto-fill,minmax(2.5rem,1fr))] gap-2 overflow-auto auto-rows-auto">
-              {Array.from({ length: options.book.chapterCount }, (_, i) => {
+              {Array.from({ length: book.chapterCount }, (_, i) => {
                 const chapterNumber = i + 1;
-                const nextChapterId = `${options.book!.id.toString().padStart(2, "0")}${chapterNumber.toString().padStart(3, "0")}`;
+                const nextChapterId = `${book.id.toString().padStart(2, "0")}${chapterNumber.toString().padStart(3, "0")}`;
 
                 return (
                   <Button
@@ -186,7 +207,8 @@ export default function ChapterPickerDialog({
                       className="justify-start"
                       tabIndex={-1}
                       onClick={() => {
-                        setReference(book.name);
+                        setReference(`${book.name} `);
+                        setSelectedBookId(book.id);
                       }}
                     >
                       {book.name}
@@ -255,9 +277,14 @@ export default function ChapterPickerDialog({
   );
 }
 
+interface BookOption {
+  id: number;
+  name: string;
+  chapterCount: number;
+}
+
 interface ChapterReferenceOptions {
-  books: Array<{ id: number; name: string; chapterCount: number }>;
-  book?: { id: number; name: string; chapterCount: number };
+  books: BookOption[];
   chapterNumber?: number;
   chapterId?: string;
   invalid: boolean;
@@ -265,7 +292,8 @@ interface ChapterReferenceOptions {
 
 function getChapterReferenceOptions(
   reference: string,
-  books: Array<{ id: number; name: string; chapterCount: number }>,
+  books: BookOption[],
+  selectedBookId?: number,
 ): ChapterReferenceOptions {
   const match = parseReferenceParts(reference);
   if (!match) {
@@ -280,17 +308,26 @@ function getChapterReferenceOptions(
 
   if (filteredBooks.length === 0) {
     return { books: filteredBooks, invalid: true };
-  } else if (filteredBooks.length > 1) {
-    return { books: filteredBooks, invalid: false };
   }
 
-  const book = filteredBooks[0];
+  // An explicit selection (e.g. clicking a book in the list) always wins.
+  // Otherwise, entering a chapter number or a single match narrows to the
+  // top match.
+  let book: BookOption | undefined;
+  if (selectedBookId != null) {
+    book = books.find((b) => b.id === selectedBookId);
+  } else if (filteredBooks.length === 1 || match.chapterToken) {
+    book = filteredBooks[0];
+  }
+
+  if (!book) {
+    return { books: filteredBooks, invalid: false };
+  }
 
   if (!match.chapterToken) {
     if (book.chapterCount === 1) {
       return {
-        books: filteredBooks,
-        book,
+        books: [book],
         chapterNumber: 1,
         chapterId: generateChapterId({
           bookId: book.id,
@@ -301,8 +338,7 @@ function getChapterReferenceOptions(
     }
 
     return {
-      books: filteredBooks,
-      book,
+      books: [book],
       invalid: false,
     };
   }
@@ -315,15 +351,13 @@ function getChapterReferenceOptions(
     chapterNumber <= chapterCount(book.id);
   if (!hasValidChapterNumber) {
     return {
-      books,
-      book,
+      books: [book],
       invalid: true,
     };
   }
 
   return {
-    books,
-    book,
+    books: [book],
     chapterNumber,
     chapterId: generateChapterId({
       bookId: book.id,
