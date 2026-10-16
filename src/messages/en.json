@@ -587,9 +587,14 @@
   "TranslationSidebar": {
     "tabs": {
       "lexicon": "Lexicon",
-      "notes": "Notes"
+      "notes": "Notes",
+      "chapter": "Chapter"
     },
     "close": "Close",
+    "chapter_panel": {
+      "original": "Original",
+      "translation": "Translation"
+    },
     "notes": {
       "translator_notes": "Translator Notes",
       "footnotes": "Footnotes",

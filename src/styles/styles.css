@@ -1,6 +1,8 @@
 @import "tailwindcss" source("../");
 @import "./fonts.css";
 
+@import "./fetch-bible.css";
+
 @layer base {
   :root {
     --heading-height: 4rem;
