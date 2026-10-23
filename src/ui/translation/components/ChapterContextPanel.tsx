@@ -1,5 +1,3 @@
-"use client";
-
 import { Fragment, memo, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { parseVerseId } from "@/verse-utils";
@@ -38,6 +36,8 @@ export default function ChapterContextPanel({
 
   const hasTranslation = language.translationIds.length > 0;
 
+  const [view, setView] = useState<"original" | "translation">("original");
+
   const { data: verses, isLoading: isLoadingWords } = useQuery({
     queryKey: ["chapter-words", chapterId, language.code],
     queryFn: ({ queryKey: [, chapterId, languageCode] }) =>
@@ -68,46 +68,6 @@ export default function ChapterContextPanel({
   if (!verses) {
     return null;
   }
-
-  return (
-    <ChapterLayout
-      verses={verses}
-      isHebrew={isHebrew}
-      verseId={verseId}
-      hasTranslation={hasTranslation}
-      translationData={translationData}
-      isLoadingTranslation={isLoadingTranslation}
-      language={language}
-      t={t}
-    />
-  );
-}
-
-function ChapterLayout({
-  verses,
-  isHebrew,
-  verseId,
-  hasTranslation,
-  translationData,
-  isLoadingTranslation,
-  language,
-  t,
-}: {
-  verses: Array<{ id: string; number: number; words: Array<{ text: string }> }>;
-  isHebrew: boolean;
-  verseId: string;
-  hasTranslation: boolean;
-  translationData: ChapterTranslationData | undefined;
-  isLoadingTranslation: boolean;
-  language: {
-    code: string;
-    font: string;
-    textDirection: string;
-    translationIds: string[];
-  };
-  t: ReturnType<typeof useTranslations<"TranslationSidebar">>;
-}) {
-  const [view, setView] = useState<"original" | "translation">("original");
 
   if (!hasTranslation) {
     return (
