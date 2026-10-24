@@ -605,9 +605,14 @@
   "TranslationSidebar": {
     "tabs": {
       "lexicon": "القاموس",
-      "notes": "الملاحظات"
+      "notes": "الملاحظات",
+      "chapter": "الفصل"
     },
     "close": "إغلاق",
+    "chapter_panel": {
+      "original": "النص الأصلي",
+      "translation": "الترجمة"
+    },
     "notes": {
       "translator_notes": "ملاحظات المترجم",
       "footnotes": "الحواشي",
