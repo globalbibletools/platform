@@ -13,7 +13,7 @@ services:
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
-      AWS_ENDPOINT_URL_S3: http://localstack:4566
+      AWS_ENDPOINT_URL_S3: http://ministack:4566
       AWS_S3_FORCE_PATH_STYLE: "true"
     volumes:
       - ./:/app
@@ -23,7 +23,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      localstack:
+      ministack:
         condition: service_healthy
   job_worker_light:
     build:
@@ -36,7 +36,7 @@ services:
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
-      AWS_ENDPOINT_URL_S3: http://localstack:4566
+      AWS_ENDPOINT_URL_S3: http://ministack:4566
       AWS_S3_FORCE_PATH_STYLE: "true"
       EXPORT_PUBLIC_S3_ENDPOINT: http://localhost:${LOCALSTACK_PORT:-4566}
       BIBLE_SYSTEMS_API_KEY: ${BIBLE_SYSTEMS_API_KEY}
@@ -47,7 +47,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      localstack:
+      ministack:
         condition: service_healthy
     env_file:
       - path: .env
@@ -63,7 +63,7 @@ services:
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
-      AWS_ENDPOINT_URL_S3: http://localstack:4566
+      AWS_ENDPOINT_URL_S3: http://ministack:4566
       AWS_S3_FORCE_PATH_STYLE: "true"
       EXPORT_PUBLIC_S3_ENDPOINT: http://localhost:${LOCALSTACK_PORT:-4566}
       BIBLE_SYSTEMS_API_KEY: ${BIBLE_SYSTEMS_API_KEY}
@@ -74,24 +74,27 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      localstack:
+      ministack:
         condition: service_healthy
     env_file:
       - path: .env
         required: false
-  localstack:
-    image: localstack/localstack:4
+  ministack:
+    image: ministackorg/ministack:1.5.35
     environment:
       - SERVICES=s3
-      - DEFAULT_REGION=us-east-1
-      - LS_LOG=warn
+      - MINISTACK_REGION=us-east-1
+      - LOG_LEVEL=WARNING
     ports:
       - ${LOCALSTACK_PORT:-4566}:4566
     volumes:
-      - ./localstack/data:/var/lib/localstack
-      - ./localstack/init:/etc/localstack/init
+      - ./ministack/init:/docker-entrypoint-initaws.d
     healthcheck:
-      test: ["CMD", "bash", "-c", "awslocal s3 ls >/dev/null 2>&1"]
+      test:
+        [
+          "CMD-SHELL",
+          'awslocal s3api head-bucket --bucket "$${STATIC_ASSET_BUCKET:-gbt-static-assets}" >/dev/null 2>&1',
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
