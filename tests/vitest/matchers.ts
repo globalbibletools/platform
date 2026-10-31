@@ -1,5 +1,5 @@
 import { expect } from "vitest";
-import { differenceInSeconds } from "date-fns";
+import { addDays, differenceInSeconds } from "date-fns";
 
 expect.extend({
   toBeUlid(received: any) {
@@ -28,15 +28,12 @@ expect.extend({
   },
   toBeDaysIntoFuture(received: any, days: number) {
     const receivedDate = received && new Date(received);
-    const actualDifference = differenceInSeconds(receivedDate, new Date());
-    const expectedDifference = 60 * 60 * 24 * days;
+    const expectedDate = addDays(new Date(), days);
+    const actualDifference = differenceInSeconds(receivedDate, expectedDate);
     return {
-      pass: Math.abs(actualDifference - expectedDifference) < 15,
-      message: () => {
-        const hours = Math.round(actualDifference / (60 * 60));
-        const actualDays = hours / 24;
-        return `${receivedDate} is ${actualDays} days into the future, expected ${this.isNot ? " not" : ""} ${days}`;
-      },
+      pass: Math.abs(actualDifference) < 15,
+      message: () =>
+        `${receivedDate} is${this.isNot ? " not" : ""} expected to be within 15 seconds of ${expectedDate} (${days} calendar days into the future)`,
     };
   },
   toBeHoursIntoFuture(received: any, hours: number) {
