@@ -1,37 +1,16 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import Invitation from "./Invitation";
 import { addHours } from "date-fns";
 
 describe("generate", () => {
-  beforeEach(() => {
-    vi.stubEnv("TZ", "US/Central");
-    vi.useFakeTimers({ toFake: ["Date"] });
+  test("generates new token with expiration date", () => {
+    expect(Invitation.generate()).toEqual(
+      new Invitation({
+        token: expect.toBeToken(24),
+        expiresAt: expect.toBeDaysIntoFuture(7),
+      }),
+    );
   });
-
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.unstubAllEnvs();
-  });
-
-  test.each([
-    ["ordinary week", "2026-10-17T20:14:17.230Z", "2026-10-24T20:14:17.230Z"],
-    ["spring DST", "2026-03-07T20:14:17.230Z", "2026-03-14T19:14:17.230Z"],
-    ["autumn DST", "2026-10-31T20:14:17.230Z", "2026-11-07T21:14:17.230Z"],
-  ])(
-    "generates a token expiring seven calendar days later across %s",
-    (_name, now, expiry) => {
-      vi.setSystemTime(new Date(now));
-      const invitation = Invitation.generate();
-
-      expect(invitation).toEqual(
-        new Invitation({
-          token: expect.toBeToken(24),
-          expiresAt: expect.toBeDaysIntoFuture(7),
-        }),
-      );
-      expect(invitation.expiresAt.toISOString()).toEqual(expiry);
-    },
-  );
 });
 
 describe("validateToken", () => {

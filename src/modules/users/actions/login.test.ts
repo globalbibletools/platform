@@ -90,7 +90,7 @@ test("creates session for user if password matches", async () => {
     {
       id: sessionId,
       user_id: user.id,
-      expires_at: expect.toBeHoursIntoFuture(720),
+      expires_at: expect.toBeDaysIntoFuture(30),
     },
   ]);
 });
