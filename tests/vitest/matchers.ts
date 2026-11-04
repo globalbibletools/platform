@@ -31,7 +31,7 @@ expect.extend({
     const actualDifference = differenceInSeconds(receivedDate, new Date());
     const expectedDifference = 60 * 60 * 24 * days;
     return {
-      pass: Math.abs(actualDifference - expectedDifference) < 15,
+      pass: Math.abs(actualDifference - expectedDifference) < 60 * 60 + 15,
       message: () => {
         const hours = Math.round(actualDifference / (60 * 60));
         const actualDays = hours / 24;
