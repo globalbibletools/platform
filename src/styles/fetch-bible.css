@@ -280,3 +280,13 @@
 .fetch-bible .fbn-latin {
   font-style: italic;
 }
+
+.fetch-bible span.fb-current-verse {
+  background-color: #b2ddd7;
+  border-radius: 0.25rem;
+}
+@media (prefers-color-scheme: dark) {
+  .fetch-bible span.fb-current-verse {
+    background-color: #44403c;
+  }
+}

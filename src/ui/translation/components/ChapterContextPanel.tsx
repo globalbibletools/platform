@@ -1,4 +1,4 @@
-import { Fragment, memo, useMemo, useState } from "react";
+import { Fragment, memo, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { parseVerseId } from "@/verse-utils";
 import bookKeys from "@/data/book-keys.json";
@@ -30,7 +30,7 @@ export default function ChapterContextPanel({
   language,
 }: ChapterContextPanelProps) {
   const t = useTranslations("TranslationSidebar");
-  const { bookId, chapterNumber } = parseVerseId(verseId);
+  const { bookId, chapterNumber, verseNumber } = parseVerseId(verseId);
   const chapterId = verseId.slice(0, 5);
   const isHebrew = bookId < 40;
 
@@ -98,6 +98,8 @@ export default function ChapterContextPanel({
             data={translationData}
             isLoading={isLoadingTranslation}
             language={language}
+            chapterNumber={chapterNumber}
+            verseNumber={verseNumber}
           />
         }
       </div>
@@ -114,6 +116,15 @@ function OriginalText({
   isHebrew: boolean;
   verseId: string;
 }) {
+  const currentVerseRef = useRef<HTMLSpanElement | null>(null);
+
+  useEffect(() => {
+    currentVerseRef.current?.scrollIntoView({
+      block: "nearest",
+      behavior: "smooth",
+    });
+  }, [verseId]);
+
   return (
     <div
       className="text-sm font-mixed leading-relaxed"
@@ -122,6 +133,7 @@ function OriginalText({
       {verses.map((verse) => (
         <span
           key={verse.id}
+          ref={verse.id === verseId ? currentVerseRef : null}
           className={
             verse.id === verseId ? "bg-green-200 dark:bg-gray-700 rounded" : ""
           }
@@ -155,6 +167,8 @@ function TranslationText({
   data,
   isLoading,
   language,
+  chapterNumber,
+  verseNumber,
 }: {
   data: ChapterTranslationData | undefined;
   isLoading: boolean;
@@ -162,6 +176,8 @@ function TranslationText({
     font: string;
     textDirection: string;
   };
+  chapterNumber: number;
+  verseNumber: number;
 }) {
   if (isLoading) {
     return (
@@ -177,15 +193,73 @@ function TranslationText({
 
   return (
     <div dir={data.direction} style={{ fontFamily: fontMap[language.font] }}>
-      <ChapterHtml html={data.chapter} />
+      <ChapterHtml
+        html={data.chapter}
+        chapterNumber={chapterNumber}
+        verseNumber={verseNumber}
+      />
     </div>
   );
 }
 
-const ChapterHtml = memo(function ChapterHtml({ html }: { html: string }) {
+const ChapterHtml = memo(function ChapterHtml({
+  html,
+  chapterNumber,
+  verseNumber,
+}: {
+  html: string;
+  chapterNumber: number;
+  verseNumber: number;
+}) {
   const sanitized = useMemo(() => DOMPurify.sanitize(html), [html]);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    // The library's raw HTML has sup[data-v] verse number markers but no span[data-v]
+    // content wrappers. Build them manually: for each paragraph, group content nodes
+    // after each verse marker into a span with the same data-v value.
+    container.querySelectorAll("p").forEach((p) => {
+      let currentVerseId = "";
+      let wrapper: HTMLSpanElement | null = null;
+      Array.from(p.childNodes).forEach((child) => {
+        if (
+          child.nodeType === Node.ELEMENT_NODE &&
+          (child as Element).tagName === "SUP" &&
+          (child as Element).hasAttribute("data-v")
+        ) {
+          currentVerseId = (child as Element).getAttribute("data-v") ?? "";
+          wrapper = null;
+          return;
+        }
+        if (currentVerseId) {
+          if (!wrapper) {
+            wrapper = document.createElement("span");
+            wrapper.setAttribute("data-v", currentVerseId);
+            p.insertBefore(wrapper, child);
+          }
+          wrapper.appendChild(child);
+        }
+      });
+    });
+
+    // Clear previous highlight and apply to current verse.
+    container
+      .querySelectorAll("span.fb-current-verse")
+      .forEach((el) => el.classList.remove("fb-current-verse"));
+    const verseKey = `${chapterNumber}:${verseNumber}`;
+    const currentSpan = container.querySelector(
+      `span[data-v="${verseKey}"]`,
+    );
+    currentSpan?.classList.add("fb-current-verse");
+    currentSpan?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [sanitized, chapterNumber, verseNumber]);
+
   return (
     <div
+      ref={containerRef}
       className="fetch-bible"
       dangerouslySetInnerHTML={{ __html: sanitized }}
     />
