@@ -118,9 +118,9 @@ function TranslationRoute() {
   }, [verseId, autofocus]);
 
   const focusedPhrase = data.phrases.find((ph) => ph.id === focusedPhraseId);
-  const sidebarPhrase = data.phrases.find(
-    (ph) => ph.id === lastFocusedPhraseId,
-  );
+  const sidebarPhrase =
+    data.phrases.find((ph) => ph.id === lastFocusedPhraseId) ??
+    data.phrases[0];
   const sidebarWord =
     (sidebarPhrase ?
       data.words.find((word) => word.id === sidebarPhrase.wordIds[0])
@@ -308,7 +308,7 @@ function TranslationRoute() {
             ref={sidebarRef}
             language={data.language}
             word={sidebarWord}
-            phraseId={sidebarPhrase!.id}
+            phraseId={sidebarPhrase.id}
             verseId={verseId}
             className="
               sticky z-10
